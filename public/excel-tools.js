@@ -40,16 +40,28 @@
     location.reload();
   }
   function addButtons(){
-    var headings=document.querySelectorAll('h1');var productHeading=null;headings.forEach(function(h){if(h.textContent.trim()==='Productos')productHeading=h;});if(!productHeading)return;
-    var head=productHeading.closest('.pagehead');if(!head||head.querySelector('[data-excel-tools]'))return;
-    var wrap=document.createElement('div');wrap.setAttribute('data-excel-tools','1');wrap.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end';
+    var headings=document.querySelectorAll('h1');
+    var productHeading=null;
+    for(var i=0;i<headings.length;i++){if(headings[i].textContent.trim()==='Productos'){productHeading=headings[i];break;}}
+    if(!productHeading)return;
+    var head=productHeading.closest('.pagehead');
+    if(!head||head.querySelector('[data-excel-tools]'))return;
+    var wrap=document.createElement('div');
+    wrap.setAttribute('data-excel-tools','1');
+    wrap.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end';
     function button(text,kind){var b=document.createElement('button');b.type='button';b.textContent=text;b.style.cssText='border:1px solid '+(kind==='primary'?'#cfd8e3':'#d9e0e8')+';background:'+(kind==='primary'?'#111827':'#fff')+';color:'+(kind==='primary'?'#fff':'#273444')+';border-radius:10px;padding:10px 13px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.04)';b.onmouseenter=function(){b.style.transform='translateY(-1px)';};b.onmouseleave=function(){b.style.transform='';};return b;}
     var input=document.createElement('input');input.type='file';input.accept='.xlsx,.xls,.csv';input.style.display='none';
     var imp=button('↑ Importar Excel','primary'),exp=button('↓ Exportar Excel','normal'),inc=button('% Aumentar precios','normal');
     imp.title='Importar productos desde Excel';exp.title='Exportar todos los productos a Excel';inc.title='Aumentar todos los precios por porcentaje';
-    imp.onclick=function(){input.value='';input.click();};input.onchange=function(){if(input.files&&input.files[0])importProducts(input.files[0]);};exp.onclick=exportProducts;inc.onclick=bulkIncrease;
+    imp.onclick=function(){input.value='';input.click();};
+    input.onchange=function(){if(input.files&&input.files[0])importProducts(input.files[0]);};
+    exp.onclick=exportProducts;inc.onclick=bulkIncrease;
     wrap.appendChild(input);wrap.appendChild(imp);wrap.appendChild(exp);wrap.appendChild(inc);
-    var actions=head.querySelector('.pagehead > div:last-child');if(actions)actions.parentNode.insertBefore(wrap,actions);else head.appendChild(wrap);
+    var actions=head.querySelector('.pagehead > div:last-child');
+    if(actions)actions.parentNode.insertBefore(wrap,actions);else head.appendChild(wrap);
   }
-  var observer=new MutationObserver(addButtons);observer.observe(document.documentElement,{childList:true,subtree:true});addButtons();
+  // No MutationObserver global: React cambia el DOM constantemente y observar todo el documento puede generar una carga innecesaria de CPU.
+  // Un chequeo liviano cada segundo alcanza para detectar cuando se entra a Productos sin interferir con la aplicación.
+  addButtons();
+  window.setInterval(addButtons,1000);
 })();
