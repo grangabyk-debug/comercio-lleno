@@ -1,54 +1,45 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { supabase } from '@/lib/supabase'
 
-type Product = { id: string; name: string; barcode: string; price: number; stock: number }
-type CartItem = Product & { qty: number }
+type Product = { id:string; name:string; barcode:string; price:number; stock:number; category?:string }
+type CartItem = Product & { qty:number }
+type Sale = { id:string; date:string; total:number; payment:string; items:number }
+type View = 'dashboard'|'caja'|'productos'|'stock'|'ventas'|'clientes'|'caja-diaria'|'configuracion'
 
-const demoProducts: Product[] = [
-  { id: '1', name: 'Detergente 750 ml', barcode: '779000000001', price: 2500, stock: 24 },
-  { id: '2', name: 'Lavandina 2 L', barcode: '779000000002', price: 1800, stock: 18 },
-  { id: '3', name: 'Esponja multiuso', barcode: '779000000003', price: 950, stock: 50 },
-]
+const demoProducts:Product[]=[
+{id:'1',name:'Detergente 750 ml',barcode:'779000000001',price:2500,stock:24,category:'Limpieza'},
+{id:'2',name:'Lavandina 2 L',barcode:'779000000002',price:1800,stock:18,category:'Limpieza'},
+{id:'3',name:'Esponja multiuso',barcode:'779000000003',price:950,stock:50,category:'Limpieza'},
+{id:'4',name:'Perfume textil 250 ml',barcode:'779000000004',price:3200,stock:12,category:'Perfumería'},
+{id:'5',name:'Bolsas 60x90 x10',barcode:'779000000005',price:2200,stock:30,category:'Bazar'}]
+const money=new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0})
+const nav:[View,string,string][]=[['dashboard','⌂','Inicio'],['caja','▣','Caja'],['productos','▤','Productos'],['stock','◈','Stock'],['ventas','▤','Ventas'],['clientes','♙','Clientes'],['caja-diaria','◷','Caja diaria'],['configuracion','⚙','Configuración']]
 
-export default function Home() {
-  const [query, setQuery] = useState('')
-  const [cart, setCart] = useState<CartItem[]>([])
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => { inputRef.current?.focus() }, [])
-
-  const addProduct = (product: Product) => setCart(items => {
-    const found = items.find(i => i.id === product.id)
-    return found ? items.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i) : [...items, { ...product, qty: 1 }]
-  })
-
-  const scan = () => {
-    const value = query.trim()
-    const product = demoProducts.find(p => p.barcode === value)
-    if (product) { addProduct(product); setQuery('') }
-  }
-
-  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0)
-  const money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 })
-
-  return <main className="shell">
-    <header className="topbar"><div><div className="brand">Comercio <span>Lleno</span></div><div className="subtitle">Punto de venta</div></div><div className="status"><i /> Caja 1 · Operativa</div></header>
-    <section className="workspace">
-      <div className="products panel">
-        <div className="search"><span>⌕</span><input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && scan()} placeholder="Escaneá un código de barras o buscá un producto" autoComplete="off" /></div>
-        <div className="hint">El scanner USB funciona directamente sobre este campo.</div>
-        <div className="quick">
-          {demoProducts.map(p => <button key={p.id} onClick={() => addProduct(p)}><b>{p.name}</b><span>{money.format(p.price)}</span></button>)}
-        </div>
-      </div>
-      <div className="ticket panel">
-        <div className="ticketHead"><h1>Venta actual</h1><button onClick={() => setCart([])}>Vaciar</button></div>
-        <div className="items">
-          {cart.length === 0 ? <div className="empty"><div>🛒</div><b>Esperando productos</b><span>Pasá el código por el scanner para empezar.</span></div> : cart.map(item => <div className="item" key={item.id}><div><b>{item.name}</b><span>{item.qty} × {money.format(item.price)}</span></div><strong>{money.format(item.qty * item.price)}</strong></div>)}
-        </div>
-        <div className="checkout"><div className="total"><span>Total</span><strong>{money.format(total)}</strong></div><div className="payments"><button disabled={!cart.length}>Efectivo</button><button disabled={!cart.length}>Débito</button><button disabled={!cart.length}>Crédito</button><button disabled={!cart.length}>Transferencia</button></div><button className="charge" disabled={!cart.length}>Cobrar y facturar</button></div>
-      </div>
-    </section>
-  </main>
+export default function Home(){
+ const [view,setView]=useState<View>('dashboard'); const [products,setProducts]=useState<Product[]>(demoProducts); const [cart,setCart]=useState<CartItem[]>([]); const [query,setQuery]=useState(''); const [payment,setPayment]=useState('Efectivo'); const [cashOpen,setCashOpen]=useState(false); const [opening,setOpening]=useState(0); const [sales,setSales]=useState<Sale[]>([]); const inputRef=useRef<HTMLInputElement>(null)
+ useEffect(()=>{const p=localStorage.getItem('cl_products');if(p)setProducts(JSON.parse(p));const s=localStorage.getItem('cl_sales');if(s)setSales(JSON.parse(s));const c=localStorage.getItem('cl_cash');if(c){const x=JSON.parse(c);setCashOpen(!!x.open);setOpening(x.opening||0)};supabase.from('products').select('id,name,barcode,price,stock,category').eq('active',true).limit(100).then(({data})=>{if(data?.length)setProducts(data as Product[])}).catch(()=>{})},[])
+ useEffect(()=>{if(view==='caja')setTimeout(()=>inputRef.current?.focus(),50)},[view])
+ const filtered=useMemo(()=>products.filter(p=>`${p.name} ${p.barcode} ${p.category||''}`.toLowerCase().includes(query.toLowerCase())),[products,query]); const total=cart.reduce((s,i)=>s+i.price*i.qty,0); const lowStock=products.filter(p=>p.stock<=5).length; const today=new Date().toISOString().slice(0,10); const todaySales=sales.filter(s=>s.date.slice(0,10)===today); const todayTotal=todaySales.reduce((s,x)=>s+x.total,0)
+ function add(p:Product){setCart(a=>{const f=a.find(i=>i.id===p.id);return f?a.map(i=>i.id===p.id?{...i,qty:Math.min(i.qty+1,p.stock)}:i):[...a,{...p,qty:1}]});setQuery('');setTimeout(()=>inputRef.current?.focus(),20)}
+ function scan(){const p=products.find(x=>x.barcode===query.trim());if(p)add(p);else setQuery('')}
+ function qty(id:string,d:number){setCart(a=>a.map(i=>i.id===id?{...i,qty:Math.max(1,Math.min(i.qty+d,i.stock))}:i))}
+ function finish(){if(!cart.length||!cashOpen)return;const sale={id:crypto.randomUUID(),date:new Date().toISOString(),total,payment,items:cart.reduce((s,i)=>s+i.qty,0)};const ns=[sale,...sales];setSales(ns);localStorage.setItem('cl_sales',JSON.stringify(ns));const np=products.map(p=>{const i=cart.find(x=>x.id===p.id);return i?{...p,stock:p.stock-i.qty}:p});setProducts(np);localStorage.setItem('cl_products',JSON.stringify(np));setCart([]);alert('Venta registrada. ARCA se conecta en el módulo fiscal.')}
+ function openCash(){const n=Number(prompt('Monto de apertura de caja:','0')||0);setOpening(n);setCashOpen(true);localStorage.setItem('cl_cash',JSON.stringify({open:true,opening:n}))}
+ function closeCash(){if(confirm('¿Cerrar la caja actual?')){setCashOpen(false);setOpening(0);localStorage.setItem('cl_cash',JSON.stringify({open:false,opening:0}))}}
+ function logout(){localStorage.removeItem('comercio_demo_user');location.href='/login'}
+ return <main className="app"><header className="appbar"><button className="brand brandButton" onClick={()=>setView('dashboard')}>Comercio <span>Lleno</span></button><div className="companyPill"><i/>La Económica · Propietario</div><button className="logout" onClick={logout}>Salir</button></header><div className="appLayout"><aside className="sidebar">{nav.map(([id,icon,label])=><button key={id} className={view===id?'active':''} onClick={()=>setView(id)}><span>{icon}</span>{label}</button>)}</aside><section className="mainContent">
+ {view==='dashboard'&&<Dashboard total={todayTotal} count={todaySales.length} low={lowStock} cash={cashOpen} go={setView}/>} 
+ {view==='caja'&&<Cash products={products} cart={cart} query={query} setQuery={setQuery} filtered={filtered} inputRef={inputRef} scan={scan} add={add} qty={qty} total={total} payment={payment} setPayment={setPayment} cash={cashOpen} finish={finish}/>} 
+ {view==='productos'&&<Products products={products} setProducts={setProducts}/>} {view==='stock'&&<Stock products={products}/>} {view==='ventas'&&<Sales sales={sales}/>} {view==='clientes'&&<Customers/>} {view==='caja-diaria'&&<CashDaily open={cashOpen} opening={opening} total={todayTotal} onOpen={openCash} onClose={closeCash}/>} {view==='configuracion'&&<Settings/>}
+ </section></div></main>
 }
+function Dashboard({total,count,low,cash,go}:{total:number,count:number,low:number,cash:boolean,go:(v:View)=>void}){return <><div className="pagehead"><div><div className="eyebrow">LA ECONÓMICA</div><h1>Inicio</h1><p className="muted">Resumen del negocio y accesos rápidos.</p></div></div><div className="cards"><div className="card"><span>Ventas de hoy</span><strong>{money.format(total)}</strong><small>{count} operaciones</small></div><div className="card"><span>Caja</span><strong className="smallStrong">{cash?'Abierta':'Cerrada'}</strong><small>Control diario</small></div><div className="card"><span>Stock bajo</span><strong>{low}</strong><small>Productos para revisar</small></div><div className="card"><span>Comercio</span><strong className="smallStrong">La Económica</strong><small>Propietario</small></div></div><div className="quickMenu"><button onClick={()=>go('caja')}><b>▣ Caja</b><span>Empezá una venta</span></button><button onClick={()=>go('productos')}><b>▤ Productos</b><span>Precios y códigos</span></button><button onClick={()=>go('stock')}><b>◈ Stock</b><span>Controlá existencias</span></button><button onClick={()=>go('caja-diaria')}><b>◷ Caja diaria</b><span>Apertura y cierre</span></button></div></>}
+function Cash({products,cart,query,setQuery,filtered,inputRef,scan,add,qty,total,payment,setPayment,cash,finish}:{products:Product[],cart:CartItem[],query:string,setQuery:(s:string)=>void,filtered:Product[],inputRef:React.RefObject<HTMLInputElement|null>,scan:()=>void,add:(p:Product)=>void,qty:(id:string,d:number)=>void,total:number,payment:string,setPayment:(s:string)=>void,cash:boolean,finish:()=>void}){return <><div className="pagehead"><div><div className="eyebrow">PUNTO DE VENTA</div><h1>Caja</h1><p className="muted">Escaneá un código o buscá el producto.</p></div><span className={cash?'badge ok':'badge'}>{cash?'● Caja abierta':'● Caja cerrada'}</span></div><div className="posGrid"><div className="panel posLeft"><div className="search"><span>⌕</span><input ref={inputRef} value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==='Enter'&&scan()} placeholder="Código de barras o nombre" autoComplete="off"/></div>{query&&<div className="results">{filtered.slice(0,8).map(p=><button key={p.id} onClick={()=>add(p)}><span><b>{p.name}</b><small>{p.barcode} · {p.stock} en stock</small></span><strong>{money.format(p.price)}</strong></button>)}</div>}<div className="scanHint">{cash?'Scanner listo.':'Abrí la caja diaria antes de cobrar.'}</div></div><div className="panel ticket"><div className="ticketHead"><h2>Venta actual</h2><button onClick={()=>location.reload()}>Vaciar</button></div><div className="items">{!cart.length?<div className="empty"><div>🛒</div><b>Esperando productos</b><span>Pasá un código por el scanner.</span></div>:cart.map(i=><div className="item" key={i.id}><div><b>{i.name}</b><span>{money.format(i.price)} c/u</span><div className="qty"><button onClick={()=>qty(i.id,-1)}>−</button><b>{i.qty}</b><button onClick={()=>qty(i.id,1)}>+</button></div></div><strong>{money.format(i.qty*i.price)}</strong></div>)}</div><div className="checkout"><div className="total"><span>Total</span><strong>{money.format(total)}</strong></div><div className="payments">{['Efectivo','Débito','Crédito','Transferencia'].map(x=><button key={x} className={payment===x?'selected':''} disabled={!cart.length} onClick={()=>setPayment(x)}>{x}</button>)}</div><button className="charge" disabled={!cart.length||!cash} onClick={finish}>{cash?'Cobrar y registrar':'Abrí la caja para cobrar'}</button></div></div></div></>}
+function Products({products,setProducts}:{products:Product[],setProducts:React.Dispatch<React.SetStateAction<Product[]>>}){const[n,setN]=useState('');const[b,setB]=useState('');const[p,setP]=useState('');const[s,setS]=useState('');const add=()=>{if(!n||!p)return;const x={id:crypto.randomUUID(),name:n,barcode:b,price:Number(p),stock:0,category:'General'};const next=[x,...products];setProducts(next);localStorage.setItem('cl_products',JSON.stringify(next));setN('');setB('');setP('')};const list=products.filter(x=>`${x.name}${x.barcode}`.toLowerCase().includes(s.toLowerCase()));return <><div className="pagehead"><div><div className="eyebrow">CATÁLOGO</div><h1>Productos</h1><p className="muted">Alta, precios, códigos y stock.</p></div></div><div className="formCard"><input placeholder="Nombre" value={n} onChange={e=>setN(e.target.value)}/><input placeholder="Código de barras" value={b} onChange={e=>setB(e.target.value)}/><input type="number" placeholder="Precio" value={p} onChange={e=>setP(e.target.value)}/><button className="primary auto" onClick={add}>Agregar</button></div><input className="tableSearch" placeholder="Buscar..." value={s} onChange={e=>setS(e.target.value)}/><div className="table"><div className="tr th"><span>Producto</span><span>Código</span><span>Categoría</span><span>Precio</span><span>Stock</span></div>{list.map(x=><div className="tr" key={x.id}><span><b>{x.name}</b></span><span>{x.barcode||'—'}</span><span>{x.category}</span><span>{money.format(x.price)}</span><span>{x.stock}</span></div>)}</div></>}
+function Stock({products}:{products:Product[]}){return <><div className="pagehead"><div><div className="eyebrow">INVENTARIO</div><h1>Stock</h1><p className="muted">Control de existencias y alertas.</p></div></div><div className="table"><div className="tr th"><span>Producto</span><span>Categoría</span><span>Stock</span><span>Precio</span><span>Estado</span></div>{products.map(x=><div className="tr" key={x.id}><span>{x.name}</span><span>{x.category}</span><span>{x.stock}</span><span>{money.format(x.price)}</span><span className={x.stock<=5?'dangerText':'okText'}>{x.stock<=5?'Bajo':'Normal'}</span></div>)}</div></>}
+function Sales({sales}:{sales:Sale[]}){return <><div className="pagehead"><div><div className="eyebrow">OPERACIONES</div><h1>Ventas</h1><p className="muted">Historial de ventas de esta sesión.</p></div></div>{!sales.length?<div className="emptyPage">Todavía no hay ventas registradas.</div>:<div className="table"><div className="tr th"><span>Fecha</span><span>Operación</span><span>Medio</span><span>Items</span><span>Total</span></div>{sales.map(s=><div className="tr" key={s.id}><span>{new Date(s.date).toLocaleString('es-AR')}</span><span>{s.id.slice(0,8)}</span><span>{s.payment}</span><span>{s.items}</span><span><b>{money.format(s.total)}</b></span></div>)}</div>}</>}
+function Customers(){return <><div className="pagehead"><div><div className="eyebrow">CLIENTES</div><h1>Clientes</h1><p className="muted">Agenda de clientes preparada para Supabase.</p></div></div><div className="emptyPage">Acá podremos cargar consumidor final, CUIT, teléfono, email y cuenta corriente.</div></>}
+function CashDaily({open,opening,total,onOpen,onClose}:{open:boolean,opening:number,total:number,onOpen:()=>void,onClose:()=>void}){return <><div className="pagehead"><div><div className="eyebrow">CONTROL DE CAJA</div><h1>Caja diaria</h1><p className="muted">Apertura, movimientos y cierre.</p></div></div><div className="cashBox"><div><span>Estado</span><strong>{open?'Abierta':'Cerrada'}</strong></div><div><span>Apertura</span><strong>{money.format(opening)}</strong></div><div><span>Ventas</span><strong>{money.format(total)}</strong></div>{open?<button className="primary auto" onClick={onClose}>Cerrar caja</button>:<button className="primary auto" onClick={onOpen}>Abrir caja</button>}</div></>}
+function Settings(){return <><div className="pagehead"><div><div className="eyebrow">ADMINISTRACIÓN</div><h1>Configuración</h1><p className="muted">Cuenta, usuarios y dispositivos.</p></div></div><div className="settings"><section><b>La Económica</b><span>Cuenta de Comercio Lleno · Propietario</span><em>Multi-comercio activo.</em></section><section><b>Usuario propietario</b><span>grangabyk@gmail.com · Administrador</span><em>Los cajeros se agregan después dentro de esta misma cuenta.</em></section><section><b>ARCA</b><span>Pendiente de configuración</span><em>Certificado, punto de venta y parámetros fiscales.</em></section><section><b>Impresora térmica</b><span>Pendiente de prueba física</span><em>Se configura en la PC de caja cuando tengamos el hardware.</em></section></div></>}
