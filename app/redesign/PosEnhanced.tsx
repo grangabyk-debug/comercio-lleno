@@ -6,6 +6,7 @@ import enh from './enhancements.module.css'
 import type { CartLine, CommerceSnapshot } from '@/lib/comercio/types'
 import type { ArcaHealth } from '@/lib/comercio/api'
 import { Head, money } from './operationalShared'
+import UiIcon from './UiIcon'
 
 const payments = ['Efectivo', 'Débito', 'Crédito', 'Transferencia', 'Mercado Pago', 'Billetera Virtual']
 
@@ -13,7 +14,7 @@ export default function PosEnhanced({
   data, query, setQuery, filtered, cart, addProduct, changeQty, removeProduct,
   subtotal, discountKind, setDiscountKind, discountValue, setDiscountValue,
   discountAmount, total, customerId, setCustomerId, payment, setPayment,
-  checkout, busy, arca,
+  checkout, busy, arca, offline = false, pendingOffline = 0,
 }: {
   data: CommerceSnapshot
   query: string
@@ -37,6 +38,8 @@ export default function PosEnhanced({
   checkout: () => void
   busy: boolean
   arca: ArcaHealth | null
+  offline?: boolean
+  pendingOffline?: number
 }) {
   const [showCustomer, setShowCustomer] = useState(false)
   const [showDiscount, setShowDiscount] = useState(false)
@@ -56,14 +59,14 @@ export default function PosEnhanced({
     <Head
       eyebrow="PUNTO DE VENTA · F2"
       title="Nueva venta"
-      subtitle="Escaneá, asociá cliente, aplicá descuentos y cobrá con facturación ARCA."
+      subtitle={offline ? 'Modo offline: podés seguir vendiendo. La facturación se sincroniza cuando vuelva Internet.' : 'Escaneá, asociá cliente, aplicá descuentos y cobrá con facturación ARCA.'}
     >
       <div className={core.headBadges}>
         <span className={`${core.badge} ${data.cashRegister?.status === 'open' ? core.badgeGreen : core.badgeRed}`}>
           {data.cashRegister?.status === 'open' ? '● Caja abierta' : '● Caja cerrada'}
         </span>
-        <span className={`${core.badge} ${arca?.connected ? core.badgeGreen : core.badgeRed}`}>
-          {arca?.connected ? '● ARCA online' : '● ARCA offline'}
+        <span className={`${core.badge} ${offline ? core.badgeAmber : arca?.connected ? core.badgeGreen : core.badgeRed}`}>
+          {offline ? `● Offline${pendingOffline ? ` · ${pendingOffline} pend.` : ''}` : arca?.connected ? '● ARCA online' : '● ARCA offline'}
         </span>
       </div>
     </Head>
@@ -72,7 +75,7 @@ export default function PosEnhanced({
       <div className={core.posProducts}>
         <div className={core.searchCard}>
           <div className={core.searchBox}>
-            <span className={core.searchIcon}>⌕</span>
+            <span className={core.searchIcon}><UiIcon name="search" size={19}/></span>
             <input
               className={core.inputBare}
               autoFocus
@@ -88,7 +91,7 @@ export default function PosEnhanced({
 
         <div className={core.productList}>
           {filtered.map(p => <button key={p.id} className={core.productRow} onClick={() => addProduct(p.id)}>
-            <div className={core.productIcon}>▦</div>
+            <div className={core.productIcon}><UiIcon name="products" size={19}/></div>
             <div className={core.productInfo}>
               <b>{p.name}</b>
               <small>{p.barcode || 'Sin código'} · {p.category || 'General'}</small>
@@ -122,21 +125,24 @@ export default function PosEnhanced({
             </div>
             <strong>{money.format(i.price * i.qty)}</strong>
           </div>) : <div className={core.emptyCart}>
-            <div>🪙</div><b>Esperando productos</b><span>Escaneá un código para empezar.</span>
+            <div><UiIcon name="sale" size={27}/></div><b>Esperando productos</b><span>Escaneá un código para empezar.</span>
           </div>}
         </div>
 
         <div className={core.checkout}>
-          {!arca?.connected && <div className={enh.offlineBanner}>
-            ⚠ ARCA está offline. Podés armar la venta normalmente; al cobrar, si ARCA sigue sin responder, te vamos a preguntar si querés registrarla como Pendiente ARCA.
+          {offline ? <div className={enh.offlineSaleBanner}>
+            <div className={enh.offlineSaleIcon}>↯</div>
+            <div><b>Venta offline</b><span>El cobro se guarda en este equipo. No es una factura fiscal hasta que vuelva Internet y ARCA otorgue CAE.</span></div>
+          </div> : !arca?.connected && <div className={enh.offlineBanner}>
+            ⚠ ARCA está sin responder. Si Internet funciona, al cobrar vas a poder decidir si registrás la venta como Pendiente ARCA.
           </div>}
 
           <div className={enh.saleTools}>
             <button className={`${enh.saleTool} ${customerId ? enh.saleToolActive : ''}`} onClick={() => setShowCustomer(x => !x)}>
-              👤 {customer ? customer.name : 'Agregar cliente'}
+              <UiIcon name="user" size={17}/> {customer ? customer.name : 'Agregar cliente'}
             </button>
             <button className={`${enh.saleTool} ${discountAmount > 0 ? enh.saleToolActive : ''}`} onClick={() => setShowDiscount(x => !x)}>
-              ％ {discountAmount > 0 ? `Descuento ${money.format(discountAmount)}` : 'Agregar descuento'}
+              <UiIcon name="discount" size={17}/> {discountAmount > 0 ? `Descuento ${money.format(discountAmount)}` : 'Agregar descuento'}
             </button>
           </div>
 
@@ -196,8 +202,9 @@ export default function PosEnhanced({
             disabled={!cart.length || data.cashRegister?.status !== 'open' || busy || total <= 0}
             onClick={checkout}
           >
-            {busy ? 'Procesando…' : data.cashRegister?.status === 'open' ? `🪙 Cobrar ${money.format(total)}` : 'Abrí la caja para cobrar'}
+            {busy ? 'Procesando…' : data.cashRegister?.status === 'open' ? offline ? `Guardar venta offline · ${money.format(total)}` : `Cobrar ${money.format(total)}` : 'Abrí la caja para cobrar'}
           </button>
+          {offline && <div className={enh.offlineFootnote}>Se descuenta el stock local para seguir operando. La sincronización fiscal se realiza automáticamente al recuperar conexión.</div>}
         </div>
       </aside>
     </div>
