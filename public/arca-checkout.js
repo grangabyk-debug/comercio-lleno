@@ -9,11 +9,16 @@
     var n=Number(s);return Number.isFinite(n)?n:0;
   }
   function totalFromButton(btn){
-    var checkout=btn.closest('.checkout');
+    var checkout=btn.closest('.checkout')||btn.closest('.ticket')||document.querySelector('.checkout');
     var el=checkout&&checkout.querySelector('.total strong');
     return parseMoney(el&&el.textContent);
   }
-  function isChargeButton(btn){return !!btn && btn.tagName==='BUTTON' && /Cobrar y registrar/i.test(btn.textContent||'')}
+  function isChargeButton(btn){
+    if(!btn||btn.tagName!=='BUTTON')return false;
+    if(btn.classList.contains('charge'))return true;
+    if(btn.closest('.checkout')&&/cobrar|registrar|finalizar|confirmar/i.test(btn.textContent||''))return true;
+    return false;
+  }
   function fiscalAlert(inv){
     var n=String(inv.receipt_number||'').padStart(8,'0');
     alert('Factura C autorizada por ARCA (homologación).\nPunto de venta: 0001\nComprobante: '+n+'\nCAE: '+(inv.cae||'')+'\nVencimiento CAE: '+(inv.cae_expiration||''));
@@ -25,7 +30,11 @@
     if(locking||btn.disabled)return;
 
     var amount=totalFromButton(btn);
-    if(!(amount>0))return;
+    if(!(amount>0)){
+      e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+      alert('No pude leer el total de la venta. La operación no se registró.');
+      return;
+    }
 
     e.preventDefault();
     e.stopPropagation();
@@ -38,7 +47,7 @@
     var oldText=btn.textContent;
     btn.disabled=true;
     btn.textContent='Facturando en ARCA…';
-    var requestId=(crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+'-'+Math.random());
+    var requestId=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+'-'+Math.random());
 
     try{
       var r=await fetch(ENDPOINT,{method:'POST',headers:{'Authorization':'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify({request_id:requestId,amount:amount})});
@@ -52,7 +61,7 @@
       btn.textContent=oldText;
       btn.dataset.arcaBypass='1';
       btn.click();
-      setTimeout(function(){fiscalAlert(d.invoice)},50);
+      setTimeout(function(){fiscalAlert(d.invoice)},100);
     }catch(err){
       btn.disabled=false;
       btn.textContent=oldText;
