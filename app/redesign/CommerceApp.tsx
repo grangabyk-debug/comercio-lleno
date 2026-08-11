@@ -127,6 +127,8 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
   if (loading) return <div className={styles.loading}>Cargando Comercio Lleno…</div>
   if (!session) return <div className={styles.loginBox}><div className={styles.loginCard}><div className={styles.loginLogo}>CL</div><h1>Comercio Lleno</h1><p>Ingresá con tu cuenta para abrir el piloto nuevo.</p><button className={styles.primary} onClick={() => location.href = '/login'}>Ingresar</button></div></div>
 
+  const tenant = session
+
   function addProduct(id: string) {
     const p = data?.products.find(x => x.id === id)
     if (!p) return
@@ -143,7 +145,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
   }
 
   function removeProduct(id: string) { setCart(rows => rows.filter(x => x.id !== id)) }
-  function saveDevice(next: DeviceSettings) { setDevice(next); writeDeviceSettings(session.companyId, next); setNotice('Configuración de esta PC guardada.') }
+  function saveDevice(next: DeviceSettings) { setDevice(next); writeDeviceSettings(tenant.companyId, next); setNotice('Configuración de esta PC guardada.') }
 
   async function checkout() {
     if (!data || !cart.length || checkoutBusy) return
@@ -165,7 +167,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
     const stock = cart.map(i => ({ id: i.id, stock: Math.max(0, i.stock - i.qty) }))
 
     try {
-      const invoice = await authorizeFiscalInvoice(session, total, id)
+      const invoice = await authorizeFiscalInvoice(tenant, total, id)
       const authorized: Sale = {
         ...base,
         fiscal_status: 'authorized',
@@ -174,12 +176,12 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
         caeExpiration: invoice.cae_expiration || null,
         fiscalEnvironment: arca?.environment || 'homologacion',
       }
-      await persistAuthorizedSale(session, authorized, stock)
+      await persistAuthorizedSale(tenant, authorized, stock)
       setCart([])
       setNotice(`Venta registrada · Factura C ${receiptNumber(authorized)}`)
       setReceiptSale(authorized)
       setArca({ ...(arca || { connected: true }), connected: true, checkedAt: new Date().toISOString() })
-      await refresh(session)
+      await refresh(tenant)
       if (device.autoPrint) {
         try { await printReceipt(authorized, data.company, device) } catch {}
       }
@@ -200,11 +202,11 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
     if (!contingency) return
     setCheckoutBusy(true)
     try {
-      await persistUninvoicedSale(session, contingency.sale, contingency.stock, contingency.reason)
+      await persistUninvoicedSale(tenant, contingency.sale, contingency.stock, contingency.reason)
       setCart([])
       setNotice('Venta registrada sin factura. Quedó marcada como Pendiente ARCA.')
       setContingency(null)
-      await refresh(session)
+      await refresh(tenant)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally { setCheckoutBusy(false) }
@@ -215,18 +217,18 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
     const raw = window.prompt('Importe inicial de caja', String(data.cashRegister?.opening_amount || 0))
     if (raw == null) return
     const amount = Math.max(0, Number(raw.replace(',', '.')) || 0)
-    try { await openCashRegister(session, data.cashRegister, amount); await refresh(session); setNotice('Caja abierta.') }
+    try { await openCashRegister(tenant, data.cashRegister, amount); await refresh(tenant); setNotice('Caja abierta.') }
     catch (e) { setError(e instanceof Error ? e.message : String(e)) }
   }
 
   async function closeCash() {
     if (!data?.cashRegister) return
     if (!window.confirm('¿Confirmás el cierre de caja?')) return
-    try { await closeCashRegister(session, data.cashRegister); await refresh(session); setNotice('Caja cerrada.') }
+    try { await closeCashRegister(tenant, data.cashRegister); await refresh(tenant); setNotice('Caja cerrada.') }
     catch (e) { setError(e instanceof Error ? e.message : String(e)) }
   }
 
-  const visibleNav = nav.filter(([key]) => session.role === 'owner' || key !== 'settings')
+  const visibleNav = nav.filter(([key]) => tenant.role === 'owner' || key !== 'settings')
   const arcaLabel = arcaChecking ? 'ARCA verificando…' : arca?.connected ? 'ARCA conectado' : 'ARCA desconectado'
   const arcaClass = arcaChecking ? styles.statusNeutral : arca?.connected ? styles.statusOk : styles.statusBad
 
@@ -234,12 +236,12 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
     <header className={styles.topbar}>
       <div className={styles.brandWrap}>
         <div className={styles.brandMark}>CL</div>
-        <div><div className={styles.brand}>Comercio <span>Lleno</span></div><div className={styles.tenant}>{data?.company.name || session.companyName} · {session.role === 'owner' ? 'Propietario' : session.role}</div></div>
+        <div><div className={styles.brand}>Comercio <span>Lleno</span></div><div className={styles.tenant}>{data?.company.name || tenant.companyName} · {tenant.role === 'owner' ? 'Propietario' : tenant.role}</div></div>
       </div>
       <div className={styles.headerRight}>
-        <button className={`${styles.status} ${arcaClass}`} onClick={() => refreshArca()} title={arca?.error || (arca?.latencyMs ? `Respuesta ${arca.latencyMs} ms` : 'Verificar ARCA')}>● {arcaLabel}</button>
+        <button className={`${styles.status} ${arcaClass}`} onClick={() => refreshArca(tenant)} title={arca?.error || (arca?.latencyMs ? `Respuesta ${arca.latencyMs} ms` : 'Verificar ARCA')}>● {arcaLabel}</button>
         <span className={styles.versionPill}>Piloto · {buildVersion}</span>
-        <button className={styles.headerButton} onClick={() => refresh()}>↻ Actualizar</button>
+        <button className={styles.headerButton} onClick={() => refresh(tenant)}>↻ Actualizar</button>
         <button className={styles.headerButton} onClick={() => setDark(x => !x)}>{dark ? '☀ Claro' : '☾ Oscuro'}</button>
         <button className={styles.headerButton} onClick={() => location.href = '/?app=1'}>Versión actual</button>
       </div>
@@ -249,7 +251,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
       <aside className={styles.sidebar}>
         <div className={styles.navLabel}>OPERACIÓN</div>
         {visibleNav.map(([key, icon, label]) => <button key={key} className={`${styles.navButton} ${view === key ? styles.navActive : ''}`} onClick={() => setView(key)}><span>{icon}</span>{label}</button>)}
-        <div className={styles.sidebarBottom}><b>Comercio Lleno</b><span>Versión piloto {buildVersion}</span><small>Arquitectura multi-tenant · tenant {session.companyId.slice(0, 8)}</small></div>
+        <div className={styles.sidebarBottom}><b>Comercio Lleno</b><span>Versión piloto {buildVersion}</span><small>Arquitectura multi-tenant · tenant {tenant.companyId.slice(0, 8)}</small></div>
       </aside>
 
       <section className={styles.content}>
@@ -311,7 +313,7 @@ function Cash({ data, sessionSales, movements, cashEstimated, openCash, closeCas
   const salesTotal = sessionSales.reduce((a, s) => a + s.total, 0)
   const exp = movements.filter(m => m.kind === 'expense' || m.kind === 'egress').reduce((a, m) => a + m.amount, 0)
   const diff = counted - cashEstimated
-  return <><Head eyebrow="Control de caja" title="Caja diaria" subtitle="Apertura, ventas, movimientos, cierre y contador de billetes."><button className={data.cashRegister?.status === 'open' ? styles.danger : styles.primary} onClick={data.cashRegister?.status === 'open' ? closeCash : openCash}>{data.cashRegister?.status === 'open' ? 'Cerrar caja' : 'Abrir caja'}</button></Head><div className={styles.cashHero}><div className={styles.cashStat}><span>Estado</span><strong>{data.cashRegister?.status === 'open' ? 'Abierta' : 'Cerrada'}</strong></div><div className={styles.cashStat}><span>Apertura</span><strong>{money.format(Number(data.cashRegister?.opening_amount || 0))}</strong></div><div className={styles.cashStat}><span>Ventas sesión</span><strong>{money.format(salesTotal)}</strong></div><div className={styles.cashStat}><span>Efectivo estimado</span><strong>{money.format(cashEstimated)}</strong></div></div><div className={styles.cashLayout}><div className={styles.panel}><div className={styles.panelTitle}><div><b>Actividad desde la apertura</b><small>{sessionSales.length} ventas · egresos {money.format(exp)}</small></div></div>{sessionSales.slice(0, 18).map(s => <div className={styles.recentRow} key={s.id}><span className={styles.roundIcon}>{s.cae ? '✓' : '!'}</span><div><b>{s.receiptNumber ? `Factura ${receiptNumber(s)}` : `Venta #${s.id.slice(0, 8)}`}</b><small>{new Date(s.date).toLocaleString('es-AR')} · {s.payment}</small></div><strong>{money.format(s.total)}</strong></div>)}</div><div className={styles.counterCard}><div className={styles.counterHead}><div><span>CONTADOR DE BILLETES</span><h3>Arqueo rápido</h3></div><div className={styles.counterTotal}><small>Total contado</small><strong>{money.format(counted)}</strong></div></div><div className={styles.denomList}>{denoms.map(d => <div className={styles.denomRow} key={d}><label>{money.format(d)}</label><span>×</span><input type="number" min="0" inputMode="numeric" value={counts[d] || ''} onChange={e => setCounts({ ...counts, [d]: Math.max(0, Number(e.target.value) || 0) })}/><b>{money.format(d * (counts[d] || 0))}</b></div>)}</div><div className={styles.counterSummary}><div><span>Sistema</span><b>{money.format(cashEstimated)}</b></div><div><span>Contado</span><b>{money.format(counted)}</b></div><div className={Math.abs(diff) < 1 ? styles.diffOk : styles.diffBad}><span>Diferencia</span><b>{money.format(diff)}</b></div></div><button className={styles.counterReset} onClick={() => setCounts({})}>Limpiar conteo</button></div></div></>
+  return <><Head eyebrow="Control de caja" title="Caja diaria" subtitle="Apertura, ventas, movimientos, cierre y contador de billetes."><button className={data.cashRegister?.status === 'open' ? styles.danger : styles.primary} onClick={data.cashRegister?.status === 'open' ? closeCash : openCash}>{data.cashRegister?.status === 'open' ? 'Cerrar caja' : 'Abrir caja'}</button></Head><div className={styles.cashHero}><div className={styles.cashStat}><span>Estado</span><strong>{data.cashRegister?.status === 'open' ? 'Abierta' : 'Cerrada'}</strong></div><div className={styles.cashStat}><span>Apertura</span><strong>{money.format(Number(data.cashRegister?.opening_amount || 0))}</strong></div><div className={styles.cashStat}><span>Ventas sesión</span><strong>{money.format(salesTotal)}</strong></div><div className={styles.cashStat}><span>Efectivo estimado</span><strong>{money.format(cashEstimated)}</strong></div></div><div className={styles.cashLayout}><div className={styles.panel}><div className={styles.panelTitle}><div><b>Actividad desde la apertura</b><small>{sessionSales.length} ventas · egresos {money.format(exp)}</small></div></div>{sessionSales.slice(0, 18).map(s => <div className={styles.recentRow} key={s.id}><span className={styles.roundIcon}>{s.cae ? '✓' : '!'}</span><div><b>{s.receiptNumber ? `Factura ${receiptNumber(s)}` : `Venta #${s.id.slice(0, 8)}`}</b><small>{new Date(s.date).toLocaleString('es-AR')} · {s.payment}</small></div><strong>{money.format(s.total)}</strong></div>)}</div><div className={styles.counterCard}><div className={styles.counterHead}><div><span>CONTADOR DE BILLETES</span><h3>Arqueo rápido</h3></div><div className={styles.counterTotal}><small>Total contado</small><strong>{money.format(counted)}</strong></div></div><div className={styles.denomList}>{denoms.map(d => <div className={styles.denomRow} key={d}><label>{money.format(d)}</label><span>×</span><input type="number" min="0" inputMode="numeric" value={counts[d] || ''} onChange={e => setCounts({ ...counts, [d]: Math.max(0, Number(e.target.value) || 0) })}/><b>{money.format(d * (counts[d] || 0))}</div>)}</div><div className={styles.counterSummary}><div><span>Sistema</span><b>{money.format(cashEstimated)}</b></div><div><span>Contado</span><b>{money.format(counted)}</b></div><div className={Math.abs(diff) < 1 ? styles.diffOk : styles.diffBad}><span>Diferencia</span><b>{money.format(diff)}</b></div></div><button className={styles.counterReset} onClick={() => setCounts({})}>Limpiar conteo</button></div></div></>
 }
 
 function Settings({ data, device, saveDevice, arca, buildVersion }: { data: CommerceSnapshot; device: DeviceSettings; saveDevice: (d: DeviceSettings) => void; arca: ArcaHealth | null; buildVersion: string }) { const [draft, setDraft] = useState(device); useEffect(() => setDraft(device), [device]); return <><Head eyebrow="Administración" title="Configuración" subtitle="Datos del comercio y configuración propia de esta PC."><button className={styles.primary} onClick={() => saveDevice(draft)}>Guardar dispositivo</button></Head><div className={styles.settingsGrid}><div className={styles.settingCard}><span className={styles.cardKicker}>TENANT</span><h3>Datos del comercio</h3><p>Identidad fiscal y comercial asociada a esta cuenta.</p><div className={styles.formGrid}><label>Nombre<input className={styles.input} value={data.company.name} readOnly/></label><label>CUIT<input className={styles.input} value={data.company.tax_id || ''} readOnly placeholder="No informado"/></label></div></div><div className={styles.settingCard}><span className={styles.cardKicker}>FACTURACIÓN</span><h3>ARCA</h3><p>Estado real del servicio fiscal para este comercio.</p><div className={styles.settingLine}><span>Conexión</span><b className={arca?.connected ? styles.textGreen : styles.textRed}>{arca?.connected ? 'Conectado' : 'Desconectado'}</b></div><div className={styles.settingLine}><span>Servicio</span><b>{arca?.service || 'wsfev1'}</b></div><div className={styles.settingLine}><span>Punto de venta</span><b>{arca?.pointOfSale ?? '—'}</b></div></div><div className={styles.settingCard}><span className={styles.cardKicker}>ESTE DISPOSITIVO</span><h3>Impresora térmica</h3><p>Se guarda localmente en esta PC, no en el tenant.</p><div className={styles.formGrid}><label>Papel<select className={styles.select} value={draft.paper} onChange={e => setDraft({ ...draft, paper: e.target.value as '80' | '58' })}><option value="80">80 mm</option><option value="58">58 mm</option></select></label><label>Modo<select className={styles.select} value={draft.printerMode} onChange={e => setDraft({ ...draft, printerMode: e.target.value as 'browser' | 'bridge' })}><option value="browser">Navegador</option><option value="bridge">Bridge local / automático</option></select></label><label>Nombre impresora<input className={styles.input} value={draft.printerName} onChange={e => setDraft({ ...draft, printerName: e.target.value })} placeholder="Al conectar la térmica"/></label><label>Copias<input className={styles.input} type="number" min="1" max="3" value={draft.receiptCopies} onChange={e => setDraft({ ...draft, receiptCopies: Math.max(1, Math.min(3, Number(e.target.value) || 1)) })}/></label></div><label className={styles.toggleLine}><span>Imprimir automáticamente luego de ARCA</span><input type="checkbox" checked={draft.autoPrint} onChange={e => setDraft({ ...draft, autoPrint: e.target.checked })}/></label></div><div className={styles.settingCard}><span className={styles.cardKicker}>SISTEMA</span><h3>Versión</h3><p>Este número cambia automáticamente con cada publicación.</p><div className={styles.versionBig}>Piloto · {buildVersion}</div><div className={styles.settingLine}><span>Arquitectura</span><b>Multi-tenant</b></div><div className={styles.settingLine}><span>Separación</span><b>company_id</b></div></div></div></> }
