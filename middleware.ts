@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+function secure(response: NextResponse) {
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  response.headers.set('X-Permitted-Cross-Domain-Policies', 'none')
+  return response
+}
+
 export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone()
 
@@ -8,12 +17,12 @@ export function middleware(request: NextRequest) {
   if (url.pathname.startsWith('/app/')) {
     url.pathname = '/redesign'
     url.search = ''
-    return NextResponse.redirect(url)
+    return secure(NextResponse.redirect(url))
   }
 
-  return NextResponse.next()
+  return secure(NextResponse.next())
 }
 
 export const config = {
-  matcher: ['/app/:path*'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon.svg).*)'],
 }
