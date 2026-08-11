@@ -12,7 +12,7 @@ type Props = {
 }
 
 const RECOMMENDED: DeviceSettings = {
-  paper: '80',
+  paper: '58',
   autoPrint: true,
   printerMode: 'browser',
   printerName: '',
@@ -68,7 +68,9 @@ export default function PrinterSettingsPanel({ company, device, onSave, message 
   }
 
   function save() {
-    onSave(draft)
+    const next = { ...draft }
+    onSave(next)
+    setDraft(next)
     message('Impresora y formato del ticket guardados en esta PC.')
   }
 
@@ -102,8 +104,8 @@ export default function PrinterSettingsPanel({ company, device, onSave, message 
         <p>Si la impresora ya funciona en Windows con tu sistema anterior, empezá con <b>Navegador</b>. Comercio Lleno abrirá el diálogo de impresión usando la impresora instalada en esa PC.</p>
       </div>
       <div className={styles.heroActions}>
-        <button className={styles.recommended} onClick={recommended}>Usar configuración recomendada</button>
-        <button className={styles.testButton} onClick={printTest}>Imprimir prueba</button>
+        <button type="button" className={styles.recommended} onClick={recommended}>Usar configuración recomendada</button>
+        <button type="button" className={styles.testButton} onClick={printTest}>Imprimir prueba</button>
       </div>
     </div>
 
@@ -115,18 +117,18 @@ export default function PrinterSettingsPanel({ company, device, onSave, message 
 
     <div className={styles.twoCols}>
       <section className={styles.card}>
-        <div className={styles.cardHead}><div><span>PASO 1</span><h4>Tamaño del rollo</h4></div><b className={styles.recommendedBadge}>Recomendado: 80 mm</b></div>
+        <div className={styles.cardHead}><div><span>PASO 1</span><h4>Tamaño del rollo</h4></div><b className={styles.recommendedBadge}>Recomendado: 58 mm</b></div>
         <div className={styles.paperGrid}>
-          <button className={draft.paper === '80' ? styles.paperActive : ''} onClick={() => update('paper', '80')}><strong>80 mm</strong><span>Ticket más cómodo y legible</span><i className={styles.paper80}></i></button>
-          <button className={draft.paper === '58' ? styles.paperActive : ''} onClick={() => update('paper', '58')}><strong>58 mm</strong><span>Para impresoras compactas</span><i className={styles.paper58}></i></button>
+          <button type="button" className={draft.paper === '80' ? styles.paperActive : ''} onClick={() => update('paper', '80')}><strong>80 mm</strong><span>Ticket más cómodo y legible</span><i className={styles.paper80}></i></button>
+          <button type="button" className={draft.paper === '58' ? styles.paperActive : ''} onClick={() => update('paper', '58')}><strong>58 mm</strong><span>Para impresoras compactas</span><i className={styles.paper58}></i></button>
         </div>
       </section>
 
       <section className={styles.card}>
         <div className={styles.cardHead}><div><span>PASO 2</span><h4>Cómo imprimir</h4></div></div>
         <div className={styles.modeGrid}>
-          <button className={draft.printerMode === 'browser' ? styles.modeActive : ''} onClick={() => update('printerMode', 'browser')}><b>Navegador</b><span>Recomendado para empezar hoy. Usa la impresora instalada en Windows.</span></button>
-          <button className={draft.printerMode === 'bridge' ? styles.modeActive : ''} disabled={!bridgeReady} onClick={() => update('printerMode', 'bridge')}><b>Automático / Bridge</b><span>{bridgeReady ? 'Conector local detectado. Permite impresión directa.' : 'Requiere el conector local. No detectado en esta PC.'}</span></button>
+          <button type="button" className={draft.printerMode === 'browser' ? styles.modeActive : ''} onClick={() => update('printerMode', 'browser')}><b>Navegador</b><span>Recomendado para empezar hoy. Usa la impresora instalada en Windows.</span></button>
+          <button type="button" className={draft.printerMode === 'bridge' ? styles.modeActive : ''} disabled={!bridgeReady} onClick={() => update('printerMode', 'bridge')}><b>Automático / Bridge</b><span>{bridgeReady ? 'Conector local detectado. Permite impresión directa.' : 'Requiere el conector local. No detectado en esta PC.'}</span></button>
         </div>
       </section>
     </div>
@@ -168,7 +170,7 @@ export default function PrinterSettingsPanel({ company, device, onSave, message 
 
         <div className={styles.saveBar}>
           <div><b>La configuración queda guardada por comercio y por PC.</b><span>No modifica la impresora de Windows ni el sistema anterior.</span></div>
-          <button onClick={save}>Guardar configuración</button>
+          <button type="button" onClick={save}>Guardar configuración</button>
         </div>
       </div>
 
@@ -193,7 +195,7 @@ export default function PrinterSettingsPanel({ company, device, onSave, message 
           <div className={styles.ticketBox}><b>CAE:</b> 00000000000000<br/><b>Vencimiento CAE:</b> 21/08/2026</div>
           <div className={styles.ticketCenter}><b>{draft.receiptFooter || 'Gracias por su compra'}</b><span>Comprobante generado por Comercio Lleno</span></div>
         </div>
-        <button className={styles.previewPrint} onClick={printTest}>Imprimir ticket de prueba</button>
+        <button type="button" className={styles.previewPrint} onClick={printTest}>Imprimir ticket de prueba</button>
         <p>Cuando aparezca el diálogo de Windows/Chrome, elegí la térmica que ya usás en el local. Si imprime bien, dejala como impresora predeterminada para agilizar las próximas ventas.</p>
       </aside>
     </div>
