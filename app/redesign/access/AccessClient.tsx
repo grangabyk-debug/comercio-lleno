@@ -5,9 +5,16 @@ import { readTenantSession, signInTenant } from '@/lib/comercio/session'
 import BrandLogo from '../../BrandLogo'
 import styles from './access.module.css'
 
+function EyeIcon({ open }: { open: boolean }) {
+  return open
+    ? <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.5 12s3.4-5.5 9.5-5.5S21.5 12 21.5 12 18.1 17.5 12 17.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.6"/></svg>
+    : <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.7 6.6c.43-.07.86-.1 1.3-.1 6.1 0 9.5 5.5 9.5 5.5a17.7 17.7 0 0 1-2.5 3.2M6.6 8.1A17.8 17.8 0 0 0 2.5 12s3.4 5.5 9.5 5.5c1.5 0 2.83-.33 4-.82"/><path d="M9.8 9.8a3.1 3.1 0 0 0 4.4 4.4"/></svg>
+}
+
 export default function AccessClient() {
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -17,14 +24,15 @@ export default function AccessClient() {
 
   async function submit(e: FormEvent) {
     e.preventDefault()
-    if (!email.trim() || !password) return
+    if (!identifier.trim() || !password) return
     setBusy(true)
     setError('')
     try {
-      await signInTenant(email, password)
+      await signInTenant(identifier, password)
       window.location.replace('/redesign')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudo iniciar sesión.')
+      const message = e instanceof Error ? e.message : 'No se pudo iniciar sesión.'
+      setError(/invalid login credentials/i.test(message) ? 'Usuario, email o contraseña incorrectos.' : message)
     } finally {
       setBusy(false)
     }
@@ -36,15 +44,45 @@ export default function AccessClient() {
       <div className={styles.copy}>
         <p className={styles.eyebrow}>COMERCIO LLENO · ACCESO SEGURO</p>
         <h1>Entrá a tu comercio</h1>
-        <p>Accedé con tu usuario para abrir el panel de Comercio Lleno.</p>
+        <p>Propietarios pueden ingresar con su email. Empleados pueden ingresar directamente con el usuario creado por el comercio.</p>
       </div>
       <form onSubmit={submit} className={styles.form}>
-        <label>Email<input type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" placeholder="tu@email.com" /></label>
-        <label>Contraseña<input type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" placeholder="••••••••" /></label>
+        <label> Email o usuario
+          <input
+            type="text"
+            value={identifier}
+            onChange={e => setIdentifier(e.target.value)}
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            placeholder="tu@email.com o usuario"
+            autoFocus
+          />
+        </label>
+        <label>Contraseña
+          <div className={styles.passwordField}>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoComplete="current-password"
+              placeholder="••••••••"
+            />
+            <button
+              type="button"
+              className={styles.eyeButton}
+              onClick={() => setShowPassword(value => !value)}
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            >
+              <EyeIcon open={showPassword}/>
+            </button>
+          </div>
+        </label>
         {error && <div className={styles.error}>{error}</div>}
-        <button type="submit" disabled={busy || !email.trim() || !password}>{busy ? 'Ingresando…' : 'Ingresar'}</button>
+        <button className={styles.submitButton} type="submit" disabled={busy || !identifier.trim() || !password}>{busy ? 'Ingresando…' : 'Ingresar'}</button>
       </form>
-      <div className={styles.note}><b>Cuenta protegida:</b> cada usuario accede únicamente a los datos del comercio al que pertenece.</div>
+      <div className={styles.note}><b>Cuenta protegida:</b> cada empleado queda asociado al comercio que lo creó y solo accede a ese <code>company_id</code> y a los permisos de su rol.</div>
     </section>
   </main>
 }
