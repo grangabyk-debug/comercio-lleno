@@ -7,6 +7,8 @@ import styles from './trial.module.css'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcubkbtcsqkzc.supabase.co'
 const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
+const MONTHLY_PRICE = 14900
+const price = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(MONTHLY_PRICE)
 
 export default function TrialSignup() {
   const [fullName,setFullName]=useState('')
@@ -60,7 +62,7 @@ export default function TrialSignup() {
           <div className={styles.benefit}><i>✓</i><span>Configuración para ARCA, lector de códigos e impresora térmica.</span></div>
           <div className={styles.benefit}><i>✓</i><span>Datos separados por comercio desde el primer minuto.</span></div>
         </div>
-        <div className={styles.price}><b>$9.900</b><span>por mes después de la prueba</span></div>
+        <div className={styles.price}><b>{price}</b><span>por mes después de la prueba</span></div>
       </div>
 
       <div className={styles.card}>
@@ -77,7 +79,7 @@ export default function TrialSignup() {
             <label className={styles.label}>Contraseña<input className={styles.input} required minLength={8} type="password" autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Mínimo 8 caracteres"/></label>
           </div>
           <label className={styles.hidden}>Website<input tabIndex={-1} autoComplete="off" value={website} onChange={e=>setWebsite(e.target.value)}/></label>
-          <label className={styles.terms}><input type="checkbox" checked={accepted} onChange={e=>setAccepted(e.target.checked)}/> Entiendo que la prueba dura 14 días y que luego el plan tiene un valor de $9.900 por mes. Antes del primer cobro se deberá asociar un medio de pago.</label>
+          <label className={styles.terms}><input type="checkbox" checked={accepted} onChange={e=>setAccepted(e.target.checked)}/> Entiendo que la prueba dura 14 días y que luego el plan tiene un valor de {price} por mes. Antes del primer cobro se deberá asociar un medio de pago.</label>
           {error&&<div className={styles.error}>{error}</div>}
           {success&&<div className={styles.success}>{success}</div>}
           <button className={styles.button} disabled={busy}>{busy?'Creando tu comercio…':'Crear mi prueba de 14 días'}</button>
