@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import MobileSimpleApp from './MobileSimpleApp'
+import MobileSimpleApp from './MobileSimpleAppV2'
 
 export const metadata: Metadata = {
   title: 'Comercio Lleno · Móvil',
