@@ -1,11 +1,17 @@
 import type { CompanyProfile, DeviceSettings, Sale } from './types'
 
 function money(value: number) {
-  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 }).format(Number(value) || 0)
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+    minimumFractionDigits: 2,
+  }).format(Number(value) || 0)
 }
 
 function esc(value: unknown) {
-  return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c] || c))
+  return String(value ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;',
+  }[c] || c))
 }
 
 export function receiptNumber(sale: Sale) {
@@ -56,13 +62,7 @@ export async function printReceipt(sale: Sale, company: CompanyProfile, settings
   if (typeof document === 'undefined') return
   const frame = document.createElement('iframe')
   frame.setAttribute('aria-hidden', 'true')
-  frame.style.position = 'fixed'
-  frame.style.right = '0'
-  frame.style.bottom = '0'
-  frame.style.width = '1px'
-  frame.style.height = '1px'
-  frame.style.border = '0'
-  frame.style.opacity = '0'
+  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0'
   document.body.appendChild(frame)
   const doc = frame.contentDocument
   if (!doc) { frame.remove(); throw new Error('No se pudo preparar la impresión.') }
@@ -119,8 +119,7 @@ function buildSimplePdf(lines: Array<{ text: string; size?: number; bold?: boole
   return new TextEncoder().encode(pdf)
 }
 
-export function downloadReceiptPdf(sale: Sale, company: CompanyProfile) {
-  if (typeof document === 'undefined') return
+function receiptPdfBytes(sale: Sale, company: CompanyProfile) {
   const items = sale.details?.items || []
   const lines: Array<{ text: string; size?: number; bold?: boolean }> = [
     { text: 'FACTURA C', size: 20, bold: true },
@@ -132,12 +131,52 @@ export function downloadReceiptPdf(sale: Sale, company: CompanyProfile) {
     { text: ' ' },
   ]
   items.slice(0, 28).forEach((item) => lines.push({ text: `${item.qty} x ${item.name.slice(0, 42)} - ${money(item.line_total)}` }))
-  lines.push({ text: ' ' }, { text: `TOTAL ${money(sale.total)}`, size: 14, bold: true }, { text: `CAE: ${sale.cae || '—'}` }, { text: `Vencimiento CAE: ${sale.caeExpiration || '—'}` })
-  const blob = new Blob([buildSimplePdf(lines)], { type: 'application/pdf' })
+  lines.push(
+    { text: ' ' },
+    { text: `TOTAL ${money(sale.total)}`, size: 14, bold: true },
+    { text: `CAE: ${sale.cae || '—'}` },
+    { text: `Vencimiento CAE: ${sale.caeExpiration || '—'}` },
+  )
+  return buildSimplePdf(lines)
+}
+
+export function receiptPdfBlob(sale: Sale, company: CompanyProfile) {
+  return new Blob([receiptPdfBytes(sale, company)], { type: 'application/pdf' })
+}
+
+export function downloadReceiptPdf(sale: Sale, company: CompanyProfile) {
+  if (typeof document === 'undefined') return
+  const blob = receiptPdfBlob(sale, company)
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
   a.download = `factura-c-${receiptNumber(sale)}.pdf`
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+export async function emailReceipt(sale: Sale, company: CompanyProfile, email?: string | null) {
+  if (typeof window === 'undefined') return 'unsupported'
+  const filename = `factura-c-${receiptNumber(sale)}.pdf`
+  const blob = receiptPdfBlob(sale, company)
+  const subject = `Factura C ${receiptNumber(sale)} · ${company.name}`
+  const body = `Hola, te enviamos la Factura C ${receiptNumber(sale)} por ${money(sale.total)} emitida por ${company.name}.`
+
+  try {
+    if (typeof File !== 'undefined' && navigator.share) {
+      const file = new File([blob], filename, { type: 'application/pdf' })
+      const canShare = !navigator.canShare || navigator.canShare({ files: [file] })
+      if (canShare) {
+        await navigator.share({ title: subject, text: body, files: [file] })
+        return 'shared'
+      }
+    }
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') return 'cancelled'
+  }
+
+  downloadReceiptPdf(sale, company)
+  const href = `mailto:${encodeURIComponent(email || '')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`${body}\n\nEl PDF fue descargado en este dispositivo para que lo adjuntes al correo.`)}`
+  window.location.href = href
+  return 'mailto'
 }
