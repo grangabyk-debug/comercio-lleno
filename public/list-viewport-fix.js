@@ -7,16 +7,28 @@ function inject(){
  s.textContent=`
 html,body{overflow-x:hidden!important}
 .mainContent{min-width:0!important;max-width:100%!important;overflow-x:hidden!important}
-.mainContent .table{max-height:360px!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;scrollbar-width:thin}
-.mainContent .table .tr.th{position:sticky;top:0;z-index:4;background:#f6f8fb}
+
+/* Nunca dejamos que una tabla larga agrande toda la página */
+.mainContent .table{overflow:hidden!important;max-height:none!important}
+.mainContent .table .tr.th{position:static!important;background:#f6f8fb}
 .dark .mainContent .table .tr.th{background:#111820}
-.mainContent .table.cl-product-table-advanced{max-height:205px!important;overflow-y:auto!important;overflow-x:hidden!important}
-.mainContent .table.cl-product-table-advanced .tr{width:100%!important;min-width:0!important}
-.mainContent .table.cl-product-table-advanced .tr:not(.th){min-height:52px!important}
-.mainContent .table.cl-product-table-advanced .tr.th{min-height:40px!important}
-.rs-view .rs-table{display:block;max-height:360px;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin}
-.rs-view .rs-table tbody,.rs-view .rs-table thead{width:100%}
-@media(max-height:820px){.mainContent .table{max-height:300px!important}.mainContent .table.cl-product-table-advanced{max-height:190px!important}}
+
+/* Productos: encabezado + sólo 3 productos visibles. El buscador sigue filtrando
+   y muestra hasta los primeros 3 resultados encontrados. */
+body.cl-products-view .mainContent .table.cl-product-table-advanced>.tr:not(.th):nth-of-type(n+5){display:none!important}
+body.cl-products-view .mainContent .table.cl-product-table-advanced{height:auto!important;max-height:none!important;overflow:hidden!important}
+body.cl-products-view .mainContent .table.cl-product-table-advanced>.tr{position:relative!important;inset:auto!important;transform:none!important}
+
+/* Otras tablas principales: vista compacta para evitar páginas interminables. */
+body:not(.cl-products-view) .mainContent>.table>.tr:not(.th):nth-of-type(n+8){display:none!important}
+
+/* Módulos agregados por la suite: encabezado + hasta 6 filas. */
+.rs-view{overflow:hidden!important}
+.rs-view .rs-table{width:100%!important;overflow:hidden!important;max-height:none!important}
+.rs-view .rs-table tr:nth-child(n+8){display:none!important}
+
+/* Ningún listado puede desbordar horizontalmente su área. */
+.mainContent .table,.rs-view .rs-table{max-width:100%!important}
 `;
  document.head.appendChild(s);
 }
@@ -28,6 +40,8 @@ function mark(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mark);else mark();
 var main=document.querySelector('.mainContent');
-if(main)new MutationObserver(function(){requestAnimationFrame(mark)}).observe(main,{childList:true,subtree:false});
-document.addEventListener('click',function(e){if(e.target.closest('.sidebar button'))setTimeout(mark,80)});
+if(main)new MutationObserver(function(){requestAnimationFrame(mark)}).observe(main,{childList:true,subtree:true});
+document.addEventListener('click',function(e){if(e.target.closest('.sidebar button'))setTimeout(mark,60)});
+setTimeout(mark,150);
+setTimeout(mark,900);
 })();
