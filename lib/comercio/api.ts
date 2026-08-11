@@ -450,7 +450,7 @@ export async function createStaff(session: TenantSession, input: { username: str
 export async function resetSalesData(session: TenantSession, password: string): Promise<void> {
   const response = await fetch(`${SUPABASE_URL}/functions/v1/reset-sales-data`, {
     method: 'POST',
-    headers: { apikey: PUBLISH_KEY, Authorization: `Bearer ${session.token}`, 'Content-Type': 'application/json' },
+    headers: { apikey: PUBLISHABLE_KEY, Authorization: `Bearer ${session.token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ password }),
   })
   const data = await response.json().catch(() => ({}))
