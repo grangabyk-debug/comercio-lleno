@@ -1,4 +1,4 @@
-import type { DeviceSettings, TenantSession } from './types'
+import type { DeviceSettings, TenantSession, UserPermissions } from './types'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcubkbtcsqkzc.supabase.co'
 const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
@@ -11,12 +11,22 @@ const DEFAULT_DEVICE: DeviceSettings = {
   receiptCopies: 1,
 }
 
+function parsePermissions(value: string | null): UserPermissions {
+  try {
+    const parsed = JSON.parse(value || '{}')
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
 function persistTenantSession(session: TenantSession) {
   if (typeof window === 'undefined') return
   localStorage.setItem('cl_access_token', session.token)
   localStorage.setItem('cl_company_id', session.companyId)
   localStorage.setItem('cl_company_name', session.companyName)
   localStorage.setItem('cl_user_role', session.role)
+  localStorage.setItem('cl_user_permissions', JSON.stringify(session.permissions || {}))
 }
 
 export function readTenantSession(): TenantSession | null {
@@ -29,17 +39,20 @@ export function readTenantSession(): TenantSession | null {
     companyId,
     companyName: localStorage.getItem('cl_company_name') || 'Mi comercio',
     role: localStorage.getItem('cl_user_role') || 'owner',
+    permissions: parsePermissions(localStorage.getItem('cl_user_permissions')),
   }
 }
 
 export async function signInTenant(email: string, password: string): Promise<TenantSession> {
+  const loginValue = email.trim()
+  const loginEmail = loginValue.includes('@') ? loginValue : `${loginValue.toLowerCase()}@staff.comerciolleno.local`
   const auth = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
     method: 'POST',
     headers: {
       apikey: PUBLISHABLE_KEY,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ email: email.trim(), password }),
+    body: JSON.stringify({ email: loginEmail, password }),
   })
   const authData = await auth.json().catch(() => ({}))
   if (!auth.ok || !authData?.access_token || !authData?.user?.id) {
@@ -48,7 +61,7 @@ export async function signInTenant(email: string, password: string): Promise<Ten
 
   const token = String(authData.access_token)
   const userId = String(authData.user.id)
-  const profileResponse = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=company_id,role,active&limit=1`, {
+  const profileResponse = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=company_id,role,permissions,active&limit=1`, {
     headers: { apikey: PUBLISHABLE_KEY, Authorization: `Bearer ${token}` },
     cache: 'no-store',
   })
@@ -70,6 +83,7 @@ export async function signInTenant(email: string, password: string): Promise<Ten
     companyId: String(company.id),
     companyName: String(company.name || 'Mi comercio'),
     role: String(profile.role || 'cashier'),
+    permissions: profile.permissions || {},
   }
   persistTenantSession(session)
   return session
