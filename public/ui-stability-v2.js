@@ -1,7 +1,6 @@
 (function(){
 'use strict';
 var busy=false,locked=false,queued=false;
-var functionLabels=['Productos','Stock','Compras','Proveedores','Reposición'];
 var manageLabels=['Ventas','Reportes','Clientes','Rentabilidad','Cuentas corrientes','Devoluciones','Promociones'];
 function txt(el){return (el&&el.textContent||'').replace(/\s+/g,' ').trim()}
 function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()}
@@ -14,8 +13,10 @@ body.clv2-pos-active .mainContent>*{visibility:hidden!important}.cl-pos-pro{visi
 `;document.head.appendChild(s)}
 function directButton(sb,label){return Array.from(sb.children).find(function(el){return el.tagName==='BUTTON'&&matches(el,label)})||null}
 function group(sb,id,label,icon,labels){var g=sb.querySelector(':scope > .clv2-group[data-group="'+id+'"]');if(!g){g=document.createElement('div');g.className='clv2-group';g.dataset.group=id;g.innerHTML='<button type="button" class="clv2-toggle"><b><span>'+icon+'</span>'+label+'</b><i>›</i></button><div class="clv2-sub"></div>';sb.appendChild(g);g.querySelector('.clv2-toggle').onclick=function(){g.classList.toggle('open')}}var sub=g.querySelector('.clv2-sub');labels.forEach(function(name){var b=directButton(sb,name);if(b)sub.appendChild(b)});return g}
-function cleanOld(){document.querySelectorAll('.cl-menu-group').forEach(function(x){x.remove()})}
-function rebuild(){queued=false;if(busy)return;busy=true;injectCss();cleanOld();var sb=document.querySelector('.sidebar');if(sb){group(sb,'functions','Funciones','▤',functionLabels);group(sb,'manage','Gestión','▦',manageLabels)}fixPos();busy=false}
+function cleanOld(){document.querySelectorAll('.cl-menu-group,.clv2-group[data-group="functions"]').forEach(function(x){x.remove()})}
+function removeReposicion(){document.querySelectorAll('.sidebar button,.sidebar a').forEach(function(el){if(matches(el,'Reposición')||matches(el,'Reposicion'))el.remove()})}
+function flattenPrimary(sb){['Productos','Compras','Proveedores'].forEach(function(name){var b=Array.from(sb.querySelectorAll('button')).find(function(x){return matches(x,name)});if(b&&b.parentElement!==sb)sb.appendChild(b)})}
+function rebuild(){queued=false;if(busy)return;busy=true;injectCss();cleanOld();var sb=document.querySelector('.sidebar');if(sb){flattenPrimary(sb);removeReposicion();group(sb,'manage','Gestión','▦',manageLabels)}fixPos();busy=false}
 function schedule(){if(queued)return;queued=true;requestAnimationFrame(rebuild)}
 function sidebarButton(label){var sb=document.querySelector('.sidebar');if(!sb)return null;return Array.from(sb.querySelectorAll('button')).find(function(b){return matches(b,label)})||null}
 function fixOpenCash(btn){if(btn.dataset.clv2==='1')return;btn.dataset.clv2='1';btn.disabled=false;btn.classList.add('clv2-open');btn.onclick=function(e){e.preventDefault();e.stopPropagation();var daily=sidebarButton('Caja diaria');if(daily)daily.click()}}
