@@ -152,6 +152,18 @@ export type DeviceSettings = {
   printerMode: 'browser' | 'bridge'
   printerName: string
   receiptCopies: number
+  receiptAddress?: string
+  receiptPhone?: string
+  receiptHeader?: string
+  receiptFooter?: string
+  showBusinessName?: boolean
+  showTaxId?: boolean
+  showPaymentMethod?: boolean
+  showCustomer?: boolean
+  showSeller?: boolean
+  showBarcode?: boolean
+  showFiscalData?: boolean
+  compactTicket?: boolean
 }
 
 export type CartLine = Product & { qty: number }
