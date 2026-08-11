@@ -5,10 +5,22 @@ const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_
 
 const DEFAULT_DEVICE: DeviceSettings = {
   paper: '80',
-  autoPrint: false,
+  autoPrint: true,
   printerMode: 'browser',
   printerName: '',
   receiptCopies: 1,
+  receiptAddress: '',
+  receiptPhone: '',
+  receiptHeader: '',
+  receiptFooter: 'Gracias por su compra',
+  showBusinessName: true,
+  showTaxId: true,
+  showPaymentMethod: true,
+  showCustomer: true,
+  showSeller: true,
+  showBarcode: false,
+  showFiscalData: true,
+  compactTicket: false,
 }
 
 function parsePermissions(value: string | null): UserPermissions {
