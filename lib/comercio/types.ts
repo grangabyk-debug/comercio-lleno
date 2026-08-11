@@ -43,10 +43,12 @@ export type SaleDetails = {
   discount_amount?: number
   discount?: { kind: string; value: number } | null
   captured_at?: string
-  cae?: string
-  receipt_number?: string | number
-  cae_expiration?: string
-  fiscal_environment?: string
+  cae?: string | null
+  receipt_number?: string | number | null
+  cae_expiration?: string | null
+  fiscal_environment?: string | null
+  fiscal_pending_reason?: string | null
+  fiscal_pending_since?: string | null
 }
 
 export type Sale = {
