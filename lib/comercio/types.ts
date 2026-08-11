@@ -1,10 +1,36 @@
-export type ViewKey = 'dashboard' | 'pos' | 'sales' | 'products' | 'stock' | 'reports' | 'customers' | 'cash' | 'settings'
+export type ViewKey =
+  | 'dashboard'
+  | 'pos'
+  | 'products'
+  | 'cash'
+  | 'settings'
+  | 'assistant'
+  | 'help'
+  | 'sales'
+  | 'reports'
+  | 'customers'
+  | 'profitability'
+  | 'accounts'
+  | 'returns'
+  | 'promotions'
+  | 'purchases'
+  | 'suppliers'
+  | 'stock'
+
+export type UserPermissions = {
+  can_sell?: boolean
+  can_view_reports?: boolean
+  can_manage_stock?: boolean
+  can_manage_customers?: boolean
+  [key: string]: boolean | undefined
+}
 
 export type TenantSession = {
   token: string
   companyId: string
   companyName: string
   role: 'owner' | 'supervisor' | 'cashier' | string
+  permissions?: UserPermissions
 }
 
 export type CompanyProfile = {
@@ -21,10 +47,12 @@ export type Product = {
   category?: string | null
   price: number
   cost?: number | null
+  wholesale_price?: number | null
   stock: number
   min_stock?: number | null
   target_stock?: number | null
   unit?: string | null
+  supplier_id?: string | null
   active?: boolean
 }
 
