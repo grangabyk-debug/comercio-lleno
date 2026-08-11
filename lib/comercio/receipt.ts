@@ -22,14 +22,25 @@ function isFiscal(sale: Sale) {
   return Boolean(sale.cae && sale.receiptNumber)
 }
 
-export function buildReceiptHtml(sale: Sale, company: CompanyProfile, paper: '80' | '58' | 'a4' = '80') {
+function detailText(sale: Sale, key: string) {
+  const value = sale.details?.[key]
+  return typeof value === 'string' && value.trim() ? value.trim() : ''
+}
+
+export function buildReceiptHtml(
+  sale: Sale,
+  company: CompanyProfile,
+  paper: '80' | '58' | 'a4' = '80',
+  settings?: Partial<DeviceSettings>,
+) {
   const thermal = paper !== 'a4'
   const width = paper === '58' ? '58mm' : paper === '80' ? '80mm' : '190mm'
+  const compact = Boolean(settings?.compactTicket)
   const items = sale.details?.items || []
+  const showBarcode = Boolean(settings?.showBarcode)
   const rows = items.length
-    ? items.map((item) => `<tr><td>${esc(item.name)}</td><td class="r">${item.qty}</td><td class="r">${money(item.unit_price)}</td><td class="r">${money(item.line_total)}</td></tr>`).join('')
+    ? items.map((item) => `<tr><td>${esc(item.name)}${showBarcode && item.barcode ? `<small class="barcode">${esc(item.barcode)}</small>` : ''}</td><td class="r">${item.qty}</td><td class="r">${money(item.unit_price)}</td><td class="r">${money(item.line_total)}</td></tr>`).join('')
     : '<tr><td colspan="4">Sin detalle de productos</td></tr>'
-  const tax = company.tax_id ? `<div>CUIT ${esc(company.tax_id)}</div>` : ''
   const fiscal = isFiscal(sale)
   const fiscalEnvironment = sale.fiscalEnvironment || 'homologacion'
   const homologation = fiscal && /homo|test/i.test(fiscalEnvironment) ? '<div class="hom">HOMOLOGACIÓN · SIN VALIDEZ FISCAL</div>' : ''
@@ -43,20 +54,43 @@ export function buildReceiptHtml(sale: Sale, company: CompanyProfile, paper: '80
     ? `<div class="box"><div><b>CAE:</b> ${esc(sale.cae || '—')}</div><div><b>Vencimiento CAE:</b> ${esc(sale.caeExpiration || '—')}</div></div>`
     : `<div class="box"><b>Estado:</b> pendiente de sincronización y autorización fiscal.</div>`
 
+  const showBusinessName = settings?.showBusinessName !== false
+  const showTaxId = settings?.showTaxId !== false
+  const showPayment = settings?.showPaymentMethod !== false
+  const customer = settings?.showCustomer !== false ? detailText(sale, 'customer_name') : ''
+  const seller = settings?.showSeller !== false ? detailText(sale, 'seller_name') : ''
+  const address = String(settings?.receiptAddress || '').trim()
+  const phone = String(settings?.receiptPhone || '').trim()
+  const header = String(settings?.receiptHeader || '').trim()
+  const footer = String(settings?.receiptFooter || '').trim()
+  const tax = showTaxId && company.tax_id ? `<div>CUIT ${esc(company.tax_id)}</div>` : ''
+  const identity = [
+    showBusinessName ? `<b class="business">${esc(company.name)}</b>` : '',
+    tax,
+    address ? `<div>${esc(address)}</div>` : '',
+    phone ? `<div>${esc(phone)}</div>` : '',
+    header ? `<div class="headerText">${esc(header)}</div>` : '',
+  ].filter(Boolean).join('')
+  const extra = [
+    showPayment ? `<div><b>Medio de pago:</b> ${esc(sale.payment)}</div>` : '',
+    customer ? `<div><b>Cliente:</b> ${esc(customer)}</div>` : '',
+    seller ? `<div><b>Vendedor:</b> ${esc(seller)}</div>` : '',
+  ].filter(Boolean).join('')
+
   return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>
-  @page{margin:${thermal ? '3mm' : '12mm'};size:${thermal ? `${paper}mm auto` : 'A4'}}
-  *{box-sizing:border-box}body{font-family:Arial,sans-serif;width:${width};margin:0 auto;color:#111;font-size:${thermal ? '10.5px' : '13px'};line-height:1.35}
-  h1{font-size:${thermal ? '18px' : '25px'};margin:0 0 4px}.center{text-align:center}.r{text-align:right}.muted{color:#555}
-  .box{border:1px solid #222;padding:8px;margin:8px 0}.hom{font-weight:700;border:1px dashed #b42318;padding:7px;text-align:center;margin:8px 0}.pending{font-weight:800;border:2px solid #222;padding:8px;text-align:center;margin:8px 0}
-  table{width:100%;border-collapse:collapse;margin-top:8px}th,td{padding:5px 3px;border-bottom:1px solid #ddd;vertical-align:top}th{font-size:9px;text-transform:uppercase}
-  .total{font-size:${thermal ? '16px' : '20px'};font-weight:800;text-align:right;margin:10px 0}.foot{margin-top:12px;font-size:9px}
+  @page{margin:${thermal ? '2.5mm' : '12mm'};size:${thermal ? `${paper}mm auto` : 'A4'}}
+  *{box-sizing:border-box}body{font-family:Arial,sans-serif;width:${width};margin:0 auto;color:#111;font-size:${thermal ? (compact ? '9.2px' : '10.5px') : '13px'};line-height:${compact ? '1.22' : '1.35'}}
+  h1{font-size:${thermal ? (compact ? '15px' : '18px') : '25px'};margin:0 0 4px}.center{text-align:center}.r{text-align:right}.muted{color:#555}.business{font-size:${thermal ? '12px' : '15px'}}
+  .box{border:1px solid #222;padding:${compact ? '5px' : '8px'};margin:${compact ? '5px' : '8px'} 0}.hom{font-weight:700;border:1px dashed #b42318;padding:7px;text-align:center;margin:8px 0}.pending{font-weight:800;border:2px solid #222;padding:8px;text-align:center;margin:8px 0}.headerText{margin-top:4px;font-weight:700}
+  table{width:100%;border-collapse:collapse;margin-top:${compact ? '4px' : '8px'}}th,td{padding:${compact ? '3px 2px' : '5px 3px'};border-bottom:1px solid #ddd;vertical-align:top}th{font-size:9px;text-transform:uppercase}.barcode{display:block;font-size:7px;color:#555;margin-top:1px;letter-spacing:.03em}
+  .total{font-size:${thermal ? (compact ? '14px' : '16px') : '20px'};font-weight:800;text-align:right;margin:${compact ? '7px' : '10px'} 0}.foot{margin-top:${compact ? '8px' : '12px'};font-size:9px}.customFoot{font-weight:700;margin-bottom:3px}
   </style></head><body>
-  <div class="center"><h1>${heading}</h1><b>${esc(company.name)}</b>${tax}</div>${homologation}${pending}
-  <div class="box">${numberBlock}<div><b>Fecha:</b> ${esc(new Date(sale.date).toLocaleString('es-AR'))}</div><div><b>Medio de pago:</b> ${esc(sale.payment)}</div></div>
+  <div class="center"><h1>${heading}</h1>${identity}</div>${homologation}${pending}
+  <div class="box">${numberBlock}<div><b>Fecha:</b> ${esc(new Date(sale.date).toLocaleString('es-AR'))}</div>${extra}</div>
   <table><thead><tr><th>Producto</th><th class="r">Cant.</th><th class="r">Precio</th><th class="r">Subtotal</th></tr></thead><tbody>${rows}</tbody></table>
   <div class="total">TOTAL ${money(sale.total)}</div>
   ${fiscalBlock}
-  <div class="foot center">${fiscal ? 'Comprobante generado por Comercio Lleno' : 'La venta se enviará a ARCA cuando vuelva la conexión.'}</div></body></html>`
+  <div class="foot center">${footer ? `<div class="customFoot">${esc(footer)}</div>` : ''}${fiscal ? 'Comprobante generado por Comercio Lleno' : 'La venta se enviará a ARCA cuando vuelva la conexión.'}</div></body></html>`
 }
 
 declare global {
@@ -68,7 +102,7 @@ declare global {
 }
 
 export async function printReceipt(sale: Sale, company: CompanyProfile, settings: DeviceSettings) {
-  const html = buildReceiptHtml(sale, company, settings.paper)
+  const html = buildReceiptHtml(sale, company, settings.paper, settings)
   if (settings.printerMode === 'bridge' && typeof window !== 'undefined' && window.ComercioLlenoPrintBridge?.printHtml) {
     await window.ComercioLlenoPrintBridge.printHtml({ html, printerName: settings.printerName, paper: settings.paper, copies: settings.receiptCopies })
     return
