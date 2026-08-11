@@ -1,0 +1,5 @@
+/* Comercio Lleno UI cleanup: keep only the current POS surfaces. */
+main.app > div[style*="position: fixed"][style*="bottom: 0"]{display:none!important}
+.mainContent{padding-bottom:34px!important}
+.mainContent:has(.cashBox)>*{visibility:hidden!important}
+#clCashSafe [data-recalc]{display:none!important}
