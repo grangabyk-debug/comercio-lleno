@@ -278,6 +278,31 @@ export async function closeCashRegister(session: TenantSession, current: CashReg
   return { ...current, status: 'closed', closed_at: now }
 }
 
+export async function createCashMovement(session: TenantSession, kind: 'expense' | 'income' | 'egress', amount: number, note: string): Promise<void> {
+  const value = Math.max(0, Number(amount || 0))
+  if (!value) throw new Error('Ingresá un importe mayor a cero.')
+  await rest(session, 'cash_movements', {
+    method: 'POST',
+    headers: { Prefer: 'return=minimal' },
+    body: JSON.stringify({
+      company_id: session.companyId,
+      kind,
+      amount: value,
+      note: note.trim() || null,
+      occurred_at: new Date().toISOString(),
+    }),
+  })
+}
+
+export async function updateSaleNote(session: TenantSession, sale: Sale, note: string): Promise<void> {
+  const details = { ...(sale.details || {}), note: note.trim() || null }
+  await rest(session, `sales?id=eq.${encodeURIComponent(sale.id)}&company_id=eq.${companyFilter(session)}`, {
+    method: 'PATCH',
+    headers: { Prefer: 'return=minimal' },
+    body: JSON.stringify({ details }),
+  })
+}
+
 export async function createCustomer(session: TenantSession, input: Pick<Customer, 'name' | 'phone' | 'email' | 'tax_id'>): Promise<Customer> {
   const rows = await rest<Customer[]>(session, 'customers', {
     method: 'POST',
@@ -425,7 +450,7 @@ export async function createStaff(session: TenantSession, input: { username: str
 export async function resetSalesData(session: TenantSession, password: string): Promise<void> {
   const response = await fetch(`${SUPABASE_URL}/functions/v1/reset-sales-data`, {
     method: 'POST',
-    headers: { apikey: PUBLISHABLE_KEY, Authorization: `Bearer ${session.token}`, 'Content-Type': 'application/json' },
+    headers: { apikey: PUBLISH_KEY, Authorization: `Bearer ${session.token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ password }),
   })
   const data = await response.json().catch(() => ({}))
