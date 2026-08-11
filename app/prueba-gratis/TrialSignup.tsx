@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { FormEvent, useState } from 'react'
 import { signInTenant } from '@/lib/comercio/session'
+import BrandLogo from '../BrandLogo'
 import styles from './trial.module.css'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcubkbtcsqkzc.supabase.co'
@@ -48,7 +49,7 @@ export default function TrialSignup() {
 
   return <main className={styles.page}>
     <header className={styles.top}>
-      <Link className={styles.brand} href="/">Comercio <span>Lleno</span></Link>
+      <Link className={styles.brand} href="/" aria-label="Comercio Lleno"><BrandLogo size={44}/></Link>
       <Link className={styles.login} href="/redesign/access">Ya tengo una cuenta →</Link>
     </header>
     <section className={styles.layout}>
@@ -66,6 +67,7 @@ export default function TrialSignup() {
       </div>
 
       <div className={styles.card}>
+        <div style={{marginBottom:18}}><BrandLogo size={52} showTagline/></div>
         <h2>Iniciar prueba gratis</h2>
         <p>No se cobra nada durante los primeros 14 días.</p>
         <form className={styles.form} onSubmit={submit}>
