@@ -23,7 +23,7 @@ export default function TrialStatus(){
   const [subscription,setSubscription]=useState<Subscription|null>(null)
   const [loaded,setLoaded]=useState(false)
   const [busy,setBusy]=useState(false)
-  const [error,setError]=useState('')
+  const [notice,setNotice]=useState('')
   const [now,setNow]=useState(Date.now())
 
   useEffect(()=>{
@@ -42,7 +42,7 @@ export default function TrialStatus(){
   async function activate(){
     const session=readTenantSession()
     if(!session||busy)return
-    setBusy(true);setError('')
+    setBusy(true);setNotice('')
     try{
       const response=await fetch(`${SUPABASE_URL}/functions/v1/mercadopago-subscription`,{
         method:'POST',
@@ -51,16 +51,25 @@ export default function TrialStatus(){
       })
       const data=await response.json().catch(()=>({}))
       if(!response.ok||!data?.ok){
-        if(data?.configured===false)throw new Error('Mercado Pago está preparado pero falta cargar la credencial de cobro antes de habilitarlo al público.')
-        throw new Error(data?.error||'No se pudo iniciar la suscripción.')
+        if(data?.configured===false){
+          setNotice('La asociación de tarjeta estará disponible próximamente.')
+          return
+        }
+        console.error('mercadopago-subscription error',data)
+        setNotice('No pudimos abrir el pago. Probá nuevamente más tarde.')
+        return
       }
       if(data.active){
         setSubscription(current=>current?{...current,status:'active',provider_status:data.status,payment_method_added_at:new Date().toISOString()}:current)
         return
       }
       if(data.init_point){window.location.href=String(data.init_point);return}
-      throw new Error('Mercado Pago no devolvió el enlace para asociar la tarjeta.')
-    }catch(e){setError(e instanceof Error?e.message:String(e))}
+      console.error('mercadopago-subscription missing init_point',data)
+      setNotice('No pudimos abrir el pago. Probá nuevamente más tarde.')
+    }catch(e){
+      console.error('mercadopago-subscription request failed',e)
+      setNotice('No pudimos abrir el pago. Probá nuevamente más tarde.')
+    }
     finally{setBusy(false)}
   }
 
@@ -74,6 +83,6 @@ export default function TrialStatus(){
   return <div className={`${styles.pill} ${expired?styles.danger:warning?styles.warning:''}`}>
     <i className={styles.dot}/>
     {expired?<><b>Prueba finalizada</b><span>Activá el plan de {money.format(price)}/mes para seguir usando Comercio Lleno.</span><button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo Mercado Pago…':'Activar con tarjeta'}</button></>:<><b>Prueba gratis</b><span>{days} día{days===1?'':'s'} restante{days===1?'':'s'} · luego {money.format(price)}/mes</span>{!hasPayment&&<button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo…':'Asociar tarjeta'}</button>}</>}
-    {error&&<span title={error}> · {error}</span>}
+    {notice&&<span> · {notice}</span>}
   </div>
 }
