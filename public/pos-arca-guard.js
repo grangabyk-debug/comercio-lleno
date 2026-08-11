@@ -1,0 +1,90 @@
+(function(){
+'use strict';
+var ENDPOINT='https://wtcntclzcubkbtcsqkzc.supabase.co/functions/v1/arca-invoice';
+var busy=false;
+
+function moneyFromText(text){
+  var s=String(text||'').replace(/\s/g,'').replace(/\$/g,'').replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,'');
+  var n=Number(s);
+  return Number.isFinite(n)?n:0;
+}
+function getTotal(){
+  var rows=document.querySelectorAll('.cl-pos-money-row.total b');
+  return rows.length?moneyFromText(rows[rows.length-1].textContent):0;
+}
+function getToken(){try{return localStorage.getItem('cl_access_token')||''}catch(_){return''}}
+function readSales(){try{var x=JSON.parse(localStorage.getItem('cl_sales')||'[]');return Array.isArray(x)?x:[]}catch(_){return[]}}
+function saveFiscalToLatest(invoice,requestId){
+  try{
+    var sales=readSales();
+    if(sales.length){
+      sales[0].receiptNumber=invoice.receipt_number;
+      sales[0].cae=invoice.cae;
+      sales[0].caeExpiration=invoice.cae_expiration||'';
+      sales[0].fiscalEnvironment='homologacion';
+      localStorage.setItem('cl_sales',JSON.stringify(sales));
+      window.dispatchEvent(new Event('storage'));
+    }
+    localStorage.setItem('cl_last_fiscal_invoice',JSON.stringify({request_id:requestId,invoice:invoice,created_at:new Date().toISOString()}));
+  }catch(_){ }
+}
+function errorMessage(d,status){
+  if(d&&d.error)return d.error;
+  var es=d&&d.invoice&&Array.isArray(d.invoice.errors)?d.invoice.errors:[];
+  if(es.length)return es.map(function(x){return x.code+': '+x.msg}).join(' | ');
+  return 'Error '+status;
+}
+
+async function gate(e){
+  var btn=e.target&&e.target.closest?e.target.closest('.cl-pos-pro [data-charge]'):null;
+  if(!btn||btn.disabled)return;
+  if(btn.dataset.arcaApproved==='1'){
+    delete btn.dataset.arcaApproved;
+    return;
+  }
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+  if(busy)return;
+
+  var amount=getTotal();
+  if(!(amount>0)){
+    alert('No pude leer el total de la venta. No se registró nada.');
+    return;
+  }
+  var token=getToken();
+  if(!token){
+    alert('Tu sesión venció. Volvé a ingresar antes de facturar.');
+    return;
+  }
+
+  busy=true;
+  var originalOnclick=btn.onclick;
+  var oldText=btn.textContent;
+  btn.disabled=true;
+  btn.textContent='Facturando en ARCA…';
+  var requestId=(crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+'-'+Math.random());
+
+  try{
+    var r=await fetch(ENDPOINT,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({request_id:requestId,amount:amount})});
+    var d={};try{d=await r.json()}catch(_){ }
+    if(!r.ok||!d.ok||!d.invoice||!d.invoice.cae)throw new Error(errorMessage(d,r.status));
+
+    btn.disabled=false;
+    btn.textContent=oldText;
+    btn.dataset.arcaApproved='1';
+    if(typeof originalOnclick!=='function')throw new Error('El POS no expuso el registrador de venta.');
+    originalOnclick.call(btn,new MouseEvent('click',{bubbles:false,cancelable:true}));
+    saveFiscalToLatest(d.invoice,requestId);
+    alert('Factura C autorizada por ARCA (homologación).\nComprobante: 0001-'+String(d.invoice.receipt_number||'').padStart(8,'0')+'\nCAE: '+d.invoice.cae+'\nTotal: $ '+amount.toLocaleString('es-AR'));
+  }catch(err){
+    btn.disabled=false;
+    btn.textContent=oldText;
+    alert('No se pudo autorizar la factura en ARCA.\n\n'+(err&&err.message?err.message:String(err))+'\n\nLa venta no fue registrada.');
+  }finally{
+    busy=false;
+  }
+}
+
+document.addEventListener('click',gate,true);
+})();
