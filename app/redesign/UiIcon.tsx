@@ -1,4 +1,4 @@
-import type { SVGProps } from 'react'
+import type { ReactNode, SVGProps } from 'react'
 
 export type UiIconName =
   | 'home' | 'sale' | 'products' | 'cash' | 'settings' | 'sparkles' | 'management'
@@ -6,7 +6,7 @@ export type UiIconName =
   | 'purchases' | 'suppliers' | 'banknote' | 'plus' | 'minus' | 'withdraw' | 'receipt'
   | 'check' | 'alert' | 'user' | 'discount' | 'search' | 'trash' | 'printer'
 
-const paths: Record<UiIconName, React.ReactNode> = {
+const paths: Record<UiIconName, ReactNode> = {
   home: <><path d="M3 10.8 12 3l9 7.8"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/></>,
   sale: <><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 9h10M7 13h4"/><circle cx="16.5" cy="14.5" r="1.5"/></>,
   products: <><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7 8 4 8-4M4 7v10l8 4 8-4V7M12 11v10"/></>,
@@ -24,10 +24,12 @@ const paths: Record<UiIconName, React.ReactNode> = {
   purchases: <><path d="M4 7h16l-1.5 8h-13L4 4H2"/><circle cx="8" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></>,
   suppliers: <><path d="M3 20h18M5 20V8l7-4 7 4v12"/><path d="M9 20v-5h6v5M8 10h2M14 10h2"/></>,
   banknote: <><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><circle cx="12" cy="12" r="3"/><path d="M6 9.5a2.5 2.5 0 0 1-2.5 2.5M18 9.5a2.5 2.5 0 0 0 2.5 2.5M6 14.5A2.5 2.5 0 0 0 3.5 12M18 14.5a2.5 2.5 0 0 1 2.5-2.5"/></>,
-  plus: <path d="M12 5v14M5 12h14"/>, minus: <path d="M5 12h14"/>,
+  plus: <path d="M12 5v14M5 12h14"/>,
+  minus: <path d="M5 12h14"/>,
   withdraw: <><path d="M5 12h12"/><path d="m13 8 4 4-4 4"/><path d="M4 5h8M4 19h8"/></>,
   receipt: <><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></>,
-  check: <path d="m5 12 4 4L19 6"/>, alert: <><path d="M12 4 3 20h18L12 4Z"/><path d="M12 9v5M12 17h.01"/></>,
+  check: <path d="m5 12 4 4L19 6"/>,
+  alert: <><path d="M12 4 3 20h18L12 4Z"/><path d="M12 9v5M12 17h.01"/></>,
   user: <><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></>,
   discount: <><circle cx="7.5" cy="7.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/><path d="m18.5 5.5-13 13"/></>,
   search: <><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,
