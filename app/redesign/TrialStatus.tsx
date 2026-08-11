@@ -23,15 +23,39 @@ export default function TrialStatus(){
   const [subscription,setSubscription]=useState<Subscription|null>(null)
   const [loaded,setLoaded]=useState(false)
   const [busy,setBusy]=useState(false)
-  const [notice,setNotice]=useState('')
+  const [error,setError]=useState('')
   const [now,setNow]=useState(Date.now())
 
   useEffect(()=>{
     const session=readTenantSession()
     if(!session){setLoaded(true);return}
-    fetch(`${SUPABASE_URL}/rest/v1/company_subscriptions?company_id=eq.${encodeURIComponent(session.companyId)}&select=status,trial_ends_at,price_amount,currency,payment_method_added_at,billing_provider,provider_status&limit=1`,{
+
+    const loadSubscription=()=>fetch(`${SUPABASE_URL}/rest/v1/company_subscriptions?company_id=eq.${encodeURIComponent(session.companyId)}&select=status,trial_ends_at,price_amount,currency,payment_method_added_at,billing_provider,provider_status&limit=1`,{
       headers:{apikey:PUBLISHABLE_KEY,Authorization:`Bearer ${session.token}`},cache:'no-store',
-    }).then(r=>r.ok?r.json():[]).then(rows=>setSubscription(Array.isArray(rows)?rows[0]||null:null)).catch(()=>{}).finally(()=>setLoaded(true))
+    }).then(r=>r.ok?r.json():[]).then(rows=>setSubscription(Array.isArray(rows)?rows[0]||null:null))
+
+    const params=new URLSearchParams(window.location.search)
+    const returnedFromBilling=params.get('billing')==='return'
+
+    const init=async()=>{
+      try{
+        if(returnedFromBilling){
+          const response=await fetch(`${SUPABASE_URL}/functions/v1/mercadopago-subscription`,{
+            method:'POST',
+            headers:{apikey:PUBLISHABLE_KEY,Authorization:`Bearer ${session.token}`,'Content-Type':'application/json'},
+            body:JSON.stringify({action:'sync'}),
+          })
+          const data=await response.json().catch(()=>({}))
+          if(response.ok&&data?.active){
+            window.history.replaceState({},'',window.location.pathname)
+          }
+        }
+        await loadSubscription()
+      }catch{}
+      finally{setLoaded(true)}
+    }
+    void init()
+
     const timer=window.setInterval(()=>setNow(Date.now()),60_000)
     return()=>window.clearInterval(timer)
   },[])
@@ -42,7 +66,7 @@ export default function TrialStatus(){
   async function activate(){
     const session=readTenantSession()
     if(!session||busy)return
-    setBusy(true);setNotice('')
+    setBusy(true);setError('')
     try{
       const response=await fetch(`${SUPABASE_URL}/functions/v1/mercadopago-subscription`,{
         method:'POST',
@@ -51,25 +75,16 @@ export default function TrialStatus(){
       })
       const data=await response.json().catch(()=>({}))
       if(!response.ok||!data?.ok){
-        if(data?.configured===false){
-          setNotice('La asociación de tarjeta estará disponible próximamente.')
-          return
-        }
-        console.error('mercadopago-subscription error',data)
-        setNotice('No pudimos abrir el pago. Probá nuevamente más tarde.')
-        return
+        if(data?.configured===false)throw new Error('La asociación de tarjeta estará disponible en breve.')
+        throw new Error('No pudimos abrir Mercado Pago en este momento. Probá nuevamente en unos minutos.')
       }
       if(data.active){
         setSubscription(current=>current?{...current,status:'active',provider_status:data.status,payment_method_added_at:new Date().toISOString()}:current)
         return
       }
       if(data.init_point){window.location.href=String(data.init_point);return}
-      console.error('mercadopago-subscription missing init_point',data)
-      setNotice('No pudimos abrir el pago. Probá nuevamente más tarde.')
-    }catch(e){
-      console.error('mercadopago-subscription request failed',e)
-      setNotice('No pudimos abrir el pago. Probá nuevamente más tarde.')
-    }
+      throw new Error('No pudimos abrir Mercado Pago en este momento. Probá nuevamente en unos minutos.')
+    }catch(e){setError(e instanceof Error?e.message:String(e))}
     finally{setBusy(false)}
   }
 
@@ -83,6 +98,6 @@ export default function TrialStatus(){
   return <div className={`${styles.pill} ${expired?styles.danger:warning?styles.warning:''}`}>
     <i className={styles.dot}/>
     {expired?<><b>Prueba finalizada</b><span>Activá el plan de {money.format(price)}/mes para seguir usando Comercio Lleno.</span><button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo Mercado Pago…':'Activar con tarjeta'}</button></>:<><b>Prueba gratis</b><span>{days} día{days===1?'':'s'} restante{days===1?'':'s'} · luego {money.format(price)}/mes</span>{!hasPayment&&<button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo…':'Asociar tarjeta'}</button>}</>}
-    {notice&&<span> · {notice}</span>}
+    {error&&<span title={error}> · {error}</span>}
   </div>
 }
