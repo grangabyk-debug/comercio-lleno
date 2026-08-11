@@ -18,6 +18,10 @@ export function receiptNumber(sale: Sale) {
   return `0001-${String(sale.receiptNumber || 0).padStart(8, '0')}`
 }
 
+function isFiscal(sale: Sale) {
+  return Boolean(sale.cae && sale.receiptNumber)
+}
+
 export function buildReceiptHtml(sale: Sale, company: CompanyProfile, paper: '80' | '58' | 'a4' = '80') {
   const thermal = paper !== 'a4'
   const width = paper === '58' ? '58mm' : paper === '80' ? '80mm' : '190mm'
@@ -26,23 +30,33 @@ export function buildReceiptHtml(sale: Sale, company: CompanyProfile, paper: '80
     ? items.map((item) => `<tr><td>${esc(item.name)}</td><td class="r">${item.qty}</td><td class="r">${money(item.unit_price)}</td><td class="r">${money(item.line_total)}</td></tr>`).join('')
     : '<tr><td colspan="4">Sin detalle de productos</td></tr>'
   const tax = company.tax_id ? `<div>CUIT ${esc(company.tax_id)}</div>` : ''
+  const fiscal = isFiscal(sale)
   const fiscalEnvironment = sale.fiscalEnvironment || 'homologacion'
-  const homologation = /homo|test/i.test(fiscalEnvironment) ? '<div class="hom">HOMOLOGACIÓN · SIN VALIDEZ FISCAL</div>' : ''
+  const homologation = fiscal && /homo|test/i.test(fiscalEnvironment) ? '<div class="hom">HOMOLOGACIÓN · SIN VALIDEZ FISCAL</div>' : ''
+  const pending = !fiscal ? '<div class="pending">COMPROBANTE INTERNO · PENDIENTE DE ARCA<br>NO ES FACTURA FISCAL · SIN CAE</div>' : ''
+  const title = fiscal ? `Factura C ${receiptNumber(sale)}` : `Ticket pendiente ${sale.id.slice(0, 8)}`
+  const heading = fiscal ? 'FACTURA C' : 'VENTA PENDIENTE'
+  const numberBlock = fiscal
+    ? `<div><b>Comprobante:</b> ${receiptNumber(sale)}</div>`
+    : `<div><b>Operación local:</b> ${esc(sale.id.slice(0, 12))}</div>`
+  const fiscalBlock = fiscal
+    ? `<div class="box"><div><b>CAE:</b> ${esc(sale.cae || '—')}</div><div><b>Vencimiento CAE:</b> ${esc(sale.caeExpiration || '—')}</div></div>`
+    : `<div class="box"><b>Estado:</b> pendiente de sincronización y autorización fiscal.</div>`
 
-  return `<!doctype html><html><head><meta charset="utf-8"><title>Factura C ${receiptNumber(sale)}</title><style>
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>
   @page{margin:${thermal ? '3mm' : '12mm'};size:${thermal ? `${paper}mm auto` : 'A4'}}
   *{box-sizing:border-box}body{font-family:Arial,sans-serif;width:${width};margin:0 auto;color:#111;font-size:${thermal ? '10.5px' : '13px'};line-height:1.35}
   h1{font-size:${thermal ? '18px' : '25px'};margin:0 0 4px}.center{text-align:center}.r{text-align:right}.muted{color:#555}
-  .box{border:1px solid #222;padding:8px;margin:8px 0}.hom{font-weight:700;border:1px dashed #b42318;padding:7px;text-align:center;margin:8px 0}
+  .box{border:1px solid #222;padding:8px;margin:8px 0}.hom{font-weight:700;border:1px dashed #b42318;padding:7px;text-align:center;margin:8px 0}.pending{font-weight:800;border:2px solid #222;padding:8px;text-align:center;margin:8px 0}
   table{width:100%;border-collapse:collapse;margin-top:8px}th,td{padding:5px 3px;border-bottom:1px solid #ddd;vertical-align:top}th{font-size:9px;text-transform:uppercase}
   .total{font-size:${thermal ? '16px' : '20px'};font-weight:800;text-align:right;margin:10px 0}.foot{margin-top:12px;font-size:9px}
   </style></head><body>
-  <div class="center"><h1>FACTURA C</h1><b>${esc(company.name)}</b>${tax}</div>${homologation}
-  <div class="box"><div><b>Comprobante:</b> ${receiptNumber(sale)}</div><div><b>Fecha:</b> ${esc(new Date(sale.date).toLocaleString('es-AR'))}</div><div><b>Medio de pago:</b> ${esc(sale.payment)}</div></div>
+  <div class="center"><h1>${heading}</h1><b>${esc(company.name)}</b>${tax}</div>${homologation}${pending}
+  <div class="box">${numberBlock}<div><b>Fecha:</b> ${esc(new Date(sale.date).toLocaleString('es-AR'))}</div><div><b>Medio de pago:</b> ${esc(sale.payment)}</div></div>
   <table><thead><tr><th>Producto</th><th class="r">Cant.</th><th class="r">Precio</th><th class="r">Subtotal</th></tr></thead><tbody>${rows}</tbody></table>
   <div class="total">TOTAL ${money(sale.total)}</div>
-  <div class="box"><div><b>CAE:</b> ${esc(sale.cae || '—')}</div><div><b>Vencimiento CAE:</b> ${esc(sale.caeExpiration || '—')}</div></div>
-  <div class="foot center">Comprobante generado por Comercio Lleno</div></body></html>`
+  ${fiscalBlock}
+  <div class="foot center">${fiscal ? 'Comprobante generado por Comercio Lleno' : 'La venta se enviará a ARCA cuando vuelva la conexión.'}</div></body></html>`
 }
 
 declare global {
@@ -120,23 +134,22 @@ function buildSimplePdf(lines: Array<{ text: string; size?: number; bold?: boole
 }
 
 function receiptPdfBytes(sale: Sale, company: CompanyProfile) {
+  const fiscal = isFiscal(sale)
   const items = sale.details?.items || []
   const lines: Array<{ text: string; size?: number; bold?: boolean }> = [
-    { text: 'FACTURA C', size: 20, bold: true },
+    { text: fiscal ? 'FACTURA C' : 'COMPROBANTE INTERNO - PENDIENTE DE ARCA', size: fiscal ? 20 : 15, bold: true },
     { text: company.name, size: 13, bold: true },
     { text: company.tax_id ? `CUIT ${company.tax_id}` : 'CUIT no informado' },
-    { text: `Comprobante: ${receiptNumber(sale)}` },
+    { text: fiscal ? `Comprobante: ${receiptNumber(sale)}` : `Operacion local: ${sale.id.slice(0, 12)}` },
     { text: `Fecha: ${new Date(sale.date).toLocaleString('es-AR')}` },
     { text: `Medio de pago: ${sale.payment}` },
+    ...(!fiscal ? [{ text: 'NO ES FACTURA FISCAL - SIN CAE', bold: true }] : []),
     { text: ' ' },
   ]
   items.slice(0, 28).forEach((item) => lines.push({ text: `${item.qty} x ${item.name.slice(0, 42)} - ${money(item.line_total)}` }))
-  lines.push(
-    { text: ' ' },
-    { text: `TOTAL ${money(sale.total)}`, size: 14, bold: true },
-    { text: `CAE: ${sale.cae || '—'}` },
-    { text: `Vencimiento CAE: ${sale.caeExpiration || '—'}` },
-  )
+  lines.push({ text: ' ' }, { text: `TOTAL ${money(sale.total)}`, size: 14, bold: true })
+  if (fiscal) lines.push({ text: `CAE: ${sale.cae || '—'}` }, { text: `Vencimiento CAE: ${sale.caeExpiration || '—'}` })
+  else lines.push({ text: 'Se intentara facturar automaticamente cuando vuelva Internet.' })
   return buildSimplePdf(lines)
 }
 
@@ -150,17 +163,20 @@ export function downloadReceiptPdf(sale: Sale, company: CompanyProfile) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `factura-c-${receiptNumber(sale)}.pdf`
+  a.download = isFiscal(sale) ? `factura-c-${receiptNumber(sale)}.pdf` : `venta-pendiente-${sale.id.slice(0, 8)}.pdf`
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 export async function emailReceipt(sale: Sale, company: CompanyProfile, email?: string | null) {
   if (typeof window === 'undefined') return 'unsupported'
-  const filename = `factura-c-${receiptNumber(sale)}.pdf`
+  const fiscal = isFiscal(sale)
+  const filename = fiscal ? `factura-c-${receiptNumber(sale)}.pdf` : `venta-pendiente-${sale.id.slice(0,8)}.pdf`
   const blob = receiptPdfBlob(sale, company)
-  const subject = `Factura C ${receiptNumber(sale)} · ${company.name}`
-  const body = `Hola, te enviamos la Factura C ${receiptNumber(sale)} por ${money(sale.total)} emitida por ${company.name}.`
+  const subject = fiscal ? `Factura C ${receiptNumber(sale)} · ${company.name}` : `Comprobante interno pendiente · ${company.name}`
+  const body = fiscal
+    ? `Hola, te enviamos la Factura C ${receiptNumber(sale)} por ${money(sale.total)} emitida por ${company.name}.`
+    : `Hola, te enviamos el comprobante interno de la operación por ${money(sale.total)}. Esta venta está pendiente de autorización fiscal de ARCA y todavía no posee CAE.`
 
   try {
     if (typeof File !== 'undefined' && navigator.share) {
