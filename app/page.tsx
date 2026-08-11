@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import styles from './landing.module.css'
 import UiIcon from './redesign/UiIcon'
+import BrandLogo from './BrandLogo'
 
 const features = [
   ['sale','Facturación ARCA integrada','Vendé y emití el comprobante desde el mismo flujo. La activación fiscal requiere la configuración del CUIT y certificados del comercio.'],
@@ -19,7 +20,7 @@ export const metadata = {
 export default function LandingPage() {
   return <main className={styles.page}>
     <nav className={styles.nav}>
-      <div className={styles.brand}><span className={styles.brandMark}>CL</span><div>Comercio <span>Lleno</span></div></div>
+      <Link className={styles.brand} href="/" aria-label="Comercio Lleno"><BrandLogo size={48}/></Link>
       <div className={styles.navActions}>
         <Link className={styles.login} href="/redesign/access">Ingresar</Link>
         <Link className={styles.trial} href="/prueba-gratis">Probar gratis 14 días</Link>
@@ -44,7 +45,7 @@ export default function LandingPage() {
           <div className={styles.browserTop}><span className={styles.dot}/><span className={styles.dot}/><span className={styles.dot}/></div>
           <div className={styles.screen}>
             <div className={styles.mockSide}>
-              <div className={styles.mockLogo}>Comercio <span>Lleno</span></div>
+              <div className={styles.mockLogo}><BrandLogo size={30} markOnly/></div>
               <div className={styles.mockNav}/><div className={styles.mockNavGreen}/><div className={styles.mockNav}/><div className={styles.mockNav}/><div className={styles.mockNav}/><div className={styles.mockNav}/>
             </div>
             <div className={styles.mockMain}>
@@ -103,6 +104,6 @@ export default function LandingPage() {
 
     <section className={styles.finalCta}><div className={styles.finalBox}><div><h2>¿Querés verlo funcionando en tu comercio?</h2><p>Creá tu cuenta y empezá hoy mismo con 14 días de prueba.</p></div><Link className={styles.primaryCta} href="/prueba-gratis">Probar Comercio Lleno →</Link></div></section>
 
-    <footer className={styles.footer}><div>© 2026 Comercio Lleno</div><div>POS · Gestión · ARCA · IA · Offline</div></footer>
+    <footer className={styles.footer}><BrandLogo size={32}/><div>POS · Gestión · ARCA · IA · Offline</div></footer>
   </main>
 }
