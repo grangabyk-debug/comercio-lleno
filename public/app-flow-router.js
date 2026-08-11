@@ -1,0 +1,1 @@
+(function(){try{var p=location.pathname.replace(/\/+$/,'')||'/';var q=new URLSearchParams(location.search);if(p==='/login')sessionStorage.setItem('cl_entering_app','1');if(p==='/'&&q.get('app')!=='1'&&sessionStorage.getItem('cl_entering_app')==='1'&&localStorage.getItem('cl_access_token')){sessionStorage.removeItem('cl_entering_app');location.replace('/?app=1')}}catch(e){}})();
