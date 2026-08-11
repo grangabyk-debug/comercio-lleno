@@ -35,7 +35,7 @@ export default function LandingPage() {
           <Link className={styles.primaryCta} href="/prueba-gratis">Empezar prueba gratis <span>→</span></Link>
           <Link className={styles.secondaryCta} href="/redesign/access">Ya tengo una cuenta</Link>
         </div>
-        <div className={styles.micro}><span>14 días gratis</span><span>Sin costo de instalación</span><span>Luego $9.900/mes</span></div>
+        <div className={styles.micro}><span>14 días gratis</span><span>Sin costo de instalación</span><span>Luego $14.900/mes</span></div>
       </div>
 
       <div className={styles.visual} aria-label="Vista del sistema Comercio Lleno">
@@ -96,8 +96,8 @@ export default function LandingPage() {
 
     <section className={styles.section}>
       <div className={styles.priceWrap}>
-        <div className={styles.priceCopy}><div className={styles.eyebrow}><i/> PRECIO SIMPLE</div><h2>Probalo antes de decidir.</h2><p>La prueba arranca cuando creás tu comercio. Durante 14 días podés conocer el sistema y cargar tus productos. Después, el plan cuesta $9.900 por mes.</p><p className={styles.fineprint}>El cobro recurrente requiere asociar un medio de pago. La integración de suscripción se habilita en el alta de pago antes de finalizar el período de prueba.</p></div>
-        <div className={styles.priceCard}><span className={styles.tag}>14 DÍAS GRATIS</span><div className={styles.price}>$9.900 <small>/ mes</small></div><ul><li>Punto de venta</li><li>Productos, stock y caja diaria</li><li>Reportes y rentabilidad</li><li>Asistente IA</li><li>Modo offline</li><li>ARCA e impresión térmica configurables</li></ul><Link className={styles.priceButton} href="/prueba-gratis">Iniciar prueba gratis</Link><div className={styles.priceNote}>No se cobra durante los primeros 14 días.</div></div>
+        <div className={styles.priceCopy}><div className={styles.eyebrow}><i/> PRECIO SIMPLE</div><h2>Probalo antes de decidir.</h2><p>La prueba arranca cuando creás tu comercio. Durante 14 días podés conocer el sistema y cargar tus productos. Después, el plan cuesta $14.900 por mes.</p><p className={styles.fineprint}>El cobro recurrente requiere asociar un medio de pago. La integración de suscripción se habilita en el alta de pago antes de finalizar el período de prueba.</p></div>
+        <div className={styles.priceCard}><span className={styles.tag}>14 DÍAS GRATIS</span><div className={styles.price}>$14.900 <small>/ mes</small></div><ul><li>Punto de venta</li><li>Productos, stock y caja diaria</li><li>Reportes y rentabilidad</li><li>Asistente IA</li><li>Modo offline</li><li>ARCA e impresión térmica configurables</li></ul><Link className={styles.priceButton} href="/prueba-gratis">Iniciar prueba gratis</Link><div className={styles.priceNote}>No se cobra durante los primeros 14 días.</div></div>
       </div>
     </section>
 
