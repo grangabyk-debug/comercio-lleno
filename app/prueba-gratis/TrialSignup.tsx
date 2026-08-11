@@ -10,6 +10,12 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcu
 const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
 const MONTHLY_PRICE = 14900
 const price = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(MONTHLY_PRICE)
+const TENANT_SESSION_KEYS = ['cl_access_token','cl_refresh_token','cl_company_id','cl_company_name','cl_user_role','cl_user_permissions']
+
+function clearPreviousTenantSession() {
+  if (typeof window === 'undefined') return
+  TENANT_SESSION_KEYS.forEach(key => window.localStorage.removeItem(key))
+}
 
 export default function TrialSignup() {
   const [fullName,setFullName]=useState('')
@@ -37,6 +43,12 @@ export default function TrialSignup() {
       if(!response.ok||!data?.ok)throw new Error(data?.error||'No se pudo crear la prueba gratuita.')
       const end=data?.trial_ends_at?new Date(data.trial_ends_at).toLocaleDateString('es-AR'):'dentro de 14 días'
       setSuccess(`Listo. Tu prueba está activa hasta ${end}. Entrando al sistema…`)
+
+      // Si el alta se hace desde un equipo que ya tenía otro comercio abierto,
+      // eliminamos únicamente la sesión anterior antes de iniciar la nueva.
+      // Los datos/cachés de cada comercio siguen separados por company_id.
+      clearPreviousTenantSession()
+
       try{
         await signInTenant(email,password)
         window.location.replace('/redesign')
