@@ -52,9 +52,37 @@ function jwtExpiresAt(token: string) {
   }
 }
 
+function tokenExpired(token: string) {
+  const expiresAt = jwtExpiresAt(token)
+  return Boolean(expiresAt && expiresAt <= Date.now())
+}
+
 function shouldRefresh(token: string) {
   const expiresAt = jwtExpiresAt(token)
   return !expiresAt || expiresAt - Date.now() <= REFRESH_MARGIN_MS
+}
+
+function clearStoredSession() {
+  if (typeof window === 'undefined') return
+  ;['cl_access_token','cl_refresh_token','cl_company_id','cl_company_name','cl_user_role','cl_user_permissions'].forEach((key) => localStorage.removeItem(key))
+  activeSession = null
+  if (refreshTimer != null) window.clearTimeout(refreshTimer)
+  refreshTimer = null
+}
+
+function sessionExpiredError() {
+  const error = new Error('Tu sesión venció. Volvé a ingresar para continuar.') as Error & { code?: string }
+  error.code = 'SESSION_EXPIRED'
+  return error
+}
+
+export function isSessionExpiredError(error: unknown) {
+  return Boolean(
+    error &&
+    typeof error === 'object' &&
+    ('code' in error && (error as { code?: unknown }).code === 'SESSION_EXPIRED' ||
+      'message' in error && /jwt expired|sesión venció|session expired/i.test(String((error as { message?: unknown }).message || ''))),
+  )
 }
 
 function persistTenantSession(session: TenantSession, refreshToken?: string) {
@@ -79,7 +107,12 @@ function scheduleRefresh(session: TenantSession) {
     : 45 * 60 * 1000
   refreshTimer = window.setTimeout(() => {
     if (!activeSession) return
-    void refreshTenantSession(activeSession, true).catch(() => {
+    void refreshTenantSession(activeSession, true).catch((error) => {
+      if (isSessionExpiredError(error)) {
+        clearStoredSession()
+        if (typeof location !== 'undefined') location.replace('/redesign/access?expired=1')
+        return
+      }
       if (!activeSession) return
       refreshTimer = window.setTimeout(() => {
         if (activeSession) void refreshTenantSession(activeSession, true).catch(() => {})
@@ -91,7 +124,12 @@ function scheduleRefresh(session: TenantSession) {
     resumeListenersInstalled = true
     const resume = () => {
       if (!activeSession || !shouldRefresh(activeSession.token)) return
-      void refreshTenantSession(activeSession, true).catch(() => {})
+      void refreshTenantSession(activeSession, true).catch((error) => {
+        if (isSessionExpiredError(error)) {
+          clearStoredSession()
+          location.replace('/redesign/access?expired=1')
+        }
+      })
     }
     window.addEventListener('focus', resume)
     document.addEventListener('visibilitychange', () => {
@@ -117,7 +155,13 @@ export async function refreshTenantSession(session: TenantSession, force = false
   }
 
   const refreshToken = localStorage.getItem('cl_refresh_token') || ''
-  if (!refreshToken) return session
+  if (!refreshToken) {
+    if (tokenExpired(session.token)) {
+      clearStoredSession()
+      throw sessionExpiredError()
+    }
+    return session
+  }
   if (refreshInFlight) return refreshInFlight
 
   refreshInFlight = (async () => {
@@ -132,6 +176,10 @@ export async function refreshTenantSession(session: TenantSession, force = false
     })
     const data = await response.json().catch(() => ({}))
     if (!response.ok || !data?.access_token) {
+      if (response.status === 400 || response.status === 401 || /refresh token|jwt|expired/i.test(String(data?.error_description || data?.msg || data?.error || ''))) {
+        clearStoredSession()
+        throw sessionExpiredError()
+      }
       throw new Error(data?.error_description || data?.msg || data?.error || 'No se pudo renovar la sesión.')
     }
 
@@ -153,6 +201,11 @@ export function readTenantSession(): TenantSession | null {
   const token = localStorage.getItem('cl_access_token') || ''
   const companyId = localStorage.getItem('cl_company_id') || ''
   if (!token || !companyId) return null
+  const refreshToken = localStorage.getItem('cl_refresh_token') || ''
+  if (!refreshToken && tokenExpired(token)) {
+    clearStoredSession()
+    return null
+  }
   const session: TenantSession = {
     token,
     companyId,
@@ -161,8 +214,10 @@ export function readTenantSession(): TenantSession | null {
     permissions: parsePermissions(localStorage.getItem('cl_user_permissions')),
   }
   scheduleRefresh(session)
-  if (localStorage.getItem('cl_refresh_token') && shouldRefresh(session.token)) {
-    void refreshTenantSession(session, true).catch(() => {})
+  if (refreshToken && shouldRefresh(session.token)) {
+    void refreshTenantSession(session, true).catch((error) => {
+      if (isSessionExpiredError(error)) location.replace('/redesign/access?expired=1')
+    })
   }
   return session
 }
