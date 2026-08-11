@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import styles from './page.module.css'
 import parity from './parity.module.css'
+import enh from './enhancements.module.css'
 import {
   authorizeFiscalInvoice,
   checkArcaHealth,
@@ -26,7 +27,8 @@ import {
   SettingsV2,
   SuppliersV2,
 } from './ManagementViews'
-import { Cash, ContingencyModal, Customers, Dashboard, dayKey, money, Pos, ReceiptModal, Reports, Sales } from './CoreViews'
+import { ContingencyModal, Customers, ReceiptModal } from './CoreViews'
+import { CashEnhanced, DashboardEnhanced, dayKey, money, PosEnhanced, ReportsEnhanced, SalesEnhanced } from './OperationalViews'
 import UnifiedAssistant from './UnifiedAssistant'
 
 function createId() { return typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}` }
@@ -55,6 +57,9 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
   const [query, setQuery] = useState('')
   const [cart, setCart] = useState<CartLine[]>([])
   const [payment, setPayment] = useState('Efectivo')
+  const [customerId, setCustomerId] = useState('')
+  const [discountKind, setDiscountKind] = useState<'percent' | 'amount'>('percent')
+  const [discountValue, setDiscountValue] = useState(0)
   const [saleSearch, setSaleSearch] = useState('')
   const [salePage, setSalePage] = useState(0)
   const [receiptSale, setReceiptSale] = useState<Sale | null>(null)
@@ -98,7 +103,14 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
   const todaySales = useMemo(() => data?.sales.filter(s => dayKey(s.date) === today) || [], [data, today])
   const todayTotal = useMemo(() => todaySales.reduce((a,s)=>a+s.total,0), [todaySales])
   const lowStock = useMemo(() => data?.products.filter(p => p.stock <= Number(p.min_stock ?? 5)).length || 0, [data])
-  const total = useMemo(() => cart.reduce((a,i)=>a+i.price*i.qty,0), [cart])
+  const subtotal = useMemo(() => cart.reduce((a,i)=>a+i.price*i.qty,0), [cart])
+  const discountAmount = useMemo(() => {
+    const value = Math.max(0, Number(discountValue || 0))
+    if (!subtotal || !value) return 0
+    if (discountKind === 'percent') return Math.min(subtotal, subtotal * Math.min(100, value) / 100)
+    return Math.min(subtotal, value)
+  }, [subtotal, discountKind, discountValue])
+  const total = Math.max(0, subtotal - discountAmount)
   const filteredProducts = useMemo(() => {
     if (!data) return []
     const q = query.trim().toLowerCase()
@@ -122,6 +134,14 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
     else setNotice('Tu rol no tiene permiso para abrir esa sección.')
   }
 
+  function resetSaleForm() {
+    setCart([])
+    setCustomerId('')
+    setDiscountValue(0)
+    setDiscountKind('percent')
+    setPayment('Efectivo')
+  }
+
   function addProduct(id: string) {
     const p = data?.products.find(x=>x.id===id)
     if(!p)return
@@ -136,16 +156,33 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
     if(!data||!cart.length||checkoutBusy)return
     if(!canView(tenant,'pos')){setNotice('Tu usuario no tiene permiso para vender.');return}
     if(data.cashRegister?.status!=='open'){setNotice('Primero tenés que abrir la caja.');return}
+    if(total<=0){setNotice('El total de la venta debe ser mayor a cero.');return}
     setCheckoutBusy(true);setError('')
     const id=createId()
     const items=cart.map(i=>({product_id:i.id,name:i.name,barcode:i.barcode||null,qty:i.qty,unit_price:i.price,line_total:i.price*i.qty}))
-    const base:Sale={id,date:new Date().toISOString(),total,payment,items:items.reduce((a,i)=>a+i.qty,0),receipt_type:'factura_c',fiscal_status:'pending',details:{items,subtotal_before_discount:total,captured_at:new Date().toISOString()}}
+    const base:Sale={
+      id,
+      date:new Date().toISOString(),
+      total,
+      payment,
+      items:items.reduce((a,i)=>a+i.qty,0),
+      customer_id:customerId||null,
+      receipt_type:'factura_c',
+      fiscal_status:'pending',
+      details:{
+        items,
+        subtotal_before_discount:subtotal,
+        discount_amount:discountAmount,
+        discount:discountAmount>0?{kind:discountKind,value:discountValue}:null,
+        captured_at:new Date().toISOString(),
+      },
+    }
     const stock=cart.map(i=>({id:i.id,stock:Math.max(0,i.stock-i.qty)}))
     try{
       const invoice=await authorizeFiscalInvoice(tenant,total,id)
       const authorized:Sale={...base,fiscal_status:'authorized',cae:invoice.cae,receiptNumber:invoice.receipt_number,caeExpiration:invoice.cae_expiration||null,fiscalEnvironment:arca?.environment||'homologacion'}
       await persistAuthorizedSale(tenant,authorized,stock)
-      setCart([])
+      resetSaleForm()
       setNotice(`Venta registrada · Factura C ${receiptNumber(authorized)}`)
       setReceiptSale(authorized)
       setArca({...(arca||{connected:true}),connected:true,checkedAt:new Date().toISOString()})
@@ -153,16 +190,23 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
       if(device.autoPrint){try{await printReceipt(authorized,data.company,device)}catch{}}
     }catch(e){
       const err=e as Error&{arcaUnavailable?:boolean}
-      if(err.arcaUnavailable){setArca({connected:false,checkedAt:new Date().toISOString(),error:err.message});setContingency({sale:base,stock,reason:err.message})}
-      else setError(`No se pudo facturar: ${err.message}`)
+      if(err.arcaUnavailable){
+        setArca({connected:false,checkedAt:new Date().toISOString(),error:err.message})
+        setContingency({sale:base,stock,reason:err.message})
+      } else setError(`No se pudo facturar: ${err.message}`)
     }finally{setCheckoutBusy(false)}
   }
 
   async function confirmContingency(){
     if(!contingency)return
     setCheckoutBusy(true)
-    try{await persistUninvoicedSale(tenant,contingency.sale,contingency.stock,contingency.reason);setCart([]);setNotice('Venta registrada sin factura. Quedó Pendiente ARCA.');setContingency(null);await refresh(tenant)}
-    catch(e){setError(e instanceof Error?e.message:String(e))}
+    try{
+      await persistUninvoicedSale(tenant,contingency.sale,contingency.stock,contingency.reason)
+      resetSaleForm()
+      setNotice('Venta registrada sin factura. Quedó Pendiente ARCA.')
+      setContingency(null)
+      await refresh(tenant)
+    } catch(e){setError(e instanceof Error?e.message:String(e))}
     finally{setCheckoutBusy(false)}
   }
 
@@ -186,10 +230,10 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
 
   const arcaLabel=arcaChecking?'ARCA verificando…':arca?.connected?'ARCA conectado':'ARCA desconectado'
   const arcaClass=arcaChecking?styles.statusNeutral:arca?.connected?styles.statusOk:styles.statusBad
-  const mainNav:Array<[ViewKey,string,string,string?]>=[['dashboard','⌂','Inicio'],['pos','▣','Caja'],['products','▦','Productos'],['cash','◷','Caja diaria'],['settings','⚙','Configuración'],['assistant','✦','Asistente IA','assistant']]
+  const mainNav:Array<[ViewKey,string,string,string?]>=[['dashboard','⌂','Inicio'],['pos','🪙','Nueva venta','sale'],['products','▦','Productos'],['cash','◷','Caja diaria'],['settings','⚙','Configuración'],['assistant','✦','Asistente IA','assistant']]
   const management:Array<[ViewKey,string,string]>=[['sales','▤','Ventas'],['reports','◔','Reportes'],['customers','♙','Clientes'],['profitability','↗','Rentabilidad'],['accounts','¤','Cuentas corrientes'],['returns','↩','Devoluciones'],['promotions','%','Promociones']]
 
-  return <main className={`${styles.shell} ${dark?styles.dark:''} ${dark?parity.dark:''}`}>
+  return <main className={`${styles.shell} ${enh.readable} ${dark?styles.dark:''} ${dark?parity.dark:''} ${dark?enh.dark:''}`}>
     <header className={styles.topbar}>
       <div className={styles.brandWrap}><div className={styles.brandMark}>CL</div><div><div className={styles.brand}>Comercio <span>Lleno</span></div><div className={styles.tenant}>{data?.company.name||tenant.companyName} · {tenant.role==='owner'?'Propietario':tenant.role==='supervisor'?'Supervisor':'Encargado / Cajero'}</div></div></div>
       <div className={styles.headerRight}><button className={`${styles.status} ${arcaClass}`} onClick={()=>refreshArca(tenant)}>● {arcaLabel}</button><span className={styles.versionPill}>Rediseño V2 · {buildVersion}</span><button className={styles.headerButton} onClick={()=>refresh(tenant)}>↻ Actualizar</button><button className={styles.headerButton} onClick={()=>setDark(x=>!x)}>{dark?'☀ Claro':'☾ Oscuro'}</button><button className={parity.logout} onClick={logout}>Salir</button></div>
@@ -198,7 +242,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
     <div className={styles.layout}>
       <aside className={styles.sidebar}>
         <div className={styles.navLabel}>OPERACIÓN</div>
-        {mainNav.map(([key,icon,label,special])=>canView(tenant,key)&&<button key={key} className={`${styles.navButton} ${view===key?styles.navActive:''} ${special==='assistant'?parity.supportAssistant:''}`} onClick={()=>go(key)}><span>{icon}</span>{label}</button>)}
+        {mainNav.map(([key,icon,label,special])=>canView(tenant,key)&&<button key={key} className={`${styles.navButton} ${view===key?styles.navActive:''} ${special==='assistant'?parity.supportAssistant:''} ${special==='sale'?enh.saleNav:''}`} onClick={()=>go(key)}><span>{icon}</span>{label}</button>)}
         <button className={parity.navGroupButton} onClick={()=>setManagementOpen(x=>!x)}><span>▦</span>Gestión<span>{managementOpen?'⌃':'⌄'}</span></button>
         {managementOpen&&<div className={parity.navChildren}>{management.filter(([key])=>canView(tenant,key)).map(([key,icon,label])=><button key={key} className={`${parity.navChild} ${view===key?parity.navChildActive:''}`} onClick={()=>go(key)}><span>{icon}</span>{label}</button>)}</div>}
         {canView(tenant,'purchases')&&<button className={`${styles.navButton} ${view==='purchases'?styles.navActive:''}`} onClick={()=>go('purchases')}><span>▦</span>Compras</button>}
@@ -209,13 +253,13 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
       <section className={styles.content}>
         {error&&<div className={styles.error}><span>{error}</span><button onClick={()=>setError('')}>×</button></div>}
         {notice&&<div className={styles.notice}><span>{notice}</span><button onClick={()=>setNotice('')}>×</button></div>}
-        {data&&view==='dashboard'&&<Dashboard data={data} todayTotal={todayTotal} todayCount={todaySales.length} lowStock={lowStock} go={go} canSell={canView(tenant,'pos')} role={tenant.role}/>} 
-        {data&&view==='pos'&&<Pos data={data} query={query} setQuery={setQuery} filtered={filteredProducts} cart={cart} addProduct={addProduct} changeQty={changeQty} removeProduct={removeProduct} total={total} payment={payment} setPayment={setPayment} checkout={checkout} busy={checkoutBusy} arca={arca}/>} 
+        {data&&view==='dashboard'&&<DashboardEnhanced data={data} todayTotal={todayTotal} todayCount={todaySales.length} lowStock={lowStock} go={go} canSell={canView(tenant,'pos')} role={tenant.role}/>} 
+        {data&&view==='pos'&&<PosEnhanced data={data} query={query} setQuery={setQuery} filtered={filteredProducts} cart={cart} addProduct={addProduct} changeQty={changeQty} removeProduct={removeProduct} subtotal={subtotal} discountKind={discountKind} setDiscountKind={setDiscountKind} discountValue={discountValue} setDiscountValue={setDiscountValue} discountAmount={discountAmount} total={total} customerId={customerId} setCustomerId={setCustomerId} payment={payment} setPayment={setPayment} checkout={checkout} busy={checkoutBusy} arca={arca}/>} 
         {data&&view==='products'&&<ProductsV2 data={data} session={tenant} refresh={()=>refresh(tenant)} message={setNotice}/>} 
-        {data&&view==='cash'&&<Cash data={data} sessionSales={sessionSales} movements={sessionMovements} cashEstimated={cashEstimated} openCash={openCash} closeCash={closeCash}/>} 
+        {data&&view==='cash'&&<CashEnhanced data={data} session={tenant} sessionSales={sessionSales} movements={sessionMovements} cashEstimated={cashEstimated} openCash={openCash} closeCash={closeCash} refresh={()=>refresh(tenant)} message={setNotice}/>} 
         {data&&view==='settings'&&<SettingsV2 data={data} session={tenant} device={device} setDevice={setDevice} arca={arca} buildVersion={buildVersion} refresh={()=>refresh(tenant)} message={setNotice}/>} 
-        {data&&view==='sales'&&<Sales data={data} search={saleSearch} setSearch={x=>{setSaleSearch(x);setSalePage(0)}} page={salePage} setPage={setSalePage} openReceipt={setReceiptSale} device={device} onMessage={setNotice}/>} 
-        {data&&view==='reports'&&<Reports data={data}/>} 
+        {data&&view==='sales'&&<SalesEnhanced data={data} session={tenant} search={saleSearch} setSearch={x=>{setSaleSearch(x);setSalePage(0)}} page={salePage} setPage={setSalePage} device={device} onMessage={setNotice} refresh={()=>refresh(tenant)}/>} 
+        {data&&view==='reports'&&<ReportsEnhanced data={data}/>} 
         {data&&view==='customers'&&<Customers data={data} session={tenant} refresh={()=>refresh(tenant)} message={setNotice}/>} 
         {data&&view==='profitability'&&<ProfitabilityV2 data={data}/>} 
         {data&&view==='accounts'&&<AccountsV2 data={data} session={tenant}/>} 
