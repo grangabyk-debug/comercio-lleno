@@ -1,6 +1,6 @@
 (function(){
 'use strict';
-if(location.pathname!=='/'||new URLSearchParams(location.search).get('app')!=='1')return;
+var _p=location.pathname.replace(/\/+$/,'')||'/';var _q=new URLSearchParams(location.search);if(!((_p==='/'&&_q.get('app')==='1')||_p.indexOf('/app/')===0))return;
 function cid(){try{return localStorage.getItem('cl_company_id')||'default'}catch(e){return'default'}}
 function company(){try{return localStorage.getItem('cl_company_name')||'tu comercio'}catch(e){return'tu comercio'}}
 function hideKey(){return 'cl_setup_hidden_'+cid()}
