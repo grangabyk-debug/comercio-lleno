@@ -18,6 +18,12 @@ const privateRouteGuard = `
     var isPrivateRoot = path === '/' && params.get('app') === '1';
     if (!isLegacyTenantPath && !isPrivateRoot) return;
 
+    var style = document.createElement('style');
+    style.id = 'cl-private-lock-style';
+    style.textContent = 'html.cl-private-locked body{visibility:hidden!important}';
+    document.head.appendChild(style);
+    document.documentElement.classList.add('cl-private-locked');
+
     var token = localStorage.getItem('cl_access_token') || '';
     var valid = false;
     if (token) {
