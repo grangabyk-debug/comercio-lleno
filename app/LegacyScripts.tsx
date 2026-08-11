@@ -9,7 +9,7 @@ const legacyScripts = [
 
 export default function LegacyScripts() {
   const pathname = usePathname()
-  if (pathname.startsWith('/redesign')) return null
+  if (pathname.startsWith('/redesign') || pathname.startsWith('/movil')) return null
 
   return <>{legacyScripts.map((src) => <Script key={src} src={src} strategy="afterInteractive" />)}</>
 }
