@@ -78,6 +78,11 @@ export type SaleDetails = {
   fiscal_environment?: string | null
   fiscal_pending_reason?: string | null
   fiscal_pending_since?: string | null
+  offline_created_at?: string | null
+  offline_device_id?: string | null
+  offline_sync_error?: string | null
+  offline_stock_conflict?: string[] | null
+  [key: string]: unknown
 }
 
 export type Sale = {
