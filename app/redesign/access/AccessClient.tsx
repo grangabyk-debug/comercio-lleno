@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react'
 import { readTenantSession, signInTenant } from '@/lib/comercio/session'
+import BrandLogo from '../../BrandLogo'
 import styles from './access.module.css'
 
 export default function AccessClient() {
@@ -31,19 +32,19 @@ export default function AccessClient() {
 
   return <main className={styles.page}>
     <section className={styles.card}>
-      <div className={styles.topline}><span className={styles.logo}>CL</span><span className={styles.badge}>REDISEÑO V2</span></div>
+      <div className={styles.topline}><BrandLogo size={52} showTagline/><span className={styles.badge}>REDISEÑO V2</span></div>
       <div className={styles.copy}>
-        <p className={styles.eyebrow}>COMERCIO LLENO · PILOTO NUEVO</p>
-        <h1>Entrá al sistema rediseñado</h1>
-        <p>Este acceso queda dentro del preview nuevo y no te devuelve a la interfaz anterior.</p>
+        <p className={styles.eyebrow}>COMERCIO LLENO · ACCESO SEGURO</p>
+        <h1>Entrá a tu comercio</h1>
+        <p>Accedé con tu usuario para abrir el panel de Comercio Lleno.</p>
       </div>
       <form onSubmit={submit} className={styles.form}>
         <label>Email<input type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" placeholder="tu@email.com" /></label>
         <label>Contraseña<input type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" placeholder="••••••••" /></label>
         {error && <div className={styles.error}>{error}</div>}
-        <button type="submit" disabled={busy || !email.trim() || !password}>{busy ? 'Ingresando…' : 'Abrir Rediseño V2'}</button>
+        <button type="submit" disabled={busy || !email.trim() || !password}>{busy ? 'Ingresando…' : 'Ingresar'}</button>
       </form>
-      <div className={styles.note}><b>Importante:</b> este login usa Supabase real y conserva el aislamiento multi-tenant por comercio.</div>
+      <div className={styles.note}><b>Cuenta protegida:</b> cada usuario accede únicamente a los datos del comercio al que pertenece.</div>
     </section>
   </main>
 }
