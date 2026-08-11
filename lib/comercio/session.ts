@@ -4,7 +4,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcu
 const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
 
 const DEFAULT_DEVICE: DeviceSettings = {
-  paper: '80',
+  paper: '58',
   autoPrint: true,
   printerMode: 'browser',
   printerName: '',
