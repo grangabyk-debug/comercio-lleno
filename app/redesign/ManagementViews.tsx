@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 import core from './page.module.css'
 import styles from './management.module.css'
 import PrinterSettingsPanel from './PrinterSettingsPanel'
+import UpdatesCenter from './UpdatesCenter'
 import {
   addAccountMovement,
   createProduct,
@@ -137,7 +138,7 @@ export function PromotionsV2({ data, session }: { data: CommerceSnapshot; sessio
 }
 
 export function SettingsV2({ data, session, device, setDevice, arca, buildVersion, refresh, message }: { data: CommerceSnapshot; session: TenantSession; device: DeviceSettings; setDevice: (d: DeviceSettings) => void; arca: ArcaHealth | null; buildVersion: string; refresh: () => Promise<void>; message: (m: string) => void }) {
-  const [tab, setTab] = useState<'commerce' | 'sales' | 'arca' | 'printer' | 'stock' | 'users' | 'maintenance'>('commerce')
+  const [tab, setTab] = useState<'commerce' | 'sales' | 'arca' | 'printer' | 'stock' | 'users' | 'updates' | 'maintenance'>('commerce')
   const [name, setName] = useState(data.company.name), [tax, setTax] = useState(data.company.tax_id || '')
   const [staff, setStaff] = useState<StaffProfile[]>([]), [staffError, setStaffError] = useState(''), [newStaff, setNewStaff] = useState(false)
   const [resetOpen, setResetOpen] = useState(false), [resetPass, setResetPass] = useState(''), [resetBusy, setResetBusy] = useState(false), [resetError, setResetError] = useState('')
@@ -148,7 +149,7 @@ export function SettingsV2({ data, session, device, setDevice, arca, buildVersio
   function savePrinter(next: DeviceSettings) { setDevice(next); writeDeviceSettings(session.companyId, next) }
   async function resetSales() { if (!resetPass) return; setResetBusy(true); setResetError(''); try { await resetSalesData(session, resetPass); setResetOpen(false); setResetPass(''); await refresh(); message('Las ventas quedaron restablecidas a cero.') } catch (e) { setResetError(e instanceof Error ? e.message : String(e)) } finally { setResetBusy(false) } }
   const tabs = [
-    ['commerce','Comercio'],['sales','Ventas y caja'],['arca','ARCA'],['printer','Impresora y tickets'],['stock','Stock'],...(owner ? [['users','Usuarios y roles'],['maintenance','Mantenimiento']] : []),
+    ['commerce','Comercio'],['sales','Ventas y caja'],['arca','ARCA'],['printer','Impresora y tickets'],['stock','Stock'],...(owner ? [['users','Usuarios y roles'],['updates','Actualizaciones'],['maintenance','Mantenimiento']] : []),
   ] as Array<[typeof tab,string]>
   return <><Head eyebrow="ADMINISTRACIÓN" title="Configuración" subtitle="Configuración completa del comercio, dispositivo y permisos."/><div className={styles.settingsLayout}><aside className={styles.settingsNav}>{tabs.map(([id,label]) => <button key={id} className={tab === id ? styles.settingsActive : ''} onClick={() => setTab(id)}>{label}</button>)}</aside><section className={styles.settingsBody}>
     {tab === 'commerce' && <div className={styles.settingPanel}><h3>Datos del comercio</h3><p>Información principal asociada a este tenant.</p><div className={styles.formGrid}><label>Nombre<input value={name} onChange={e => setName(e.target.value)}/></label><label>CUIT<input value={tax} onChange={e => setTax(e.target.value)}/></label></div><button className={core.primary} onClick={saveCommerce}>Guardar cambios</button></div>}
@@ -157,6 +158,7 @@ export function SettingsV2({ data, session, device, setDevice, arca, buildVersio
     {tab === 'printer' && <PrinterSettingsPanel company={data.company} device={device} onSave={savePrinter} message={message} />}
     {tab === 'stock' && <LocalSettingsPanel storageKey="cl_settings" section="stock" title="Stock e inventario" fields={[['low','Avisar stock bajo desde','number'],['allowNegative','Permitir stock negativo','check']]}/>} 
     {tab === 'users' && owner && <div className={styles.settingPanel}><div className={styles.settingHead}><div><h3>Usuarios, roles y permisos</h3><p>Solo visible y administrable por el Propietario.</p></div><button className={core.primary} onClick={() => setNewStaff(true)}>+ Crear usuario</button></div>{staffError && <div className={styles.formError}>{staffError}</div>}<div className={styles.staffList}>{staff.filter(x => x.role !== 'owner').map(x => <StaffRow key={x.id} staff={x} session={session} saved={loadUsers}/>)}</div>{newStaff && <NewStaffModal session={session} close={() => setNewStaff(false)} saved={async () => { setNewStaff(false); await loadUsers() }}/>}</div>}
+    {tab === 'updates' && owner && <UpdatesCenter session={session} buildVersion={buildVersion} message={message} />}
     {tab === 'maintenance' && owner && <div className={`${styles.settingPanel} ${styles.dangerPanel}`}><h3>Restablecer valores de ventas</h3><p>Pone en cero ventas, reportes e historial. No modifica productos, stock, clientes ni configuración.</p><button className={styles.dangerButton} onClick={() => setResetOpen(true)}>Restablecer ventas a cero</button><div className={styles.note}>Requiere la contraseña del propietario y no se puede deshacer.</div></div>}
     <div className={styles.versionBox}>Comercio Lleno · Rediseño V2 · build {buildVersion} · tenant {session.companyId.slice(0,8)}</div>
   </section></div>{resetOpen && <div className={styles.modal}><div className={`${styles.modalCard} ${styles.dangerModal}`}><div className={styles.modalHead}><div><span>ZONA SENSIBLE</span><h2>Restablecer ventas</h2></div><button onClick={() => setResetOpen(false)}>×</button></div><p>Se eliminará el historial de ventas de este comercio y los indicadores quedarán en cero. Productos, stock y clientes no se modifican.</p><label className={styles.blockLabel}>Contraseña del propietario<input type="password" value={resetPass} onChange={e => setResetPass(e.target.value)} autoComplete="current-password"/></label>{resetError && <div className={styles.formError}>{resetError}</div>}<div className={styles.modalActions}><button onClick={() => setResetOpen(false)}>Cancelar</button><button className={styles.dangerButton} disabled={resetBusy} onClick={resetSales}>{resetBusy ? 'Restableciendo…' : 'Confirmar y poner en cero'}</button></div></div></div>}</>
