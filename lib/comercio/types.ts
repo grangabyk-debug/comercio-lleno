@@ -69,7 +69,8 @@ export type SaleDetails = {
   items?: SaleItem[]
   subtotal_before_discount?: number
   discount_amount?: number
-  discount?: { kind: string; value: number } | null
+  discount?: { kind: 'percent' | 'amount' | string; value: number } | null
+  note?: string | null
   captured_at?: string
   cae?: string | null
   receipt_number?: string | number | null
