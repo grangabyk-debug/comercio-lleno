@@ -24,6 +24,18 @@ function available() {
   return typeof window !== 'undefined' && 'indexedDB' in window
 }
 
+function normalizeSnapshot(snapshot: CommerceSnapshot): CommerceSnapshot {
+  return {
+    ...snapshot,
+    company: snapshot?.company || { id: '', name: 'Mi comercio' },
+    products: Array.isArray(snapshot?.products) ? snapshot.products : [],
+    sales: Array.isArray(snapshot?.sales) ? snapshot.sales : [],
+    customers: Array.isArray(snapshot?.customers) ? snapshot.customers : [],
+    cashRegister: snapshot?.cashRegister || null,
+    cashMovements: Array.isArray(snapshot?.cashMovements) ? snapshot.cashMovements : [],
+  }
+}
+
 function openDb(): Promise<IDBDatabase> {
   if (!available()) return Promise.reject(new Error('IndexedDB no disponible'))
   return new Promise((resolve, reject) => {
@@ -66,7 +78,7 @@ export function getOfflineDeviceId(companyId: string) {
 export async function saveOfflineSnapshot(companyId: string, snapshot: CommerceSnapshot) {
   if (!available()) return
   await tx<void>(SNAPSHOT_STORE, 'readwrite', (store, resolve, reject) => {
-    const request = store.put({ companyId, snapshot, savedAt: new Date().toISOString() } satisfies SnapshotRecord)
+    const request = store.put({ companyId, snapshot: normalizeSnapshot(snapshot), savedAt: new Date().toISOString() } satisfies SnapshotRecord)
     request.onsuccess = () => resolve()
     request.onerror = () => reject(request.error)
   })
@@ -76,7 +88,10 @@ export async function loadOfflineSnapshot(companyId: string): Promise<CommerceSn
   if (!available()) return null
   return tx<CommerceSnapshot | null>(SNAPSHOT_STORE, 'readonly', (store, resolve, reject) => {
     const request = store.get(companyId)
-    request.onsuccess = () => resolve((request.result as SnapshotRecord | undefined)?.snapshot || null)
+    request.onsuccess = () => {
+      const snapshot = (request.result as SnapshotRecord | undefined)?.snapshot
+      resolve(snapshot ? normalizeSnapshot(snapshot) : null)
+    }
     request.onerror = () => reject(request.error)
   })
 }
@@ -126,16 +141,18 @@ export async function markOfflineSaleError(item: OfflineSaleQueueItem, error: st
 }
 
 export function applyLocalSale(snapshot: CommerceSnapshot, sale: Sale): CommerceSnapshot {
-  const alreadyPresent = snapshot.sales.some(s => s.id === sale.id)
+  const safe = normalizeSnapshot(snapshot)
+  const alreadyPresent = safe.sales.some(s => s.id === sale.id)
   if (alreadyPresent) {
-    return { ...snapshot, sales: [sale, ...snapshot.sales.filter(s => s.id !== sale.id)] }
+    return { ...safe, sales: [sale, ...safe.sales.filter(s => s.id !== sale.id)] }
   }
   const qtyByProduct = new Map<string, number>()
-  for (const item of sale.details?.items || []) qtyByProduct.set(item.product_id, (qtyByProduct.get(item.product_id) || 0) + Number(item.qty || 0))
+  const saleItems = Array.isArray(sale.details?.items) ? sale.details.items : []
+  for (const item of saleItems) qtyByProduct.set(item.product_id, (qtyByProduct.get(item.product_id) || 0) + Number(item.qty || 0))
   return {
-    ...snapshot,
-    sales: [sale, ...snapshot.sales],
-    products: snapshot.products.map(product => {
+    ...safe,
+    sales: [sale, ...safe.sales],
+    products: safe.products.map(product => {
       const qty = qtyByProduct.get(product.id) || 0
       return qty ? { ...product, stock: Math.max(0, Number(product.stock || 0) - qty) } : product
     }),
@@ -143,15 +160,23 @@ export function applyLocalSale(snapshot: CommerceSnapshot, sale: Sale): Commerce
 }
 
 export function overlayOfflineSales(snapshot: CommerceSnapshot, queued: OfflineSaleQueueItem[]) {
-  return queued.reduce((current, item) => applyLocalSale(current, item.sale), snapshot)
+  return queued.reduce((current, item) => applyLocalSale(current, item.sale), normalizeSnapshot(snapshot))
 }
 
 export async function registerOfflineServiceWorker() {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null
   try {
-    const registration = await navigator.serviceWorker.register('/comercio-sw.js', { scope: '/' })
+    const registrations = await navigator.serviceWorker.getRegistrations()
+    await Promise.all(registrations.map(registration => {
+      const script = registration.active?.scriptURL || registration.waiting?.scriptURL || registration.installing?.scriptURL || ''
+      const rootScope = registration.scope === `${window.location.origin}/`
+      if (rootScope && script.endsWith('/comercio-sw.js')) return registration.unregister()
+      return Promise.resolve(false)
+    }))
+    const registration = await navigator.serviceWorker.register('/comercio-sw.js', { scope: '/redesign/' })
     const worker = registration.active || registration.waiting || registration.installing
     worker?.postMessage({ type: 'CACHE_REDESIGN' })
+    if ('storage' in navigator && navigator.storage?.persist) navigator.storage.persist().catch(() => false)
     return registration
   } catch {
     return null
