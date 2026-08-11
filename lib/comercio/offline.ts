@@ -52,6 +52,17 @@ async function tx<T>(storeName: string, mode: IDBTransactionMode, action: (store
   })
 }
 
+export function getOfflineDeviceId(companyId: string) {
+  if (typeof window === 'undefined') return 'server'
+  const key = `cl_offline_device_${companyId}`
+  let id = localStorage.getItem(key)
+  if (!id) {
+    id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`
+    localStorage.setItem(key, id)
+  }
+  return id
+}
+
 export async function saveOfflineSnapshot(companyId: string, snapshot: CommerceSnapshot) {
   if (!available()) return
   await tx<void>(SNAPSHOT_STORE, 'readwrite', (store, resolve, reject) => {
@@ -115,16 +126,24 @@ export async function markOfflineSaleError(item: OfflineSaleQueueItem, error: st
 }
 
 export function applyLocalSale(snapshot: CommerceSnapshot, sale: Sale): CommerceSnapshot {
+  const alreadyPresent = snapshot.sales.some(s => s.id === sale.id)
+  if (alreadyPresent) {
+    return { ...snapshot, sales: [sale, ...snapshot.sales.filter(s => s.id !== sale.id)] }
+  }
   const qtyByProduct = new Map<string, number>()
   for (const item of sale.details?.items || []) qtyByProduct.set(item.product_id, (qtyByProduct.get(item.product_id) || 0) + Number(item.qty || 0))
   return {
     ...snapshot,
-    sales: [sale, ...snapshot.sales.filter(s => s.id !== sale.id)],
+    sales: [sale, ...snapshot.sales],
     products: snapshot.products.map(product => {
       const qty = qtyByProduct.get(product.id) || 0
       return qty ? { ...product, stock: Math.max(0, Number(product.stock || 0) - qty) } : product
     }),
   }
+}
+
+export function overlayOfflineSales(snapshot: CommerceSnapshot, queued: OfflineSaleQueueItem[]) {
+  return queued.reduce((current, item) => applyLocalSale(current, item.sale), snapshot)
 }
 
 export async function registerOfflineServiceWorker() {
