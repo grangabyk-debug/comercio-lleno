@@ -1,5 +1,5 @@
-const STATIC_CACHE = 'comercio-lleno-static-v1'
-const PAGE_CACHE = 'comercio-lleno-pages-v1'
+const STATIC_CACHE = 'comercio-lleno-static-v2'
+const PAGE_CACHE = 'comercio-lleno-pages-v2'
 
 self.addEventListener('install', event => {
   self.skipWaiting()
@@ -9,7 +9,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const keys = await caches.keys()
-    await Promise.all(keys.filter(k => ![STATIC_CACHE, PAGE_CACHE].includes(k)).map(k => caches.delete(k)))
+    await Promise.all(keys.filter(k => k.startsWith('comercio-lleno-') && ![STATIC_CACHE, PAGE_CACHE].includes(k)).map(k => caches.delete(k)))
     await self.clients.claim()
   })())
 })
@@ -24,16 +24,21 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET') return
   const url = new URL(request.url)
   if (url.origin !== self.location.origin) return
+  if (!url.pathname.startsWith('/redesign') && !url.pathname.startsWith('/_next/static/')) return
   if (url.pathname.startsWith('/api/')) return
 
-  if (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/icons/') || /\.(?:css|js|woff2?|png|jpg|jpeg|svg|webp|ico)$/.test(url.pathname)) {
+  if (url.pathname.startsWith('/_next/static/') || /\.(?:css|js|woff2?|png|jpg|jpeg|svg|webp|ico)$/.test(url.pathname)) {
     event.respondWith((async () => {
       const cache = await caches.open(STATIC_CACHE)
-      const cached = await cache.match(request)
-      if (cached) return cached
-      const response = await fetch(request)
-      if (response.ok) cache.put(request, response.clone())
-      return response
+      try {
+        const response = await fetch(request)
+        if (response.ok) cache.put(request, response.clone())
+        return response
+      } catch {
+        const cached = await cache.match(request)
+        if (cached) return cached
+        throw new Error('Recurso offline no disponible')
+      }
     })())
     return
   }
