@@ -1,9 +1,23 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import './globals.css'
 import './prepaint.css'
 
 export const metadata: Metadata = { title: 'Comercio Lleno', description: 'Punto de venta y gestión para comercios' }
 
+const legacyScripts = [
+  '/products-limit-fix.js','/time-format.js','/session-refresh.js','/auth-gate.js','/role-self-sync.js','/role-manager.js','/customer-rescue.js','/performance-guard.js','/cloud-sync.js','/product-meta-sync.js','/state-refresh-guard.js','/tenant-ui.js','/ui-polish.js','/cash-customer-tools.js','/cash-daily-safe.js','/product-inline-editor.js','/new-product-enhancer.js','/label-selector.js','/sales-audit.js','/sales-discount-badge.js','/pos-pro.js','/pos-search-fix.js','/topbar-refresh.js','/dashboard-trends.js','/comercio-assistant.js','/settings-center.js','/sales-reset-control.js','/first-run-guide.js','/inventory-nav-fix.js','/retail-suite.js','/advanced-products-fix.js','/excel-tools.js','/arca-tools.js','/ui-stability-v2.js','/list-viewport-fix.js','/accounts-promos-fix.js','/overlay-navigation-cleanup.js','/remove-stock-section.js','/final-ui-guard.js','/flatten-functions-menu.js'
+]
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="es"><body>{children}<script src="/products-limit-fix.js" /><script src="/time-format.js" /><script src="/session-refresh.js" defer /><script src="/auth-gate.js" defer /><script src="/role-self-sync.js" defer /><script src="/role-manager.js" defer /><script src="/customer-rescue.js" defer /><script src="/performance-guard.js" defer /><script src="/cloud-sync.js" defer /><script src="/product-meta-sync.js" defer /><script src="/state-refresh-guard.js" defer /><script src="/tenant-ui.js" defer /><script src="/ui-polish.js" defer /><script src="/cash-customer-tools.js" defer /><script src="/cash-daily-safe.js" defer /><script src="/product-inline-editor.js" defer /><script src="/new-product-enhancer.js" defer /><script src="/label-selector.js" defer /><script src="/sales-audit.js" defer /><script src="/sales-discount-badge.js" defer /><script src="/pos-pro.js" defer /><script src="/pos-search-fix.js" defer /><script src="/topbar-refresh.js" defer /><script src="/dashboard-trends.js" defer /><script src="/comercio-assistant.js" defer /><script src="/settings-center.js" defer /><script src="/sales-reset-control.js" defer /><script src="/first-run-guide.js" defer /><script src="/inventory-nav-fix.js" defer /><script src="/retail-suite.js" defer /><script src="/advanced-products-fix.js" defer /><script src="/excel-tools.js" defer /><script src="/arca-tools.js" defer /><script src="/ui-stability-v2.js" defer /><script src="/list-viewport-fix.js" defer /><script src="/accounts-promos-fix.js" defer /><script src="/overlay-navigation-cleanup.js" defer /><script src="/remove-stock-section.js" defer /><script src="/final-ui-guard.js" defer /><script src="/flatten-functions-menu.js" defer /></body></html>
+  return (
+    <html lang="es" suppressHydrationWarning>
+      <body suppressHydrationWarning>
+        {children}
+        {legacyScripts.map((src) => (
+          <Script key={src} src={src} strategy="afterInteractive" />
+        ))}
+      </body>
+    </html>
+  )
 }
