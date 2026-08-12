@@ -3,12 +3,15 @@
 import { useState } from 'react'
 import core from './page.module.css'
 import enh from './enhancements.module.css'
+import checkoutStyles from './checkout-actions.module.css'
 import type { CartLine, CommerceSnapshot } from '@/lib/comercio/types'
 import type { ArcaHealth } from '@/lib/comercio/api'
 import { Head, money } from './operationalShared'
 import UiIcon from './UiIcon'
 
 const payments = ['Efectivo', 'Débito', 'Crédito', 'Transferencia', 'Mercado Pago', 'Billetera Virtual']
+
+type CheckoutMode = 'fiscal' | 'internal'
 
 export default function PosEnhanced({
   data, query, setQuery, filtered, cart, addProduct, changeQty, removeProduct,
@@ -35,7 +38,7 @@ export default function PosEnhanced({
   setCustomerId: (v: string) => void
   payment: string
   setPayment: (v: string) => void
-  checkout: () => void
+  checkout: (mode: CheckoutMode) => void
   busy: boolean
   arca: ArcaHealth | null
   offline?: boolean
@@ -48,6 +51,8 @@ export default function PosEnhanced({
   const received = Number(String(cashReceived).replace(',', '.')) || 0
   const change = Math.max(0, received - total)
   const customer = data.customers.find(c => c.id === customerId)
+  const fiscal = arca as (ArcaHealth & { configured?: boolean }) | null
+  const arcaConfigured = fiscal?.configured !== false
 
   function scan() {
     const exact = data.products.find(p => String(p.barcode || '') === query.trim())
@@ -55,18 +60,20 @@ export default function PosEnhanced({
     else if (filtered[0]) addProduct(filtered[0].id)
   }
 
+  const disabled = !cart.length || data.cashRegister?.status !== 'open' || busy || total <= 0
+
   return <>
     <Head
       eyebrow="PUNTO DE VENTA · F2"
       title="Nueva venta"
-      subtitle={offline ? 'Modo offline: podés seguir vendiendo. La facturación se sincroniza cuando vuelva Internet.' : 'Escaneá, asociá cliente, aplicá descuentos y cobrá con facturación ARCA.'}
+      subtitle={offline ? 'Modo offline: podés seguir cobrando. Las ventas elegidas para facturar se sincronizan cuando vuelva Internet.' : 'Escaneá, asociá cliente, aplicá descuentos y elegí si cobrás con emisión fiscal inmediata.'}
     >
       <div className={core.headBadges}>
         <span className={`${core.badge} ${data.cashRegister?.status === 'open' ? core.badgeGreen : core.badgeRed}`}>
           {data.cashRegister?.status === 'open' ? '● Caja abierta' : '● Caja cerrada'}
         </span>
-        <span className={`${core.badge} ${offline ? core.badgeAmber : arca?.connected ? core.badgeGreen : core.badgeRed}`}>
-          {offline ? `● Offline${pendingOffline ? ` · ${pendingOffline} pend.` : ''}` : arca?.connected ? '● ARCA online' : '● ARCA offline'}
+        <span className={`${core.badge} ${offline ? core.badgeAmber : !arcaConfigured ? core.badgeAmber : arca?.connected ? core.badgeGreen : core.badgeRed}`}>
+          {offline ? `● Offline${pendingOffline ? ` · ${pendingOffline} pend.` : ''}` : !arcaConfigured ? '● ARCA no configurado' : arca?.connected ? '● ARCA online' : '● ARCA offline'}
         </span>
       </div>
     </Head>
@@ -132,9 +139,11 @@ export default function PosEnhanced({
         <div className={core.checkout}>
           {offline ? <div className={enh.offlineSaleBanner}>
             <div className={enh.offlineSaleIcon}>↯</div>
-            <div><b>Venta offline</b><span>El cobro se guarda en este equipo. No es una factura fiscal hasta que vuelva Internet y ARCA otorgue CAE.</span></div>
+            <div><b>Venta offline</b><span>El cobro se guarda en este equipo. Si elegís facturar, la solicitud fiscal se hará cuando vuelva Internet.</span></div>
+          </div> : !arcaConfigured ? <div className={enh.offlineBanner}>
+            ARCA todavía no está configurado para este comercio. Podés cobrar y dejar la venta pendiente de facturación.
           </div> : !arca?.connected && <div className={enh.offlineBanner}>
-            ⚠ ARCA está sin responder. Si Internet funciona, al cobrar vas a poder decidir si registrás la venta como Pendiente ARCA.
+            ⚠ ARCA está sin responder. Si intentás facturar, vas a poder dejar la venta Pendiente ARCA.
           </div>}
 
           <div className={enh.saleTools}>
@@ -197,14 +206,25 @@ export default function PosEnhanced({
             <div className={enh.changeResult}><span>Vuelto</span><strong>{received >= total ? money.format(change) : '—'}</strong></div>
           </div>}
 
-          <button
-            className={`${core.charge} ${enh.bigCharge}`}
-            disabled={!cart.length || data.cashRegister?.status !== 'open' || busy || total <= 0}
-            onClick={checkout}
-          >
-            {busy ? 'Procesando…' : data.cashRegister?.status === 'open' ? offline ? `Guardar venta offline · ${money.format(total)}` : `Cobrar ${money.format(total)}` : 'Abrí la caja para cobrar'}
-          </button>
-          {offline && <div className={enh.offlineFootnote}>Se descuenta el stock local para seguir operando. La sincronización fiscal se realiza automáticamente al recuperar conexión.</div>}
+          <div className={checkoutStyles.actions}>
+            <button
+              className={checkoutStyles.invoice}
+              disabled={disabled || !arcaConfigured}
+              onClick={() => checkout('fiscal')}
+              title={!arcaConfigured ? 'Configurá ARCA para este comercio antes de facturar.' : undefined}
+            >
+              {busy ? 'Procesando…' : `Cobrar y facturar · ${money.format(total)}`}
+            </button>
+            <button
+              className={checkoutStyles.chargeOnly}
+              disabled={disabled}
+              onClick={() => checkout('internal')}
+            >
+              {busy ? 'Procesando…' : `Cobrar · ${money.format(total)}`}
+            </button>
+          </div>
+          <div className={checkoutStyles.hint}><b>Cobrar</b> registra la venta sin emitir factura en ese momento y la deja identificada como pendiente de facturación.</div>
+          {offline && <div className={enh.offlineFootnote}>Se descuenta el stock local para seguir operando. Las ventas elegidas para facturar se sincronizan fiscalmente al recuperar conexión.</div>}
         </div>
       </aside>
     </div>
