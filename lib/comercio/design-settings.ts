@@ -23,7 +23,10 @@ function key(companyId: string) {
 
 function normalize(value: Partial<DesignSettings> | null | undefined): DesignSettings {
   return {
-    colorTheme: value?.colorTheme === 'ocean' || value?.colorTheme === 'graphite' ? value.colorTheme : 'emerald',
+    // El color de marca de Comercio Lleno queda fijo en verde.
+    // Se conserva la propiedad por compatibilidad con configuraciones ya guardadas,
+    // pero no se permite que una preferencia visual cambie el logo o la identidad.
+    colorTheme: 'emerald',
     fontSize: value?.fontSize === 'compact' || value?.fontSize === 'large' ? value.fontSize : 'standard',
     fontWeight: value?.fontWeight === 'soft' || value?.fontWeight === 'strong' ? value.fontWeight : 'balanced',
     fontFamily: value?.fontFamily === 'classic' || value?.fontFamily === 'rounded' ? value.fontFamily : 'modern',
