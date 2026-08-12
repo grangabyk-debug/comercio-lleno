@@ -8,6 +8,6 @@ export async function POST(req: NextRequest) {
       if (token) process.env.VERCEL_OIDC_TOKEN = token
     } catch {}
   }
-  const handler = await import('./handler')
+  const handler = await import('./handler-v2')
   return handler.POST(req)
 }
