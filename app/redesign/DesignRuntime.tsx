@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import polish from './design-polish.module.css'
 import { loadDesignSettings, readCachedDesignSettings, type DesignSettings } from '@/lib/comercio/design-settings'
 import { readTenantSession } from '@/lib/comercio/session'
 
@@ -49,5 +50,5 @@ export default function DesignRuntime() {
     }
   }, [])
 
-  return null
+  return <span className={polish.runtime} aria-hidden="true"/>
 }
