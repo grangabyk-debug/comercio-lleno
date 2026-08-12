@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import core from './page.module.css'
-import enh from './enhancements.module.css'
+import polish from './design-polish.module.css'
 
 export const money = new Intl.NumberFormat('es-AR', {
   style: 'currency',
@@ -41,6 +41,15 @@ function percent(current: number, previous: number) {
   return ((current - previous) / previous) * 100
 }
 
+function TrendArrow({ direction }: { direction: 'up' | 'down' | 'flat' }) {
+  const path = direction === 'up'
+    ? 'M6 16.5 16.5 6M9.5 6h7v7'
+    : direction === 'down'
+      ? 'M6 7.5 16.5 18M9.5 18h7v-7'
+      : 'M5 12h14M15 8l4 4-4 4'
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d={path} stroke="currentColor" strokeWidth="2.35" strokeLinecap="round" strokeLinejoin="round"/></svg>
+}
+
 export function Trend({ current, previous, label }: {
   current: number
   previous: number
@@ -49,12 +58,13 @@ export function Trend({ current, previous, label }: {
   const change = percent(current, previous)
   const up = change > 0.01
   const down = change < -0.01
-  return <div className={`${enh.trend} ${up ? enh.trendUp : down ? enh.trendDown : enh.trendFlat}`}>
-    <span className={enh.trendArrow}>{up ? '↑' : down ? '↓' : '→'}</span>
-    <span className={enh.trendNote}>
+  const direction: 'up' | 'down' | 'flat' = up ? 'up' : down ? 'down' : 'flat'
+  return <div className={`${polish.trend} ${up ? polish.trendUp : down ? polish.trendDown : polish.trendFlat}`}>
+    <span className={polish.trendArrow}><TrendArrow direction={direction}/></span>
+    <span className={polish.trendCopy}>
       {previous > 0
-        ? `${Math.abs(change).toFixed(0)}% ${up ? 'más' : down ? 'menos' : 'igual'} que ${label}`
-        : 'Sin referencia anterior'}
+        ? <><b>{Math.abs(change).toFixed(0)}% {up ? 'más' : down ? 'menos' : 'igual'}</b><small>que el {label}</small></>
+        : <><b>Sin referencia</b><small>No hay un día anterior comparable</small></>}
     </span>
   </div>
 }

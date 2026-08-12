@@ -1,0 +1,48 @@
+.runtime{display:none}
+
+/* Indicadores importantes */
+.kpiFeatured{border-color:color-mix(in srgb,var(--green) 26%,var(--line))!important;background:linear-gradient(145deg,var(--surface) 0%,color-mix(in srgb,var(--green) 4%,var(--surface)) 100%)!important;box-shadow:0 14px 38px color-mix(in srgb,var(--green) 10%,transparent)!important}.kpiFeatured>strong{font-size:29px!important;letter-spacing:-1px!important}.trend{display:flex;align-items:center;gap:10px;margin-top:12px;padding:8px 9px;border-radius:13px;border:1px solid currentColor;font-weight:850;line-height:1.15;width:fit-content;max-width:100%;box-shadow:inset 0 1px 0 rgba(255,255,255,.58)}.trendUp{color:#117a49;background:linear-gradient(135deg,#effbf4,#def5e8);border-color:#bde6cd}.trendDown{color:#b53333;background:linear-gradient(135deg,#fff5f5,#ffe1e1);border-color:#efbcbc}.trendFlat{color:#66736e;background:linear-gradient(135deg,#f7f9f8,#edf2f0);border-color:#dce5e1}.trendArrow{width:39px;height:39px;flex:0 0 39px;border-radius:12px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.8);box-shadow:0 7px 14px rgba(20,40,33,.12),inset 0 1px 0 rgba(255,255,255,.9);position:relative;overflow:hidden}.trendArrow:before{content:"";position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.75),transparent 48%);pointer-events:none}.trendArrow svg{width:25px;height:25px;position:relative;z-index:1}.trendUp .trendArrow{background:linear-gradient(145deg,#63d394,#158651);color:#fff}.trendDown .trendArrow{background:linear-gradient(145deg,#f27474,#b73333);color:#fff}.trendFlat .trendArrow{background:linear-gradient(145deg,#aeb9b4,#68736f);color:#fff}.trendCopy{min-width:0;display:grid;gap:2px}.trendCopy b{font-size:11.5px;white-space:nowrap}.trendCopy small{font-size:9px;color:currentColor;opacity:.78;white-space:nowrap}
+
+/* Botón principal y medallones de iconos */
+.heroSaleButton{display:inline-flex!important;align-items:center!important;gap:9px!important;padding:11px 17px 11px 10px!important;font-size:12px!important;box-shadow:0 10px 25px rgba(22,138,85,.24)!important}.actionIcon,.metalIcon{display:inline-grid!important;place-items:center!important;border:1px solid rgba(255,255,255,.72)!important;background:linear-gradient(145deg,#f9fbfa 0%,#c9d4cf 42%,#fff 58%,#9eaaa5 100%)!important;color:#244139!important;box-shadow:0 5px 11px rgba(18,43,34,.14),inset 0 1px 0 #fff,inset 0 -1px 0 rgba(34,59,50,.18)!important;position:relative;overflow:hidden}.actionIcon:after,.metalIcon:after{content:"";position:absolute;left:3px;right:3px;top:2px;height:34%;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(255,255,255,0));pointer-events:none}.actionIcon{width:31px;height:31px;border-radius:10px;color:#126f46!important}.metalIcon{color:var(--green)!important}
+
+/* Íconos de navegación con acabado tipo medallón metálico */
+:global(main[class*="shell"] > div[class*="layout"] > aside button > span:first-child){width:27px!important;height:27px!important;min-width:27px!important;border-radius:9px!important;border:1px solid #cbd5d1!important;background:linear-gradient(145deg,#fff 0%,#dfe5e2 38%,#fafcfb 57%,#afb9b5 100%)!important;color:#27473c!important;box-shadow:0 4px 9px rgba(17,44,34,.12),inset 0 1px 0 #fff!important;font-size:15px!important;text-shadow:0 1px 0 rgba(255,255,255,.75);position:relative;overflow:hidden}
+:global(main[class*="shell"] > div[class*="layout"] > aside button > span:first-child:after){content:"";position:absolute;inset:2px 3px auto;height:35%;border-radius:999px;background:rgba(255,255,255,.58);pointer-events:none}
+:global(main[class*="shell"] [class*="shortcut"] > span),:global(main[class*="shell"] [class*="roundIcon"]),:global(main[class*="shell"] [class*="productIcon"]){border:1px solid #cbd6d1!important;background:linear-gradient(145deg,#fbfdfc,#dce4e0 44%,#fff 58%,#aeb9b4)!important;color:var(--green)!important;box-shadow:0 5px 12px rgba(21,50,39,.11),inset 0 1px 0 #fff!important}
+:global(main[class*="shell"] [class*="saleNav"]){min-height:55px!important;margin:4px 0 8px!important;padding:12px 13px!important;font-size:13.5px!important;font-weight:950!important;border-radius:14px!important;letter-spacing:-.15px!important;box-shadow:0 11px 25px rgba(20,137,82,.24)!important}
+:global(main[class*="shell"] [class*="saleNav"] > span:first-child){width:31px!important;height:31px!important;min-width:31px!important;background:linear-gradient(145deg,#fff,#dce4e0 43%,#fff 58%,#aeb8b4)!important;color:#117247!important;border:1px solid rgba(255,255,255,.86)!important;box-shadow:0 5px 12px rgba(0,0,0,.14),inset 0 1px 0 #fff!important}
+
+/* Tres paletas por comercio */
+:global(main[data-design-color="emerald"]){--green:#168a55;--green2:#21a868;--navy:#142b35}
+:global(main[data-design-color="ocean"]){--green:#247b89;--green2:#34a4b0;--navy:#17323b}
+:global(main[data-design-color="graphite"]){--green:#776541;--green2:#a4874a;--navy:#242c2a}
+:global(main[data-design-color="ocean"]:not([class*="dark"])){--bg:#f2f7f8;--surface2:#f4f9fa;--line:#d9e5e7}
+:global(main[data-design-color="graphite"]:not([class*="dark"])){--bg:#f5f5f2;--surface2:#f8f8f5;--line:#e1e1d9}
+
+/* Tres tipografías */
+:global(main[data-design-font="modern"]){font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}
+:global(main[data-design-font="classic"]){font-family:Arial,Helvetica,"Helvetica Neue",sans-serif!important}
+:global(main[data-design-font="rounded"]){font-family:"Trebuchet MS","Arial Rounded MT Bold",ui-rounded,"Segoe UI",sans-serif!important}
+
+/* Tres escalas de texto */
+:global(main[data-design-size="compact"]){--ui-scale:.92}
+:global(main[data-design-size="standard"]){--ui-scale:1}
+:global(main[data-design-size="large"]){--ui-scale:1.14}
+:global(main[data-design-size] [class*="navButton"]),:global(main[data-design-size] [class*="navGroupButton"]),:global(main[data-design-size] [class*="navChild"]){font-size:calc(12px * var(--ui-scale))!important}
+:global(main[data-design-size] section button){font-size:calc(11px * var(--ui-scale))!important}
+:global(main[data-design-size] section input),:global(main[data-design-size] section select),:global(main[data-design-size] section textarea){font-size:calc(12px * var(--ui-scale))!important}
+:global(main[data-design-size] section small){font-size:calc(10px * var(--ui-scale))!important}
+:global(main[data-design-size] [class*="pageHead"] h1){font-size:calc(31px * var(--ui-scale))!important}
+:global(main[data-design-size] [class*="pageHead"] p){font-size:calc(13px * var(--ui-scale))!important}
+:global(main[data-design-size] [class*="kpi"] > span){font-size:calc(10.5px * var(--ui-scale))!important}
+:global(main[data-design-size] [class*="kpi"] > strong){font-size:calc(25px * var(--ui-scale))!important}
+:global(main[data-design-size] [class*="panelTitle"] b){font-size:calc(13px * var(--ui-scale))!important}
+:global(main[data-design-size] [class*="recentRow"] b),:global(main[data-design-size] [class*="productInfo"] b),:global(main[data-design-size] [class*="cartName"] b){font-size:calc(11.5px * var(--ui-scale))!important}
+
+/* Tres niveles de peso */
+:global(main[data-design-weight="soft"] h1),:global(main[data-design-weight="soft"] h2),:global(main[data-design-weight="soft"] h3),:global(main[data-design-weight="soft"] b),:global(main[data-design-weight="soft"] strong),:global(main[data-design-weight="soft"] button){font-weight:650!important}
+:global(main[data-design-weight="balanced"] h1),:global(main[data-design-weight="balanced"] h2),:global(main[data-design-weight="balanced"] h3),:global(main[data-design-weight="balanced"] b),:global(main[data-design-weight="balanced"] strong),:global(main[data-design-weight="balanced"] button){font-weight:800!important}
+:global(main[data-design-weight="strong"] h1),:global(main[data-design-weight="strong"] h2),:global(main[data-design-weight="strong"] h3),:global(main[data-design-weight="strong"] b),:global(main[data-design-weight="strong"] strong),:global(main[data-design-weight="strong"] button){font-weight:950!important}
+
+@media(max-width:900px){.trend{width:100%;box-sizing:border-box}.trendCopy b,.trendCopy small{white-space:normal}.kpiFeatured>strong{font-size:26px!important}}

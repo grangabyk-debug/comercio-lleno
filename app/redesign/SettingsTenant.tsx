@@ -15,7 +15,12 @@ import {
   type StaffProfile,
 } from '@/lib/comercio/api'
 import {
-  DEFAULT_SALES_SETTINGS,
+  loadDesignSettings,
+  readCachedDesignSettings,
+  saveDesignSettings,
+  type DesignSettings,
+} from '@/lib/comercio/design-settings'
+import {
   loadSalesSettings,
   readCachedSalesSettings,
   saveSalesSettings,
@@ -35,10 +40,10 @@ type Props = {
   message: (m: string) => void
 }
 
-type Tab = 'commerce' | 'sales' | 'arca' | 'printer' | 'stock' | 'users' | 'updates' | 'maintenance'
+type Tab = 'commerce' | 'sales' | 'design' | 'arca' | 'printer' | 'stock' | 'users' | 'updates' | 'maintenance'
 
 function Head() {
-  return <div className={core.pageHead}><div><div className={core.eyebrow}>ADMINISTRACIÓN</div><h1>Configuración</h1><p>Ajustes del comercio, caja, facturación, impresora y permisos.</p></div></div>
+  return <div className={core.pageHead}><div><div className={core.eyebrow}>ADMINISTRACIÓN</div><h1>Configuración</h1><p>Ajustes del comercio, caja, diseño, facturación, impresora y permisos.</p></div></div>
 }
 
 function SalesPanel({ session, message }: { session: TenantSession; message: (m: string) => void }) {
@@ -87,6 +92,74 @@ function SalesPanel({ session, message }: { session: TenantSession; message: (m:
 
     {error && <div className={styles.error}>{error}</div>}
     <div className={styles.saveRow}><small>Se guarda en la cuenta del comercio; no depende solamente de esta computadora.</small><button className={styles.save} disabled={busy} onClick={save}>{busy ? 'Guardando…' : 'Guardar ajustes'}</button></div>
+  </div>
+}
+
+function DesignPanel({ session, message }: { session: TenantSession; message: (m: string) => void }) {
+  const [value, setValue] = useState<DesignSettings>(() => readCachedDesignSettings(session.companyId))
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    loadDesignSettings(session).then(next => { if (!cancelled) setValue(next) }).catch(() => {})
+    return () => { cancelled = true }
+  }, [session.companyId, session.token])
+
+  async function save() {
+    setBusy(true); setError('')
+    try {
+      const next = await saveDesignSettings(session, value)
+      setValue(next)
+      message('Diseño guardado para este comercio.')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally { setBusy(false) }
+  }
+
+  return <div className={styles.panel}>
+    <h3>Diseño de la plataforma</h3>
+    <p>Elegí una de tres variantes por ajuste. La combinación queda asociada a este comercio y se aplica automáticamente al volver a ingresar.</p>
+
+    <div className={styles.designBlock}>
+      <div><b>Colores</b><small>Paleta general de la interfaz.</small></div>
+      <div className={styles.choiceThree}>
+        <button type="button" className={value.colorTheme === 'emerald' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, colorTheme:'emerald' }))}><span className={`${styles.swatch} ${styles.swatchEmerald}`}/>Esmeralda</button>
+        <button type="button" className={value.colorTheme === 'ocean' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, colorTheme:'ocean' }))}><span className={`${styles.swatch} ${styles.swatchOcean}`}/>Azul petróleo</button>
+        <button type="button" className={value.colorTheme === 'graphite' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, colorTheme:'graphite' }))}><span className={`${styles.swatch} ${styles.swatchGraphite}`}/>Grafito</button>
+      </div>
+    </div>
+
+    <div className={styles.designBlock}>
+      <div><b>Tamaño de texto</b><small>Escala general para lectura y densidad.</small></div>
+      <div className={styles.choiceThree}>
+        <button type="button" className={value.fontSize === 'compact' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontSize:'compact' }))}>Compacto</button>
+        <button type="button" className={value.fontSize === 'standard' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontSize:'standard' }))}>Equilibrado</button>
+        <button type="button" className={value.fontSize === 'large' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontSize:'large' }))}>Grande</button>
+      </div>
+    </div>
+
+    <div className={styles.designBlock}>
+      <div><b>Grosor de letras</b><small>Hace que títulos, botones y datos se vean más suaves o más marcados.</small></div>
+      <div className={styles.choiceThree}>
+        <button type="button" className={value.fontWeight === 'soft' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontWeight:'soft' }))}>Suave</button>
+        <button type="button" className={value.fontWeight === 'balanced' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontWeight:'balanced' }))}>Equilibrado</button>
+        <button type="button" className={value.fontWeight === 'strong' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontWeight:'strong' }))}>Fuerte</button>
+      </div>
+    </div>
+
+    <div className={styles.designBlock}>
+      <div><b>Tipografía</b><small>Tres estilos simples y legibles para todo el sistema.</small></div>
+      <div className={styles.choiceThree}>
+        <button type="button" className={value.fontFamily === 'modern' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontFamily:'modern' }))}><span className={styles.fontModern}>Aa</span>Moderna</button>
+        <button type="button" className={value.fontFamily === 'classic' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontFamily:'classic' }))}><span className={styles.fontClassic}>Aa</span>Clásica</button>
+        <button type="button" className={value.fontFamily === 'rounded' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontFamily:'rounded' }))}><span className={styles.fontRounded}>Aa</span>Redondeada</button>
+      </div>
+    </div>
+
+    <div className={styles.designPreview}><span>Vista previa</span><b>Comercio Lleno</b><small>Ventas · Caja · Productos · Reportes</small></div>
+    {error && <div className={styles.error}>{error}</div>}
+    <div className={styles.saveRow}><small>El diseño se guarda por comercio, no por computadora.</small><button className={styles.save} disabled={busy} onClick={save}>{busy ? 'Guardando…' : 'Guardar diseño'}</button></div>
   </div>
 }
 
@@ -149,11 +222,12 @@ export default function SettingsTenant({ data, session, device, setDevice, arca,
   useEffect(()=>{if(tab==='users')void loadUsers()},[tab])
   async function resetSales(){if(!resetPass)return;setResetBusy(true);setResetError('');try{await resetSalesData(session,resetPass);setResetOpen(false);setResetPass('');await refresh();message('Las ventas quedaron restablecidas a cero.')}catch(e){setResetError(e instanceof Error?e.message:String(e))}finally{setResetBusy(false)}}
 
-  const tabs: Array<[Tab,string]> = [['commerce','Comercio'],['sales','Ventas y caja'],['arca','ARCA'],['printer','Impresora y tickets'],['stock','Stock'],...(owner ? [['users','Usuarios y roles'],['updates','Actualizaciones'],['maintenance','Mantenimiento']] as Array<[Tab,string]> : [])]
+  const tabs: Array<[Tab,string]> = [['commerce','Comercio'],['sales','Ventas y caja'],['design','Diseño'],['arca','ARCA'],['printer','Impresora y tickets'],['stock','Stock'],...(owner ? [['users','Usuarios y roles'],['updates','Actualizaciones'],['maintenance','Mantenimiento']] as Array<[Tab,string]> : [])]
 
   return <><Head/><div className={styles.layout}><aside className={styles.nav}>{tabs.map(([id,label])=><button key={id} className={tab===id?styles.active:''} onClick={()=>setTab(id)}>{label}</button>)}</aside><section className={styles.body}>
     {tab==='commerce'&&<div className={styles.panel}><h3>Datos del comercio</h3><p>Información exclusiva de este tenant.</p><div className={styles.grid}><label className={styles.field}>Nombre<input value={name} onChange={e=>setName(e.target.value)}/></label><label className={styles.field}>CUIT<input value={tax} onChange={e=>setTax(e.target.value)}/></label></div><div className={styles.saveRow}><small>Los datos de otros comercios no son visibles desde esta cuenta.</small><button className={styles.save} onClick={saveCommerce}>Guardar cambios</button></div></div>}
     {tab==='sales'&&<SalesPanel session={session} message={message}/>} 
+    {tab==='design'&&<DesignPanel session={session} message={message}/>} 
     {tab==='arca'&&<div className={styles.panel}><h3>ARCA / Facturación electrónica</h3><p>La configuración fiscal es independiente para cada comercio.</p><div className={styles.status}><div className={styles.statusRow}><span>Configuración</span><b className={configured?styles.ok:styles.neutral}>{configured?'Configurada':'No configurada'}</b></div><div className={styles.statusRow}><span>Conexión</span><b className={fiscal?.connected?styles.ok:styles.bad}>{fiscal?.connected?'Conectado':configured?'Desconectado':'—'}</b></div><div className={styles.statusRow}><span>Servicio</span><b>{configured?(fiscal?.service||'wsfev1'):'—'}</b></div><div className={styles.statusRow}><span>Punto de venta</span><b>{configured?(fiscal?.pointOfSale??'—'):'—'}</b></div><div className={styles.statusRow}><span>Entorno</span><b>{configured?(fiscal?.environment||'homologación'):'—'}</b></div></div><div className={styles.note}>{configured?'Las credenciales fiscales utilizadas por este comercio están aisladas por tenant.':'Este comercio todavía no tiene ARCA configurado. Para habilitar facturación necesita sus propias credenciales/certificado y su propio punto de venta. Nunca se reutilizan credenciales de otro comercio.'}</div>{fiscal?.error&&configured&&<div className={styles.error}>{fiscal.error}</div>}</div>}
     {tab==='printer'&&<PrinterSettingsPanel company={data.company} device={device} onSave={savePrinter} message={message}/>} 
     {tab==='stock'&&<StockPanel/>}
