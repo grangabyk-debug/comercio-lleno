@@ -9,7 +9,7 @@ const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_
 export async function POST(req: NextRequest) {
   const authorization = req.headers.get('authorization') || ''
   if (!authorization.toLowerCase().startsWith('bearer ')) {
-    return NextResponse.json({ connected: false, error: 'Sesión no disponible' }, { status: 401 })
+    return NextResponse.json({ connected: false, configured: false, error: 'Sesión no disponible' }, { status: 401 })
   }
 
   const controller = new AbortController()
@@ -31,7 +31,9 @@ export async function POST(req: NextRequest) {
 
     let data: any = {}
     try { data = await response.json() } catch {}
+    const configured = data?.configured !== false
     const connected = Boolean(
+      configured &&
       response.ok &&
       data?.ok &&
       Array.isArray(data?.points_of_sale) &&
@@ -41,21 +43,23 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       connected,
+      configured,
       checkedAt: new Date().toISOString(),
       latencyMs: Date.now() - started,
-      environment: data?.environment || 'homologacion',
-      service: data?.service || 'wsfev1',
-      pointOfSale: data?.test_point_of_sale ?? null,
-      lastAuthorized: data?.last_authorized ?? null,
-      readyToIssue: Boolean(data?.ready_to_issue),
-      error: connected ? null : (data?.error || 'ARCA no respondió correctamente'),
-    }, { status: connected ? 200 : 503 })
+      environment: configured ? (data?.environment || 'homologacion') : null,
+      service: configured ? (data?.service || 'wsfev1') : null,
+      pointOfSale: configured ? (data?.test_point_of_sale ?? null) : null,
+      lastAuthorized: configured ? (data?.last_authorized ?? null) : null,
+      readyToIssue: configured ? Boolean(data?.ready_to_issue) : false,
+      error: connected ? null : (data?.error || (configured ? 'ARCA no respondió correctamente' : 'ARCA no está configurado para este comercio.')),
+    }, { status: connected ? 200 : configured ? 503 : 200 })
   } catch (error) {
     const message = error instanceof Error && error.name === 'AbortError'
       ? 'ARCA no respondió dentro del tiempo esperado'
       : error instanceof Error ? error.message : String(error)
     return NextResponse.json({
       connected: false,
+      configured: true,
       checkedAt: new Date().toISOString(),
       latencyMs: Date.now() - started,
       error: message,

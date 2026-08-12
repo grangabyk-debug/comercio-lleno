@@ -28,6 +28,12 @@ import {
 } from '@/lib/comercio/offline'
 import { printReceipt, receiptNumber } from '@/lib/comercio/receipt'
 import { readDeviceSettings, readTenantSession } from '@/lib/comercio/session'
+import {
+  DEFAULT_SALES_SETTINGS,
+  loadSalesSettings,
+  readCachedSalesSettings,
+  type SalesSettings,
+} from '@/lib/comercio/sales-settings'
 import type { CartLine, CommerceSnapshot, DeviceSettings, Sale, TenantSession, ViewKey } from '@/lib/comercio/types'
 import {
   AccountsV2,
@@ -81,6 +87,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
   const [salePage, setSalePage] = useState(0)
   const [receiptSale, setReceiptSale] = useState<Sale | null>(null)
   const [device, setDevice] = useState<DeviceSettings>({ paper:'80', autoPrint:false, printerMode:'browser', printerName:'', receiptCopies:1 })
+  const [salesSettings, setSalesSettings] = useState<SalesSettings>(DEFAULT_SALES_SETTINGS)
   const [arca, setArca] = useState<ArcaHealth | null>(null)
   const [arcaChecking, setArcaChecking] = useState(false)
   const [checkoutBusy, setCheckoutBusy] = useState(false)
@@ -148,7 +155,8 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
     syncLock.current = true
     setOfflineSyncing(true)
     setError('')
-    let synced = 0
+    let syncedFiscal = 0
+    let syncedInternal = 0
     let conflicts = 0
     try {
       let queued = await listOfflineSales(s.companyId)
@@ -170,11 +178,25 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
 
         try {
           const items = item.sale.details?.items || []
-          const stockConflict = items.filter(line => {
+          const manualPending = item.sale.details?.fiscal_intent === 'manual_pending'
+          const stockConflict = salesSettings.allowNegativeStock ? [] : items.filter(line => {
             const product = remote.products.find(p => p.id === line.product_id)
             return !product || Number(product.stock || 0) < Number(line.qty || 0)
           }).map(line => line.name)
           conflicts += stockConflict.length
+          const stock = items.map(line => {
+            const product = remote.products.find(p => p.id === line.product_id)
+            return { id: line.product_id, stock: Math.max(0, Number(product?.stock || 0) - Number(line.qty || 0)) }
+          })
+
+          if (manualPending) {
+            const pending: Sale = { ...item.sale, receipt_type:'ticket', fiscal_status:'pending', cae:null, receiptNumber:undefined }
+            await persistUninvoicedSale(s, pending, stock, 'Cobro registrado sin emisión fiscal inmediata')
+            await removeOfflineSale(item.id)
+            remote = applyLocalSale(remote, pending)
+            syncedInternal += 1
+            continue
+          }
 
           const invoice = await authorizeFiscalInvoice(s, item.sale.total, item.sale.id)
           const authorized: Sale = {
@@ -191,14 +213,10 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
               offline_stock_conflict: stockConflict.length ? stockConflict : null,
             },
           }
-          const stock = items.map(line => {
-            const product = remote.products.find(p => p.id === line.product_id)
-            return { id: line.product_id, stock: Math.max(0, Number(product?.stock || 0) - Number(line.qty || 0)) }
-          })
           await persistAuthorizedSale(s, authorized, stock)
           await removeOfflineSale(item.id)
           remote = applyLocalSale(remote, authorized)
-          synced += 1
+          syncedFiscal += 1
         } catch (e) {
           const message = e instanceof Error ? e.message : String(e)
           await markOfflineSaleError(item, message)
@@ -213,8 +231,11 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
       setOfflineMode(false)
       setOfflineReady(true)
       await saveOfflineSnapshot(s.companyId, merged)
-      if (synced) setNotice(`${synced} venta${synced === 1 ? '' : 's'} offline sincronizada${synced === 1 ? '' : 's'} y enviada${synced === 1 ? '' : 's'} a ARCA.${conflicts ? ` ${conflicts} producto${conflicts === 1 ? '' : 's'} quedó con conflicto de stock para revisar.` : ''}`)
-      if (queued.length && !synced) setNotice(`${queued.length} venta${queued.length === 1 ? '' : 's'} offline sigue${queued.length === 1 ? '' : 'n'} pendiente${queued.length === 1 ? '' : 's'} de sincronización.`)
+      const messages: string[] = []
+      if (syncedFiscal) messages.push(`${syncedFiscal} venta${syncedFiscal === 1 ? '' : 's'} enviada${syncedFiscal === 1 ? '' : 's'} a ARCA`)
+      if (syncedInternal) messages.push(`${syncedInternal} cobro${syncedInternal === 1 ? '' : 's'} pendiente${syncedInternal === 1 ? '' : 's'} de facturación sincronizado${syncedInternal === 1 ? '' : 's'}`)
+      if (messages.length) setNotice(`${messages.join(' · ')}.${conflicts ? ` ${conflicts} producto${conflicts === 1 ? '' : 's'} quedó con conflicto de stock para revisar.` : ''}`)
+      if (queued.length && !messages.length) setNotice(`${queued.length} venta${queued.length === 1 ? '' : 's'} offline sigue${queued.length === 1 ? '' : 'n'} pendiente${queued.length === 1 ? '' : 's'} de sincronización.`)
       await refreshArca(s)
     } catch (e) {
       setOfflineMode(true)
@@ -231,6 +252,9 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
     setSession(s)
     if (!s) { setLoading(false); return }
     setDevice(readDeviceSettings(s.companyId))
+    const cachedSalesSettings = readCachedSalesSettings(s.companyId)
+    setSalesSettings(cachedSalesSettings)
+    void loadSalesSettings(s).then(setSalesSettings).catch(() => {})
     setOnline(navigator.onLine)
     void registerOfflineServiceWorker().then(reg => { if (reg) setOfflineReady(true) })
 
@@ -269,15 +293,21 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
       setNotice('Volvió Internet. Sincronizando ventas pendientes…')
       void syncOfflineSales(s)
     }
+    const onSalesSettings = (event: Event) => {
+      const next = (event as CustomEvent<SalesSettings>).detail
+      if (next) setSalesSettings(next)
+    }
     window.addEventListener('keydown', key)
     window.addEventListener('offline', onOffline)
     window.addEventListener('online', onOnline)
+    window.addEventListener('comercio:sales-settings', onSalesSettings)
     return () => {
       window.clearInterval(clock)
       window.clearInterval(healthTimer)
       window.removeEventListener('keydown', key)
       window.removeEventListener('offline', onOffline)
       window.removeEventListener('online', onOnline)
+      window.removeEventListener('comercio:sales-settings', onSalesSettings)
     }
   }, [])
 
@@ -289,9 +319,11 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
   const discountAmount = useMemo(() => {
     const value = Math.max(0, Number(discountValue || 0))
     if (!subtotal || !value) return 0
-    if (discountKind === 'percent') return Math.min(subtotal, subtotal * Math.min(100, value) / 100)
-    return Math.min(subtotal, value)
-  }, [subtotal, discountKind, discountValue])
+    const maxPercent = Math.max(0, Math.min(100, Number(salesSettings.maxDiscount ?? 100)))
+    const maxAmount = subtotal * maxPercent / 100
+    if (discountKind === 'percent') return Math.min(subtotal, subtotal * Math.min(maxPercent, value) / 100)
+    return Math.min(subtotal, maxAmount, value)
+  }, [subtotal, discountKind, discountValue, salesSettings.maxDiscount])
   const total = Math.max(0, subtotal - discountAmount)
   const filteredProducts = useMemo(() => {
     if (!data) return []
@@ -327,15 +359,16 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
   function addProduct(id: string) {
     const p = data?.products.find(x=>x.id===id)
     if(!p)return
-    if(p.stock<=0){ setNotice('Ese producto está sin stock.'); return }
-    setCart(rows=>{const f=rows.find(x=>x.id===id);return f?rows.map(x=>x.id===id?{...x,qty:Math.min(x.qty+1,p.stock)}:x):[...rows,{...p,qty:1}]})
+    if(!salesSettings.allowNegativeStock && p.stock<=0){ setNotice('Ese producto está sin stock. Activá “Permitir vender sin stock” en Configuración > Ventas y caja si necesitás venderlo igual.'); return }
+    setCart(rows=>{const f=rows.find(x=>x.id===id);return f?rows.map(x=>x.id===id?{...x,qty:salesSettings.allowNegativeStock?x.qty+1:Math.min(x.qty+1,p.stock)}:x):[...rows,{...p,qty:1}]})
     setQuery('')
   }
-  function changeQty(id:string,delta:number){setCart(rows=>rows.map(x=>x.id===id?{...x,qty:Math.max(1,Math.min(x.stock,x.qty+delta))}:x))}
+  function changeQty(id:string,delta:number){setCart(rows=>rows.map(x=>x.id===id?{...x,qty:Math.max(1,salesSettings.allowNegativeStock?x.qty+delta:Math.min(x.stock,x.qty+delta))}:x))}
   function removeProduct(id:string){setCart(rows=>rows.filter(x=>x.id!==id))}
 
   async function storeOfflineSale(base: Sale, reason: string) {
     if (!data) throw new Error('No hay una copia local del comercio para guardar la venta.')
+    const manualPending = base.details?.fiscal_intent === 'manual_pending'
     const pending: Sale = {
       ...base,
       receipt_type: 'ticket',
@@ -359,10 +392,10 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
     setOfflineMode(true)
     resetSaleForm()
     setReceiptSale(pending)
-    setNotice('Venta guardada en este equipo. Está pendiente de sincronización y de autorización en ARCA cuando vuelva Internet.')
+    setNotice(manualPending ? 'Venta cobrada y guardada en este equipo. Quedó pendiente de facturación.' : 'Venta guardada en este equipo. Se intentará facturar cuando vuelva Internet.')
   }
 
-  async function checkout() {
+  async function checkout(mode: 'fiscal' | 'internal' = 'fiscal') {
     if(!data||!cart.length||checkoutBusy)return
     if(!canView(tenant,'pos')){setNotice('Tu usuario no tiene permiso para vender.');return}
     if(data.cashRegister?.status!=='open'){setNotice('Primero tenés que abrir la caja.');return}
@@ -377,7 +410,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
       payment,
       items:items.reduce((a,i)=>a+i.qty,0),
       customer_id:customerId||null,
-      receipt_type:'factura_c',
+      receipt_type:mode==='fiscal'?'factura_c':'ticket',
       fiscal_status:'pending',
       details:{
         items,
@@ -385,12 +418,27 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
         discount_amount:discountAmount,
         discount:discountAmount>0?{kind:discountKind,value:discountValue}:null,
         captured_at:new Date().toISOString(),
+        fiscal_intent:mode==='fiscal'?'invoice_now':'manual_pending',
       },
     }
     const stock=cart.map(i=>({id:i.id,stock:Math.max(0,i.stock-i.qty)}))
     try{
+      if (mode==='internal') {
+        if (!navigator.onLine || offlineMode) {
+          await storeOfflineSale(base, 'Cobro registrado sin emisión fiscal inmediata')
+          return
+        }
+        await persistUninvoicedSale(tenant,base,stock,'Cobro registrado sin emisión fiscal inmediata')
+        resetSaleForm()
+        setNotice('Venta cobrada · quedó pendiente de facturación.')
+        setReceiptSale(base)
+        await refresh(tenant)
+        if(device.autoPrint){try{await printReceipt(base,data.company,device)}catch{}}
+        return
+      }
+
       if (!navigator.onLine || offlineMode) {
-        await storeOfflineSale(base, 'Sin conexión a Internet al momento de cobrar')
+        await storeOfflineSale(base, 'Sin conexión a Internet al momento de cobrar y facturar')
         return
       }
       const invoice=await authorizeFiscalInvoice(tenant,total,id)
@@ -450,8 +498,9 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
 
   function logout(){['cl_access_token','cl_refresh_token','cl_company_id','cl_company_name','cl_user_role','cl_user_permissions'].forEach(k=>localStorage.removeItem(k));location.replace('/redesign/access')}
 
-  const arcaLabel=arcaChecking?'ARCA verificando…':arca?.connected?'ARCA conectado':'ARCA desconectado'
-  const arcaClass=arcaChecking?styles.statusNeutral:arca?.connected?styles.statusOk:styles.statusBad
+  const arcaConfigured = arca ? (arca as ArcaHealth & { configured?: boolean }).configured !== false : true
+  const arcaLabel=arcaChecking?'ARCA verificando…':!arcaConfigured?'ARCA no configurado':arca?.connected?'ARCA conectado':'ARCA desconectado'
+  const arcaClass=arcaChecking?styles.statusNeutral:!arcaConfigured?styles.statusNeutral:arca?.connected?styles.statusOk:styles.statusBad
   const networkLabel = offlineSyncing ? 'Sincronizando…' : !online || offlineMode ? `Modo offline${offlinePending ? ` · ${offlinePending} pend.` : ''}` : offlinePending ? `${offlinePending} por sincronizar` : offlineReady ? 'Offline listo' : 'Preparando offline'
   const networkClass = !online || offlineMode ? styles.statusBad : offlinePending ? styles.statusNeutral : styles.statusOk
   const mainNav:Array<[ViewKey,string,string,string?]>=[['dashboard','⌂','Inicio'],['pos','🪙','Nueva venta','sale'],['products','▦','Productos'],['cash','◷','Caja diaria'],['settings','⚙','Configuración'],['assistant','✦','Asistente IA','assistant']]
@@ -475,7 +524,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
       </aside>
 
       <section className={styles.content}>
-        {(!online||offlineMode)&&<div className={enh.offlineModeBar}><b>Modo offline activo</b><span>Podés seguir cobrando con los productos guardados en este equipo. Las ventas se enviarán a ARCA automáticamente cuando vuelva Internet.</span>{offlinePending>0&&<strong>{offlinePending} pendiente{offlinePending===1?'':'s'}</strong>}</div>}
+        {(!online||offlineMode)&&<div className={enh.offlineModeBar}><b>Modo offline activo</b><span>Podés seguir cobrando con los productos guardados en este equipo. Las ventas que elijas facturar se enviarán a ARCA cuando vuelva Internet.</span>{offlinePending>0&&<strong>{offlinePending} pendiente{offlinePending===1?'':'s'}</strong>}</div>}
         {error&&<div className={styles.error}><span>{error}</span><button onClick={()=>setError('')}>×</button></div>}
         {notice&&<div className={styles.notice}><span>{notice}</span><button onClick={()=>setNotice('')}>×</button></div>}
         {data&&view==='dashboard'&&<DashboardEnhanced data={data} todayTotal={todayTotal} todayCount={todaySales.length} lowStock={lowStock} go={go} canSell={canView(tenant,'pos')} role={tenant.role}/>} 
@@ -496,7 +545,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
       </section>
     </div>
 
-    <div className={styles.bottomBar}><div className={styles.bottomStats}><div><span>Ventas hoy</span><b>{money.format(todayTotal)}</b></div><div><span>Caja estimada</span><b>{money.format(cashEstimated)}</b></div><div><span>Stock bajo</span><b>{lowStock}</b></div>{offlinePending>0&&<div><span>Offline pendiente</span><b>{offlinePending}</b></div>}</div><div className={styles.time}>{now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</div></div>
+    <div className={styles.bottomBar}><div className={styles.bottomStats}><div><span>Ventas hoy</span><b>{money.format(todayTotal)}</b></div><div><span>Caja estimada</span><b>{money.format(cashEstimated)}</b></div><div><span>Stock bajo</span><b>{lowStock}</b></div>{offlinePending>0&&<div><span>Offline pendiente</span><b>{offlinePending}</b></div>}</div><div className={styles.time}>{now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:salesSettings.timeFormat==='12'})}</div></div>
     {receiptSale&&data&&<ReceiptModal sale={receiptSale} data={data} device={device} close={()=>setReceiptSale(null)} onMessage={setNotice}/>} 
     {contingency&&<ContingencyModal reason={contingency.reason} total={contingency.sale.total} busy={checkoutBusy} yes={confirmContingency} no={()=>setContingency(null)}/>} 
   </main>
