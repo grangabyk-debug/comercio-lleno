@@ -14,10 +14,21 @@ export default function ViewScrollReset() {
 
     const onClick = (event: MouseEvent) => {
       const target = event.target as Element | null
-      const button = target?.closest('aside button')
-      if (!button) return
+      const shell = document.querySelector('main[class*="shell"]')
+      const layout = shell?.querySelector(':scope > div[class*="layout"]')
+      const sidebar = layout?.querySelector(':scope > aside')
+      if (!sidebar || !target || !sidebar.contains(target)) return
+
+      const button = target.closest('button')
+      if (!button || !sidebar.contains(button)) return
+      const label = button.textContent?.replace(/\s+/g, ' ').trim() || ''
+      if (!label || label.startsWith('Gestión')) return
+
+      const isAlreadyActive = button.className.includes('navActive') || button.className.includes('navChildActive')
+      if (isAlreadyActive) return
+
       window.setTimeout(reset, 0)
-      window.setTimeout(reset, 80)
+      window.setTimeout(reset, 60)
     }
 
     const onPopState = () => reset()
