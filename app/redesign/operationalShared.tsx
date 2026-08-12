@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import core from './page.module.css'
-import enh from './enhancements.module.css'
+import polish from './design-polish.module.css'
 
 export const money = new Intl.NumberFormat('es-AR', {
   style: 'currency',
@@ -59,9 +59,9 @@ export function Trend({ current, previous, label }: {
   const up = change > 0.01
   const down = change < -0.01
   const direction: 'up' | 'down' | 'flat' = up ? 'up' : down ? 'down' : 'flat'
-  return <div className={`${enh.trend} ${up ? enh.trendUp : down ? enh.trendDown : enh.trendFlat}`}>
-    <span className={enh.trendArrow}><TrendArrow direction={direction}/></span>
-    <span className={enh.trendCopy}>
+  return <div className={`${polish.trend} ${up ? polish.trendUp : down ? polish.trendDown : polish.trendFlat}`}>
+    <span className={polish.trendArrow}><TrendArrow direction={direction}/></span>
+    <span className={polish.trendCopy}>
       {previous > 0
         ? <><b>{Math.abs(change).toFixed(0)}% {up ? 'más' : down ? 'menos' : 'igual'}</b><small>que el {label}</small></>
         : <><b>Sin referencia</b><small>No hay un día anterior comparable</small></>}
