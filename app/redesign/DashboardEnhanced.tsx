@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import core from './page.module.css'
-import enh from './enhancements.module.css'
+import polish from './design-polish.module.css'
 import type { CommerceSnapshot, ViewKey } from '@/lib/comercio/types'
 import { receiptNumber } from '@/lib/comercio/receipt'
 import { dayKey, Head, money, Trend } from './operationalShared'
@@ -34,19 +34,19 @@ export default function DashboardEnhanced({ data, todayTotal, todayCount, lowSto
 
   return <>
     <Head eyebrow={data.company.name} title="Inicio" subtitle="Resumen del comercio y accesos de operación.">
-      {canSell && <button className={`${core.primary} ${enh.heroSaleButton}`} onClick={() => go('pos')}><span className={enh.actionIcon}><UiIcon name="sale" size={18}/></span>Nueva venta</button>}
+      {canSell && <button className={`${core.primary} ${polish.heroSaleButton}`} onClick={() => go('pos')}><span className={polish.actionIcon}><UiIcon name="sale" size={18}/></span>Nueva venta</button>}
     </Head>
 
     {role === 'supervisor' && <div className={core.notice}><span>Panel de supervisión · indicadores visibles según tus permisos.</span></div>}
 
     <div className={core.kpis}>
-      <div className={`${core.kpi} ${core.kpiAccent} ${enh.kpiFeatured}`}>
+      <div className={`${core.kpi} ${core.kpiAccent} ${polish.kpiFeatured}`}>
         <span>Ventas de hoy</span>
         <strong>{money.format(todayTotal)}</strong>
         <small>{todayCount} operaciones</small>
         <Trend current={todayTotal} previous={previousTotal} label={previousLabel} />
       </div>
-      <div className={`${core.kpi} ${enh.kpiFeatured}`}>
+      <div className={`${core.kpi} ${polish.kpiFeatured}`}>
         <span>Ticket promedio</span>
         <strong>{money.format(todayAvg)}</strong>
         <small>Promedio del día</small>
@@ -73,7 +73,7 @@ export default function DashboardEnhanced({ data, todayTotal, todayCount, lowSto
           <button className={core.linkButton} onClick={() => go('sales')}>Ver todas →</button>
         </div>
         {recent.length ? recent.map(s => <div className={core.recentRow} key={s.id}>
-          <span className={`${core.roundIcon} ${enh.metalIcon}`}>{s.cae ? <UiIcon name="check" size={17}/> : <UiIcon name="alert" size={17}/>}</span>
+          <span className={`${core.roundIcon} ${polish.metalIcon}`}>{s.cae ? <UiIcon name="check" size={17}/> : <UiIcon name="alert" size={17}/>}</span>
           <div>
             <b>{s.receiptNumber ? `Factura C ${receiptNumber(s)}` : `Venta #${s.id.slice(0, 8)}`}</b>
             <small>{new Date(s.date).toLocaleString('es-AR')} · {s.payment}</small>
@@ -85,9 +85,9 @@ export default function DashboardEnhanced({ data, todayTotal, todayCount, lowSto
       <div className={core.panel}>
         <div className={core.panelTitle}><div><b>Accesos rápidos</b><small>Funciones frecuentes</small></div></div>
         <div className={core.shortcutGrid}>
-          {canSell && <button className={core.shortcut} onClick={() => go('pos')}><span className={enh.metalIcon}><UiIcon name="sale" size={19}/></span><div><b>Nueva venta</b><small>Scanner, carrito y cobro</small></div></button>}
-          <button className={core.shortcut} onClick={() => go('products')}><span className={enh.metalIcon}><UiIcon name="products" size={19}/></span><div><b>Productos</b><small>Editar precios, stock y costos</small></div></button>
-          <button className={core.shortcut} onClick={() => go('cash')}><span className={enh.metalIcon}><UiIcon name="cash" size={19}/></span><div><b>Caja diaria</b><small>Cierre y contador de billetes</small></div></button>
+          {canSell && <button className={core.shortcut} onClick={() => go('pos')}><span className={polish.metalIcon}><UiIcon name="sale" size={19}/></span><div><b>Nueva venta</b><small>Scanner, carrito y cobro</small></div></button>}
+          <button className={core.shortcut} onClick={() => go('products')}><span className={polish.metalIcon}><UiIcon name="products" size={19}/></span><div><b>Productos</b><small>Editar precios, stock y costos</small></div></button>
+          <button className={core.shortcut} onClick={() => go('cash')}><span className={polish.metalIcon}><UiIcon name="cash" size={19}/></span><div><b>Caja diaria</b><small>Cierre y contador de billetes</small></div></button>
         </div>
       </div>
     </div>
