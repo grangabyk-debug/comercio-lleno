@@ -48,7 +48,7 @@ export default function MobileScanner(){
       const video=videoRef.current;if(!video)throw new Error('No se pudo preparar la vista de cámara.')
       const { BrowserMultiFormatReader }=await import('@zxing/browser')
       const reader=new BrowserMultiFormatReader()
-      const controls=await reader.decodeFromConstraints({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false},video,(result)=>{const value=result?.getText?.();if(value)resolve(value)})
+      const controls=await reader.decodeFromConstraints({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false},video,(result)=>{const value=result?.getText?.();if(value)resolve(value)})
       controlsRef.current=controls as ScannerControls
     }catch(e){setError(e instanceof Error?e.message:String(e))}finally{setBusy(false)}
   }
@@ -97,7 +97,7 @@ export default function MobileScanner(){
       <div className={styles.manual}><input inputMode="numeric" value={manual} onChange={e=>setManual(e.target.value)} onKeyDown={e=>e.key==='Enter'&&resolve(manual)} placeholder="Ingresar código manualmente"/><button onClick={()=>resolve(manual)}>Buscar</button></div>
 
       {product&&<div className={styles.result}><span>PRODUCTO ENCONTRADO</span><h3>{product.name}</h3><strong>{money.format(product.price)}</strong><div className={styles.infoGrid}><p><b>Código</b>{product.barcode||'—'}</p><p><b>Categoría</b>{product.category||'General'}</p><p><b>Stock</b>{product.stock}</p><p><b>Unidad</b>{product.unit||'unidad'}</p></div>
-        {editable&&<form className={styles.quickEdit} onSubmit={saveExisting}><label>Precio<input inputMode="decimal" value={editPrice} onChange={e=>setEditPrice(e.target.value)}/></label><label>Stock<input inputMode="decimal" value={editStock} onChange={e=>setEditStock(e.target.value)}/></label><button disabled={saving}>{saving?'Guardando…':'Guardar precio y stock'}</button></form>}
+        {editable&&<><form className={styles.quickEdit} onSubmit={saveExisting}><label>Precio<input inputMode="decimal" value={editPrice} onChange={e=>setEditPrice(e.target.value)}/></label><label>Stock<input inputMode="decimal" value={editStock} onChange={e=>setEditStock(e.target.value)}/></label><button disabled={saving}>{saving?'Guardando…':'Guardar precio y stock'}</button></form><small className={styles.privacy}>Los cambios de precio y stock se guardan directamente en este comercio.</small></>}
         <button className={styles.scanAgain} onClick={scanAgain}>Escanear otro</button>
       </div>}
 
