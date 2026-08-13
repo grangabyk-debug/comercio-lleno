@@ -7,6 +7,8 @@ function secure(response: NextResponse, request: NextRequest) {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   response.headers.set('Permissions-Policy', request.nextUrl.pathname.startsWith('/movil') ? 'camera=(self), microphone=(), geolocation=()' : 'camera=(), microphone=(), geolocation=()')
   response.headers.set('X-Permitted-Cross-Domain-Policies', 'none')
+  response.headers.set('X-DNS-Prefetch-Control', 'off')
+  response.headers.set('Content-Security-Policy', "base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; upgrade-insecure-requests")
   return response
 }
 
