@@ -8,7 +8,8 @@ import ArcaSetupPanel from './ArcaSetupPanel'
 import DesignSettingsPanel from './DesignSettingsPanel'
 import WholesalePricingSettingsPanel from './WholesalePricingSettingsPanel'
 import WhatsAppSettingsPanel from './WhatsAppSettingsPanel'
-import WhatsAppAutoTicketSetting from './WhatsAppAutoTicketSetting'
+import WhatsAppAdvancedSettings from './WhatsAppAdvancedSettings'
+import WhatsAppAiSellerPanel from './WhatsAppAiSellerPanel'
 import wrap from './settings-with-mobile.module.css'
 import type { ArcaHealth } from '@/lib/comercio/api'
 import type { CommerceSnapshot, DeviceSettings, TenantSession } from '@/lib/comercio/types'
@@ -28,7 +29,7 @@ export default function SettingsWithMobile(props:Props){
     {special==='none'&&legacyTab==='Ventas y caja'&&<WholesalePricingSettingsPanel session={props.session} message={props.message}/>} 
     {owner&&tabHost&&createPortal(<><button type="button" className={`${wrap.mobileTab} ${special==='mobile'?wrap.mobileTabActive:''}`} onClick={()=>setSpecial('mobile')}>Móvil</button><button type="button" className={`${wrap.mobileTab} ${special==='whatsapp'?wrap.mobileTabActive:''}`} onClick={()=>setSpecial('whatsapp')}>WhatsApp</button></>,tabHost)}
     {owner&&special==='mobile'&&<div className={wrap.specialPanel}><MobileSettingsPanel session={props.session} message={props.message}/></div>}
-    {owner&&special==='whatsapp'&&<div className={wrap.specialPanel} style={{display:'grid',gap:14}}><WhatsAppSettingsPanel session={props.session} message={props.message}/><WhatsAppAutoTicketSetting session={props.session} message={props.message}/></div>}
+    {owner&&special==='whatsapp'&&<div className={wrap.specialPanel} style={{display:'grid',gap:14}}><WhatsAppSettingsPanel session={props.session} message={props.message}/><WhatsAppAdvancedSettings session={props.session} message={props.message}/><WhatsAppAiSellerPanel session={props.session} message={props.message}/></div>}
     {owner&&special==='design'&&<div className={wrap.specialPanel}><DesignSettingsPanel session={props.session} message={props.message}/></div>}
     {owner&&special==='arca'&&<div className={wrap.specialPanel}><ArcaSetupPanel session={props.session} companyName={props.data.company.name} companyTaxId={props.data.company.tax_id} message={props.message}/></div>}
   </div>
