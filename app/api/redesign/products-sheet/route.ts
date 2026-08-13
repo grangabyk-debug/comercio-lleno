@@ -30,6 +30,15 @@ function bearer(request: Request) {
   return auth.toLowerCase().startsWith('bearer ') ? auth.slice(7).trim() : ''
 }
 
+function tokenSubject(token: string) {
+  try {
+    const part = token.split('.')[1]
+    if (!part) return ''
+    const parsed = JSON.parse(Buffer.from(part, 'base64url').toString('utf8'))
+    return typeof parsed?.sub === 'string' ? parsed.sub : ''
+  } catch { return '' }
+}
+
 async function supa<T>(token: string, path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     ...init,
@@ -54,7 +63,9 @@ async function supa<T>(token: string, path: string, init: RequestInit = {}): Pro
 async function context(request: Request) {
   const token = bearer(request)
   if (!token) throw new Error('Sesión no válida.')
-  const profiles = await supa<Profile[]>(token, 'profiles?select=company_id,role,permissions,active&limit=1')
+  const userId = tokenSubject(token)
+  if (!userId) throw new Error('No se pudo validar el usuario de la sesión.')
+  const profiles = await supa<Profile[]>(token, `profiles?select=company_id,role,permissions,active&id=eq.${encodeURIComponent(userId)}&limit=1`)
   const profile = profiles[0]
   if (!profile?.company_id || !profile.active) throw new Error('Perfil del comercio no disponible.')
   const canStock = profile.role === 'owner' || profile.permissions?.can_manage_stock !== false
@@ -64,9 +75,12 @@ async function context(request: Request) {
 
 function safeNumber(value: unknown) {
   if (typeof value === 'number' && Number.isFinite(value)) return Math.max(0, value)
-  const text = String(value ?? '').trim().replace(/\./g, '').replace(',', '.')
-  if (!text) return 0
-  const parsed = Number(text)
+  const raw = String(value ?? '').trim()
+  if (!raw) return 0
+  let normalized = raw
+  if (raw.includes(',') && raw.includes('.')) normalized = raw.replace(/\./g, '').replace(',', '.')
+  else if (raw.includes(',')) normalized = raw.replace(',', '.')
+  const parsed = Number(normalized)
   return Number.isFinite(parsed) ? Math.max(0, parsed) : 0
 }
 
@@ -212,7 +226,8 @@ export async function POST(request: Request) {
     if (file.size > 8 * 1024 * 1024) throw new Error('El archivo supera el máximo de 8 MB.')
 
     const workbook = new ExcelJS.Workbook()
-    await workbook.xlsx.load(Buffer.from(await file.arrayBuffer()))
+    const uploaded = Buffer.from(await file.arrayBuffer())
+    await workbook.xlsx.load(uploaded as any)
     const sheet = workbook.worksheets[0]
     if (!sheet) throw new Error('El archivo no contiene una hoja de productos.')
 
