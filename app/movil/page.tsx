@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import MobileSimpleApp from './MobileSimpleAppV2'
 import MobileScanner from './MobileScanner'
+import MobileAiAssistant from './MobileAiAssistant'
+import MobilePcNotice from './MobilePcNotice'
 import SaleSearchGuard from './SaleSearchGuard'
 
 export const metadata: Metadata = {
@@ -12,5 +14,5 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic'
 
 export default function MobilePage() {
-  return <><SaleSearchGuard /><MobileSimpleApp /><MobileScanner /></>
+  return <><SaleSearchGuard/><MobileSimpleApp/><MobileScanner/><MobileAiAssistant/><MobilePcNotice/></>
 }
