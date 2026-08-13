@@ -10,6 +10,11 @@ function buttonByLabel(root: ParentNode, label: string) {
   return Array.from(root.querySelectorAll('button')).find(button => cleanLabel(button.textContent || '') === label) as HTMLButtonElement | undefined
 }
 
+function managementContainer(group: HTMLButtonElement) {
+  const next = group.nextElementSibling
+  return next instanceof HTMLDivElement ? next : null
+}
+
 export default function ManagementMenuRuntime() {
   useEffect(() => {
     let initialHandled = false
@@ -39,7 +44,14 @@ export default function ManagementMenuRuntime() {
     }
 
     const closeFlyout = () => {
-      if (activeGroup && activeContainer && activeGroup.nextElementSibling === activeContainer) activeGroup.click()
+      if (!activeGroup || !activeContainer) return
+      const current = managementContainer(activeGroup)
+      if (current !== activeContainer) {
+        activeContainer = null
+        clearSidebarLayer()
+        return
+      }
+      activeGroup.click()
     }
 
     const positionFlyout = (group: HTMLButtonElement, container: HTMLElement, sidebar: HTMLElement) => {
@@ -92,6 +104,8 @@ export default function ManagementMenuRuntime() {
     const sync = () => {
       const group = Array.from(document.querySelectorAll('button')).find(button => cleanLabel(button.textContent || '').startsWith('Gestión')) as HTMLButtonElement | undefined
       if (!group) {
+        activeGroup = null
+        activeContainer = null
         clearSidebarLayer()
         return
       }
@@ -108,7 +122,7 @@ export default function ManagementMenuRuntime() {
         original.style.setProperty('display', 'none', 'important')
       }
 
-      const firstContainer = group.nextElementSibling as HTMLElement | null
+      const firstContainer = managementContainer(group)
       if (!initialHandled) {
         initialHandled = true
         if (firstContainer) {
@@ -117,7 +131,7 @@ export default function ManagementMenuRuntime() {
         }
       }
 
-      const container = group.nextElementSibling as HTMLElement | null
+      const container = managementContainer(group)
       activeGroup = group
       activeContainer = container
       if (!container) {
