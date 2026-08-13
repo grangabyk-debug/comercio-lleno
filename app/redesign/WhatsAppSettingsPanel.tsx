@@ -1,43 +1,38 @@
 'use client'
 
-import { useEffect,useMemo,useRef,useState } from 'react'
+import { useEffect,useRef,useState } from 'react'
 import type { TenantSession } from '@/lib/comercio/types'
 import base from './settings-next.module.css'
-import styles from './whatsapp-settings.module.css'
 
-type Status={ok?:boolean;configured?:boolean;connected?:boolean;state?:string;instance?:string;error?:string;message?:string;licenseRequired?:boolean;qr?:{base64?:string;code?:string;pairingCode?:string;count?:number}|null}
+type Status={ok?:boolean;configured?:boolean;connected?:boolean;state?:string;instance?:string;error?:string;licenseRequired?:boolean;qr?:{base64?:string;pairingCode?:string}|null}
 type Props={session:TenantSession;message:(m:string)=>void}
 
-async function callApi(session:TenantSession,payload:Record<string,unknown>){
-  const response=await fetch('/api/redesign/whatsapp',{method:'POST',headers:{Authorization:`Bearer ${session.token}`,'Content-Type':'application/json'},body:JSON.stringify(payload),cache:'no-store'})
-  const data=await response.json().catch(()=>({}))
-  if(!response.ok&&!data?.error)data.error=`HTTP ${response.status}`
-  return data as Status&{sent?:boolean;preview?:string}
-}
-function qrSource(value?:string){if(!value)return'';return value.startsWith('data:image')?value:`data:image/png;base64,${value}`}
+async function callApi(session:TenantSession,payload:Record<string,unknown>){const r=await fetch('/api/redesign/whatsapp',{method:'POST',headers:{Authorization:`Bearer ${session.token}`,'Content-Type':'application/json'},body:JSON.stringify(payload),cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok&&!d?.error)d.error=`HTTP ${r.status}`;return d as Status&{sent?:boolean;preview?:string}}
+function qrSource(v?:string){if(!v)return'';return v.startsWith('data:image')?v:`data:image/png;base64,${v}`}
+const box:React.CSSProperties={border:'1px solid #dfe7e3',borderRadius:14,padding:14,background:'rgba(247,250,248,.72)'}
+const input:React.CSSProperties={width:'100%',border:'1px solid #ccd8d2',borderRadius:10,padding:'11px 12px',background:'var(--surface,#fff)',color:'inherit',font:'inherit'}
 
 export default function WhatsAppSettingsPanel({session,message}:Props){
   const[status,setStatus]=useState<Status>({state:'loading'}),[busy,setBusy]=useState(false),[number,setNumber]=useState(''),[preset,setPreset]=useState<'test'|'ticket'|'ready'>('test'),[ticketNumber,setTicketNumber]=useState('102'),[total,setTotal]=useState('5500'),[result,setResult]=useState('')
   const pollRef=useRef<number|null>(null)
-  const tone=useMemo<'green'|'yellow'|'red'>(()=>status.connected?'green':status.state==='connecting'||status.state==='loading'?'yellow':'red',[status.connected,status.state])
-  const label=useMemo(()=>status.connected?'Conectado':status.state==='loading'?'Revisando conexión…':status.state==='connecting'?'Esperando vinculación':status.state==='unconfigured'?'Servidor pendiente':status.licenseRequired?'Activación pendiente':status.state==='error'?'Error de conexión':'Desconectado',[status])
-
+  const connected=Boolean(status.connected)
+  const label=connected?'Conectado':status.state==='loading'?'Revisando…':status.state==='connecting'?'Esperando vinculación':status.state==='unconfigured'?'Servidor pendiente':status.licenseRequired?'Activación pendiente':status.state==='error'?'Error de conexión':'Desconectado'
+  const dot=connected?'#24a867':status.state==='connecting'||status.state==='loading'?'#e1a51c':'#cf4e46'
   async function refresh(){const next=await callApi(session,{action:'status'});setStatus(old=>({...old,...next,qr:next.connected?null:old.qr}));if(next.connected&&pollRef.current){window.clearInterval(pollRef.current);pollRef.current=null}}
   useEffect(()=>{void refresh();return()=>{if(pollRef.current)window.clearInterval(pollRef.current)}},[session.companyId])
   function startPolling(){if(pollRef.current)window.clearInterval(pollRef.current);pollRef.current=window.setInterval(()=>void refresh(),5000);window.setTimeout(()=>{if(pollRef.current){window.clearInterval(pollRef.current);pollRef.current=null}},90000)}
   async function connect(){setBusy(true);setResult('');try{const next=await callApi(session,{action:'connect'});setStatus(old=>({...old,...next}));if(next.error)setResult(next.error);if(!next.connected&&next.configured&&!next.licenseRequired)startPolling()}finally{setBusy(false)}}
   async function send(){setBusy(true);setResult('');try{const next=await callApi(session,{action:'send',number,preset,ticketNumber,total:Number(total||0)});if(next.sent){setResult(next.preview||'Mensaje enviado correctamente.');message('Mensaje de prueba enviado por WhatsApp.')}else setResult(next.error||'No se pudo enviar el mensaje.')}finally{setBusy(false)}}
   const qr=qrSource(status.qr?.base64)
-
-  return <section className={`${base.panel} ${styles.panel}`}>
-    <div className={styles.head}><div><h3>WhatsApp</h3><p>Vinculá el WhatsApp del comercio por QR y verificá la conexión antes de activar automatizaciones.</p></div><div className={`${styles.signal} ${styles[tone]}`}><span/><b>{label}</b></div></div>
-    <div className={styles.statusGrid}><div><span>Estado</span><b>{label}</b></div><div><span>Instancia</span><b>{status.instance||'—'}</b></div><div><span>Tráfico de control</span><b>Bajo</b><small>Se consulta al abrir esta pestaña. Sólo se repite durante la vinculación.</small></div></div>
-    {status.configured===false&&<div className={styles.notice}><b>La interfaz ya está lista.</b><br/>Falta conectar el servidor Evolution para generar un QR real. No se muestra ningún QR simulado.</div>}
-    {status.licenseRequired&&<div className={styles.error}><b>Evolution requiere activación.</b><br/>El servidor está accesible pero todavía no permite crear la sesión.</div>}
-    {status.error&&<div className={styles.error}>{status.error}</div>}
-    <div className={styles.actions}><button className={base.primary} disabled={busy||status.configured===false||status.connected} onClick={()=>void connect()}>{busy?'Procesando…':status.qr?.base64?'Generar otro QR':'Vincular WhatsApp por QR'}</button><button className={styles.secondary} disabled={busy} onClick={()=>void refresh()}>Actualizar estado</button></div>
-    {qr&&!status.connected&&<div className={styles.qrArea}><div className={styles.qrBox}><img src={qr} alt="Código QR para vincular WhatsApp"/></div><div><h4>Escanealo desde el celular del comercio</h4><ol><li>Abrí WhatsApp.</li><li>Entrá a <b>Dispositivos vinculados</b>.</li><li>Tocá <b>Vincular un dispositivo</b>.</li><li>Escaneá este QR.</li></ol><small>Mientras el QR está abierto se revisa el estado cada 5 segundos y se detiene al conectar o a los 90 segundos.</small></div></div>}
-    {status.qr?.pairingCode&&!qr&&!status.connected&&<div className={styles.pairing}><span>Código de vinculación</span><b>{status.qr.pairingCode}</b></div>}
-    <div className={`${styles.test} ${!status.connected?styles.disabled:''}`}><div><h4>Prueba de envío</h4><p>Mandá un mensaje controlado para comprobar que la vinculación funciona. Esto no activa envíos automáticos.</p></div><div className={styles.formGrid}><label>Número destino<input value={number} onChange={e=>setNumber(e.target.value)} placeholder="Ej: 5491159609135" disabled={!status.connected}/></label><label>Mensaje<select value={preset} onChange={e=>setPreset(e.target.value as 'test'|'ticket'|'ready')} disabled={!status.connected}><option value="test">Prueba de conexión</option><option value="ticket">Ticket de ejemplo</option><option value="ready">Pedido listo</option></select></label>{preset==='ticket'&&<><label>Ticket<input value={ticketNumber} onChange={e=>setTicketNumber(e.target.value)} disabled={!status.connected}/></label><label>Total<input type="number" value={total} onChange={e=>setTotal(e.target.value)} disabled={!status.connected}/></label></>}</div><button className={base.primary} disabled={!status.connected||busy||number.replace(/\D/g,'').length<10} onClick={()=>void send()}>{busy?'Enviando…':'Enviar mensaje de test'}</button>{result&&<div className={styles.result}>{result}</div>}</div>
+  return <section className={base.panel} style={{display:'grid',gap:18}}>
+    <div style={{display:'flex',justifyContent:'space-between',gap:16,alignItems:'flex-start',flexWrap:'wrap'}}><div><h3 style={{margin:'0 0 6px'}}>WhatsApp</h3><p style={{margin:0,opacity:.72}}>Vinculá el WhatsApp del comercio por QR y verificá la conexión antes de activar automatizaciones.</p></div><div style={{display:'flex',alignItems:'center',gap:8,border:'1px solid #ccd8d2',borderRadius:999,padding:'8px 12px',fontWeight:900}}><span style={{width:11,height:11,borderRadius:'50%',background:dot}}/> {label}</div></div>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:12}}><div style={box}><small style={{opacity:.65}}>Estado</small><br/><b>{label}</b></div><div style={box}><small style={{opacity:.65}}>Instancia</small><br/><b>{status.instance||'—'}</b></div><div style={box}><small style={{opacity:.65}}>Tráfico de control</small><br/><b>Bajo</b><div style={{fontSize:12,opacity:.65,marginTop:4}}>Una consulta al abrir. Sólo repite durante el QR.</div></div></div>
+    {status.configured===false&&<div style={{...box,background:'#fff8e8'}}><b>Interfaz lista.</b> Falta conectar el servidor Evolution para generar un QR real.</div>}
+    {status.licenseRequired&&<div style={{...box,background:'#fff1ef'}}><b>Evolution requiere activación.</b> El servidor está accesible pero todavía no permite crear la sesión.</div>}
+    {status.error&&<div style={{...box,background:'#fff1ef'}}>{status.error}</div>}
+    <div style={{display:'flex',gap:9,flexWrap:'wrap'}}><button className={base.primary} disabled={busy||status.configured===false||connected} onClick={()=>void connect()}>{busy?'Procesando…':qr?'Generar otro QR':'Vincular WhatsApp por QR'}</button><button disabled={busy} onClick={()=>void refresh()} style={{border:'1px solid #ccd8d2',borderRadius:10,padding:'10px 14px',fontWeight:800,cursor:'pointer',background:'transparent',color:'inherit'}}>Actualizar estado</button></div>
+    {qr&&!connected&&<div style={{display:'grid',gridTemplateColumns:'minmax(220px,300px) 1fr',gap:20,alignItems:'center'}}><div style={{...box,background:'#fff'}}><img src={qr} alt="Código QR para vincular WhatsApp" style={{display:'block',width:'100%',maxWidth:280,margin:'0 auto'}}/></div><div><h4>Escanealo desde el celular del comercio</h4><ol style={{lineHeight:1.8}}><li>Abrí WhatsApp.</li><li>Entrá a <b>Dispositivos vinculados</b>.</li><li>Tocá <b>Vincular un dispositivo</b>.</li><li>Escaneá este QR.</li></ol><small style={{opacity:.65}}>Durante esta vinculación se revisa el estado cada 5 segundos y se detiene al conectar o a los 90 segundos.</small></div></div>}
+    {status.qr?.pairingCode&&!qr&&!connected&&<div style={box}>Código alternativo: <b style={{fontSize:24,letterSpacing:3}}>{status.qr.pairingCode}</b></div>}
+    <div style={{borderTop:'1px solid #dfe7e3',paddingTop:18,display:'grid',gap:14,opacity:connected?1:.62}}><div><h4 style={{margin:'0 0 6px'}}>Prueba de envío</h4><p style={{margin:0,opacity:.72}}>Mandá un mensaje controlado para comprobar la conexión. No activa automatizaciones.</p></div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(210px,1fr))',gap:12}}><label>Número destino<input style={input} value={number} onChange={e=>setNumber(e.target.value)} placeholder="Código de país + área + número" disabled={!connected}/></label><label>Mensaje<select style={input} value={preset} onChange={e=>setPreset(e.target.value as 'test'|'ticket'|'ready')} disabled={!connected}><option value="test">Prueba de conexión</option><option value="ticket">Ticket de ejemplo</option><option value="ready">Pedido listo</option></select></label>{preset==='ticket'&&<><label>Ticket<input style={input} value={ticketNumber} onChange={e=>setTicketNumber(e.target.value)} disabled={!connected}/></label><label>Total<input style={input} type="number" value={total} onChange={e=>setTotal(e.target.value)} disabled={!connected}/></label></>}</div><div><button className={base.primary} disabled={!connected||busy||number.replace(/\D/g,'').length<10} onClick={()=>void send()}>{busy?'Enviando…':'Enviar mensaje de test'}</button></div>{result&&<div style={box}>{result}</div>}</div>
   </section>
 }
