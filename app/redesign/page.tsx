@@ -12,9 +12,9 @@ import ProductPermissionGuard from './ProductPermissionGuard'
 import MobileVersionPrompt from './MobileVersionPrompt'
 import SessionFetchGuard from './SessionFetchGuard'
 import SimpleModeRuntime from './SimpleModeRuntime'
+import SimpleModeDarkStyles from './SimpleModeDarkStyles'
 import FinanceRuntime from './FinanceRuntime'
-import WhatsappPreviewShortcut from './WhatsappPreviewShortcut'
 
 export const metadata={title:'Comercio Lleno · Rediseño POS',robots:{index:false,follow:false}}
 export const dynamic='force-dynamic'
-export default function RedesignPage(){const sha=process.env.VERCEL_GIT_COMMIT_SHA||process.env.GIT_COMMIT_SHA||'local',buildVersion=sha==='local'?'local':sha.slice(0,8);return <><SessionFetchGuard/><WhatsappPreviewShortcut/><HeaderRefreshBehavior/><MobileResponsiveFix/><ViewScrollReset/><DesignRuntime/><DesignLivePreview/><ProductPermissionGuard/><MobileVersionPrompt/><RedesignBrandOverlay/><SubscriptionGate/><TrialStatus/><OnboardingGuide/><SimpleModeRuntime/><FinanceRuntime/><CommerceApp buildVersion={buildVersion}/></>}
+export default function RedesignPage(){const sha=process.env.VERCEL_GIT_COMMIT_SHA||process.env.GIT_COMMIT_SHA||'local',buildVersion=sha==='local'?'local':sha.slice(0,8);return <><SessionFetchGuard/><HeaderRefreshBehavior/><MobileResponsiveFix/><ViewScrollReset/><DesignRuntime/><DesignLivePreview/><ProductPermissionGuard/><MobileVersionPrompt/><RedesignBrandOverlay/><SubscriptionGate/><TrialStatus/><OnboardingGuide/><SimpleModeDarkStyles/><SimpleModeRuntime/><FinanceRuntime/><CommerceApp buildVersion={buildVersion}/></>}
