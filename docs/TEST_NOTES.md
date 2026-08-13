@@ -1,1 +1,0 @@
-Pruebas realizadas con rollback: autorización IA válida para perfil owner; usuario auth inexistente rechazado; aumento masivo mayorista +1% procesó 808 productos y se revirtió; aumento minorista +1% procesó 808 productos, incluyendo 1 promoción activa, y se revirtió.
