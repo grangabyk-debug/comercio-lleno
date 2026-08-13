@@ -15,7 +15,15 @@ async function rest(session: TenantSession, path: string, init: RequestInit = {}
     cache: 'no-store',
   })
   const text = await response.text()
-  if (!response.ok) throw new Error(text || `HTTP ${response.status}`)
+  if (!response.ok) {
+    let message = text || `HTTP ${response.status}`
+    try {
+      const parsed = text ? JSON.parse(text) : null
+      if (parsed?.message) message = String(parsed.message)
+    } catch {}
+    throw new Error(message)
+  }
+  return text
 }
 
 export async function createCashMovement(
@@ -46,4 +54,15 @@ export async function updateSaleNote(session: TenantSession, sale: Sale, note: s
     headers: { Prefer: 'return=minimal' },
     body: JSON.stringify({ details }),
   })
+}
+
+export async function deleteSaleAndRestoreStock(session: TenantSession, saleId: string) {
+  if (session.role !== 'owner') throw new Error('Solo el propietario puede eliminar ventas.')
+  const raw = await rest(session, 'rpc/delete_sale_restore_stock', {
+    method: 'POST',
+    headers: { Prefer: 'return=representation' },
+    body: JSON.stringify({ p_sale_id: saleId }),
+  })
+  try { return raw ? JSON.parse(raw) : { ok: true } }
+  catch { return { ok: true } }
 }

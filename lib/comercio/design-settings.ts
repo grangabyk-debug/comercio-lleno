@@ -7,6 +7,7 @@ export type DesignSettings = {
   colorTheme: 'emerald' | 'ocean' | 'graphite'
   fontSize: 'compact' | 'standard' | 'large'
   fontWeight: 'soft' | 'balanced' | 'strong'
+  // rounded se mantiene sólo en el tipo para leer configuraciones antiguas; normalize la convierte a modern.
   fontFamily: 'modern' | 'classic' | 'rounded'
 }
 
@@ -23,13 +24,10 @@ function key(companyId: string) {
 
 function normalize(value: Partial<DesignSettings> | null | undefined): DesignSettings {
   return {
-    // El color de marca de Comercio Lleno queda fijo en verde.
-    // Se conserva la propiedad por compatibilidad con configuraciones ya guardadas,
-    // pero no se permite que una preferencia visual cambie el logo o la identidad.
     colorTheme: 'emerald',
     fontSize: value?.fontSize === 'compact' || value?.fontSize === 'large' ? value.fontSize : 'standard',
     fontWeight: value?.fontWeight === 'soft' || value?.fontWeight === 'strong' ? value.fontWeight : 'balanced',
-    fontFamily: value?.fontFamily === 'classic' || value?.fontFamily === 'rounded' ? value.fontFamily : 'modern',
+    fontFamily: value?.fontFamily === 'classic' ? 'classic' : 'modern',
   }
 }
 
