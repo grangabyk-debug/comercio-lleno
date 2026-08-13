@@ -4,15 +4,8 @@ import MobileScanner from './MobileScanner'
 import MobileAiAssistant from './MobileAiAssistant'
 import MobilePcNotice from './MobilePcNotice'
 import SaleSearchGuard from './SaleSearchGuard'
+import SessionFetchGuard from '../redesign/SessionFetchGuard'
 
-export const metadata: Metadata = {
-  title: 'Comercio Lleno · Móvil',
-  description: 'Experiencia simple de Comercio Lleno para vender y consultar productos desde el celular',
-  robots: { index: false, follow: false },
-}
-
-export const dynamic = 'force-dynamic'
-
-export default function MobilePage() {
-  return <><SaleSearchGuard/><MobileSimpleApp/><MobileScanner/><MobileAiAssistant/><MobilePcNotice/></>
-}
+export const metadata: Metadata={title:'Comercio Lleno · Móvil',description:'Experiencia simple de Comercio Lleno para vender y consultar productos desde el celular',robots:{index:false,follow:false}}
+export const dynamic='force-dynamic'
+export default function MobilePage(){return <><SessionFetchGuard/><SaleSearchGuard/><MobileSimpleApp/><MobileScanner/><MobileAiAssistant/><MobilePcNotice/></>}
