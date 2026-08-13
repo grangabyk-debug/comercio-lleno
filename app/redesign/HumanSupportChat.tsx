@@ -7,7 +7,6 @@ import { closeSupportConversation,loadSupportState,sendSupportMessage,type Suppo
 import styles from './HumanSupportChat.module.css'
 
 const EMPTY_STATE:SupportState={conversation:null,messages:[]}
-
 function roleLabel(role:string){return role==='owner'?'Propietario':role==='manager'?'Encargado':role==='cashier'?'Cajero':role==='seller'?'Vendedor':role==='supervisor'?'Supervisor':role||'Usuario'}
 function timeLabel(value:string){return new Date(value).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}
 
@@ -23,10 +22,7 @@ export default function HumanSupportChat(){
   const endRef=useRef<HTMLDivElement|null>(null)
   const launchRef=useRef<HTMLButtonElement|null>(null)
   const textareaRef=useRef<HTMLTextAreaElement|null>(null)
-  const hideChat=useCallback(()=>{
-    setOpen(false)
-    window.setTimeout(()=>launchRef.current?.focus(),0)
-  },[])
+  const hideChat=useCallback(()=>{setOpen(false);window.setTimeout(()=>launchRef.current?.focus(),0)},[])
 
   async function refresh(showLoading=false){
     if(refreshing.current)return
@@ -40,12 +36,14 @@ export default function HumanSupportChat(){
   useEffect(()=>{
     if(!open)return
     void refresh(true)
-    const timer=window.setInterval(()=>void refresh(false),2500)
-    return()=>window.clearInterval(timer)
+    const poll=()=>{if(document.visibilityState==='visible')void refresh(false)}
+    const onVisibility=()=>{if(document.visibilityState==='visible')void refresh(false)}
+    const timer=window.setInterval(poll,6000)
+    document.addEventListener('visibilitychange',onVisibility)
+    return()=>{window.clearInterval(timer);document.removeEventListener('visibilitychange',onVisibility)}
   },[open])
 
   useEffect(()=>{endRef.current?.scrollIntoView({behavior:'smooth',block:'end'})},[state.messages.length,open])
-
   useEffect(()=>{
     if(!open)return
     const previousOverflow=document.body.style.overflow
@@ -57,15 +55,12 @@ export default function HumanSupportChat(){
   },[hideChat,open])
 
   async function send(event:FormEvent){
-    event.preventDefault()
-    const content=draft.trim()
-    if(!content||sending)return
+    event.preventDefault();const content=draft.trim();if(!content||sending)return
     setSending(true);setError('')
     try{setState(await sendSupportMessage(content));setDraft('')}
     catch(value){setError(value instanceof Error?value.message:'No se pudo enviar el mensaje.')}
     finally{setSending(false)}
   }
-
   async function closeConversation(){
     if(!state.conversation||sending)return
     setSending(true);setError('')
@@ -76,7 +71,6 @@ export default function HumanSupportChat(){
 
   const status=!state.conversation?'Nuevo chat':state.conversation.status==='pending'?'Esperando respuesta':state.conversation.status==='in_progress'?'Soporte conectado':'Finalizado'
   const statusKind=!state.conversation?'new':state.conversation.status
-
   const dialog=<div className={styles.backdrop} onMouseDown={event=>{if(event.target===event.currentTarget)hideChat()}}>
     <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="human-support-title">
       <header className={styles.modalHead}><div><span>AYUDA HUMANA · CENTRAL LLENA</span><h2 id="human-support-title">Hablemos, estamos para ayudarte</h2><p>Escribí tu consulta y una persona te responde directamente por acá.</p></div><button type="button" className={styles.close} onClick={hideChat} aria-label="Cerrar ayuda humana">×</button></header>
@@ -85,10 +79,7 @@ export default function HumanSupportChat(){
         <div className={styles.messages} aria-live="polite" aria-busy={loading}>
           {loading&&!state.messages.length?<div className={styles.system}>Conectando con Central Llena…</div>:null}
           {!loading&&!state.messages.length?<div className={styles.system}>Hola. Contanos qué pasó y una persona de Central Llena te responde por acá.</div>:null}
-          {state.messages.map(message=><div key={message.id} className={message.from==='customer'?styles.user:message.from==='agent'?styles.agent:styles.system}>
-            {message.from==='agent'?<b>{message.senderName||'Central Llena'}</b>:null}
-            <p>{message.content}</p><time>{timeLabel(message.createdAt)}</time>
-          </div>)}
+          {state.messages.map(message=><div key={message.id} className={message.from==='customer'?styles.user:message.from==='agent'?styles.agent:styles.system}>{message.from==='agent'?<b>{message.senderName||'Central Llena'}</b>:null}<p>{message.content}</p><time>{timeLabel(message.createdAt)}</time></div>)}
           <div ref={endRef}/>
         </div>
         {error?<div className={styles.error} role="alert">{error}</div>:null}
@@ -97,15 +88,5 @@ export default function HumanSupportChat(){
       </div>
     </section>
   </div>
-
-  return <>
-    <div className={styles.card}>
-      <div className={styles.top}><span>SOPORTE HUMANO</span><span className={styles.liveFlag}>EN LÍNEA</span></div>
-      <h3>¿Necesitás una persona?</h3>
-      <p>Escribinos sin salir del sistema. El mensaje llega directamente a la bandeja de Central Llena.</p>
-      <button ref={launchRef} className={styles.launch} type="button" onClick={()=>setOpen(true)}>Ayuda humana</button>
-      <small>Respuesta directa dentro de Comercio Lleno.</small>
-    </div>
-    {open&&typeof document!=='undefined'?createPortal(dialog,document.body):null}
-  </>
+  return <><div className={styles.card}><div className={styles.top}><span>SOPORTE HUMANO</span><span className={styles.liveFlag}>EN LÍNEA</span></div><h3>¿Necesitás una persona?</h3><p>Escribinos sin salir del sistema. El mensaje llega directamente a la bandeja de Central Llena.</p><button ref={launchRef} className={styles.launch} type="button" onClick={()=>setOpen(true)}>Ayuda humana</button><small>Respuesta directa dentro de Comercio Lleno.</small></div>{open&&typeof document!=='undefined'?createPortal(dialog,document.body):null}</>
 }
