@@ -7,12 +7,14 @@ export type SalesSettings = {
   allowNegativeStock: boolean
   timeFormat: '24' | '12'
   maxDiscount: number
+  wholesalePricingEnabled: boolean
 }
 
 export const DEFAULT_SALES_SETTINGS: SalesSettings = {
   allowNegativeStock: false,
   timeFormat: '24',
   maxDiscount: 100,
+  wholesalePricingEnabled: true,
 }
 
 function key(companyId: string) {
@@ -24,6 +26,7 @@ function normalize(value: Partial<SalesSettings> | null | undefined): SalesSetti
     allowNegativeStock: Boolean(value?.allowNegativeStock),
     timeFormat: value?.timeFormat === '12' ? '12' : '24',
     maxDiscount: Math.max(0, Math.min(100, Number(value?.maxDiscount ?? 100) || 0)),
+    wholesalePricingEnabled: value?.wholesalePricingEnabled !== false,
   }
 }
 
@@ -37,6 +40,7 @@ function legacySettings(): Partial<SalesSettings> | null {
       allowNegativeStock: Boolean(sales.allowNegative),
       timeFormat: sales.timeFormat === false ? '12' : '24',
       maxDiscount: Number(sales.maxDiscount ?? 100),
+      wholesalePricingEnabled: sales.wholesalePricingEnabled !== false,
     }
   } catch {
     return null
