@@ -1,13 +1,14 @@
 import type { TenantSession } from './types'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcubkbtcsqkzc.supabase.co'
-const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? ''
 
 export type SalesSettings = {
   allowNegativeStock: boolean
   timeFormat: '24' | '12'
   maxDiscount: number
   wholesalePricingEnabled: boolean
+  whatsappAutoTicket: boolean
 }
 
 export const DEFAULT_SALES_SETTINGS: SalesSettings = {
@@ -15,6 +16,7 @@ export const DEFAULT_SALES_SETTINGS: SalesSettings = {
   timeFormat: '24',
   maxDiscount: 100,
   wholesalePricingEnabled: true,
+  whatsappAutoTicket: false,
 }
 
 function key(companyId: string) {
@@ -27,6 +29,7 @@ function normalize(value: Partial<SalesSettings> | null | undefined): SalesSetti
     timeFormat: value?.timeFormat === '12' ? '12' : '24',
     maxDiscount: Math.max(0, Math.min(100, Number(value?.maxDiscount ?? 100) || 0)),
     wholesalePricingEnabled: value?.wholesalePricingEnabled !== false,
+    whatsappAutoTicket: value?.whatsappAutoTicket === true,
   }
 }
 
@@ -41,6 +44,7 @@ function legacySettings(): Partial<SalesSettings> | null {
       timeFormat: sales.timeFormat === false ? '12' : '24',
       maxDiscount: Number(sales.maxDiscount ?? 100),
       wholesalePricingEnabled: sales.wholesalePricingEnabled !== false,
+      whatsappAutoTicket: Boolean(sales.whatsappAutoTicket),
     }
   } catch {
     return null
@@ -67,6 +71,7 @@ export function cacheSalesSettings(companyId: string, value: SalesSettings) {
 }
 
 export async function loadSalesSettings(session: TenantSession): Promise<SalesSettings> {
+  if (!SUPABASE_URL || !PUBLISHABLE_KEY) throw new Error('Supabase no está configurado.')
   const response = await fetch(`${SUPABASE_URL}/rest/v1/companies?id=eq.${encodeURIComponent(session.companyId)}&select=sales_settings&limit=1`, {
     headers: { apikey: PUBLISHABLE_KEY, Authorization: `Bearer ${session.token}` },
     cache: 'no-store',
@@ -79,6 +84,7 @@ export async function loadSalesSettings(session: TenantSession): Promise<SalesSe
 }
 
 export async function saveSalesSettings(session: TenantSession, value: SalesSettings): Promise<SalesSettings> {
+  if (!SUPABASE_URL || !PUBLISHABLE_KEY) throw new Error('Supabase no está configurado.')
   const next = normalize(value)
   const response = await fetch(`${SUPABASE_URL}/rest/v1/companies?id=eq.${encodeURIComponent(session.companyId)}`, {
     method: 'PATCH',
