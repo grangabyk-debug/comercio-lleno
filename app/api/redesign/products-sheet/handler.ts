@@ -60,6 +60,15 @@ async function supa<T>(token: string, path: string, init: RequestInit = {}): Pro
   return data as T
 }
 
+function canAdminProducts(profile: Profile) {
+  if (profile.role === 'owner') return true
+  const permissions = profile.permissions || {}
+  const relevant = [permissions.can_manage_stock, permissions.can_edit_products, permissions.can_import_export_products]
+  if (relevant.some(value => value === true)) return true
+  if (relevant.some(value => typeof value === 'boolean')) return false
+  return profile.role === 'manager' || profile.role === 'supervisor'
+}
+
 async function context(request: Request) {
   const token = bearer(request)
   if (!token) throw new Error('Sesión no válida.')
@@ -68,8 +77,7 @@ async function context(request: Request) {
   const profiles = await supa<Profile[]>(token, `profiles?select=company_id,role,permissions,active&id=eq.${encodeURIComponent(userId)}&limit=1`)
   const profile = profiles[0]
   if (!profile?.company_id || !profile.active) throw new Error('Perfil del comercio no disponible.')
-  const canStock = profile.role === 'owner' || profile.permissions?.can_manage_stock !== false
-  if (!canStock) throw new Error('No tenés permiso para administrar productos.')
+  if (!canAdminProducts(profile)) throw new Error('No tenés permiso para importar, exportar o administrar productos.')
   return { token, profile }
 }
 
