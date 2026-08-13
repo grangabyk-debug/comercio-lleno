@@ -1,0 +1,5 @@
+'use client'
+import {useEffect,useState} from 'react'
+import {readTenantSession} from '@/lib/comercio/session'
+const ENDPOINT='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/commerce-entitlements'
+export default function AdminPauseGate(){const[blocked,setBlocked]=useState(false);useEffect(()=>{const session=readTenantSession();if(!session)return;void fetch(ENDPOINT,{method:'POST',headers:{Authorization:`Bearer ${session.token}`,'Content-Type':'application/json'},body:'{}',cache:'no-store'}).then(r=>r.ok?r.json():null).then(data=>setBlocked(data?.accessPaused===true)).catch(()=>{})},[]);if(!blocked)return null;return <div style={{position:'fixed',inset:0,zIndex:120000,display:'grid',placeItems:'center',background:'rgba(4,12,9,.96)',padding:20}}><section style={{maxWidth:520,background:'#101915',color:'#effff6',border:'1px solid #294438',borderRadius:22,padding:26}}><b>Central Llena · acceso suspendido</b><h1>Cuenta temporalmente pausada</h1><p>La información del comercio permanece guardada. Consultá al administrador para reactivar el acceso.</p></section></div>}
