@@ -92,7 +92,7 @@ export default function HumanSupportChat(){
           <div ref={endRef}/>
         </div>
         {error?<div className={styles.error} role="alert">{error}</div>:null}
-        <form className={styles.form} onSubmit={send}><textarea ref={textareaRef} aria-label="Mensaje para soporte" rows={3} maxLength={2000} autoComplete="off" value={draft} onChange={event=>setDraft(event.target.value)} placeholder="Escribí qué necesitás…"/><button type="submit" disabled={sending||!draft.trim()}>{sending?'Enviando…':'Enviar mensaje'}</button></form>
+        <form className={styles.form} onSubmit={send}><textarea ref={textareaRef} aria-label="Mensaje para soporte" rows={3} maxLength={2000} autoComplete="off" value={draft} onChange={event=>setDraft(event.target.value)} onKeyDown={event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.nativeEvent.isComposing){event.preventDefault();event.currentTarget.form?.requestSubmit()}}} placeholder="Escribí qué necesitás…"/><button type="submit" disabled={sending||!draft.trim()}>{sending?'Enviando…':'Enviar mensaje'}</button></form>
         <div className={styles.actions}>{state.conversation&&state.conversation.status!=='resolved'?<button type="button" className={styles.secondary} onClick={()=>void closeConversation()} disabled={sending}>Finalizar conversación</button>:null}<button type="button" className={styles.secondary} onClick={hideChat}>Cerrar</button></div>
       </div>
     </section>
