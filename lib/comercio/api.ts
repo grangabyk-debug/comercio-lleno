@@ -180,19 +180,16 @@ export async function authorizeFiscalInvoice(
   return data.invoice as FiscalInvoice
 }
 
-async function updateStock(session: TenantSession, stockUpdates: Array<{ id: string; stock: number }>) {
-  await Promise.all(stockUpdates.map((item) => rest(
-    session,
-    `products?id=eq.${encodeURIComponent(item.id)}&company_id=eq.${companyFilter(session)}`,
-    {
-      method: 'PATCH',
-      headers: { Prefer: 'return=minimal' },
-      body: JSON.stringify({ stock: item.stock, updated_at: new Date().toISOString() }),
-    },
-  )))
+async function persistSaleAtomic(session: TenantSession, body: Record<string, unknown>) {
+  await rest(session, 'rpc/persist_sale_atomic', {
+    method: 'POST',
+    headers: { Prefer: 'return=minimal' },
+    body: JSON.stringify({ p_sale: body }),
+  })
 }
 
 export async function persistAuthorizedSale(session: TenantSession, sale: Sale, stockUpdates: Array<{ id: string; stock: number }>) {
+  void stockUpdates
   const details = {
     ...(sale.details || {}),
     cae: sale.cae || null,
@@ -200,54 +197,45 @@ export async function persistAuthorizedSale(session: TenantSession, sale: Sale, 
     cae_expiration: sale.caeExpiration || null,
     fiscal_environment: sale.fiscalEnvironment || 'homologacion',
   }
-  await rest(session, 'sales?on_conflict=id', {
-    method: 'POST',
-    headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-    body: JSON.stringify({
-      id: sale.id,
-      company_id: session.companyId,
-      customer_id: sale.customer_id || null,
-      receipt_type: sale.receipt_type || 'factura_c',
-      payment_method: sale.payment,
-      subtotal: Number(sale.details?.subtotal_before_discount ?? sale.total),
-      total: sale.total,
-      fiscal_status: 'authorized',
-      cae: sale.cae || null,
-      receipt_number: sale.receiptNumber ? String(sale.receiptNumber) : null,
-      sold_at: sale.date,
-      items_count: sale.items,
-      details,
-    }),
+  await persistSaleAtomic(session, {
+    id: sale.id,
+    company_id: session.companyId,
+    customer_id: sale.customer_id || null,
+    receipt_type: sale.receipt_type || 'factura_c',
+    payment_method: sale.payment,
+    subtotal: Number(sale.details?.subtotal_before_discount ?? sale.total),
+    total: sale.total,
+    fiscal_status: 'authorized',
+    cae: sale.cae || null,
+    receipt_number: sale.receiptNumber ? String(sale.receiptNumber) : null,
+    sold_at: sale.date,
+    items_count: sale.items,
+    details,
   })
-  await updateStock(session, stockUpdates)
 }
 
 export async function persistUninvoicedSale(session: TenantSession, sale: Sale, stockUpdates: Array<{ id: string; stock: number }>, reason: string) {
+  void stockUpdates
   const details = {
     ...(sale.details || {}),
     fiscal_pending_reason: reason,
     fiscal_pending_since: new Date().toISOString(),
   }
-  await rest(session, 'sales?on_conflict=id', {
-    method: 'POST',
-    headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-    body: JSON.stringify({
-      id: sale.id,
-      company_id: session.companyId,
-      customer_id: sale.customer_id || null,
-      receipt_type: 'ticket',
-      payment_method: sale.payment,
-      subtotal: Number(sale.details?.subtotal_before_discount ?? sale.total),
-      total: sale.total,
-      fiscal_status: 'pending',
-      cae: null,
-      receipt_number: null,
-      sold_at: sale.date,
-      items_count: sale.items,
-      details,
-    }),
+  await persistSaleAtomic(session, {
+    id: sale.id,
+    company_id: session.companyId,
+    customer_id: sale.customer_id || null,
+    receipt_type: 'ticket',
+    payment_method: sale.payment,
+    subtotal: Number(sale.details?.subtotal_before_discount ?? sale.total),
+    total: sale.total,
+    fiscal_status: 'pending',
+    cae: null,
+    receipt_number: null,
+    sold_at: sale.date,
+    items_count: sale.items,
+    details,
   })
-  await updateStock(session, stockUpdates)
 }
 
 export async function openCashRegister(session: TenantSession, current: CashRegister | null, amount: number): Promise<CashRegister> {
