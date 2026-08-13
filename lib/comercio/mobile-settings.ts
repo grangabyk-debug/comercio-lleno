@@ -50,22 +50,21 @@ export async function loadMobileSettings(session: TenantSession): Promise<Mobile
 
 export async function saveMobileSettings(session: TenantSession, value: MobileSettings): Promise<MobileSettings> {
   const next: MobileSettings = { scannerEnabled: Boolean(value.scannerEnabled) }
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/companies?id=eq.${encodeURIComponent(session.companyId)}`, {
-    method: 'PATCH',
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/save_mobile_settings`, {
+    method: 'POST',
     headers: {
       apikey: PUBLISHABLE_KEY,
       Authorization: `Bearer ${session.token}`,
       'Content-Type': 'application/json',
-      Prefer: 'return=minimal',
+      Prefer: 'return=representation',
     },
-    body: JSON.stringify({ mobile_settings: { scanner_enabled: next.scannerEnabled } }),
+    body: JSON.stringify({ p_scanner_enabled: next.scannerEnabled }),
     cache: 'no-store',
   })
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}))
-    throw new Error(data?.message || 'No se pudieron guardar los ajustes móviles.')
-  }
-  cacheMobileSettings(session.companyId, next)
-  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('comercio:mobile-settings', { detail: next }))
-  return next
+  const data = await response.json().catch(() => null)
+  if (!response.ok) throw new Error(data?.message || 'No se pudieron guardar los ajustes móviles.')
+  const saved = normalize(data && !Array.isArray(data) ? data : next as unknown as Record<string, unknown>)
+  cacheMobileSettings(session.companyId, saved)
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('comercio:mobile-settings', { detail: saved }))
+  return saved
 }
