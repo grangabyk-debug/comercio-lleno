@@ -23,6 +23,8 @@ type ManagementItem = {
   allowed: boolean
 }
 
+const EXACT_VIEWS: ViewKey[] = ['dashboard','pos','products','cash','settings','assistant','sales','reports','customers','profitability','accounts','returns','promotions','purchases','suppliers'] as ViewKey[]
+
 export default function SidebarNavigation({ tenant, view, buildVersion, canView, onNavigate }: Props) {
   const [managementOpen, setManagementOpen] = useState(false)
   const managementRef = useRef<HTMLDivElement | null>(null)
@@ -50,6 +52,18 @@ export default function SidebarNavigation({ tenant, view, buildVersion, canView,
   ]
 
   const closeFinances = () => window.dispatchEvent(new Event('comercio:close-finance'))
+
+  useEffect(() => {
+    const navigateExact = (event: Event) => {
+      const next = (event as CustomEvent<ViewKey>).detail
+      if (!next || !EXACT_VIEWS.includes(next) || !canView(next)) return
+      closeFinances()
+      setManagementOpen(false)
+      onNavigate(next)
+    }
+    window.addEventListener('comercio:navigate-view', navigateExact)
+    return () => window.removeEventListener('comercio:navigate-view', navigateExact)
+  }, [canView, onNavigate])
 
   useEffect(() => {
     if (!managementOpen) return
