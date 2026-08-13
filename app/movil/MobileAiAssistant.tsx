@@ -15,8 +15,10 @@ export default function MobileAiAssistant(){
   const drag=useRef<{id:number;startX:number;startY:number;originX:number;originY:number;moved:boolean}|null>(null)
 
   useEffect(()=>{
-    const s=readTenantSession();setAvailable(Boolean(s))
+    const sync=()=>setAvailable(Boolean(readTenantSession()))
+    sync();const timer=window.setInterval(sync,1000)
     const x=Math.max(12,window.innerWidth-88),y=Math.max(90,window.innerHeight-180);setPos({x,y})
+    return()=>window.clearInterval(timer)
   },[])
 
   async function ask(question:string){
@@ -31,15 +33,8 @@ export default function MobileAiAssistant(){
     finally{setBusy(false)}
   }
   function submit(e:FormEvent){e.preventDefault();void ask(text)}
-  function down(e:ReactPointerEvent<HTMLButtonElement>){
-    e.currentTarget.setPointerCapture(e.pointerId);drag.current={id:e.pointerId,startX:e.clientX,startY:e.clientY,originX:pos.x,originY:pos.y,moved:false}
-  }
-  function move(e:ReactPointerEvent<HTMLButtonElement>){
-    const d=drag.current;if(!d||d.id!==e.pointerId)return
-    const dx=e.clientX-d.startX,dy=e.clientY-d.startY;if(Math.abs(dx)+Math.abs(dy)>7)d.moved=true
-    const maxX=Math.max(8,window.innerWidth-76),maxY=Math.max(70,window.innerHeight-86)
-    setPos({x:Math.min(maxX,Math.max(8,d.originX+dx)),y:Math.min(maxY,Math.max(70,d.originY+dy))})
-  }
+  function down(e:ReactPointerEvent<HTMLButtonElement>){e.currentTarget.setPointerCapture(e.pointerId);drag.current={id:e.pointerId,startX:e.clientX,startY:e.clientY,originX:pos.x,originY:pos.y,moved:false}}
+  function move(e:ReactPointerEvent<HTMLButtonElement>){const d=drag.current;if(!d||d.id!==e.pointerId)return;const dx=e.clientX-d.startX,dy=e.clientY-d.startY;if(Math.abs(dx)+Math.abs(dy)>7)d.moved=true;const maxX=Math.max(8,window.innerWidth-76),maxY=Math.max(70,window.innerHeight-86);setPos({x:Math.min(maxX,Math.max(8,d.originX+dx)),y:Math.min(maxY,Math.max(70,d.originY+dy))})}
   function up(e:ReactPointerEvent<HTMLButtonElement>){const d=drag.current;if(!d||d.id!==e.pointerId)return;drag.current=null;if(!d.moved)setOpen(true)}
 
   if(!available)return null
