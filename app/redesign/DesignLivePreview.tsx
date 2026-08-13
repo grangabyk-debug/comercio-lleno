@@ -88,22 +88,57 @@ export default function DesignLivePreview() {
       letter-spacing: .45px !important;
     }
 
-    /* Moneda real dibujada como SVG: se ve igual en Windows y cualquier navegador. */
+    /* Moneda dorada robusta: no depende de emoji, SVG ni soporte de imágenes del navegador. */
     main[class*="shell"] [class*="saleNav"] > span:first-child {
-      font-size: 0 !important;
+      position: relative !important;
+      display: inline-grid !important;
+      place-items: center !important;
+      width: 34px !important;
+      height: 34px !important;
+      min-width: 34px !important;
+      flex: 0 0 34px !important;
+      border-radius: 999px !important;
+      background: radial-gradient(circle at 31% 27%, #fff9cf 0 10%, #ffe77d 24%, #f1c23f 46%, #d99a18 68%, #9a6200 100%) !important;
+      border: 2px solid #f5d66c !important;
+      box-shadow:
+        0 0 0 2px rgba(255, 215, 82, .16),
+        0 7px 15px rgba(132, 82, 0, .32),
+        inset 0 2px 2px rgba(255, 255, 255, .92),
+        inset 0 -3px 4px rgba(112, 67, 0, .30) !important;
       color: transparent !important;
-      background-color: transparent !important;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='g' cx='32%25' cy='25%25' r='72%25'%3E%3Cstop offset='0' stop-color='%23fff8bd'/%3E%3Cstop offset='.28' stop-color='%23ffd85c'/%3E%3Cstop offset='.62' stop-color='%23d99a18'/%3E%3Cstop offset='1' stop-color='%238b5600'/%3E%3C/radialGradient%3E%3ClinearGradient id='shine' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23ffffff' stop-opacity='.9'/%3E%3Cstop offset='.5' stop-color='%23ffffff' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='28' fill='url(%23g)' stroke='%23f7d86a' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='21' fill='none' stroke='%23a86c00' stroke-opacity='.55' stroke-width='2'/%3E%3Cpath d='M16 17c9-8 21-10 31-4' fill='none' stroke='url(%23shine)' stroke-width='4' stroke-linecap='round'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-size='29' font-weight='900' fill='%23633b00'%3E$%3C/text%3E%3C/svg%3E") !important;
-      background-repeat: no-repeat !important;
-      background-position: center !important;
-      background-size: 100% 100% !important;
-      border: 0 !important;
-      border-radius: 50% !important;
-      box-shadow: 0 0 0 2px rgba(255,213,76,.20), 0 7px 16px rgba(145,91,0,.35) !important;
-      transform: scale(1.12);
-      filter: saturate(1.08) contrast(1.03);
+      font-size: 0 !important;
+      overflow: hidden !important;
+      transform: none !important;
+      filter: saturate(1.12) contrast(1.04) !important;
+      text-shadow: none !important;
     }
-    main[class*="shell"] [class*="saleNav"] > span:first-child:after { display:none !important; }
+
+    main[class*="shell"] [class*="saleNav"] > span:first-child::before {
+      content: "$" !important;
+      position: relative !important;
+      z-index: 2 !important;
+      display: block !important;
+      font-family: Arial, Helvetica, sans-serif !important;
+      font-size: 20px !important;
+      line-height: 1 !important;
+      font-weight: 900 !important;
+      color: #684000 !important;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, .55) !important;
+    }
+
+    main[class*="shell"] [class*="saleNav"] > span:first-child::after {
+      content: "" !important;
+      display: block !important;
+      position: absolute !important;
+      z-index: 1 !important;
+      top: 3px !important;
+      left: 5px !important;
+      width: 19px !important;
+      height: 9px !important;
+      border-radius: 999px !important;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.08)) !important;
+      pointer-events: none !important;
+    }
 
     /* El modo Fuerte tiene que ser claramente perceptible. */
     main[data-design-weight="strong"] h1,
