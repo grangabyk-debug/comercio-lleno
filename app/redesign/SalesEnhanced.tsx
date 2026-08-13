@@ -29,7 +29,7 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
   const pages = Math.max(1, Math.ceil(filtered.length / size))
   const current = Math.min(page, pages - 1)
   const rows = filtered.slice(current * size, current * size + size)
-  const owner = session.role === 'owner'
+  const canDeleteSales = session.role === 'owner' || session.permissions?.can_delete_sales === true
 
   function open(sale: Sale) {
     setSelected(sale)
@@ -65,7 +65,7 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
   }
 
   async function removeSale(sale: Sale) {
-    if (!owner || deletingId) return
+    if (!canDeleteSales || deletingId) return
     const ok = window.confirm('¿Desea eliminar esta venta?\n\nEl stock vendido será devuelto y la venta dejará de afectar reportes. Si existe una factura emitida en ARCA, esa factura seguirá existiendo fiscalmente y su CAE quedará archivado.')
     if (!ok) return
     setDeletingId(sale.id)
@@ -98,7 +98,7 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
         <span>{s.cae ? <span className={`${core.badge} ${core.badgeGreen}`}>Autorizada</span> : <span className={`${core.badge} ${core.badgeAmber}`}>Pendiente ARCA</span>}</span>
         <span style={{display:'flex',gap:8,flexWrap:'wrap'}}>
           <button className={core.secondary} onClick={e => { e.stopPropagation(); open(s) }}>Ver venta</button>
-          {owner && <button className={core.ghostDanger} disabled={deletingId === s.id} onClick={e => { e.stopPropagation(); void removeSale(s) }}>{deletingId === s.id ? 'Eliminando…' : 'Eliminar'}</button>}
+          {canDeleteSales && <button className={core.ghostDanger} disabled={deletingId === s.id} onClick={e => { e.stopPropagation(); void removeSale(s) }}>{deletingId === s.id ? 'Eliminando…' : 'Eliminar'}</button>}
         </span>
       </div>)}
     </div>
@@ -128,12 +128,12 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
           <div><span>CAE</span><b>{selected.cae || '—'}</b></div>
           <div><span>Nº comprobante</span><b>{selected.receiptNumber ? receiptNumber(selected) : '—'}</b></div>
           <div><span>Subtotal</span><b>{money.format(Number(selected.details?.subtotal_before_discount ?? selected.total))}</b></div>
-          <div><span>Descuento</span><b>{money.format(Number(selected.details?.discount_amount || 0))}</b></div>
+          <div><span>Ahorro / descuentos</span><b>{money.format(Number(selected.details?.discount_amount || 0) + Number(selected.details?.promotion_savings || 0))}</b></div>
         </div>
 
         <div className={enh.itemList}>
           {(selected.details?.items || []).length ? (selected.details?.items || []).map((i, idx) => <div className={enh.itemRow} key={`${i.product_id}-${idx}`}>
-            <span><b>{i.name}</b><small>{i.qty} × {money.format(i.unit_price)}</small></span>
+            <span><b>{i.name}</b><small>{i.qty} × {money.format(i.unit_price)}{i.promotion_discount_percent ? ` · OFERTA ${i.promotion_discount_percent}%` : ''}</small></span>
             <span>{i.qty} u.</span>
             <b>{money.format(i.line_total)}</b>
           </div>) : <div className={enh.itemRow}><span>Sin detalle de productos guardado.</span></div>}
@@ -149,7 +149,7 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
           {selected.cae && <button onClick={() => downloadReceiptPdf(selected, data.company)}>↓ PDF</button>}
           {selected.cae && <button onClick={() => sendMail(selected)}>✉ Email</button>}
           <button className={enh.saveNote} disabled={saving} onClick={saveNote}>{saving ? 'Guardando…' : 'Guardar nota'}</button>
-          {owner && <button className={core.ghostDanger} disabled={Boolean(deletingId)} onClick={() => void removeSale(selected)}>{deletingId === selected.id ? 'Eliminando…' : 'Eliminar venta'}</button>}
+          {canDeleteSales && <button className={core.ghostDanger} disabled={Boolean(deletingId)} onClick={() => void removeSale(selected)}>{deletingId === selected.id ? 'Eliminando…' : 'Eliminar venta'}</button>}
         </div>
       </div>
     </div>}
