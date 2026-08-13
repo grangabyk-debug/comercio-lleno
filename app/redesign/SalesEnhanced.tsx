@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import core from './page.module.css'
 import enh from './enhancements.module.css'
-import { updateSaleNote } from '@/lib/comercio/operations'
+import { deleteSaleAndRestoreStock, updateSaleNote } from '@/lib/comercio/operations'
 import { downloadReceiptPdf, emailReceipt, printReceipt, receiptNumber } from '@/lib/comercio/receipt'
 import type { CommerceSnapshot, DeviceSettings, Sale, TenantSession } from '@/lib/comercio/types'
 import { Head, money } from './operationalShared'
@@ -22,12 +22,14 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
   const [selected, setSelected] = useState<Sale | null>(null)
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState('')
   const q = search.trim().toLowerCase()
   const filtered = data.sales.filter(s => `${s.id} ${s.receiptNumber || ''} ${s.payment} ${s.cae || ''} ${s.fiscal_status || ''} ${s.details?.note || ''}`.toLowerCase().includes(q))
   const size = 20
   const pages = Math.max(1, Math.ceil(filtered.length / size))
   const current = Math.min(page, pages - 1)
   const rows = filtered.slice(current * size, current * size + size)
+  const owner = session.role === 'owner'
 
   function open(sale: Sale) {
     setSelected(sale)
@@ -62,6 +64,23 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
     }
   }
 
+  async function removeSale(sale: Sale) {
+    if (!owner || deletingId) return
+    const ok = window.confirm('¿Desea eliminar esta venta?\n\nEl stock vendido será devuelto y la venta dejará de afectar reportes. Si existe una factura emitida en ARCA, esa factura seguirá existiendo fiscalmente y su CAE quedará archivado.')
+    if (!ok) return
+    setDeletingId(sale.id)
+    try {
+      await deleteSaleAndRestoreStock(session, sale.id)
+      if (selected?.id === sale.id) setSelected(null)
+      await refresh()
+      onMessage('Venta eliminada. El stock fue devuelto y ya no se contabiliza en reportes.')
+    } catch (e) {
+      onMessage(e instanceof Error ? e.message : String(e))
+    } finally {
+      setDeletingId('')
+    }
+  }
+
   return <>
     <Head eyebrow="GESTIÓN" title="Ventas" subtitle="Tocá cualquier venta para abrir su detalle, notas y reimpresión." />
 
@@ -77,7 +96,10 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
         <span>{s.payment}</span>
         <span><b>{money.format(s.total)}</b></span>
         <span>{s.cae ? <span className={`${core.badge} ${core.badgeGreen}`}>Autorizada</span> : <span className={`${core.badge} ${core.badgeAmber}`}>Pendiente ARCA</span>}</span>
-        <span><button className={core.secondary} onClick={e => { e.stopPropagation(); open(s) }}>Ver venta</button></span>
+        <span style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <button className={core.secondary} onClick={e => { e.stopPropagation(); open(s) }}>Ver venta</button>
+          {owner && <button className={core.ghostDanger} disabled={deletingId === s.id} onClick={e => { e.stopPropagation(); void removeSale(s) }}>{deletingId === s.id ? 'Eliminando…' : 'Eliminar'}</button>}
+        </span>
       </div>)}
     </div>
 
@@ -127,6 +149,7 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
           {selected.cae && <button onClick={() => downloadReceiptPdf(selected, data.company)}>↓ PDF</button>}
           {selected.cae && <button onClick={() => sendMail(selected)}>✉ Email</button>}
           <button className={enh.saveNote} disabled={saving} onClick={saveNote}>{saving ? 'Guardando…' : 'Guardar nota'}</button>
+          {owner && <button className={core.ghostDanger} disabled={Boolean(deletingId)} onClick={() => void removeSale(selected)}>{deletingId === selected.id ? 'Eliminando…' : 'Eliminar venta'}</button>}
         </div>
       </div>
     </div>}
