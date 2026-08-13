@@ -5,10 +5,14 @@ const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_
 
 export type MobileSettings = {
   scannerEnabled: boolean
+  autoRedirect: boolean
+  aiEnabled: boolean
 }
 
 export const DEFAULT_MOBILE_SETTINGS: MobileSettings = {
   scannerEnabled: true,
+  autoRedirect: true,
+  aiEnabled: true,
 }
 
 function key(companyId: string) {
@@ -18,6 +22,8 @@ function key(companyId: string) {
 function normalize(value: Record<string, unknown> | null | undefined): MobileSettings {
   return {
     scannerEnabled: value?.scanner_enabled !== false && value?.scannerEnabled !== false,
+    autoRedirect: value?.auto_redirect !== false && value?.autoRedirect !== false,
+    aiEnabled: value?.ai_enabled !== false && value?.aiEnabled !== false,
   }
 }
 
@@ -49,7 +55,11 @@ export async function loadMobileSettings(session: TenantSession): Promise<Mobile
 }
 
 export async function saveMobileSettings(session: TenantSession, value: MobileSettings): Promise<MobileSettings> {
-  const next: MobileSettings = { scannerEnabled: Boolean(value.scannerEnabled) }
+  const next: MobileSettings = {
+    scannerEnabled: Boolean(value.scannerEnabled),
+    autoRedirect: Boolean(value.autoRedirect),
+    aiEnabled: Boolean(value.aiEnabled),
+  }
   const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/save_mobile_settings`, {
     method: 'POST',
     headers: {
@@ -58,7 +68,11 @@ export async function saveMobileSettings(session: TenantSession, value: MobileSe
       'Content-Type': 'application/json',
       Prefer: 'return=representation',
     },
-    body: JSON.stringify({ p_scanner_enabled: next.scannerEnabled }),
+    body: JSON.stringify({
+      p_scanner_enabled: next.scannerEnabled,
+      p_auto_redirect: next.autoRedirect,
+      p_ai_enabled: next.aiEnabled,
+    }),
     cache: 'no-store',
   })
   const data = await response.json().catch(() => null)

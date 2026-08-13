@@ -1,12 +1,28 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect,useRef,useState } from 'react'
+import { createPortal } from 'react-dom'
 import SettingsTenant from './SettingsTenantNext'
-import styles from './settings-tenant.module.css'
-import { loadMobileSettings,readCachedMobileSettings,saveMobileSettings,type MobileSettings } from '@/lib/comercio/mobile-settings'
+import MobileSettingsPanel from './MobileSettingsPanel'
+import ArcaSetupPanel from './ArcaSetupPanel'
+import wrap from './settings-with-mobile.module.css'
 import type { ArcaHealth } from '@/lib/comercio/api'
 import type { CommerceSnapshot, DeviceSettings, TenantSession } from '@/lib/comercio/types'
 
 type Props={data:CommerceSnapshot;session:TenantSession;device:DeviceSettings;setDevice:(d:DeviceSettings)=>void;arca:ArcaHealth|null;buildVersion:string;refresh:()=>Promise<void>;message:(m:string)=>void}
-function MobileSettingsCard({session,message}:{session:TenantSession;message:(m:string)=>void}){const[value,setValue]=useState<MobileSettings>(()=>readCachedMobileSettings(session.companyId)),[busy,setBusy]=useState(false),[saved,setSaved]=useState(false),[error,setError]=useState('');useEffect(()=>{let c=false;loadMobileSettings(session).then(n=>{if(!c)setValue(n)}).catch(()=>{});return()=>{c=true}},[session.companyId,session.token]);async function save(){setBusy(true);setError('');setSaved(false);try{const next=await saveMobileSettings(session,value);setValue(next);setSaved(true);message(next.scannerEnabled?'Escáner móvil activado.':'Escáner móvil desactivado.');setTimeout(()=>setSaved(false),2500)}catch(e){setError(e instanceof Error?e.message:String(e))}finally{setBusy(false)}}return <div style={{marginBottom:16}} className={styles.panel}><div><h3 style={{margin:0}}>Comercio Lleno Móvil</h3><p style={{margin:'5px 0 0'}}>Configuración de la experiencia simplificada para celulares.</p></div><label className={styles.switch}><span><b>Escáner de productos con cámara</b><small>Permite leer códigos de barras, consultar precios y editar/agregar productos desde el celular.</small></span><input type="checkbox" checked={value.scannerEnabled} onChange={e=>setValue({scannerEnabled:e.target.checked})}/></label>{error&&<div className={styles.error}>{error}</div>}<div className={styles.saveRow}><small style={{color:saved?'#14824f':undefined,fontWeight:saved?900:undefined}}>{saved?'✓ Configuración móvil guardada':'Sólo el propietario puede modificar este ajuste.'}</small><button className={styles.save} disabled={busy} onClick={save}>{busy?'Guardando…':'Guardar configuración móvil'}</button></div></div>}
-export default function SettingsWithMobile(props:Props){return <>{props.session.role==='owner'&&<MobileSettingsCard session={props.session} message={props.message}/>}<SettingsTenant {...props}/></>}
+type Special='none'|'mobile'|'arca'
+const SETTINGS_TABS=new Set(['Comercio','Ventas y caja','Diseño','ARCA','Impresora y tickets','Stock','Usuarios','Actualizaciones','Mantenimiento'])
+
+export default function SettingsWithMobile(props:Props){
+  const[special,setSpecial]=useState<Special>('none'),[tabHost,setTabHost]=useState<HTMLElement|null>(null)
+  const root=useRef<HTMLDivElement|null>(null),owner=props.session.role==='owner'
+  useEffect(()=>{const find=()=>{const buttons=Array.from(root.current?.querySelectorAll('button')||[]);const arca=buttons.find(b=>(b.textContent||'').trim()==='ARCA');if(arca?.parentElement)setTabHost(arca.parentElement)};find();const t=window.setTimeout(find,40);return()=>window.clearTimeout(t)},[owner])
+  function capture(e:React.MouseEvent<HTMLDivElement>){const button=(e.target as HTMLElement).closest('button');if(!button)return;const text=(button.textContent||'').trim();if(!SETTINGS_TABS.has(text))return;if(text==='ARCA'&&owner)setSpecial('arca');else setSpecial('none')}
+  const showSpecial=special!=='none'
+  return <div className={wrap.host} ref={root} onClickCapture={capture}>
+    <div className={showSpecial?wrap.specialLegacy:''}><SettingsTenant {...props}/></div>
+    {owner&&tabHost&&createPortal(<button type="button" className={`${wrap.mobileTab} ${special==='mobile'?wrap.mobileTabActive:''}`} onClick={()=>setSpecial('mobile')}>Móvil</button>,tabHost)}
+    {owner&&special==='mobile'&&<div className={wrap.specialPanel}><MobileSettingsPanel session={props.session} message={props.message}/></div>}
+    {owner&&special==='arca'&&<div className={wrap.specialPanel}><ArcaSetupPanel session={props.session} companyName={props.data.company.name} companyTaxId={props.data.company.tax_id} message={props.message}/></div>}
+  </div>
+}
