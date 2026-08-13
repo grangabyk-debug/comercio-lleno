@@ -7,12 +7,13 @@ import MobileSettingsPanel from './MobileSettingsPanel'
 import ArcaSetupPanel from './ArcaSetupPanel'
 import DesignSettingsPanel from './DesignSettingsPanel'
 import WholesalePricingSettingsPanel from './WholesalePricingSettingsPanel'
+import WhatsAppSettingsPanel from './WhatsAppSettingsPanel'
 import wrap from './settings-with-mobile.module.css'
 import type { ArcaHealth } from '@/lib/comercio/api'
 import type { CommerceSnapshot, DeviceSettings, TenantSession } from '@/lib/comercio/types'
 
 type Props={data:CommerceSnapshot;session:TenantSession;device:DeviceSettings;setDevice:(d:DeviceSettings)=>void;arca:ArcaHealth|null;buildVersion:string;refresh:()=>Promise<void>;message:(m:string)=>void}
-type Special='none'|'mobile'|'arca'|'design'
+type Special='none'|'mobile'|'arca'|'design'|'whatsapp'
 const SETTINGS_TABS=new Set(['Comercio','Ventas y caja','Diseño','ARCA','Impresora y tickets','Stock','Usuarios','Actualizaciones','Mantenimiento'])
 
 export default function SettingsWithMobile(props:Props){
@@ -24,8 +25,9 @@ export default function SettingsWithMobile(props:Props){
   return <div className={wrap.host} ref={root} onClickCapture={capture}>
     <div className={showSpecial?wrap.specialLegacy:''}><SettingsTenant {...props}/></div>
     {special==='none'&&legacyTab==='Ventas y caja'&&<WholesalePricingSettingsPanel session={props.session} message={props.message}/>} 
-    {owner&&tabHost&&createPortal(<button type="button" className={`${wrap.mobileTab} ${special==='mobile'?wrap.mobileTabActive:''}`} onClick={()=>setSpecial('mobile')}>Móvil</button>,tabHost)}
+    {owner&&tabHost&&createPortal(<><button type="button" className={`${wrap.mobileTab} ${special==='mobile'?wrap.mobileTabActive:''}`} onClick={()=>setSpecial('mobile')}>Móvil</button><button type="button" className={`${wrap.mobileTab} ${special==='whatsapp'?wrap.mobileTabActive:''}`} onClick={()=>setSpecial('whatsapp')}>WhatsApp</button></>,tabHost)}
     {owner&&special==='mobile'&&<div className={wrap.specialPanel}><MobileSettingsPanel session={props.session} message={props.message}/></div>}
+    {owner&&special==='whatsapp'&&<div className={wrap.specialPanel}><WhatsAppSettingsPanel session={props.session} message={props.message}/></div>}
     {owner&&special==='design'&&<div className={wrap.specialPanel}><DesignSettingsPanel session={props.session} message={props.message}/></div>}
     {owner&&special==='arca'&&<div className={wrap.specialPanel}><ArcaSetupPanel session={props.session} companyName={props.data.company.name} companyTaxId={props.data.company.tax_id} message={props.message}/></div>}
   </div>
