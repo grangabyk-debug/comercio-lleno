@@ -1,5 +1,6 @@
 'use client'
 
+// Preview redeploy marker: refresh server-side Evolution environment variables.
 import { useEffect,useRef,useState } from 'react'
 import type { TenantSession } from '@/lib/comercio/types'
 import base from './settings-next.module.css'
