@@ -23,15 +23,7 @@ export default function FinanceRuntime(){
     if(!allowed)return
     const openHandler=()=>{setOpen(true);void reload(s)}
     window.addEventListener('comercio:open-finance',openHandler)
-    const install=()=>{
-      const group=Array.from(document.querySelectorAll('button')).find(b=>(b.textContent||'').trim().startsWith('Gestión'))
-      const container=group?.nextElementSibling as HTMLElement|null
-      if(!container||container.querySelector('[data-finance-nav]'))return
-      const b=document.createElement('button');b.type='button';b.dataset.financeNav='1';b.innerHTML='<span>₿</span>Finanzas';b.className=container.querySelector('button')?.className||''
-      b.addEventListener('click',()=>window.dispatchEvent(new Event('comercio:open-finance')));container.appendChild(b)
-    }
-    install();const obs=new MutationObserver(install);obs.observe(document.body,{childList:true,subtree:true})
-    return()=>{obs.disconnect();window.removeEventListener('comercio:open-finance',openHandler)}
+    return()=>window.removeEventListener('comercio:open-finance',openHandler)
   },[])
 
   const monthSales=useMemo(()=>sales.filter(s=>monthKey(s.sold_at)===month).reduce((a,s)=>a+s.total,0),[sales,month])
