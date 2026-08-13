@@ -1,0 +1,1 @@
+Checklist: build Next.js/TypeScript, edición individual, ceros limpiables, aumento minorista/mayorista con rollback, POS con scroll interno, redirección móvil, IA móvil, Pedido IA+, guard server-side del asistente, rate limiting.
