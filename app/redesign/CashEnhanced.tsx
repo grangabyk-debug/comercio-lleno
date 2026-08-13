@@ -1,121 +1,51 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useEffect,useMemo,useState,type FormEvent } from 'react'
 import core from './page.module.css'
 import enh from './enhancements.module.css'
+import styles from './cash-enhanced.module.css'
 import { createCashMovement } from '@/lib/comercio/operations'
-import type { CommerceSnapshot, Sale, TenantSession } from '@/lib/comercio/types'
+import { closeCashSecure,loadCashHistory,loadOwnerContact,openCashSecure,type CashHistory,type CashSummary } from '@/lib/comercio/cash-api'
+import { downloadCashClosePdf,openCashWhatsApp,printCashClose } from '@/lib/comercio/cash-documents'
+import { readDeviceSettings } from '@/lib/comercio/session'
+import type { CommerceSnapshot,Sale,TenantSession } from '@/lib/comercio/types'
 import { receiptNumber } from '@/lib/comercio/receipt'
-import { Head, money } from './operationalShared'
+import { Head,money } from './operationalShared'
 import UiIcon from './UiIcon'
 
-const denoms = [100, 200, 500, 1000, 2000, 5000, 10000, 20000]
+const denoms=[100,200,500,1000,2000,5000,10000,20000]
+function greeting(){const h=new Date().getHours();return h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches'}
 
-export default function CashEnhanced({
-  data, session, sessionSales, movements, cashEstimated,
-  openCash, closeCash, refresh, message,
-}: {
-  data: CommerceSnapshot
-  session: TenantSession
-  sessionSales: Sale[]
-  movements: CommerceSnapshot['cashMovements']
-  cashEstimated: number
-  openCash: () => void
-  closeCash: () => void
-  refresh: () => Promise<void>
-  message: (m: string) => void
-}) {
-  const [counts, setCounts] = useState<Record<number, number>>({})
-  const [movement, setMovement] = useState<'expense' | 'income' | 'egress' | null>(null)
-  const [amount, setAmount] = useState('')
-  const [note, setNote] = useState('')
-  const [busy, setBusy] = useState(false)
+export default function CashEnhanced({data,session,sessionSales,movements,cashEstimated,refresh,message}:{data:CommerceSnapshot;session:TenantSession;sessionSales:Sale[];movements:CommerceSnapshot['cashMovements'];cashEstimated:number;openCash:()=>void;closeCash:()=>void;refresh:()=>Promise<void>;message:(m:string)=>void}){
+  const[counts,setCounts]=useState<Record<number,number>>({}),[counterOpen,setCounterOpen]=useState(false),[movement,setMovement]=useState<'expense'|'income'|'egress'|null>(null),[amount,setAmount]=useState(''),[note,setNote]=useState(''),[busy,setBusy]=useState(false)
+  const[openModal,setOpenModal]=useState(false),[openAmount,setOpenAmount]=useState('0'),[closeModal,setCloseModal]=useState(false),[closedSummary,setClosedSummary]=useState<CashSummary|null>(null)
+  const[history,setHistory]=useState<CashHistory[]>([]),[historyBusy,setHistoryBusy]=useState(false),[from,setFrom]=useState(''),[to,setTo]=useState(''),[selected,setSelected]=useState<CashHistory|null>(null),[ownerPhone,setOwnerPhone]=useState<string|null>(null)
+  const counted=denoms.reduce((sum,d)=>sum+d*(counts[d]||0),0),salesTotal=sessionSales.reduce((a,s)=>a+s.total,0),expenses=movements.filter(m=>m.kind==='expense'||m.kind==='egress').reduce((a,m)=>a+m.amount,0),diff=counted-cashEstimated
+  const currentSummary=useMemo<CashSummary>(()=>{const payments:Record<string,number>={};sessionSales.forEach(s=>payments[s.payment]=(payments[s.payment]||0)+s.total);const income=movements.filter(m=>m.kind==='income').reduce((a,m)=>a+m.amount,0),expense=movements.filter(m=>m.kind==='expense').reduce((a,m)=>a+m.amount,0),egress=movements.filter(m=>m.kind==='egress').reduce((a,m)=>a+m.amount,0);const expected=cashEstimated,actual=counted>0?counted:expected;return{sales_total:salesTotal,sales_count:sessionSales.length,payments,cash_sales:Object.entries(payments).filter(([k])=>/efect/i.test(k)).reduce((a,[,v])=>a+v,0),income,expenses:expense,egress,expected_cash:expected,counted_cash:actual,difference:actual-expected,opening_amount:Number(data.cashRegister?.opening_amount||0),opened_at:data.cashRegister?.opened_at||new Date().toISOString(),closed_at:new Date().toISOString()}},[sessionSales,movements,cashEstimated,counted,data.cashRegister])
+  async function loadHistory(){setHistoryBusy(true);try{setHistory(await loadCashHistory(session,from||undefined,to||undefined))}catch(e){message(e instanceof Error?e.message:String(e))}finally{setHistoryBusy(false)}}
+  useEffect(()=>{void loadHistory();loadOwnerContact(session).then(x=>setOwnerPhone(x.owner_phone||null)).catch(()=>{})},[session.companyId])
 
-  const counted = denoms.reduce((sum, d) => sum + d * (counts[d] || 0), 0)
-  const salesTotal = sessionSales.reduce((a, s) => a + s.total, 0)
-  const expenses = movements.filter(m => m.kind === 'expense' || m.kind === 'egress').reduce((a, m) => a + m.amount, 0)
-  const diff = counted - cashEstimated
-
-  async function submit(e: FormEvent) {
-    e.preventDefault()
-    if (!movement) return
-    setBusy(true)
-    try {
-      await createCashMovement(session, movement, Number(String(amount).replace(',', '.')), note)
-      setAmount('')
-      setNote('')
-      setMovement(null)
-      await refresh()
-      message('Movimiento de caja registrado.')
-    } catch (e) {
-      message(e instanceof Error ? e.message : String(e))
-    } finally {
-      setBusy(false)
-    }
-  }
+  async function submitMovement(e:FormEvent){e.preventDefault();if(!movement)return;setBusy(true);try{await createCashMovement(session,movement,Number(String(amount).replace(',','.')),note);setAmount('');setNote('');setMovement(null);await refresh();message('Movimiento de caja registrado.')}catch(e){message(e instanceof Error?e.message:String(e))}finally{setBusy(false)}}
+  async function confirmOpen(){setBusy(true);try{await openCashSecure(session,Number(openAmount.replace(',','.'))||0);setOpenModal(false);setCounts({});await refresh();message('Caja abierta. Ya podés cobrar y facturar.')}catch(e){message(e instanceof Error?e.message:String(e))}finally{setBusy(false)}}
+  async function confirmClose(){if(!data.cashRegister?.id)return;setBusy(true);try{const result=await closeCashSecure(session,data.cashRegister.id,counted>0?counted:null);const summary=(result as any).close_summary as CashSummary;setClosedSummary(summary);await refresh();await loadHistory();message('Caja cerrada y guardada en el historial.')}catch(e){message(e instanceof Error?e.message:String(e))}finally{setBusy(false)}}
+  const device=readDeviceSettings(session.companyId),docSummary=closedSummary||selected?.summary||currentSummary
+  function printDoc(){void printCashClose(docSummary,data.company.name,device.paper==='58'?'58':'80',device.printerName)}
+  function whatsapp(){try{openCashWhatsApp(ownerPhone,docSummary,data.company.name)}catch(e){message(e instanceof Error?e.message:String(e))}}
 
   return <>
-    <Head eyebrow="CONTROL DE CAJA" title="Caja diaria" subtitle="Apertura, movimientos, cierre y arqueo de efectivo.">
-      <div className={enh.cashActions}>
-        <button className={enh.openButton} disabled={data.cashRegister?.status === 'open'} onClick={openCash}><UiIcon name="plus" size={17}/> Abrir caja</button>
-        <button className={enh.closeButton} disabled={data.cashRegister?.status !== 'open'} onClick={closeCash}><UiIcon name="cash" size={18}/> Cerrar caja</button>
-      </div>
-    </Head>
-
-    <div className={core.cashHero}>
-      <div className={core.cashStat}><span>Estado</span><strong>{data.cashRegister?.status === 'open' ? 'Abierta' : 'Cerrada'}</strong></div>
-      <div className={core.cashStat}><span>Apertura</span><strong>{money.format(Number(data.cashRegister?.opening_amount || 0))}</strong></div>
-      <div className={core.cashStat}><span>Ventas sesión</span><strong>{money.format(salesTotal)}</strong></div>
-      <div className={core.cashStat}><span>Efectivo estimado</span><strong>{money.format(cashEstimated)}</strong></div>
+    <Head eyebrow="CONTROL DE CAJA" title="Caja diaria" subtitle="Apertura, movimientos, cierre, arqueo e historial completo."><div className={styles.actions}><button className={styles.open} disabled={data.cashRegister?.status==='open'} onClick={()=>{setOpenAmount('0');setOpenModal(true)}}><UiIcon name="plus" size={17}/> Abrir caja</button><button className={styles.close} disabled={data.cashRegister?.status!=='open'} onClick={()=>{setClosedSummary(null);setCloseModal(true)}}><UiIcon name="cash" size={18}/> Cerrar caja</button></div></Head>
+    <div className={core.cashHero}><div className={core.cashStat}><span>Estado</span><strong>{data.cashRegister?.status==='open'?'Abierta':'Cerrada'}</strong></div><div className={core.cashStat}><span>Apertura</span><strong>{money.format(Number(data.cashRegister?.opening_amount||0))}</strong></div><div className={core.cashStat}><span>Ventas sesión</span><strong>{money.format(salesTotal)}</strong></div><div className={core.cashStat}><span>Efectivo estimado</span><strong>{money.format(cashEstimated)}</strong></div></div>
+    <div className={enh.movementBar}><button className={`${enh.movementButton} ${enh.movementButtonExpense}`} disabled={data.cashRegister?.status!=='open'} onClick={()=>setMovement('expense')}><UiIcon name="minus" size={17}/> Cargar gasto</button><button className={`${enh.movementButton} ${enh.movementButtonIncome}`} disabled={data.cashRegister?.status!=='open'} onClick={()=>setMovement('income')}><UiIcon name="plus" size={17}/> Cargar ingreso</button><button className={enh.movementButton} disabled={data.cashRegister?.status!=='open'} onClick={()=>setMovement('egress')}><UiIcon name="withdraw" size={17}/> Retiro de efectivo</button></div>
+    {movement&&<form className={enh.movementForm} onSubmit={submitMovement}><label>Importe<input autoFocus value={amount} onChange={e=>setAmount(e.target.value)} inputMode="decimal" placeholder="$ 0"/></label><label>Concepto<input value={note} onChange={e=>setNote(e.target.value)} placeholder={movement==='expense'?'Ej: compra de bolsas':movement==='income'?'Ej: cambio agregado':'Ej: retiro a tesorería'}/></label><button className={core.primary} disabled={busy}>{busy?'Guardando…':'Registrar'}</button></form>}
+    <div className={core.cashLayout}><div className={core.panel}><div className={core.panelTitle}><div><b>Actividad desde la apertura</b><small>{sessionSales.length} ventas · gastos/retiros {money.format(expenses)}</small></div></div>{sessionSales.slice(0,14).map(s=><div className={core.recentRow} key={s.id}><span className={core.roundIcon}>{s.cae?<UiIcon name="check" size={17}/>:<UiIcon name="alert" size={17}/>}</span><div><b>{s.receiptNumber?`Factura ${receiptNumber(s)}`:`Venta #${s.id.slice(0,8)}`}</b><small>{new Date(s.date).toLocaleString('es-AR')} · {s.payment}</small></div><strong>{money.format(s.total)}</strong></div>)}{movements.slice(0,8).map(m=><div className={core.recentRow} key={m.id}><span className={core.roundIcon}>{m.kind==='income'?<UiIcon name="plus" size={17}/>:m.kind==='egress'?<UiIcon name="withdraw" size={17}/>:<UiIcon name="minus" size={17}/>}</span><div><b>{m.kind==='income'?'Ingreso':m.kind==='egress'?'Retiro':'Gasto'}</b><small>{new Date(m.occurred_at).toLocaleString('es-AR')} · {m.note||'Sin nota'}</small></div><strong>{m.kind==='income'?'+ ':'− '}{money.format(m.amount)}</strong></div>)}</div>
+      {!counterOpen?<div className={styles.counterMini}><div className={styles.bill}>$</div><div><b>Arqueo rápido · contador de billetes</b><small>Contá el efectivo sólo cuando lo necesites.</small></div><button className={styles.use} onClick={()=>setCounterOpen(true)}>Usar</button></div>:<div className={styles.counterCard}><div className={styles.counterHead}><div><span>CONTADOR DE BILLETES</span><h3>Arqueo rápido</h3></div><div><span>Total contado</span><strong>{money.format(counted)}</strong></div></div><div className={styles.denoms}>{denoms.map(d=><div className={styles.denom} key={d}><b>{money.format(d)}</b><span>×</span><input type="number" min="0" inputMode="numeric" value={counts[d]||''} onChange={e=>setCounts({...counts,[d]:Math.max(0,Number(e.target.value)||0)})}/><b>{money.format(d*(counts[d]||0))}</b></div>)}</div><div className={styles.counterFoot}><div><span>Sistema</span><b>{money.format(cashEstimated)}</b></div><div><span>Contado</span><b>{money.format(counted)}</b></div><div><span>Diferencia</span><b>{money.format(diff)}</b></div></div><div className={styles.modalActions}><button onClick={()=>setCounts({})}>Limpiar</button><button onClick={()=>setCounterOpen(false)}>Cerrar arqueo</button></div></div>}
     </div>
+    <section className={styles.history}><div className={styles.historyHead}><div><b>Últimas cajas</b><small>Historial de aperturas y cierres del comercio.</small></div><div className={styles.filters}><input type="date" value={from} onChange={e=>setFrom(e.target.value)}/><input type="date" value={to} onChange={e=>setTo(e.target.value)}/><button className={styles.use} onClick={()=>void loadHistory()}>Buscar</button></div></div>{historyBusy?<div className={styles.empty}>Cargando historial…</div>:history.length?history.map(h=><button className={styles.historyRow} key={h.id} onClick={()=>setSelected(h)}><span><b>{new Date(h.closed_at).toLocaleDateString('es-AR')}</b><small>Cierre {new Date(h.closed_at).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}</small></span><span><b>Abrió {new Date(h.opened_at).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}</b><small>{h.summary.sales_count} ventas</small></span><span><b>{money.format(h.summary.sales_total)}</b><small>Total vendido</small></span><strong>Ver detalle →</strong></button>):<div className={styles.empty}>Todavía no hay cierres guardados en el nuevo historial.</div>}</section>
 
-    <div className={enh.movementBar}>
-      <button className={`${enh.movementButton} ${enh.movementButtonExpense}`} disabled={data.cashRegister?.status !== 'open'} onClick={() => setMovement('expense')}><UiIcon name="minus" size={17}/> Cargar gasto</button>
-      <button className={`${enh.movementButton} ${enh.movementButtonIncome}`} disabled={data.cashRegister?.status !== 'open'} onClick={() => setMovement('income')}><UiIcon name="plus" size={17}/> Cargar ingreso</button>
-      <button className={enh.movementButton} disabled={data.cashRegister?.status !== 'open'} onClick={() => setMovement('egress')}><UiIcon name="withdraw" size={17}/> Retiro de efectivo</button>
-    </div>
-
-    {movement && <form className={enh.movementForm} onSubmit={submit}>
-      <label>Importe<input autoFocus value={amount} onChange={e => setAmount(e.target.value)} inputMode="decimal" placeholder="$ 0" /></label>
-      <label>Concepto<input value={note} onChange={e => setNote(e.target.value)} placeholder={movement === 'expense' ? 'Ej: compra de bolsas' : movement === 'income' ? 'Ej: cambio agregado' : 'Ej: retiro a tesorería'} /></label>
-      <button className={core.primary} disabled={busy}>{busy ? 'Guardando…' : 'Registrar'}</button>
-    </form>}
-
-    <div className={core.cashLayout}>
-      <div className={core.panel}>
-        <div className={core.panelTitle}><div><b>Actividad desde la apertura</b><small>{sessionSales.length} ventas · gastos/retiros {money.format(expenses)}</small></div></div>
-        {sessionSales.slice(0, 14).map(s => <div className={core.recentRow} key={s.id}>
-          <span className={core.roundIcon}>{s.cae ? <UiIcon name="check" size={17}/> : <UiIcon name="alert" size={17}/>}</span>
-          <div><b>{s.receiptNumber ? `Factura ${receiptNumber(s)}` : `Venta #${s.id.slice(0, 8)}`}</b><small>{new Date(s.date).toLocaleString('es-AR')} · {s.payment}</small></div>
-          <strong>{money.format(s.total)}</strong>
-        </div>)}
-        {movements.slice(0, 8).map(m => <div className={core.recentRow} key={m.id}>
-          <span className={core.roundIcon}>{m.kind === 'income' ? <UiIcon name="plus" size={17}/> : m.kind === 'egress' ? <UiIcon name="withdraw" size={17}/> : <UiIcon name="minus" size={17}/>}</span>
-          <div><b>{m.kind === 'income' ? 'Ingreso' : m.kind === 'egress' ? 'Retiro' : 'Gasto'}</b><small>{new Date(m.occurred_at).toLocaleString('es-AR')} · {m.note || 'Sin nota'}</small></div>
-          <strong>{m.kind === 'income' ? '+ ' : '− '}{money.format(m.amount)}</strong>
-        </div>)}
-      </div>
-
-      <div className={core.counterCard}>
-        <div className={core.counterHead}>
-          <div><span>CONTADOR DE BILLETES</span><h3>Arqueo rápido</h3></div>
-          <div className={core.counterTotal}><small>Total contado</small><strong>{money.format(counted)}</strong></div>
-        </div>
-        <div className={core.denomList}>
-          {denoms.map(d => <div className={core.denomRow} key={d}>
-            <label className={enh.banknote}><span className={enh.billIcon}><UiIcon name="banknote" size={18}/></span>{money.format(d)}</label>
-            <span>×</span>
-            <input type="number" min="0" inputMode="numeric" value={counts[d] || ''} onChange={e => setCounts({ ...counts, [d]: Math.max(0, Number(e.target.value) || 0) })} />
-            <b>{money.format(d * (counts[d] || 0))}</b>
-          </div>)}
-        </div>
-        <div className={core.counterSummary}>
-          <div><span>Sistema</span><b>{money.format(cashEstimated)}</b></div>
-          <div><span>Contado</span><b>{money.format(counted)}</b></div>
-          <div className={Math.abs(diff) < 1 ? core.diffOk : core.diffBad}><span>Diferencia</span><b>{money.format(diff)}</b></div>
-        </div>
-        <button className={core.counterReset} onClick={() => setCounts({})}>Limpiar conteo</button>
-      </div>
-    </div>
+    {openModal&&<div className={styles.modal} onMouseDown={e=>e.currentTarget===e.target&&setOpenModal(false)}><div className={styles.card}><div className={styles.cardHead}><div><span>APERTURA DE CAJA</span><h2>{greeting()}. Abrí tu caja inicial.</h2><p>Ingresá el efectivo con el que empieza el turno.</p></div><button className={styles.x} onClick={()=>setOpenModal(false)}>×</button></div><label className={styles.amount}>Monto inicial<input autoFocus inputMode="decimal" value={openAmount} onFocus={e=>e.currentTarget.select()} onChange={e=>setOpenAmount(e.target.value)}/></label><div className={styles.modalActions}><button onClick={()=>setOpenModal(false)}>Cancelar</button><button className={styles.primary} disabled={busy} onClick={()=>void confirmOpen()}>{busy?'Creando…':'Crear caja'}</button></div></div></div>}
+    {closeModal&&<div className={styles.modal} onMouseDown={e=>e.currentTarget===e.target&&!busy&&setCloseModal(false)}><div className={styles.card}><div className={styles.cardHead}><div><span>CIERRE DE CAJA</span><h2>{closedSummary?'Caja cerrada':'¿Confirmás cerrar la caja?'}</h2><p>{closedSummary?'El cierre ya quedó guardado. Podés imprimirlo, descargarlo o enviarlo.':'Revisá los valores antes de confirmar.'}</p></div><button className={styles.x} onClick={()=>setCloseModal(false)}>×</button></div>{closedSummary&&<div className={styles.closedBadge}>✓ Cierre confirmado y guardado en el historial.</div>}<SummaryView summary={docSummary}/><div className={styles.modalActions}>{!closedSummary&&<button className={styles.primary} disabled={busy} onClick={()=>void confirmClose()}>{busy?'Cerrando…':'Confirmar cierre de caja'}</button>}<button disabled={!closedSummary} onClick={printDoc}>▤ Imprimir cierre</button><button disabled={!closedSummary} onClick={()=>downloadCashClosePdf(docSummary,data.company.name)}>↓ Descargar PDF</button><button disabled={!closedSummary} onClick={whatsapp}>◉ WhatsApp</button>{closedSummary&&<button onClick={()=>setCloseModal(false)}>Listo</button>}</div></div></div>}
+    {selected&&<div className={styles.modal} onMouseDown={e=>e.currentTarget===e.target&&setSelected(null)}><div className={styles.card}><div className={styles.cardHead}><div><span>HISTORIAL DE CAJA</span><h2>Cierre del {new Date(selected.closed_at).toLocaleDateString('es-AR')}</h2><p>{new Date(selected.opened_at).toLocaleString('es-AR')} → {new Date(selected.closed_at).toLocaleString('es-AR')}</p></div><button className={styles.x} onClick={()=>setSelected(null)}>×</button></div><SummaryView summary={selected.summary}/><div className={styles.modalActions}><button onClick={()=>void printCashClose(selected.summary,data.company.name,device.paper==='58'?'58':'80',device.printerName)}>▤ Imprimir</button><button onClick={()=>downloadCashClosePdf(selected.summary,data.company.name)}>↓ PDF</button><button onClick={()=>{try{openCashWhatsApp(ownerPhone,selected.summary,data.company.name)}catch(e){message(e instanceof Error?e.message:String(e))}}}>◉ WhatsApp</button></div></div></div>}
   </>
 }
+
+function SummaryView({summary}:{summary:CashSummary}){return <div className={styles.summary}><div><span>Monto inicial</span><b>{money.format(summary.opening_amount||0)}</b></div><div><span>Ventas</span><b>{money.format(summary.sales_total||0)} · {summary.sales_count||0} operaciones</b></div><div className={styles.payments}><span>MEDIOS DE PAGO</span>{Object.entries(summary.payments||{}).map(([k,v])=><div key={k}><span>{k}</span><b>{money.format(Number(v||0))}</b></div>)}</div><div><span>Ingresos</span><b>{money.format(summary.income||0)}</b></div><div><span>Gastos</span><b>{money.format(summary.expenses||0)}</b></div><div><span>Retiros</span><b>{money.format(summary.egress||0)}</b></div><div><span>Efectivo esperado</span><b>{money.format(summary.expected_cash||0)}</b></div><div><span>Efectivo contado</span><b>{money.format(summary.counted_cash??summary.expected_cash??0)}</b></div><div><span>Diferencia</span><b>{money.format(summary.difference||0)}</b></div></div>}

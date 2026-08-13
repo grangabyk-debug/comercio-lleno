@@ -1,106 +1,29 @@
 'use client'
 
 import Link from 'next/link'
-import { FormEvent, useState } from 'react'
+import { FormEvent,useState } from 'react'
 import { signInTenant } from '@/lib/comercio/session'
+import { createStaffAdmin,saveBranch,type StaffRole } from '@/lib/comercio/tenant-admin-api'
 import BrandLogo from '../BrandLogo'
 import styles from './trial.module.css'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcubkbtcsqkzc.supabase.co'
-const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
-const MONTHLY_PRICE = 14900
-const price = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(MONTHLY_PRICE)
-const TENANT_SESSION_KEYS = ['cl_access_token','cl_refresh_token','cl_company_id','cl_company_name','cl_user_role','cl_user_permissions']
+const SUPABASE_URL=process.env.NEXT_PUBLIC_SUPABASE_URL??'https://wtcntclzcubkbtcsqkzc.supabase.co',PUBLISHABLE_KEY=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY??'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb',MONTHLY_PRICE=14900
+const price=new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(MONTHLY_PRICE),SESSION_KEYS=['cl_access_token','cl_refresh_token','cl_company_id','cl_company_name','cl_user_role','cl_user_permissions']
+const countries=['Argentina','Bolivia','Brasil','Chile','Colombia','Costa Rica','Cuba','Ecuador','El Salvador','Guatemala','Honduras','México','Nicaragua','Panamá','Paraguay','Perú','República Dominicana','Uruguay','Venezuela','España']
+const provinces=['Ciudad Autónoma de Buenos Aires (CABA)','Buenos Aires','Catamarca','Chaco','Chubut','Córdoba','Corrientes','Entre Ríos','Formosa','Jujuy','La Pampa','La Rioja','Mendoza','Misiones','Neuquén','Río Negro','Salta','San Juan','San Luis','Santa Cruz','Santa Fe','Santiago del Estero','Tierra del Fuego','Tucumán']
+const roleLabels:Record<StaffRole,string>={seller:'Vendedor',manager:'Encargado',cashier:'Cajero',supervisor:'Supervisor'}
+const strong=(v:string)=>v.length>=8&&/[A-Z]/.test(v)&&/\d/.test(v)&&/[^A-Za-z0-9]/.test(v)
+function clearPreviousTenantSession(){if(typeof window!=='undefined')SESSION_KEYS.forEach(k=>localStorage.removeItem(k))}
 
-function clearPreviousTenantSession() {
-  if (typeof window === 'undefined') return
-  TENANT_SESSION_KEYS.forEach(key => window.localStorage.removeItem(key))
-}
-
-export default function TrialSignup() {
-  const [fullName,setFullName]=useState('')
-  const [companyName,setCompanyName]=useState('')
-  const [email,setEmail]=useState('')
-  const [phone,setPhone]=useState('')
-  const [password,setPassword]=useState('')
-  const [website,setWebsite]=useState('')
-  const [accepted,setAccepted]=useState(false)
-  const [busy,setBusy]=useState(false)
-  const [error,setError]=useState('')
-  const [success,setSuccess]=useState('')
-
-  async function submit(e:FormEvent){
-    e.preventDefault()
-    if(!accepted){setError('Tenés que aceptar las condiciones de la prueba gratuita.');return}
-    setBusy(true);setError('');setSuccess('')
-    try{
-      const response=await fetch(`${SUPABASE_URL}/functions/v1/start-trial`,{
-        method:'POST',
-        headers:{apikey:PUBLISHABLE_KEY,'Content-Type':'application/json'},
-        body:JSON.stringify({full_name:fullName,company_name:companyName,email,phone,password,website}),
-      })
-      const data=await response.json().catch(()=>({}))
-      if(!response.ok||!data?.ok)throw new Error(data?.error||'No se pudo crear la prueba gratuita.')
-      const end=data?.trial_ends_at?new Date(data.trial_ends_at).toLocaleDateString('es-AR'):'dentro de 14 días'
-      setSuccess(`Listo. Tu prueba está activa hasta ${end}. Entrando al sistema…`)
-
-      // Si el alta se hace desde un equipo que ya tenía otro comercio abierto,
-      // eliminamos únicamente la sesión anterior antes de iniciar la nueva.
-      // Los datos/cachés de cada comercio siguen separados por company_id.
-      clearPreviousTenantSession()
-
-      try{
-        await signInTenant(email,password)
-        window.location.replace('/redesign')
-      }catch{
-        window.setTimeout(()=>window.location.replace('/redesign/access'),900)
-      }
-    }catch(e){setError(e instanceof Error?e.message:String(e))}
-    finally{setBusy(false)}
-  }
-
-  return <main className={styles.page}>
-    <header className={styles.top}>
-      <Link className={styles.brand} href="/" aria-label="Comercio Lleno"><BrandLogo size={44}/></Link>
-      <Link className={styles.login} href="/redesign/access">Ya tengo una cuenta →</Link>
-    </header>
-    <section className={styles.layout}>
-      <div className={styles.copy}>
-        <div className={styles.eyebrow}>14 DÍAS GRATIS</div>
-        <h1>Creá tu comercio y empezá a probarlo hoy.</h1>
-        <p>El período de prueba empieza en el momento en que creás la cuenta. Vas a entrar como Propietario y después podés cargar productos, configurar usuarios y preparar tu punto de venta.</p>
-        <div className={styles.benefits}>
-          <div className={styles.benefit}><i>✓</i><span>Punto de venta, productos, stock, caja y reportes.</span></div>
-          <div className={styles.benefit}><i>✓</i><span>Asistente IA y modo offline para seguir vendiendo.</span></div>
-          <div className={styles.benefit}><i>✓</i><span>Configuración para ARCA, lector de códigos e impresora térmica.</span></div>
-          <div className={styles.benefit}><i>✓</i><span>Datos separados por comercio desde el primer minuto.</span></div>
-        </div>
-        <div className={styles.price}><b>{price}</b><span>por mes después de la prueba</span></div>
-      </div>
-
-      <div className={styles.card}>
-        <div style={{marginBottom:18}}><BrandLogo size={52} showTagline/></div>
-        <h2>Iniciar prueba gratis</h2>
-        <p>No se cobra nada durante los primeros 14 días.</p>
-        <form className={styles.form} onSubmit={submit}>
-          <div className={styles.row}>
-            <label className={styles.label}>Tu nombre<input className={styles.input} required minLength={2} value={fullName} onChange={e=>setFullName(e.target.value)} placeholder="Nombre y apellido"/></label>
-            <label className={styles.label}>Nombre del comercio<input className={styles.input} required minLength={2} value={companyName} onChange={e=>setCompanyName(e.target.value)} placeholder="Ej: Mi Almacén"/></label>
-          </div>
-          <label className={styles.label}>Email<input className={styles.input} required type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="vos@comercio.com"/></label>
-          <div className={styles.row}>
-            <label className={styles.label}>WhatsApp / teléfono<input className={styles.input} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Opcional"/></label>
-            <label className={styles.label}>Contraseña<input className={styles.input} required minLength={8} type="password" autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Mínimo 8 caracteres"/></label>
-          </div>
-          <label className={styles.hidden}>Website<input tabIndex={-1} autoComplete="off" value={website} onChange={e=>setWebsite(e.target.value)}/></label>
-          <label className={styles.terms}><input type="checkbox" checked={accepted} onChange={e=>setAccepted(e.target.checked)}/> Entiendo que la prueba dura 14 días y que luego el plan tiene un valor de {price} por mes. Antes del primer cobro se deberá asociar un medio de pago.</label>
-          {error&&<div className={styles.error}>{error}</div>}
-          {success&&<div className={styles.success}>{success}</div>}
-          <button className={styles.button} disabled={busy}>{busy?'Creando tu comercio…':'Crear mi prueba de 14 días'}</button>
-        </form>
-        <div className={styles.security}><span>🔒</span><div><b>Cuenta multi-tenant.</b> Los productos, ventas y usuarios quedan asociados únicamente a tu comercio.</div></div>
-        <div className={styles.foot}>Podés configurar ARCA y el hardware después de ingresar.</div>
-      </div>
-    </section>
-  </main>
+export default function TrialSignup(){
+  const[step,setStep]=useState(1),[fullName,setFullName]=useState(''),[email,setEmail]=useState(''),[phone,setPhone]=useState(''),[password,setPassword]=useState(''),[companyName,setCompanyName]=useState(''),[taxId,setTaxId]=useState(''),[country,setCountry]=useState('Argentina'),[province,setProvince]=useState(''),[address,setAddress]=useState(''),[skipCommerce,setSkipCommerce]=useState(false)
+  const[branchName,setBranchName]=useState(''),[branchAddress,setBranchAddress]=useState(''),[staffName,setStaffName]=useState(''),[staffUser,setStaffUser]=useState(''),[staffPass,setStaffPass]=useState(''),[staffRole,setStaffRole]=useState<StaffRole>('seller'),[website,setWebsite]=useState(''),[accepted,setAccepted]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[success,setSuccess]=useState('')
+  function nextAccount(e:FormEvent){e.preventDefault();setError('');if(!fullName.trim()||!email.trim()||!phone.trim()){setError('Completá tu nombre, email y WhatsApp.');return}if(!strong(password)){setError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un signo especial.');return}setStep(2)}
+  function nextCommerce(skip=false){setError('');if(!companyName.trim()){setError('Ingresá al menos el nombre del comercio para crear la cuenta.');return}if(!skip&&(!taxId.trim()||!country||(country==='Argentina'&&!province))){setError('Para completar ahora necesitás CUIT/CUIL, país y provincia. También podés configurarlo después.');return}setSkipCommerce(skip);setStep(3)}
+  async function submit(e:FormEvent){e.preventDefault();if(!accepted){setError('Tenés que aceptar las condiciones de la prueba gratuita.');return}if(staffUser&&( !staffName.trim()||!strong(staffPass))){setError('Para crear el empleado completá nombre y una contraseña segura: 8+ caracteres, mayúscula, número y signo.');return}setBusy(true);setError('');try{const complete=!skipCommerce&&Boolean(taxId&&country&&(country!=='Argentina'||province));const response=await fetch(`${SUPABASE_URL}/functions/v1/start-trial`,{method:'POST',headers:{apikey:PUBLISHABLE_KEY,'Content-Type':'application/json'},body:JSON.stringify({full_name:fullName,company_name:companyName,email,phone,password,website,tax_id:complete?taxId:'',country:complete?country:'',province:complete?province:'',address:complete?address:'',onboarding_complete:complete})});const data=await response.json().catch(()=>({}));if(!response.ok||!data?.ok)throw new Error(data?.error||'No se pudo crear la prueba gratuita.');setSuccess('Cuenta creada. Preparando tu comercio…');clearPreviousTenantSession();try{const session=await signInTenant(email,password);if(branchName.trim())await saveBranch(session,{name:branchName.trim(),address:branchAddress||null,country:country||null,province:country==='Argentina'?province||null:null,is_primary:false});if(staffUser.trim()){const defaults=staffRole==='seller'?{can_sell:true,can_manage_customers:true}:staffRole==='cashier'?{can_sell:true,can_open_close_cash:true,can_manage_customers:true}:{can_sell:true,can_open_close_cash:true,can_view_reports:true,can_manage_stock:true,can_edit_products:true,can_manage_customers:true,can_manage_promotions:true,can_manage_finances:true};await createStaffAdmin(session,{username:staffUser,password:staffPass,full_name:staffName,role:staffRole,permissions:defaults})}location.replace(complete?'/redesign':'/redesign?setup=pending')}catch{setTimeout(()=>location.replace('/redesign/access'),700)}}catch(e){setError(e instanceof Error?e.message:String(e))}finally{setBusy(false)}}
+  return <main className={styles.page}><header className={styles.top}><Link className={styles.brand} href="/" aria-label="Comercio Lleno"><BrandLogo size={44}/></Link><Link className={styles.login} href="/redesign/access">Ya tengo una cuenta →</Link></header><section className={styles.layout}><div className={styles.copy}><div className={styles.eyebrow}>14 DÍAS GRATIS</div><h1>Configurá tu comercio paso a paso.</h1><p>Primero creamos tu cuenta de Propietario, después el local y por último —si querés— una sucursal o un usuario de tu equipo.</p><div className={styles.benefits}><div className={styles.benefit}><i>{step>1?'✓':'1'}</i><span>Tu cuenta de Propietario.</span></div><div className={styles.benefit}><i>{step>2?'✓':'2'}</i><span>Datos del comercio y ubicación.</span></div><div className={styles.benefit}><i>3</i><span>Sucursales y empleados, opcional.</span></div></div><div className={styles.price}><b>{price}</b><span>por mes después de la prueba</span></div></div><div className={styles.card}><div style={{marginBottom:14}}><BrandLogo size={50} showTagline/></div><div style={{display:'flex',gap:6,marginBottom:15}}>{[1,2,3].map(n=><span key={n} style={{height:6,flex:1,borderRadius:99,background:n<=step?'#168a55':'#e1e8e4'}}/> )}</div><h2>{step===1?'1. Tu cuenta':step===2?'2. Tu comercio':'3. Sucursales y equipo'}</h2><p>{step===1?'El acceso principal será el del Propietario.':step===2?'Estos datos identifican al local.':'Todo esto es opcional y se puede configurar luego.'}</p>
+      {step===1&&<form className={styles.form} onSubmit={nextAccount}><label className={styles.label}>Tu nombre<input className={styles.input} required value={fullName} onChange={e=>setFullName(e.target.value)} placeholder="Nombre y apellido"/></label><label className={styles.label}>Email<input className={styles.input} required type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="vos@comercio.com"/></label><div className={styles.row}><label className={styles.label}>WhatsApp del propietario<input className={styles.input} required value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+54 9 11…"/></label><label className={styles.label}>Contraseña<input className={styles.input} required type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Ej: Comercio#2026"/></label></div><small style={{color:strong(password)?'#168a55':'#7a8781'}}>Mínimo 8 caracteres, una mayúscula, un número y un signo especial.</small>{error&&<div className={styles.error}>{error}</div>}<button className={styles.button}>Continuar →</button></form>}
+      {step===2&&<div className={styles.form}><label className={styles.label}>Nombre del comercio *<input className={styles.input} required value={companyName} onChange={e=>setCompanyName(e.target.value)} placeholder="Ej: Mi Almacén"/></label><div className={styles.row}><label className={styles.label}>CUIT / CUIL *<input className={styles.input} value={taxId} onChange={e=>setTaxId(e.target.value)}/></label><label className={styles.label}>País *<select className={styles.input} value={country} onChange={e=>{setCountry(e.target.value);if(e.target.value!=='Argentina')setProvince('')}}>{countries.map(x=><option key={x}>{x}</option>)}</select></label></div>{country==='Argentina'&&<label className={styles.label}>Provincia / CABA *<select className={styles.input} value={province} onChange={e=>setProvince(e.target.value)}><option value="">Seleccionar…</option>{provinces.map(x=><option key={x}>{x}</option>)}</select></label>}<label className={styles.label}>Dirección<input className={styles.input} value={address} onChange={e=>setAddress(e.target.value)} placeholder="Opcional · se puede usar en tickets"/></label>{error&&<div className={styles.error}>{error}</div>}<div style={{display:'grid',gridTemplateColumns:'1fr 1.4fr',gap:8}}><button type="button" onClick={()=>nextCommerce(true)} style={{border:'1px solid #d9e2dd',background:'#fff',borderRadius:10,fontWeight:850}}>Configurar después</button><button type="button" className={styles.button} onClick={()=>nextCommerce(false)}>Guardar y continuar →</button></div></div>}
+      {step===3&&<form className={styles.form} onSubmit={submit}><div style={{border:'1px solid #dfe7e3',borderRadius:12,padding:12}}><b style={{fontSize:11}}>Sucursal adicional</b><div className={styles.row} style={{marginTop:9}}><label className={styles.label}>Nombre<input className={styles.input} value={branchName} onChange={e=>setBranchName(e.target.value)} placeholder="Opcional"/></label><label className={styles.label}>Dirección<input className={styles.input} value={branchAddress} onChange={e=>setBranchAddress(e.target.value)} placeholder="Opcional"/></label></div></div><div style={{border:'1px solid #dfe7e3',borderRadius:12,padding:12}}><b style={{fontSize:11}}>Primer empleado</b><div className={styles.row} style={{marginTop:9}}><label className={styles.label}>Nombre<input className={styles.input} value={staffName} onChange={e=>setStaffName(e.target.value)} placeholder="Opcional"/></label><label className={styles.label}>Usuario<input className={styles.input} value={staffUser} onChange={e=>setStaffUser(e.target.value)} placeholder="ej: caja1"/></label></div><div className={styles.row}><label className={styles.label}>Rol<select className={styles.input} value={staffRole} onChange={e=>setStaffRole(e.target.value as StaffRole)}>{Object.entries(roleLabels).map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label><label className={styles.label}>Contraseña<input className={styles.input} type="password" value={staffPass} onChange={e=>setStaffPass(e.target.value)} placeholder="Ej: Caja#2026"/></label></div></div><label className={styles.hidden}>Website<input tabIndex={-1} value={website} onChange={e=>setWebsite(e.target.value)}/></label><label className={styles.terms}><input type="checkbox" checked={accepted} onChange={e=>setAccepted(e.target.checked)}/> Entiendo que la prueba dura 14 días y luego el plan tiene un valor de {price} por mes.</label>{error&&<div className={styles.error}>{error}</div>}{success&&<div className={styles.success}>{success}</div>}<div style={{display:'flex',gap:8}}><button type="button" onClick={()=>{setBranchName('');setStaffName('');setStaffUser('');setStaffPass('')}} style={{border:'1px solid #d9e2dd',background:'#fff',borderRadius:10,padding:'0 12px',fontWeight:850}}>Omitir datos opcionales</button><button className={styles.button} disabled={busy} style={{flex:1}}>{busy?'Creando tu comercio…':'Crear mi prueba de 14 días'}</button></div></form>}
+      <div className={styles.security}><span>🔒</span><div><b>Cuenta multi-tenant.</b> Los datos quedan asociados sólo a tu comercio.</div></div></div></section></main>
 }
