@@ -49,6 +49,8 @@ export default function SidebarNavigation({ tenant, view, buildVersion, canView,
     { key: 'finances', icon: '$', label: 'Finanzas', allowed: tenant.role === 'owner' || tenant.permissions?.can_manage_finances === true },
   ]
 
+  const closeFinances = () => window.dispatchEvent(new Event('comercio:close-finance'))
+
   useEffect(() => {
     if (!managementOpen) return
     const closeOutside = (event: MouseEvent) => {
@@ -73,6 +75,7 @@ export default function SidebarNavigation({ tenant, view, buildVersion, canView,
       window.dispatchEvent(new Event('comercio:open-finance'))
       return
     }
+    closeFinances()
     onNavigate(item.key)
   }
 
@@ -81,7 +84,7 @@ export default function SidebarNavigation({ tenant, view, buildVersion, canView,
     {mainNav.map(([key, icon, label, special]) => canView(key) && <button
       key={key}
       className={`${styles.navButton} ${view === key ? styles.navActive : ''} ${special === 'assistant' ? parity.supportAssistant : ''} ${special === 'sale' ? enh.saleNav : ''}`}
-      onClick={() => { setManagementOpen(false); onNavigate(key) }}
+      onClick={() => { closeFinances(); setManagementOpen(false); onNavigate(key) }}
     ><span>{icon}</span>{label}</button>)}
 
     <div className={nav.managementGroup} ref={managementRef}>
@@ -90,7 +93,7 @@ export default function SidebarNavigation({ tenant, view, buildVersion, canView,
         className={`${nav.managementButton} ${managementOpen ? nav.managementButtonOpen : ''}`}
         aria-expanded={managementOpen}
         aria-haspopup="menu"
-        onClick={() => setManagementOpen(open => !open)}
+        onClick={() => { closeFinances(); setManagementOpen(open => !open) }}
       >
         <span className={nav.managementIcon}>▦</span>
         <span className={nav.managementLabel}>Gestión</span>

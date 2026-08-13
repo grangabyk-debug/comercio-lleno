@@ -22,8 +22,13 @@ export default function FinanceRuntime(){
     const allowed=s&&(s.role==='owner'||s.permissions?.can_manage_finances===true)
     if(!allowed)return
     const openHandler=()=>{setOpen(true);void reload(s)}
+    const closeHandler=()=>{setModal(false);setOpen(false)}
     window.addEventListener('comercio:open-finance',openHandler)
-    return()=>window.removeEventListener('comercio:open-finance',openHandler)
+    window.addEventListener('comercio:close-finance',closeHandler)
+    return()=>{
+      window.removeEventListener('comercio:open-finance',openHandler)
+      window.removeEventListener('comercio:close-finance',closeHandler)
+    }
   },[])
 
   const monthSales=useMemo(()=>sales.filter(s=>monthKey(s.sold_at)===month).reduce((a,s)=>a+s.total,0),[sales,month])
