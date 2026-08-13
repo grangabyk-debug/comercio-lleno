@@ -57,7 +57,8 @@ export async function updateSaleNote(session: TenantSession, sale: Sale, note: s
 }
 
 export async function deleteSaleAndRestoreStock(session: TenantSession, saleId: string) {
-  if (session.role !== 'owner') throw new Error('Solo el propietario puede eliminar ventas.')
+  const allowed = session.role === 'owner' || session.permissions?.can_delete_sales === true
+  if (!allowed) throw new Error('Tu usuario no tiene permiso para eliminar ventas.')
   const raw = await rest(session, 'rpc/delete_sale_restore_stock', {
     method: 'POST',
     headers: { Prefer: 'return=representation' },
