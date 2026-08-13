@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import styles from './page.module.css'
 import parity from './parity.module.css'
 import enh from './enhancements.module.css'
+import shellLayout from './ShellLayout.module.css'
 import {
   authorizeFiscalInvoice,
   checkArcaHealth,
@@ -47,6 +48,7 @@ import {
 } from './ManagementViews'
 import { ContingencyModal, Customers, ReceiptModal } from './CoreViews'
 import { CashEnhanced, DashboardEnhanced, dayKey, money, PosEnhanced, ReportsEnhanced, SalesEnhanced } from './OperationalViews'
+import SidebarNavigation from './SidebarNavigation'
 import UnifiedAssistant from './UnifiedAssistant'
 
 function createId() { return typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}` }
@@ -90,7 +92,6 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [view, setView] = useState<ViewKey>('dashboard')
-  const [managementOpen, setManagementOpen] = useState(true)
   const [dark, setDark] = useState(false)
   const [now, setNow] = useState(new Date())
   const [query, setQuery] = useState('')
@@ -354,25 +355,15 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
   const arcaClass=arcaChecking?styles.statusNeutral:!arcaConfigured?styles.statusNeutral:arca?.connected?styles.statusOk:styles.statusBad
   const networkLabel=offlineSyncing?'Sincronizando…':!online||offlineMode?`Modo offline${offlinePending?` · ${offlinePending} pend.`:''}`:offlinePending?`${offlinePending} por sincronizar`:offlineReady?'Offline listo':'Preparando offline'
   const networkClass=!online||offlineMode?styles.statusBad:offlinePending?styles.statusNeutral:styles.statusOk
-  const mainNav:Array<[ViewKey,string,string,string?]>=[['dashboard','⌂','Inicio'],['pos','🪙','Nueva venta','sale'],['products','▦','Productos'],['cash','◷','Caja diaria'],['settings','⚙','Configuración'],['assistant','✦','Asistente IA','assistant']]
-  const management:Array<[ViewKey,string,string]>=[['sales','▤','Ventas'],['reports','◔','Reportes'],['customers','♙','Clientes'],['profitability','↗','Rentabilidad'],['accounts','¤','Cuentas corrientes'],['returns','↩','Devoluciones'],['promotions','%','Promociones']]
 
   return <main className={`${styles.shell} ${enh.readable} ${dark?styles.dark:''} ${dark?parity.dark:''} ${dark?enh.dark:''}`}>
     <header className={styles.topbar}>
       <div className={styles.brandWrap}><div className={styles.brandMark}>CL</div><div><div className={styles.brand}>Comercio <span>Lleno</span></div><div className={styles.tenant}>{data?.company.name||tenant.companyName} · {roleLabel(tenant.role)}</div></div></div>
       <div className={styles.headerRight}><button className={`${styles.status} ${networkClass}`} onClick={()=>online&&syncOfflineSales(tenant)}>● {networkLabel}</button><button className={`${styles.status} ${arcaClass}`} onClick={()=>refreshArca(tenant)}>● {arcaLabel}</button><span className={styles.versionPill}>Rediseño V2 · {buildVersion}</span><button className={styles.headerButton} onClick={()=>refresh(tenant)}>↻ Actualizar</button><button className={styles.headerButton} onClick={()=>setDark(x=>!x)}>{dark?'☀ Claro':'☾ Oscuro'}</button><button className={parity.logout} onClick={logout}>Salir</button></div>
     </header>
-    <div className={styles.layout}>
-      <aside className={styles.sidebar}>
-        <div className={styles.navLabel}>OPERACIÓN</div>
-        {mainNav.map(([key,icon,label,special])=>canView(tenant,key)&&<button key={key} className={`${styles.navButton} ${view===key?styles.navActive:''} ${special==='assistant'?parity.supportAssistant:''} ${special==='sale'?enh.saleNav:''}`} onClick={()=>go(key)}><span>{icon}</span>{label}</button>)}
-        <button className={parity.navGroupButton} onClick={()=>setManagementOpen(x=>!x)}><span>▦</span>Gestión<span>{managementOpen?'⌃':'⌄'}</span></button>
-        {managementOpen&&<div className={parity.navChildren}>{management.filter(([key])=>canView(tenant,key)).map(([key,icon,label])=><button key={key} className={`${parity.navChild} ${view===key?parity.navChildActive:''}`} onClick={()=>go(key)}><span>{icon}</span>{label}</button>)}</div>}
-        {canView(tenant,'purchases')&&<button className={`${styles.navButton} ${view==='purchases'?styles.navActive:''}`} onClick={()=>go('purchases')}><span>▦</span>Compras</button>}
-        {canView(tenant,'suppliers')&&<button className={`${styles.navButton} ${view==='suppliers'?styles.navActive:''}`} onClick={()=>go('suppliers')}><span>♜</span>Proveedores</button>}
-        <div className={styles.sidebarBottom}><b>Comercio Lleno</b><span>Rediseño V2 · {buildVersion}</span><small>Tenant {tenant.companyId.slice(0,8)} · {roleLabel(tenant.role)}</small></div>
-      </aside>
-      <section className={styles.content}>
+    <div className={`${styles.layout} ${shellLayout.layout}`}>
+      <SidebarNavigation tenant={tenant} view={view} buildVersion={buildVersion} canView={(next)=>canView(tenant,next)} onNavigate={go}/>
+      <section className={`${styles.content} ${shellLayout.content}`}>
         {(!online||offlineMode)&&<div className={enh.offlineModeBar}><b>Modo offline activo</b><span>Podés seguir cobrando con los productos guardados en este equipo. Las ventas que elijas facturar se enviarán a ARCA cuando vuelva Internet.</span>{offlinePending>0&&<strong>{offlinePending} pendiente{offlinePending===1?'':'s'}</strong>}</div>}
         {error&&<div className={styles.error}><span>{error}</span><button onClick={()=>setError('')}>×</button></div>}
         {notice&&<div className={styles.notice}><span>{notice}</span><button onClick={()=>setNotice('')}>×</button></div>}
@@ -393,7 +384,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
         {view==='assistant'&&<UnifiedAssistant/>}
       </section>
     </div>
-    <div className={styles.bottomBar}><div className={styles.bottomStats}><div><span>Ventas hoy</span><b>{money.format(todayTotal)}</b></div><div><span>Caja estimada</span><b>{money.format(cashEstimated)}</b></div><div><span>Stock bajo</span><b>{lowStock}</b></div>{offlinePending>0&&<div><span>Offline pendiente</span><b>{offlinePending}</b></div>}</div><div className={styles.time}>{now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:salesSettings.timeFormat==='12'})}</div></div>
+    <div className={`${styles.bottomBar} ${shellLayout.bottomBar}`}><div className={styles.bottomStats}><div><span>Ventas hoy</span><b>{money.format(todayTotal)}</b></div><div><span>Caja estimada</span><b>{money.format(cashEstimated)}</b></div><div><span>Stock bajo</span><b>{lowStock}</b></div>{offlinePending>0&&<div><span>Offline pendiente</span><b>{offlinePending}</b></div>}</div><div className={styles.time}>{now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:salesSettings.timeFormat==='12'})}</div></div>
     {receiptSale&&data&&<ReceiptModal sale={receiptSale} data={data} device={device} close={()=>setReceiptSale(null)} onMessage={setNotice}/>} 
     {contingency&&<ContingencyModal reason={contingency.reason} total={contingency.sale.total} busy={checkoutBusy} yes={confirmContingency} no={()=>setContingency(null)}/>} 
   </main>
