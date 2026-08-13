@@ -4,14 +4,18 @@ import { useEffect } from 'react'
 import { readCachedDesignSettings, type DesignSettings } from '@/lib/comercio/design-settings'
 import { readTenantSession } from '@/lib/comercio/session'
 
+function normalized(value: DesignSettings): DesignSettings {
+  return { ...value, colorTheme: 'emerald', fontFamily: value.fontFamily === 'rounded' ? 'modern' : value.fontFamily }
+}
+
 function applyDesign(value: DesignSettings) {
   const shell = document.querySelector('main[class*="shell"]') as HTMLElement | null
   if (!shell) return
-  // La identidad de Comercio Lleno siempre conserva el verde de marca.
+  const next = normalized(value)
   shell.dataset.designColor = 'emerald'
-  shell.dataset.designSize = value.fontSize
-  shell.dataset.designWeight = value.fontWeight
-  shell.dataset.designFont = value.fontFamily
+  shell.dataset.designSize = next.fontSize
+  shell.dataset.designWeight = next.fontWeight
+  shell.dataset.designFont = next.fontFamily
 }
 
 function patchFor(button: HTMLButtonElement): Partial<DesignSettings> | null {
@@ -32,28 +36,58 @@ function patchFor(button: HTMLButtonElement): Partial<DesignSettings> | null {
   if (heading === 'Tipografía') {
     if (text.includes('Moderna')) return { fontFamily: 'modern' }
     if (text.includes('Clásica')) return { fontFamily: 'classic' }
-    if (text.includes('Redondeada')) return { fontFamily: 'rounded' }
   }
   return null
 }
 
-function hideColorOption() {
+function cleanDesignPanel() {
   document.querySelectorAll('b').forEach(node => {
     if (node.textContent?.trim() !== 'Colores') return
     const block = node.parentElement?.parentElement as HTMLElement | null
     if (block) block.style.display = 'none'
   })
+
+  document.querySelectorAll('button').forEach(button => {
+    const text = button.textContent?.replace(/\s+/g, ' ').trim() || ''
+    if (text.includes('Redondeada')) button.style.display = 'none'
+  })
+
+  document.querySelectorAll('span').forEach(node => {
+    if (node.textContent?.trim() !== 'Vista previa') return
+    const preview = node.parentElement as HTMLElement | null
+    if (preview) preview.style.display = 'none'
+  })
+}
+
+function savedBadge(show: boolean) {
+  const saveButton = Array.from(document.querySelectorAll('button')).find(btn => (btn.textContent || '').includes('Guardar diseño'))
+  const row = saveButton?.parentElement
+  if (!row) return
+  let badge = row.querySelector('[data-design-saved-badge]') as HTMLElement | null
+  if (!show) { badge?.remove(); return }
+  if (!badge) {
+    badge = document.createElement('span')
+    badge.setAttribute('data-design-saved-badge', '1')
+    badge.style.display = 'inline-flex'
+    badge.style.alignItems = 'center'
+    badge.style.gap = '6px'
+    badge.style.fontWeight = '800'
+    badge.style.color = '#168a52'
+    badge.style.marginLeft = '10px'
+    row.appendChild(badge)
+  }
+  badge.textContent = '✓ Diseño guardado'
 }
 
 export default function DesignLivePreview() {
   useEffect(() => {
     const session = readTenantSession()
     if (!session) return
-    let current = readCachedDesignSettings(session.companyId)
+    let current = normalized(readCachedDesignSettings(session.companyId))
     applyDesign(current)
-    hideColorOption()
+    cleanDesignPanel()
 
-    const observer = new MutationObserver(() => hideColorOption())
+    const observer = new MutationObserver(() => cleanDesignPanel())
     observer.observe(document.body, { childList: true, subtree: true })
 
     const onClick = (event: MouseEvent) => {
@@ -62,15 +96,18 @@ export default function DesignLivePreview() {
       if (!button) return
       const patch = patchFor(button)
       if (!patch) return
-      current = { ...current, ...patch, colorTheme: 'emerald' }
+      current = normalized({ ...current, ...patch })
+      savedBadge(false)
       applyDesign(current)
     }
 
     const onSaved = (event: Event) => {
       const next = (event as CustomEvent<DesignSettings>).detail
       if (!next) return
-      current = { ...next, colorTheme: 'emerald' }
+      current = normalized(next)
       applyDesign(current)
+      cleanDesignPanel()
+      savedBadge(true)
     }
 
     document.addEventListener('click', onClick, true)
@@ -88,7 +125,6 @@ export default function DesignLivePreview() {
       letter-spacing: .45px !important;
     }
 
-    /* Moneda dorada robusta: no depende de emoji, SVG ni soporte de imágenes del navegador. */
     main[class*="shell"] [class*="saleNav"] > span:first-child {
       position: relative !important;
       display: inline-grid !important;
@@ -100,11 +136,7 @@ export default function DesignLivePreview() {
       border-radius: 999px !important;
       background: radial-gradient(circle at 31% 27%, #fff9cf 0 10%, #ffe77d 24%, #f1c23f 46%, #d99a18 68%, #9a6200 100%) !important;
       border: 2px solid #f5d66c !important;
-      box-shadow:
-        0 0 0 2px rgba(255, 215, 82, .16),
-        0 7px 15px rgba(132, 82, 0, .32),
-        inset 0 2px 2px rgba(255, 255, 255, .92),
-        inset 0 -3px 4px rgba(112, 67, 0, .30) !important;
+      box-shadow: 0 0 0 2px rgba(255,215,82,.16), 0 7px 15px rgba(132,82,0,.32), inset 0 2px 2px rgba(255,255,255,.92), inset 0 -3px 4px rgba(112,67,0,.30) !important;
       color: transparent !important;
       font-size: 0 !important;
       overflow: hidden !important;
@@ -112,7 +144,6 @@ export default function DesignLivePreview() {
       filter: saturate(1.12) contrast(1.04) !important;
       text-shadow: none !important;
     }
-
     main[class*="shell"] [class*="saleNav"] > span:first-child::before {
       content: "$" !important;
       position: relative !important;
@@ -123,9 +154,8 @@ export default function DesignLivePreview() {
       line-height: 1 !important;
       font-weight: 900 !important;
       color: #684000 !important;
-      text-shadow: 0 1px 0 rgba(255, 255, 255, .55) !important;
+      text-shadow: 0 1px 0 rgba(255,255,255,.55) !important;
     }
-
     main[class*="shell"] [class*="saleNav"] > span:first-child::after {
       content: "" !important;
       display: block !important;
@@ -140,7 +170,6 @@ export default function DesignLivePreview() {
       pointer-events: none !important;
     }
 
-    /* El modo Fuerte tiene que ser claramente perceptible. */
     main[data-design-weight="strong"] h1,
     main[data-design-weight="strong"] h2,
     main[data-design-weight="strong"] h3,
@@ -156,8 +185,6 @@ export default function DesignLivePreview() {
     main[data-design-weight="strong"] th,
     main[data-design-weight="strong"] input,
     main[data-design-weight="strong"] select,
-    main[data-design-weight="strong"] textarea {
-      font-weight: 900 !important;
-    }
+    main[data-design-weight="strong"] textarea { font-weight: 900 !important; }
   `}</style>
 }
