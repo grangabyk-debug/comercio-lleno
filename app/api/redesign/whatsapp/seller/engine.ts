@@ -143,8 +143,6 @@ async function confirm(token:string,conversation:Conversation,companyName:string
 export async function processSellerMessage(input:SellerContext){
   const phone=normalizePhone(input.phone);if(phone.length<10)throw new Error('Ingresá un número con código de país y área.')
   const feature=await featureState(input.token,input.companyId)
-  if(feature.accessPaused)throw new Error('La cuenta está pausada desde Central Llena.')
-  if(!feature.aiSellerEntitled)throw new Error('Vendedor IA WhatsApp no está habilitado para este plan.')
   if(!feature.aiSellerEnabled)throw new Error('El propietario todavía no activó Vendedor IA WhatsApp en Configuración.')
   let conversation=await getConversation(input.token,input.companyId,phone)
   if(input.externalMessageId){const existing=await rest<any[]>(input.token,`whatsapp_ai_messages?company_id=eq.${encodeURIComponent(input.companyId)}&external_message_id=eq.${encodeURIComponent(input.externalMessageId)}&select=id&limit=1`);if(existing?.length){const latest=await rest<any[]>(input.token,`whatsapp_ai_messages?conversation_id=eq.${encodeURIComponent(conversation.id)}&direction=eq.outbound&select=body&order=created_at.desc&limit=1`);return{ok:true,duplicate:true,reply:latest?.[0]?.body||'',conversation}}}
