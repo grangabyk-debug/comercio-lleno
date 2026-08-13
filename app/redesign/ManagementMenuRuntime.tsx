@@ -2,17 +2,63 @@
 
 import { useEffect } from 'react'
 
+function cleanLabel(value: string) {
+  return value.replace(/[▦♜⌃⌄]/g, '').replace(/\s+/g, ' ').trim()
+}
+
 function buttonByLabel(root: ParentNode, label: string) {
-  return Array.from(root.querySelectorAll('button')).find(button => (button.textContent || '').trim() === label) as HTMLButtonElement | undefined
+  return Array.from(root.querySelectorAll('button')).find(button => cleanLabel(button.textContent || '') === label) as HTMLButtonElement | undefined
 }
 
 export default function ManagementMenuRuntime() {
   useEffect(() => {
     let initialHandled = false
     let raf = 0
+    let activeGroup: HTMLButtonElement | null = null
+    let activeContainer: HTMLElement | null = null
+
+    const closeFlyout = () => {
+      if (activeGroup && activeContainer && activeGroup.nextElementSibling === activeContainer) activeGroup.click()
+    }
+
+    const positionFlyout = (group: HTMLButtonElement, container: HTMLElement) => {
+      if (!document.body.contains(container)) return
+      const rect = group.getBoundingClientRect()
+      const gap = 12
+      const preferredWidth = 336
+      const viewportPadding = 12
+      const availableRight = window.innerWidth - rect.right - gap - viewportPadding
+      const availableLeft = rect.left - gap - viewportPadding
+      const width = Math.min(preferredWidth, Math.max(280, window.innerWidth - viewportPadding * 2))
+
+      container.dataset.managementFlyout = 'ready'
+      container.style.setProperty('position', 'fixed', 'important')
+      container.style.setProperty('z-index', '1000', 'important')
+      container.style.setProperty('width', `${width}px`, 'important')
+      container.style.setProperty('max-height', 'min(520px, calc(100vh - 24px))', 'important')
+      container.style.setProperty('overflow-y', 'auto', 'important')
+      container.style.setProperty('overscroll-behavior', 'contain', 'important')
+      container.style.setProperty('box-shadow', '0 24px 70px rgba(19,45,35,.28)', 'important')
+      container.style.setProperty('border-radius', '16px', 'important')
+      container.style.setProperty('right', 'auto', 'important')
+      container.style.setProperty('bottom', 'auto', 'important')
+
+      let left: number
+      if (availableRight >= width) left = rect.right + gap
+      else if (availableLeft >= width) left = rect.left - width - gap
+      else left = Math.max(viewportPadding, Math.min(rect.left, window.innerWidth - width - viewportPadding))
+
+      const height = Math.min(container.scrollHeight || container.offsetHeight || 1, Math.max(1, window.innerHeight - viewportPadding * 2))
+      let top = rect.top
+      if (top + height > window.innerHeight - viewportPadding) top = window.innerHeight - height - viewportPadding
+      top = Math.max(viewportPadding, top)
+
+      container.style.setProperty('left', `${Math.round(left)}px`, 'important')
+      container.style.setProperty('top', `${Math.round(top)}px`, 'important')
+    }
 
     const sync = () => {
-      const group = Array.from(document.querySelectorAll('button')).find(button => (button.textContent || '').trim().startsWith('Gestión')) as HTMLButtonElement | undefined
+      const group = Array.from(document.querySelectorAll('button')).find(button => cleanLabel(button.textContent || '').startsWith('Gestión')) as HTMLButtonElement | undefined
       if (!group) return
 
       const sidebar = group.closest('aside') || document
@@ -35,34 +81,9 @@ export default function ManagementMenuRuntime() {
       }
 
       const container = group.nextElementSibling as HTMLElement | null
+      activeGroup = group
+      activeContainer = container
       if (!container) return
-
-      const place = () => {
-        if (!document.body.contains(container)) return
-        container.dataset.managementFlyout = 'ready'
-        container.style.setProperty('position', 'fixed', 'important')
-        container.style.setProperty('z-index', '85', 'important')
-        container.style.setProperty('max-height', 'calc(100vh - 96px)', 'important')
-        container.style.setProperty('overflow-y', 'auto', 'important')
-
-        if (window.innerWidth <= 950) {
-          container.style.setProperty('left', '12px', 'important')
-          container.style.setProperty('right', '12px', 'important')
-          container.style.setProperty('top', '82px', 'important')
-          container.style.setProperty('width', 'auto', 'important')
-          return
-        }
-
-        const rect = group.getBoundingClientRect()
-        container.style.setProperty('width', '318px', 'important')
-        container.style.setProperty('right', 'auto', 'important')
-        container.style.setProperty('left', `${Math.round(rect.right + 10)}px`, 'important')
-
-        const height = Math.max(1, container.offsetHeight)
-        const maxTop = Math.max(76, window.innerHeight - height - 12)
-        const top = Math.max(76, Math.min(rect.top - 2, maxTop))
-        container.style.setProperty('top', `${Math.round(top)}px`, 'important')
-      }
 
       const addProxy = (label: string, icon: string, original?: HTMLButtonElement) => {
         if (!original || container.querySelector(`[data-management-proxy="${label}"]`)) return
@@ -84,14 +105,19 @@ export default function ManagementMenuRuntime() {
         container.dataset.managementCloseBound = '1'
         container.addEventListener('click', event => {
           if (!(event.target as HTMLElement).closest('button')) return
-          window.setTimeout(() => {
-            if (group.nextElementSibling === container) group.click()
-          }, 0)
+          window.setTimeout(closeFlyout, 0)
         })
       }
 
       window.cancelAnimationFrame(raf)
-      raf = window.requestAnimationFrame(place)
+      raf = window.requestAnimationFrame(() => positionFlyout(group, container))
+    }
+
+    const outsideClick = (event: MouseEvent) => {
+      const target = event.target as Node
+      if (!activeGroup || !activeContainer || !document.body.contains(activeContainer)) return
+      if (activeGroup.contains(target) || activeContainer.contains(target)) return
+      closeFlyout()
     }
 
     sync()
@@ -99,12 +125,14 @@ export default function ManagementMenuRuntime() {
     observer.observe(document.body, { childList: true, subtree: true })
     window.addEventListener('resize', sync)
     window.addEventListener('scroll', sync, true)
+    document.addEventListener('mousedown', outsideClick)
 
     return () => {
       observer.disconnect()
       window.cancelAnimationFrame(raf)
       window.removeEventListener('resize', sync)
       window.removeEventListener('scroll', sync, true)
+      document.removeEventListener('mousedown', outsideClick)
       document.querySelectorAll<HTMLElement>('[data-management-original="1"]').forEach(element => {
         element.style.removeProperty('display')
         delete element.dataset.managementOriginal
