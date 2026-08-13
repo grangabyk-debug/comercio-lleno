@@ -1,1 +1,0 @@
-Este paquete agrupa las mejoras de edición individual de productos, aumento masivo de precios, POS compacto, redirección móvil, IA móvil, Pedido IA+ y seguridad reforzada del asistente.
