@@ -24,6 +24,10 @@ function evolutionConfigured() {
   return Boolean(EVOLUTION_URL && EVOLUTION_KEY)
 }
 
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 function decodeJwtSub(token: string) {
   try {
     const payload = token.split('.')[1]
@@ -121,6 +125,24 @@ function pickQr(data: any) {
     if (base64 || code || pairingCode || count) return { base64, code, pairingCode, count }
   }
   return { base64: '', code: '', pairingCode: '', count: 0 }
+}
+
+async function readConnectionWithRecovery(instance: string) {
+  const current = await readConnection(instance)
+  if (current.connected || current.missing || current.licenseRequired || current.state === 'error') return current
+  if (!['close', 'disconnected', 'unknown'].includes(current.state)) return current
+
+  const attempt = await evo(`/instance/connect/${encodeURIComponent(instance)}`)
+  if (!attempt.response.ok) return current
+
+  const qr = pickQr(attempt.data)
+  if (qr.base64 || qr.code || qr.pairingCode) {
+    return { connected: false, state: 'connecting', reconnectAttempted: true, qr }
+  }
+
+  await sleep(1500)
+  const after = await readConnection(instance)
+  return { ...after, reconnectAttempted: true }
 }
 
 async function createOrConnect(instance: string) {
@@ -225,7 +247,7 @@ export async function POST(req: NextRequest) {
 
   try {
     if (action === 'status') {
-      const status = await readConnection(instance)
+      const status = await readConnectionWithRecovery(instance)
       return NextResponse.json({ ok: true, configured: true, instance, ...status, raw: undefined })
     }
 
@@ -235,7 +257,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === 'send') {
-      const status = await readConnection(instance)
+      const status = await readConnectionWithRecovery(instance)
       if (!status.connected) return NextResponse.json({ ok: false, error: 'WhatsApp todavía no está conectado.', state: status.state }, { status: 409 })
       const number = normalizeNumber(body?.number)
       if (number.length < 10) return NextResponse.json({ ok: false, error: 'Ingresá el número con código de país y área.' }, { status: 400 })
