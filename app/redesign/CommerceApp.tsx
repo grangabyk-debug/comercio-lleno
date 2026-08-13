@@ -85,6 +85,12 @@ function looksLikeNetworkError(error: unknown) {
   return typeof navigator !== 'undefined' && !navigator.onLine || /failed to fetch|network|fetch failed|load failed|internet/i.test(message)
 }
 
+function LiveClock({hour12}:{hour12:boolean}){
+  const[now,setNow]=useState(()=>new Date())
+  useEffect(()=>{const timer=window.setInterval(()=>setNow(new Date()),1000);return()=>window.clearInterval(timer)},[])
+  return <div className={styles.time}>{now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12})}</div>
+}
+
 export default function CommerceApp({ buildVersion }: { buildVersion: string }) {
   const [session, setSession] = useState<TenantSession | null>(null)
   const [data, setData] = useState<CommerceSnapshot | null>(null)
@@ -93,7 +99,6 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
   const [notice, setNotice] = useState('')
   const [view, setView] = useState<ViewKey>('dashboard')
   const [dark, setDark] = useState(false)
-  const [now, setNow] = useState(new Date())
   const [query, setQuery] = useState('')
   const [cart, setCart] = useState<CartLine[]>([])
   const [payment, setPayment] = useState('Efectivo')
@@ -278,14 +283,13 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
       finally{setLoading(false)}
     }
     void bootstrap()
-    const clock=window.setInterval(()=>setNow(new Date()),1000)
-    const healthTimer=window.setInterval(()=>{if(navigator.onLine)checkArcaHealth(s).then(setArca).catch(()=>{})},60000)
+    const healthTimer=window.setInterval(()=>{if(navigator.onLine&&document.visibilityState==='visible')checkArcaHealth(s).then(setArca).catch(()=>{})},300000)
     const key=(e:KeyboardEvent)=>{if(e.key==='F2'&&canView(s,'pos')){e.preventDefault();setView('pos')}}
     const onOffline=()=>{setOnline(false);setOfflineMode(true);setArca({connected:false,checkedAt:new Date().toISOString(),error:'Sin conexión a Internet'});setNotice('Sin Internet: Comercio Lleno sigue funcionando con la copia local. Las ventas quedarán pendientes de sincronización.')}
     const onOnline=()=>{setOnline(true);setNotice('Volvió Internet. Sincronizando ventas pendientes…');void syncOfflineSales(s)}
     const onSalesSettings=(event:Event)=>{const next=(event as CustomEvent<SalesSettings>).detail;if(next)setSalesSettings(next)}
     window.addEventListener('keydown',key);window.addEventListener('offline',onOffline);window.addEventListener('online',onOnline);window.addEventListener('comercio:sales-settings',onSalesSettings)
-    return()=>{window.clearInterval(clock);window.clearInterval(healthTimer);window.removeEventListener('keydown',key);window.removeEventListener('offline',onOffline);window.removeEventListener('online',onOnline);window.removeEventListener('comercio:sales-settings',onSalesSettings)}
+    return()=>{window.clearInterval(healthTimer);window.removeEventListener('keydown',key);window.removeEventListener('offline',onOffline);window.removeEventListener('online',onOnline);window.removeEventListener('comercio:sales-settings',onSalesSettings)}
   },[])
 
   const today=dayKey(new Date())
@@ -384,7 +388,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
         {view==='assistant'&&<UnifiedAssistant/>}
       </section>
     </div>
-    <div className={`${styles.bottomBar} ${shellLayout.bottomBar}`}><div className={styles.bottomStats}><div><span>Ventas hoy</span><b>{money.format(todayTotal)}</b></div><div><span>Caja estimada</span><b>{money.format(cashEstimated)}</b></div><div><span>Stock bajo</span><b>{lowStock}</b></div>{offlinePending>0&&<div><span>Offline pendiente</span><b>{offlinePending}</b></div>}</div><div className={styles.time}>{now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:salesSettings.timeFormat==='12'})}</div></div>
+    <div className={`${styles.bottomBar} ${shellLayout.bottomBar}`}><div className={styles.bottomStats}><div><span>Ventas hoy</span><b>{money.format(todayTotal)}</b></div><div><span>Caja estimada</span><b>{money.format(cashEstimated)}</b></div><div><span>Stock bajo</span><b>{lowStock}</b></div>{offlinePending>0&&<div><span>Offline pendiente</span><b>{offlinePending}</b></div>}</div><LiveClock hour12={salesSettings.timeFormat==='12'}/></div>
     {receiptSale&&data&&<ReceiptModal sale={receiptSale} data={data} device={device} close={()=>setReceiptSale(null)} onMessage={setNotice}/>} 
     {contingency&&<ContingencyModal reason={contingency.reason} total={contingency.sale.total} busy={checkoutBusy} yes={confirmContingency} no={()=>setContingency(null)}/>} 
   </main>
