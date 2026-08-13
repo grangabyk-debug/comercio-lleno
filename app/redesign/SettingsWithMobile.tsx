@@ -48,25 +48,19 @@ function MobileSettingsCard({ session, message }: { session: TenantSession; mess
   }
 
   return <div style={{marginBottom:16}} className={styles.panel}>
-    <div>
-      <h3 style={{margin:0}}>Comercio Lleno Móvil</h3>
-      <p style={{margin:'5px 0 0'}}>Funciones disponibles cuando el comercio entra desde <b>/movil</b>.</p>
-    </div>
+    <div><h3 style={{margin:0}}>Comercio Lleno Móvil</h3><p style={{margin:'5px 0 0'}}>Configuración de la experiencia simplificada para celulares.</p></div>
     <label className={styles.switch}>
       <span><b>Escáner de productos con cámara</b><small>Permite leer códigos de barras, consultar precios y editar/agregar productos desde el celular.</small></span>
       <input type="checkbox" checked={value.scannerEnabled} onChange={e => setValue({scannerEnabled:e.target.checked})}/>
     </label>
     {error && <div className={styles.error}>{error}</div>}
-    <div className={styles.saveRow}>
-      <small style={{color:saved?'#14824f':undefined,fontWeight:saved?900:undefined}}>{saved?'✓ Configuración móvil guardada':'El ajuste queda asociado a este comercio.'}</small>
-      <button className={styles.save} disabled={busy} onClick={save}>{busy?'Guardando…':'Guardar configuración móvil'}</button>
-    </div>
+    <div className={styles.saveRow}><small style={{color:saved?'#14824f':undefined,fontWeight:saved?900:undefined}}>{saved?'✓ Configuración móvil guardada':'Sólo el propietario puede modificar este ajuste.'}</small><button className={styles.save} disabled={busy} onClick={save}>{busy?'Guardando…':'Guardar configuración móvil'}</button></div>
   </div>
 }
 
 export default function SettingsWithMobile(props: Props) {
   return <>
-    <MobileSettingsCard session={props.session} message={props.message}/>
+    {props.session.role === 'owner' && <MobileSettingsCard session={props.session} message={props.message}/>} 
     <SettingsTenant {...props}/>
   </>
 }
