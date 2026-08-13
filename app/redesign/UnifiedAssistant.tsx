@@ -7,14 +7,34 @@ import { readTenantSession } from '@/lib/comercio/session'
 import HumanSupportChat from './HumanSupportChat'
 
 const quick=['¿Cómo vienen las ventas hoy?','¿Cuál fue el producto más vendido en los últimos 30 días?','¿Qué productos tienen stock bajo?','¿Qué puedo hacer con IA?','¿Cómo agrego o edito un producto?']
+const PRIORITY_CACHE_MS=10*60*1000
 type Message={role:'user'|'assistant';content:string}
 type PriorityItem={id?:string;name:string;stock?:number;sold?:number}
+type PriorityCache={at:number;products:PriorityItem[]}
 
 export default function UnifiedAssistant(){
   const[messages,setMessages]=useState<Message[]>([{role:'assistant',content:'Hola. Soy el Asistente IA de Comercio Lleno. Puedo consultar datos reales de tu comercio y explicarte cómo usar el sistema.'}])
   const[text,setText]=useState(''),[busy,setBusy]=useState(false),[priority,setPriority]=useState<PriorityItem[]>([]),[priorityBusy,setPriorityBusy]=useState(true),[priorityError,setPriorityError]=useState(''),[ownerPhone,setOwnerPhone]=useState<string|null>(null)
   async function request(body:Record<string,unknown>){const token=localStorage.getItem('cl_access_token')||'';if(!token)throw new Error('Iniciá sesión nuevamente para usar la IA.');const r=await fetch('/api/redesign/assistant',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store'});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data?.error||'No pude consultar el asistente en este momento.');return data}
-  useEffect(()=>{let cancelled=false;request({action:'priority_order'}).then(data=>{if(!cancelled)setPriority(Array.isArray(data?.products)?data.products:[])}).catch(e=>{if(!cancelled)setPriorityError(e instanceof Error?e.message:String(e))}).finally(()=>{if(!cancelled)setPriorityBusy(false)});const s=readTenantSession();if(s)loadOwnerContact(s).then(x=>{if(!cancelled)setOwnerPhone(x.owner_phone||null)}).catch(()=>{});return()=>{cancelled=true}},[])
+  useEffect(()=>{
+    let cancelled=false
+    const s=readTenantSession()
+    const cacheKey=s?`cl_ai_priority_${s.companyId}`:''
+    let cached:PriorityCache|null=null
+    if(cacheKey){try{cached=JSON.parse(sessionStorage.getItem(cacheKey)||'null') as PriorityCache|null}catch{}}
+    if(cached&&Date.now()-Number(cached.at||0)<PRIORITY_CACHE_MS&&Array.isArray(cached.products)){
+      setPriority(cached.products);setPriorityBusy(false)
+    }else{
+      request({action:'priority_order'}).then(data=>{
+        if(cancelled)return
+        const products=Array.isArray(data?.products)?data.products:[]
+        setPriority(products)
+        if(cacheKey)try{sessionStorage.setItem(cacheKey,JSON.stringify({at:Date.now(),products}))}catch{}
+      }).catch(e=>{if(!cancelled)setPriorityError(e instanceof Error?e.message:String(e))}).finally(()=>{if(!cancelled)setPriorityBusy(false)})
+    }
+    if(s)loadOwnerContact(s).then(x=>{if(!cancelled)setOwnerPhone(x.owner_phone||null)}).catch(()=>{})
+    return()=>{cancelled=true}
+  },[])
   async function ask(question:string){const q=question.trim();if(!q||busy)return;const previous=messages;setMessages(m=>[...m,{role:'user',content:q}]);setText('');setBusy(true);try{const data=await request({message:q,history:previous.slice(-8)});setMessages(m=>[...m,{role:'assistant',content:String(data.answer)}])}catch(e){setMessages(m=>[...m,{role:'assistant',content:e instanceof Error?e.message:'No pude responder en este momento.'}])}finally{setBusy(false)}}
   function submit(e:FormEvent){e.preventDefault();void ask(text)}
   function orderText(){return priority.slice(0,10).map((p,i)=>`${i+1}. ${p.name}`).join('\n')}
