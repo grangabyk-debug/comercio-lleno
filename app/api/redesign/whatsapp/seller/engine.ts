@@ -12,7 +12,7 @@ type Conversation={id:string;company_id:string;customer_phone:string;instance_na
 type SellerContext={token:string;companyId:string;companyName:string;phone:string;text:string;externalMessageId?:string|null;commitSale?:boolean}
 
 function headers(token:string,prefer?:string){return{apikey:PUBLISHABLE_KEY,Authorization:`Bearer ${token}`,'Content-Type':'application/json',...(prefer?{Prefer:prefer}:{})}}
-async function rest<T>(token:string,path:string,init:RequestInit={}){const response=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{...init,headers:{...headers(token),(init.headers||{})},cache:'no-store'});const text=await response.text();let data:any=null;try{data=text?JSON.parse(text):null}catch{data=text}if(!response.ok)throw new Error(data?.message||data?.error||`Supabase ${response.status}`);return data as T}
+async function rest<T>(token:string,path:string,init:RequestInit={}){const response=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{...init,headers:{...headers(token),...(init.headers||{})},cache:'no-store'});const text=await response.text();let data:any=null;try{data=text?JSON.parse(text):null}catch{data=text}if(!response.ok)throw new Error(data?.message||data?.error||`Supabase ${response.status}`);return data as T}
 async function rpc<T>(token:string,name:string,body:unknown){return rest<T>(token,`rpc/${name}`,{method:'POST',body:JSON.stringify(body),headers:{Prefer:'return=representation'}})}
 export function normalizePhone(value:unknown){return String(value||'').replace(/\D/g,'').slice(0,18)}
 export function sellerInstanceName(companyId:string){return`cl-${companyId.replace(/[^a-zA-Z0-9]/g,'').slice(0,40).toLowerCase()}`}
