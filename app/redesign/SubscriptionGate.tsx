@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { readTenantSession, type } from '@/lib/comercio/session'
+import { readTenantSession } from '@/lib/comercio/session'
+import type { TenantSession } from '@/lib/comercio/types'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcubkbtcsqkzc.supabase.co'
 const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
@@ -22,14 +23,15 @@ function clearSession() {
 }
 
 export default function SubscriptionGate() {
+  const [session, setSession] = useState<TenantSession | null>(null)
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const session = typeof window === 'undefined' ? null : readTenantSession()
 
   useEffect(() => {
     const current = readTenantSession()
+    setSession(current)
     if (!current) { setLoaded(true); return }
     fetch(`${SUPABASE_URL}/rest/v1/company_subscriptions?company_id=eq.${encodeURIComponent(current.companyId)}&select=status,trial_ends_at,price_amount,currency,provider_status&limit=1`, {
       headers: { apikey:PUBLISHABLE_KEY, Authorization:`Bearer ${current.token}` },
