@@ -12,6 +12,15 @@ function authorization(req: NextRequest) {
   return value.toLowerCase().startsWith('bearer ') ? value : ''
 }
 
+function canAdminProducts(profile: Profile) {
+  if (profile.role === 'owner') return true
+  const permissions = profile.permissions || {}
+  const relevant = [permissions.can_manage_stock, permissions.can_edit_products, permissions.can_import_export_products]
+  if (relevant.some(value => value === true)) return true
+  if (relevant.some(value => typeof value === 'boolean')) return false
+  return profile.role === 'manager' || profile.role === 'supervisor'
+}
+
 async function authorizeProductAdministration(req: NextRequest) {
   const auth = authorization(req)
   if (!auth) return Response.json({ ok:false, error:'Sesión no disponible.' }, { status:401 })
@@ -30,16 +39,7 @@ async function authorizeProductAdministration(req: NextRequest) {
   const rows = await profileResponse.json().catch(() => [])
   const profile: Profile | null = profileResponse.ok && Array.isArray(rows) ? rows[0] ?? null : null
   if (!profile || profile.active !== true) return Response.json({ ok:false, error:'Perfil del comercio no disponible.' }, { status:403 })
-
-  const permissions = profile.permissions || {}
-  const allowed = profile.role === 'owner'
-    || profile.role === 'manager'
-    || profile.role === 'supervisor'
-    || permissions.can_manage_stock === true
-    || permissions.can_edit_products === true
-    || permissions.can_import_export_products === true
-
-  if (!allowed) return Response.json({ ok:false, error:'No tenés permiso para importar, exportar o administrar productos.' }, { status:403 })
+  if (!canAdminProducts(profile)) return Response.json({ ok:false, error:'No tenés permiso para importar, exportar o administrar productos.' }, { status:403 })
   return null
 }
 
