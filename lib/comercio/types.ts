@@ -22,6 +22,12 @@ export type UserPermissions = {
   can_view_reports?: boolean
   can_manage_stock?: boolean
   can_manage_customers?: boolean
+  can_edit_products?: boolean
+  can_import_export_products?: boolean
+  can_edit_customers?: boolean
+  can_delete_customers?: boolean
+  can_delete_sales?: boolean
+  can_manage_promotions?: boolean
   [key: string]: boolean | undefined
 }
 
@@ -63,6 +69,9 @@ export type SaleItem = {
   qty: number
   unit_price: number
   line_total: number
+  original_unit_price?: number | null
+  promotion_discount_percent?: number | null
+  promotion_savings?: number | null
 }
 
 export type SaleDetails = {
@@ -70,6 +79,7 @@ export type SaleDetails = {
   subtotal_before_discount?: number
   discount_amount?: number
   discount?: { kind: 'percent' | 'amount' | string; value: number } | null
+  promotion_savings?: number
   note?: string | null
   captured_at?: string
   cae?: string | null

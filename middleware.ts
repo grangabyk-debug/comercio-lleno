@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-function secure(response: NextResponse) {
+function secure(response: NextResponse, request: NextRequest) {
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('X-Frame-Options', 'SAMEORIGIN')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  response.headers.set('Permissions-Policy', request.nextUrl.pathname.startsWith('/movil') ? 'camera=(self), microphone=(), geolocation=()' : 'camera=(), microphone=(), geolocation=()')
   response.headers.set('X-Permitted-Cross-Domain-Policies', 'none')
   return response
 }
@@ -17,10 +17,10 @@ export function middleware(request: NextRequest) {
   if (url.pathname.startsWith('/app/')) {
     url.pathname = '/redesign'
     url.search = ''
-    return secure(NextResponse.redirect(url))
+    return secure(NextResponse.redirect(url), request)
   }
 
-  return secure(NextResponse.next())
+  return secure(NextResponse.next(), request)
 }
 
 export const config = {

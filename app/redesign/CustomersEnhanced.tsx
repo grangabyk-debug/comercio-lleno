@@ -20,6 +20,9 @@ export default function CustomersEnhanced({data,session,refresh,message}:{data:C
   const [tax,setTax]=useState('')
   const [busy,setBusy]=useState(false)
   const [dir,setDir]=useState<'asc'|'desc'>('asc')
+  const owner=session.role==='owner'
+  const canEdit=owner||session.permissions?.can_edit_customers===true||(session.permissions?.can_edit_customers==null&&session.permissions?.can_manage_customers!==false)
+  const canDelete=owner||session.permissions?.can_delete_customers===true
 
   const rows=useMemo(()=>data.customers
     .filter(c=>`${c.name} ${c.phone||''} ${c.email||''} ${c.tax_id||''}`.toLowerCase().includes(q.toLowerCase()))
@@ -36,12 +39,13 @@ export default function CustomersEnhanced({data,session,refresh,message}:{data:C
   }
 
   async function saveEdit(e:FormEvent){
-    e.preventDefault(); if(!edit)return
+    e.preventDefault(); if(!edit||!canEdit)return
     setBusy(true)
     try{await updateCustomer(session,edit);setEdit(null);await refresh();message('Cliente actualizado.')}catch(e){message(e instanceof Error?e.message:String(e))}finally{setBusy(false)}
   }
 
   async function remove(c:Customer){
+    if(!canDelete)return
     if(!window.confirm(`¿Desea eliminar al cliente ${c.name}?`))return
     setBusy(true)
     try{await deleteCustomer(session,c.id);if(edit?.id===c.id)setEdit(null);await refresh();message('Cliente eliminado.')}catch(e){message(e instanceof Error?e.message:String(e))}finally{setBusy(false)}
@@ -53,9 +57,9 @@ export default function CustomersEnhanced({data,session,refresh,message}:{data:C
     <div className={core.tableTools}><div className={core.searchSlim}><span>⌕</span><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar nombre, teléfono, email o CUIT…"/></div></div>
     <div className={`${core.table} ${core.customerTable}`}>
       <div className={`${core.tableRow} ${core.tableHead}`} style={customerGrid}><span><button type="button" onClick={()=>setDir(d=>d==='asc'?'desc':'asc')} style={{border:0,background:'transparent',padding:0,font:'inherit',fontWeight:800,cursor:'pointer',color:'inherit'}}>Nombre {dir==='asc'?'↑':'↓'}</button></span><span>Teléfono</span><span>Email</span><span>CUIT/DNI</span><span>Acciones</span></div>
-      {rows.map(c=><div className={core.tableRow} style={customerGrid} key={c.id}><span><b>{c.name}</b></span><span>{c.phone||'—'}</span><span>{c.email||'—'}</span><span>{c.tax_id||'—'}</span><span style={{display:'flex',gap:8,flexWrap:'wrap'}}><button className={core.secondary} onClick={()=>setEdit({...c})}>Editar</button><button className={core.ghostDanger} disabled={busy} onClick={()=>void remove(c)}>Eliminar</button></span></div>)}
+      {rows.map(c=><div className={core.tableRow} style={customerGrid} key={c.id}><span><b>{c.name}</b></span><span>{c.phone||'—'}</span><span>{c.email||'—'}</span><span>{c.tax_id||'—'}</span><span style={{display:'flex',gap:8,flexWrap:'wrap'}}>{canEdit&&<button className={core.secondary} onClick={()=>setEdit({...c})}>Editar</button>}{canDelete&&<button className={core.ghostDanger} disabled={busy} onClick={()=>void remove(c)}>Eliminar</button>}{!canEdit&&!canDelete&&<small>Sin permisos de edición</small>}</span></div>)}
     </div>
 
-    {edit&&<div className={styles.modal} onMouseDown={e=>e.currentTarget===e.target&&setEdit(null)}><form className={styles.modalCard} onSubmit={saveEdit}><div className={styles.modalHead}><div><span>CLIENTE</span><h2>Editar cliente</h2></div><button type="button" onClick={()=>setEdit(null)}>×</button></div><div className={styles.formGrid}><label>Nombre<input value={edit.name} onChange={e=>setEdit({...edit,name:e.target.value})}/></label><label>Teléfono<input value={edit.phone||''} onChange={e=>setEdit({...edit,phone:e.target.value})}/></label><label>Email<input value={edit.email||''} onChange={e=>setEdit({...edit,email:e.target.value})}/></label><label>CUIT / DNI<input value={edit.tax_id||''} onChange={e=>setEdit({...edit,tax_id:e.target.value})}/></label></div><div className={styles.modalActions}><button type="button" onClick={()=>setEdit(null)}>Cancelar</button><button className={styles.save} disabled={busy}>{busy?'Guardando…':'Guardar cambios'}</button></div></form></div>}
+    {edit&&canEdit&&<div className={styles.modal} onMouseDown={e=>e.currentTarget===e.target&&setEdit(null)}><form className={styles.modalCard} onSubmit={saveEdit}><div className={styles.modalHead}><div><span>CLIENTE</span><h2>Editar cliente</h2></div><button type="button" onClick={()=>setEdit(null)}>×</button></div><div className={styles.formGrid}><label>Nombre<input value={edit.name} onChange={e=>setEdit({...edit,name:e.target.value})}/></label><label>Teléfono<input value={edit.phone||''} onChange={e=>setEdit({...edit,phone:e.target.value})}/></label><label>Email<input value={edit.email||''} onChange={e=>setEdit({...edit,email:e.target.value})}/></label><label>CUIT / DNI<input value={edit.tax_id||''} onChange={e=>setEdit({...edit,tax_id:e.target.value})}/></label></div><div className={styles.modalActions}><button type="button" onClick={()=>setEdit(null)}>Cancelar</button><button className={styles.save} disabled={busy}>{busy?'Guardando…':'Guardar cambios'}</button></div></form></div>}
   </>
 }

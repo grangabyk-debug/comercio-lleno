@@ -42,6 +42,28 @@ type Props = {
 
 type Tab = 'commerce' | 'sales' | 'design' | 'arca' | 'printer' | 'stock' | 'users' | 'updates' | 'maintenance'
 
+type PermissionKey = keyof UserPermissions
+const permissionGroups: Array<{ title:string; description:string; items:Array<[PermissionKey,string,string]> }> = [
+  { title:'Operación', description:'Acciones cotidianas del usuario.', items:[
+    ['can_sell','Vender y cobrar','Puede abrir Nueva venta y registrar cobros.'],
+    ['can_view_reports','Ver reportes y rentabilidad','Puede consultar indicadores, reportes y rentabilidad.'],
+  ]},
+  { title:'Productos y stock', description:'Qué puede hacer dentro del catálogo.', items:[
+    ['can_manage_stock','Ver y administrar stock','Habilita el acceso a Productos, Compras, Proveedores y Stock.'],
+    ['can_edit_products','Crear y editar productos','Puede cambiar nombre, precios, costos y existencias.'],
+    ['can_import_export_products','Importar y exportar productos','Puede descargar o cargar archivos Excel.'],
+  ]},
+  { title:'Clientes', description:'Permisos sobre la base de clientes.', items:[
+    ['can_manage_customers','Ver y agregar clientes','Habilita Clientes y Cuentas corrientes.'],
+    ['can_edit_customers','Editar clientes','Puede modificar datos de clientes existentes.'],
+    ['can_delete_customers','Eliminar clientes','Puede eliminar clientes; las ventas históricas se conservan.'],
+  ]},
+  { title:'Acciones sensibles', description:'Conviene habilitarlas sólo cuando sea necesario.', items:[
+    ['can_delete_sales','Eliminar ventas','Puede eliminar ventas, devolver stock y quitarlas de los reportes. La factura de ARCA no se borra.'],
+    ['can_manage_promotions','Gestionar promociones','Puede crear descuentos, 2x1 y quitar promociones.'],
+  ]},
+]
+
 function Head() {
   return <div className={core.pageHead}><div><div className={core.eyebrow}>ADMINISTRACIÓN</div><h1>Configuración</h1><p>Ajustes del comercio, caja, diseño, facturación, impresora y permisos.</p></div></div>
 }
@@ -50,190 +72,77 @@ function SalesPanel({ session, message }: { session: TenantSession; message: (m:
   const [value, setValue] = useState<SalesSettings>(() => readCachedSalesSettings(session.companyId))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    let cancelled = false
-    loadSalesSettings(session).then(next => { if (!cancelled) setValue(next) }).catch(() => {})
-    return () => { cancelled = true }
-  }, [session.companyId, session.token])
-
-  async function save() {
-    setBusy(true); setError('')
-    try {
-      const next = await saveSalesSettings(session, value)
-      setValue(next)
-      message('Ajustes de ventas y caja guardados para este comercio.')
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
-    } finally { setBusy(false) }
-  }
-
-  return <div className={styles.panel}>
-    <h3>Ventas y caja</h3>
-    <p>Estos ajustes quedan asociados al comercio y se aplican en la pantalla Nueva venta.</p>
-
-    <label className={styles.switch}>
-      <span><b>Permitir vender sin stock</b><small>Si está activado, podés agregar y cobrar productos aunque el stock figure en 0. El stock no baja de 0.</small></span>
-      <input type="checkbox" checked={value.allowNegativeStock} onChange={e => setValue(v => ({ ...v, allowNegativeStock: e.target.checked }))}/>
-    </label>
-
-    <div className={styles.field}>
-      <span>Formato horario</span>
-      <div className={styles.choice}>
-        <button type="button" className={value.timeFormat === '24' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, timeFormat: '24' }))}>24 horas · 18:45</button>
-        <button type="button" className={value.timeFormat === '12' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, timeFormat: '12' }))}>12 horas · 6:45 PM</button>
-      </div>
-      <small>El formato predeterminado es 24 horas.</small>
-    </div>
-
-    <label className={styles.field}>Descuento máximo (%)
-      <input type="number" min="0" max="100" value={value.maxDiscount} onChange={e => setValue(v => ({ ...v, maxDiscount: Math.max(0, Math.min(100, Number(e.target.value) || 0)) }))}/>
-    </label>
-
-    {error && <div className={styles.error}>{error}</div>}
-    <div className={styles.saveRow}><small>Se guarda en la cuenta del comercio; no depende solamente de esta computadora.</small><button className={styles.save} disabled={busy} onClick={save}>{busy ? 'Guardando…' : 'Guardar ajustes'}</button></div>
+  useEffect(() => { let cancelled=false; loadSalesSettings(session).then(next=>{if(!cancelled)setValue(next)}).catch(()=>{}); return()=>{cancelled=true} }, [session.companyId, session.token])
+  async function save(){setBusy(true);setError('');try{const next=await saveSalesSettings(session,value);setValue(next);message('Ajustes de ventas y caja guardados para este comercio.')}catch(e){setError(e instanceof Error?e.message:String(e))}finally{setBusy(false)}}
+  return <div className={styles.panel}><h3>Ventas y caja</h3><p>Estos ajustes quedan asociados al comercio y se aplican en Nueva venta.</p>
+    <label className={styles.switch}><span><b>Permitir vender sin stock</b><small>Si está activado, podés cobrar productos aunque el stock figure en 0. El stock no baja de 0.</small></span><input type="checkbox" checked={value.allowNegativeStock} onChange={e=>setValue(v=>({...v,allowNegativeStock:e.target.checked}))}/></label>
+    <div className={styles.field}><span>Formato horario</span><div className={styles.choice}><button type="button" className={value.timeFormat==='24'?styles.selected:''} onClick={()=>setValue(v=>({...v,timeFormat:'24'}))}>24 horas · 18:45</button><button type="button" className={value.timeFormat==='12'?styles.selected:''} onClick={()=>setValue(v=>({...v,timeFormat:'12'}))}>12 horas · 6:45 PM</button></div><small>El formato predeterminado es 24 horas.</small></div>
+    <label className={styles.field}>Descuento máximo (%)<input type="number" min="0" max="100" value={value.maxDiscount} onChange={e=>setValue(v=>({...v,maxDiscount:Math.max(0,Math.min(100,Number(e.target.value)||0))}))}/></label>
+    {error&&<div className={styles.error}>{error}</div>}<div className={styles.saveRow}><small>Se guarda en la cuenta del comercio.</small><button className={styles.save} disabled={busy} onClick={save}>{busy?'Guardando…':'Guardar ajustes'}</button></div>
   </div>
 }
 
 function DesignPanel({ session, message }: { session: TenantSession; message: (m: string) => void }) {
-  const [value, setValue] = useState<DesignSettings>(() => readCachedDesignSettings(session.companyId))
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    let cancelled = false
-    loadDesignSettings(session).then(next => { if (!cancelled) setValue(next) }).catch(() => {})
-    return () => { cancelled = true }
-  }, [session.companyId, session.token])
-
-  async function save() {
-    setBusy(true); setError('')
-    try {
-      const next = await saveDesignSettings(session, value)
-      setValue(next)
-      message('Diseño guardado para este comercio.')
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
-    } finally { setBusy(false) }
-  }
-
-  return <div className={styles.panel}>
-    <h3>Diseño de la plataforma</h3>
-    <p>Elegí una de tres variantes por ajuste. La combinación queda asociada a este comercio y se aplica automáticamente al volver a ingresar.</p>
-
-    <div className={styles.designBlock}>
-      <div><b>Colores</b><small>Paleta general de la interfaz.</small></div>
-      <div className={styles.choiceThree}>
-        <button type="button" className={value.colorTheme === 'emerald' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, colorTheme:'emerald' }))}><span className={`${styles.swatch} ${styles.swatchEmerald}`}/>Esmeralda</button>
-        <button type="button" className={value.colorTheme === 'ocean' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, colorTheme:'ocean' }))}><span className={`${styles.swatch} ${styles.swatchOcean}`}/>Azul petróleo</button>
-        <button type="button" className={value.colorTheme === 'graphite' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, colorTheme:'graphite' }))}><span className={`${styles.swatch} ${styles.swatchGraphite}`}/>Grafito</button>
-      </div>
-    </div>
-
-    <div className={styles.designBlock}>
-      <div><b>Tamaño de texto</b><small>Escala general para lectura y densidad.</small></div>
-      <div className={styles.choiceThree}>
-        <button type="button" className={value.fontSize === 'compact' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontSize:'compact' }))}>Compacto</button>
-        <button type="button" className={value.fontSize === 'standard' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontSize:'standard' }))}>Equilibrado</button>
-        <button type="button" className={value.fontSize === 'large' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontSize:'large' }))}>Grande</button>
-      </div>
-    </div>
-
-    <div className={styles.designBlock}>
-      <div><b>Grosor de letras</b><small>Hace que títulos, botones y datos se vean más suaves o más marcados.</small></div>
-      <div className={styles.choiceThree}>
-        <button type="button" className={value.fontWeight === 'soft' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontWeight:'soft' }))}>Suave</button>
-        <button type="button" className={value.fontWeight === 'balanced' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontWeight:'balanced' }))}>Equilibrado</button>
-        <button type="button" className={value.fontWeight === 'strong' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontWeight:'strong' }))}>Fuerte</button>
-      </div>
-    </div>
-
-    <div className={styles.designBlock}>
-      <div><b>Tipografía</b><small>Tres estilos simples y legibles para todo el sistema.</small></div>
-      <div className={styles.choiceThree}>
-        <button type="button" className={value.fontFamily === 'modern' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontFamily:'modern' }))}><span className={styles.fontModern}>Aa</span>Moderna</button>
-        <button type="button" className={value.fontFamily === 'classic' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontFamily:'classic' }))}><span className={styles.fontClassic}>Aa</span>Clásica</button>
-        <button type="button" className={value.fontFamily === 'rounded' ? styles.selected : ''} onClick={() => setValue(v => ({ ...v, fontFamily:'rounded' }))}><span className={styles.fontRounded}>Aa</span>Redondeada</button>
-      </div>
-    </div>
-
-    <div className={styles.designPreview}><span>Vista previa</span><b>Comercio Lleno</b><small>Ventas · Caja · Productos · Reportes</small></div>
-    {error && <div className={styles.error}>{error}</div>}
-    <div className={styles.saveRow}><small>El diseño se guarda por comercio, no por computadora.</small><button className={styles.save} disabled={busy} onClick={save}>{busy ? 'Guardando…' : 'Guardar diseño'}</button></div>
+  const [value,setValue]=useState<DesignSettings>(()=>readCachedDesignSettings(session.companyId))
+  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[saved,setSaved]=useState(false)
+  useEffect(()=>{let cancelled=false;loadDesignSettings(session).then(next=>{if(!cancelled)setValue(next)}).catch(()=>{});return()=>{cancelled=true}},[session.companyId,session.token])
+  async function save(){setBusy(true);setError('');setSaved(false);try{const next=await saveDesignSettings(session,value);setValue(next);setSaved(true);message('Diseño guardado para este comercio.');window.setTimeout(()=>setSaved(false),2800)}catch(e){setError(e instanceof Error?e.message:String(e))}finally{setBusy(false)}}
+  return <div className={styles.panel}><h3>Diseño de la plataforma</h3><p>Elegí tamaño, grosor y tipografía. El diseño queda asociado a este comercio.</p>
+    <div className={styles.designBlock}><div><b>Tamaño de texto</b><small>Escala general para lectura y densidad.</small></div><div className={styles.choiceThree}><button type="button" className={value.fontSize==='compact'?styles.selected:''} onClick={()=>setValue(v=>({...v,fontSize:'compact'}))}>Compacto</button><button type="button" className={value.fontSize==='standard'?styles.selected:''} onClick={()=>setValue(v=>({...v,fontSize:'standard'}))}>Equilibrado</button><button type="button" className={value.fontSize==='large'?styles.selected:''} onClick={()=>setValue(v=>({...v,fontSize:'large'}))}>Grande</button></div></div>
+    <div className={styles.designBlock}><div><b>Grosor de letras</b><small>Hace que títulos, botones y datos se vean más suaves o marcados.</small></div><div className={styles.choiceThree}><button type="button" className={value.fontWeight==='soft'?styles.selected:''} onClick={()=>setValue(v=>({...v,fontWeight:'soft'}))}>Suave</button><button type="button" className={value.fontWeight==='balanced'?styles.selected:''} onClick={()=>setValue(v=>({...v,fontWeight:'balanced'}))}>Equilibrado</button><button type="button" className={value.fontWeight==='strong'?styles.selected:''} onClick={()=>setValue(v=>({...v,fontWeight:'strong'}))}>Fuerte</button></div></div>
+    <div className={styles.designBlock}><div><b>Tipografía</b><small>Dos opciones simples y legibles.</small></div><div className={styles.choiceThree}><button type="button" className={value.fontFamily==='modern'?styles.selected:''} onClick={()=>setValue(v=>({...v,fontFamily:'modern'}))}><span className={styles.fontModern}>Aa</span>Moderna</button><button type="button" className={value.fontFamily==='classic'?styles.selected:''} onClick={()=>setValue(v=>({...v,fontFamily:'classic'}))}><span className={styles.fontClassic}>Aa</span>Clásica</button></div></div>
+    {error&&<div className={styles.error}>{error}</div>}<div className={styles.saveRow}><small style={{color:saved?'#14824f':undefined,fontWeight:saved?900:undefined}}>{saved?'✓ Diseño guardado':'El diseño se guarda por comercio, no por computadora.'}</small><button className={styles.save} disabled={busy} onClick={save}>{busy?'Guardando…':'Guardar diseño'}</button></div>
   </div>
 }
 
-function StockPanel() {
-  const [low, setLow] = useState(5)
-  const [allowNegative, setAllowNegative] = useState(false)
-  const [saved, setSaved] = useState(false)
-  useEffect(() => {
-    try {
-      const all = JSON.parse(localStorage.getItem('cl_settings') || '{}')
-      setLow(Number(all?.stock?.low ?? 5))
-      setAllowNegative(Boolean(all?.stock?.allowNegative))
-    } catch {}
-  }, [])
-  function save() {
-    let all: Record<string, unknown> = {}
-    try { all = JSON.parse(localStorage.getItem('cl_settings') || '{}') } catch {}
-    ;(all as any).stock = { low, allowNegative }
-    localStorage.setItem('cl_settings', JSON.stringify(all))
-    setSaved(true); setTimeout(() => setSaved(false), 1800)
+function StockPanel(){const[low,setLow]=useState(5),[allowNegative,setAllowNegative]=useState(false),[saved,setSaved]=useState(false);useEffect(()=>{try{const all=JSON.parse(localStorage.getItem('cl_settings')||'{}');setLow(Number(all?.stock?.low??5));setAllowNegative(Boolean(all?.stock?.allowNegative))}catch{}},[]);function save(){let all:Record<string,unknown>={};try{all=JSON.parse(localStorage.getItem('cl_settings')||'{}')}catch{};(all as any).stock={low,allowNegative};localStorage.setItem('cl_settings',JSON.stringify(all));setSaved(true);setTimeout(()=>setSaved(false),1800)}return <div className={styles.panel}><h3>Stock e inventario</h3><p>Avisos y comportamiento general del inventario.</p><div className={styles.grid}><label className={styles.field}>Avisar stock bajo desde<input type="number" min="0" value={low} onChange={e=>setLow(Math.max(0,Number(e.target.value)||0))}/></label><label className={styles.switch}><span><b>Permitir stock negativo en ajustes manuales</b><small>No modifica vender sin stock de Ventas y caja.</small></span><input type="checkbox" checked={allowNegative} onChange={e=>setAllowNegative(e.target.checked)}/></label></div><div className={styles.saveRow}><small>{saved?'Ajustes guardados.':'Ajuste local de inventario.'}</small><button className={styles.save} onClick={save}>Guardar ajustes</button></div></div>}
+
+function normalizePermissions(staff: StaffProfile): UserPermissions {
+  const p=staff.permissions||{}
+  const stock=p.can_manage_stock!==false
+  const customers=p.can_manage_customers!==false
+  return {
+    ...p,
+    can_sell:p.can_sell!==false,
+    can_view_reports:p.can_view_reports!==false,
+    can_manage_stock:stock,
+    can_manage_customers:customers,
+    can_edit_products:p.can_edit_products??stock,
+    can_import_export_products:p.can_import_export_products??stock,
+    can_edit_customers:p.can_edit_customers??customers,
+    can_delete_customers:p.can_delete_customers??false,
+    can_delete_sales:p.can_delete_sales??false,
+    can_manage_promotions:p.can_manage_promotions??(staff.role==='supervisor'),
   }
-  return <div className={styles.panel}><h3>Stock e inventario</h3><p>Avisos y comportamiento general del inventario.</p><div className={styles.grid}><label className={styles.field}>Avisar stock bajo desde<input type="number" min="0" value={low} onChange={e => setLow(Math.max(0, Number(e.target.value) || 0))}/></label><label className={styles.switch}><span><b>Permitir stock negativo en ajustes manuales</b><small>No modifica la opción de vender sin stock de Ventas y caja.</small></span><input type="checkbox" checked={allowNegative} onChange={e => setAllowNegative(e.target.checked)}/></label></div><div className={styles.saveRow}><small>{saved ? 'Ajustes guardados.' : 'Ajuste local de inventario.'}</small><button className={styles.save} onClick={save}>Guardar ajustes</button></div></div>
 }
 
-function StaffRow({ staff, session, saved }: { staff: StaffProfile; session: TenantSession; saved: () => Promise<void> }) {
-  const [role, setRole] = useState(staff.role)
-  const [permissions, setPermissions] = useState<UserPermissions>(staff.permissions || {})
-  const [busy, setBusy] = useState(false)
-  function setP(k: keyof UserPermissions, checked: boolean) { setPermissions(p => ({ ...p, [k]: checked })) }
-  async function save() { setBusy(true); try { await updateStaff(session, staff.id, role, permissions); await saved() } finally { setBusy(false) } }
-  return <div className={styles.staff}><div><b>{staff.full_name || staff.username || 'Usuario'}</b><small>{staff.username || ''}</small></div><select value={role} onChange={e => setRole(e.target.value)}><option value="cashier">Encargado / Cajero</option><option value="supervisor">Supervisor</option></select><div className={styles.permissions}><label><input type="checkbox" checked={permissions.can_sell !== false} onChange={e => setP('can_sell', e.target.checked)}/> Vender</label><label><input type="checkbox" checked={permissions.can_view_reports !== false} onChange={e => setP('can_view_reports', e.target.checked)}/> Reportes</label><label><input type="checkbox" checked={permissions.can_manage_stock !== false} onChange={e => setP('can_manage_stock', e.target.checked)}/> Stock</label><label><input type="checkbox" checked={permissions.can_manage_customers !== false} onChange={e => setP('can_manage_customers', e.target.checked)}/> Clientes</label></div><button className={styles.mini} disabled={busy} onClick={save}>{busy ? 'Guardando…' : 'Guardar'}</button></div>
+function StaffRow({staff,session,saved,message}:{staff:StaffProfile;session:TenantSession;saved:()=>Promise<void>;message:(m:string)=>void}){
+  const[open,setOpen]=useState(false),[role,setRole]=useState(staff.role),[permissions,setPermissions]=useState<UserPermissions>(()=>normalizePermissions(staff)),[busy,setBusy]=useState(false),[error,setError]=useState('')
+  function setP(key:PermissionKey,checked:boolean){setPermissions(p=>({...p,[key]:checked}))}
+  async function save(){setBusy(true);setError('');try{await updateStaff(session,staff.id,role,permissions);await saved();setOpen(false);message(`Permisos de ${staff.full_name||staff.username||'usuario'} guardados.`)}catch(e){setError(e instanceof Error?e.message:String(e))}finally{setBusy(false)}}
+  const enabled=Object.entries(permissions).filter(([,v])=>v===true).length
+  return <><div className={styles.staff}><div><b>{staff.full_name||staff.username||'Usuario'}</b><small>{staff.username||''}</small></div><div><b>{role==='supervisor'?'Supervisor':'Encargado / Cajero'}</b><small>{enabled} permisos activos</small></div><button className={styles.mini} onClick={()=>setOpen(true)}>Editar permisos</button></div>
+    {open&&<div className={styles.modal} onMouseDown={e=>e.currentTarget===e.target&&setOpen(false)}><div className={styles.modalCard} style={{width:'min(820px,96vw)'}}><div className={styles.modalHead}><div><small style={{fontWeight:900,color:'#168a55'}}>USUARIO Y PERMISOS</small><h3 style={{margin:'4px 0'}}>{staff.full_name||staff.username||'Usuario'}</h3></div><button onClick={()=>setOpen(false)}>×</button></div>
+      <label className={styles.field}>Rol<select value={role} onChange={e=>setRole(e.target.value)}><option value="cashier">Encargado / Cajero</option><option value="supervisor">Supervisor</option></select></label>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',gap:12,marginTop:14}}>{permissionGroups.map(group=><section key={group.title} style={{border:'1px solid #dfe7e3',borderRadius:13,padding:13}}><b>{group.title}</b><small style={{display:'block',color:'#75827c',margin:'3px 0 9px'}}>{group.description}</small>{group.items.map(([key,label,help])=><label key={String(key)} style={{display:'grid',gridTemplateColumns:'20px 1fr',gap:7,alignItems:'start',padding:'7px 0',borderTop:'1px solid #edf1ef'}}><input type="checkbox" checked={permissions[key]===true} onChange={e=>setP(key,e.target.checked)}/><span><b style={{display:'block',fontSize:10}}>{label}</b><small style={{display:'block',color:'#7a8780',fontSize:9,marginTop:2,lineHeight:1.35}}>{help}</small></span></label>)}</section>)}</div>
+      {error&&<div className={styles.error}>{error}</div>}<div className={styles.actions}><button onClick={()=>setOpen(false)}>Cancelar</button><button className={styles.primary} disabled={busy} onClick={save}>{busy?'Guardando…':'Guardar permisos'}</button></div>
+    </div></div>}
+  </>
 }
 
-function NewStaffModal({ session, close, saved }: { session: TenantSession; close: () => void; saved: () => Promise<void> }) {
-  const [name, setName] = useState(''), [username, setUsername] = useState(''), [password, setPassword] = useState(''), [role, setRole] = useState<'cashier'|'supervisor'>('cashier')
-  const [busy, setBusy] = useState(false), [error, setError] = useState('')
-  async function submit(e: FormEvent) {
-    e.preventDefault(); setError('')
-    if (!username.trim() || password.length < 6) { setError('Completá usuario y una contraseña de al menos 6 caracteres.'); return }
-    const permissions: UserPermissions = role === 'supervisor' ? { can_sell:false, can_view_reports:true, can_manage_stock:true, can_manage_customers:true } : { can_sell:true, can_view_reports:true, can_manage_stock:true, can_manage_customers:true }
-    setBusy(true)
-    try { await createStaff(session, { username, password, full_name:name, role, permissions }); await saved() }
-    catch(e){ setError(e instanceof Error ? e.message : String(e)); setBusy(false) }
-  }
-  return <div className={styles.modal}><form className={styles.modalCard} onSubmit={submit}><div className={styles.modalHead}><h3>Crear usuario del comercio</h3><button type="button" onClick={close}>×</button></div><div className={styles.grid}><label className={styles.field}>Nombre<input value={name} onChange={e=>setName(e.target.value)}/></label><label className={styles.field}>Usuario<input value={username} onChange={e=>setUsername(e.target.value)} placeholder="ej: caja1"/></label><label className={styles.field}>Contraseña<input type="password" value={password} onChange={e=>setPassword(e.target.value)}/></label><label className={styles.field}>Rol<select value={role} onChange={e=>setRole(e.target.value as 'cashier'|'supervisor')}><option value="cashier">Encargado / Cajero</option><option value="supervisor">Supervisor</option></select></label></div>{error&&<div className={styles.error}>{error}</div>}<div className={styles.actions}><button type="button" onClick={close}>Cancelar</button><button className={styles.primary} disabled={busy}>{busy?'Creando…':'Crear usuario'}</button></div></form></div>
-}
+function NewStaffModal({session,close,saved}:{session:TenantSession;close:()=>void;saved:()=>Promise<void>}){const[name,setName]=useState(''),[username,setUsername]=useState(''),[password,setPassword]=useState(''),[role,setRole]=useState<'cashier'|'supervisor'>('cashier'),[busy,setBusy]=useState(false),[error,setError]=useState('');async function submit(e:FormEvent){e.preventDefault();setError('');if(!username.trim()||password.length<6){setError('Completá usuario y una contraseña de al menos 6 caracteres.');return}const supervisor=role==='supervisor';const permissions:UserPermissions={can_sell:!supervisor,can_view_reports:true,can_manage_stock:true,can_manage_customers:true,can_edit_products:true,can_import_export_products:true,can_edit_customers:true,can_delete_customers:false,can_delete_sales:false,can_manage_promotions:supervisor};setBusy(true);try{await createStaff(session,{username,password,full_name:name,role,permissions});await saved()}catch(e){setError(e instanceof Error?e.message:String(e));setBusy(false)}}return <div className={styles.modal}><form className={styles.modalCard} onSubmit={submit}><div className={styles.modalHead}><h3>Crear usuario del comercio</h3><button type="button" onClick={close}>×</button></div><div className={styles.grid}><label className={styles.field}>Nombre<input value={name} onChange={e=>setName(e.target.value)}/></label><label className={styles.field}>Usuario<input value={username} onChange={e=>setUsername(e.target.value)} placeholder="ej: caja1"/></label><label className={styles.field}>Contraseña<input type="password" value={password} onChange={e=>setPassword(e.target.value)}/></label><label className={styles.field}>Rol<select value={role} onChange={e=>setRole(e.target.value as 'cashier'|'supervisor')}><option value="cashier">Encargado / Cajero</option><option value="supervisor">Supervisor</option></select></label></div><small>Después de crearlo podés entrar en “Editar permisos” y personalizar exactamente qué puede hacer.</small>{error&&<div className={styles.error}>{error}</div>}<div className={styles.actions}><button type="button" onClick={close}>Cancelar</button><button className={styles.primary} disabled={busy}>{busy?'Creando…':'Crear usuario'}</button></div></form></div>}
 
-export default function SettingsTenant({ data, session, device, setDevice, arca, buildVersion, refresh, message }: Props) {
-  const owner = session.role === 'owner'
-  const [tab, setTab] = useState<Tab>('commerce')
-  const [name, setName] = useState(data.company.name), [tax, setTax] = useState(data.company.tax_id || '')
-  const [staff, setStaff] = useState<StaffProfile[]>([]), [staffError, setStaffError] = useState(''), [newStaff, setNewStaff] = useState(false)
-  const [resetOpen, setResetOpen] = useState(false), [resetPass, setResetPass] = useState(''), [resetBusy, setResetBusy] = useState(false), [resetError, setResetError] = useState('')
-  const fiscal = arca as (ArcaHealth & { configured?: boolean }) | null
-  const configured = fiscal?.configured !== false
-
-  async function saveCommerce(){try{await updateCompanyIdentity(session,name,tax);await refresh();message('Datos del comercio guardados.')}catch(e){message(e instanceof Error?e.message:String(e))}}
-  function savePrinter(next:DeviceSettings){setDevice(next);writeDeviceSettings(session.companyId,next)}
-  async function loadUsers(){if(!owner)return;try{setStaff(await loadStaff(session));setStaffError('')}catch(e){setStaffError(e instanceof Error?e.message:String(e))}}
-  useEffect(()=>{if(tab==='users')void loadUsers()},[tab])
-  async function resetSales(){if(!resetPass)return;setResetBusy(true);setResetError('');try{await resetSalesData(session,resetPass);setResetOpen(false);setResetPass('');await refresh();message('Las ventas quedaron restablecidas a cero.')}catch(e){setResetError(e instanceof Error?e.message:String(e))}finally{setResetBusy(false)}}
-
-  const tabs: Array<[Tab,string]> = [['commerce','Comercio'],['sales','Ventas y caja'],['design','Diseño'],['arca','ARCA'],['printer','Impresora y tickets'],['stock','Stock'],...(owner ? [['users','Usuarios y roles'],['updates','Actualizaciones'],['maintenance','Mantenimiento']] as Array<[Tab,string]> : [])]
-
+export default function SettingsTenant({data,session,device,setDevice,arca,buildVersion,refresh,message}:Props){
+  const owner=session.role==='owner';const[tab,setTab]=useState<Tab>('commerce');const[name,setName]=useState(data.company.name),[tax,setTax]=useState(data.company.tax_id||'');const[staff,setStaff]=useState<StaffProfile[]>([]),[staffError,setStaffError]=useState(''),[newStaff,setNewStaff]=useState(false);const[resetOpen,setResetOpen]=useState(false),[resetPass,setResetPass]=useState(''),[resetBusy,setResetBusy]=useState(false),[resetError,setResetError]=useState('');const fiscal=arca as (ArcaHealth&{configured?:boolean})|null;const configured=fiscal?.configured!==false
+  async function saveCommerce(){try{await updateCompanyIdentity(session,name,tax);await refresh();message('Datos del comercio guardados.')}catch(e){message(e instanceof Error?e.message:String(e))}}function savePrinter(next:DeviceSettings){setDevice(next);writeDeviceSettings(session.companyId,next)}async function loadUsers(){if(!owner)return;try{setStaff(await loadStaff(session));setStaffError('')}catch(e){setStaffError(e instanceof Error?e.message:String(e))}}useEffect(()=>{if(tab==='users')void loadUsers()},[tab]);async function resetSales(){if(!resetPass)return;setResetBusy(true);setResetError('');try{await resetSalesData(session,resetPass);setResetOpen(false);setResetPass('');await refresh();message('Las ventas quedaron restablecidas a cero.')}catch(e){setResetError(e instanceof Error?e.message:String(e))}finally{setResetBusy(false)}}
+  const tabs:Array<[Tab,string]>=[['commerce','Comercio'],['sales','Ventas y caja'],['design','Diseño'],['arca','ARCA'],['printer','Impresora y tickets'],['stock','Stock'],...(owner?[['users','Usuarios y roles'],['updates','Actualizaciones'],['maintenance','Mantenimiento']] as Array<[Tab,string]>:[])]
   return <><Head/><div className={styles.layout}><aside className={styles.nav}>{tabs.map(([id,label])=><button key={id} className={tab===id?styles.active:''} onClick={()=>setTab(id)}>{label}</button>)}</aside><section className={styles.body}>
     {tab==='commerce'&&<div className={styles.panel}><h3>Datos del comercio</h3><p>Información exclusiva de este tenant.</p><div className={styles.grid}><label className={styles.field}>Nombre<input value={name} onChange={e=>setName(e.target.value)}/></label><label className={styles.field}>CUIT<input value={tax} onChange={e=>setTax(e.target.value)}/></label></div><div className={styles.saveRow}><small>Los datos de otros comercios no son visibles desde esta cuenta.</small><button className={styles.save} onClick={saveCommerce}>Guardar cambios</button></div></div>}
-    {tab==='sales'&&<SalesPanel session={session} message={message}/>} 
-    {tab==='design'&&<DesignPanel session={session} message={message}/>} 
-    {tab==='arca'&&<div className={styles.panel}><h3>ARCA / Facturación electrónica</h3><p>La configuración fiscal es independiente para cada comercio.</p><div className={styles.status}><div className={styles.statusRow}><span>Configuración</span><b className={configured?styles.ok:styles.neutral}>{configured?'Configurada':'No configurada'}</b></div><div className={styles.statusRow}><span>Conexión</span><b className={fiscal?.connected?styles.ok:styles.bad}>{fiscal?.connected?'Conectado':configured?'Desconectado':'—'}</b></div><div className={styles.statusRow}><span>Servicio</span><b>{configured?(fiscal?.service||'wsfev1'):'—'}</b></div><div className={styles.statusRow}><span>Punto de venta</span><b>{configured?(fiscal?.pointOfSale??'—'):'—'}</b></div><div className={styles.statusRow}><span>Entorno</span><b>{configured?(fiscal?.environment||'homologación'):'—'}</b></div></div><div className={styles.note}>{configured?'Las credenciales fiscales utilizadas por este comercio están aisladas por tenant.':'Este comercio todavía no tiene ARCA configurado. Para habilitar facturación necesita sus propias credenciales/certificado y su propio punto de venta. Nunca se reutilizan credenciales de otro comercio.'}</div>{fiscal?.error&&configured&&<div className={styles.error}>{fiscal.error}</div>}</div>}
-    {tab==='printer'&&<PrinterSettingsPanel company={data.company} device={device} onSave={savePrinter} message={message}/>} 
-    {tab==='stock'&&<StockPanel/>}
-    {tab==='users'&&owner&&<div className={styles.panel}><div className={styles.staffHead}><div><h3>Usuarios, roles y permisos</h3><p>Usuarios asociados únicamente a este comercio.</p></div><button className={styles.save} onClick={()=>setNewStaff(true)}>+ Crear usuario</button></div>{staffError&&<div className={styles.error}>{staffError}</div>}<div className={styles.staffList}>{staff.filter(x=>x.role!=='owner').map(x=><StaffRow key={x.id} staff={x} session={session} saved={loadUsers}/>)}</div></div>}
-    {tab==='updates'&&owner&&<UpdatesCenter session={session} buildVersion={buildVersion} message={message}/>} 
-    {tab==='maintenance'&&owner&&<div className={`${styles.panel} ${styles.danger}`}><h3>Restablecer valores de ventas</h3><p>Pone en cero ventas, reportes e historial de este comercio. No modifica otros tenants.</p><button className={styles.dangerButton} onClick={()=>setResetOpen(true)}>Restablecer ventas a cero</button></div>}
+    {tab==='sales'&&<SalesPanel session={session} message={message}/>} {tab==='design'&&<DesignPanel session={session} message={message}/>} 
+    {tab==='arca'&&<div className={styles.panel}><h3>ARCA / Facturación electrónica</h3><p>La configuración fiscal es independiente para cada comercio.</p><div className={styles.status}><div className={styles.statusRow}><span>Configuración</span><b className={configured?styles.ok:styles.neutral}>{configured?'Configurada':'No configurada'}</b></div><div className={styles.statusRow}><span>Conexión</span><b className={fiscal?.connected?styles.ok:styles.bad}>{fiscal?.connected?'Conectado':configured?'Desconectado':'—'}</b></div><div className={styles.statusRow}><span>Servicio</span><b>{configured?(fiscal?.service||'wsfev1'):'—'}</b></div><div className={styles.statusRow}><span>Punto de venta</span><b>{configured?(fiscal?.pointOfSale??'—'):'—'}</b></div><div className={styles.statusRow}><span>Entorno</span><b>{configured?(fiscal?.environment||'homologación'):'—'}</b></div></div><div className={styles.note}>{configured?'Las credenciales fiscales utilizadas por este comercio están aisladas por tenant.':'Este comercio todavía no tiene ARCA configurado. Necesita sus propias credenciales y punto de venta.'}</div>{fiscal?.error&&configured&&<div className={styles.error}>{fiscal.error}</div>}</div>}
+    {tab==='printer'&&<PrinterSettingsPanel company={data.company} device={device} onSave={savePrinter} message={message}/>} {tab==='stock'&&<StockPanel/>}
+    {tab==='users'&&owner&&<div className={styles.panel}><div className={styles.staffHead}><div><h3>Usuarios, roles y permisos</h3><p>El propietario decide exactamente qué puede hacer cada usuario.</p></div><button className={styles.save} onClick={()=>setNewStaff(true)}>+ Crear usuario</button></div>{staffError&&<div className={styles.error}>{staffError}</div>}<div className={styles.staffList}>{staff.filter(x=>x.role!=='owner').map(x=><StaffRow key={x.id} staff={x} session={session} saved={loadUsers} message={message}/>)}</div></div>}
+    {tab==='updates'&&owner&&<UpdatesCenter session={session} buildVersion={buildVersion} message={message}/>} {tab==='maintenance'&&owner&&<div className={`${styles.panel} ${styles.danger}`}><h3>Restablecer valores de ventas</h3><p>Pone en cero ventas, reportes e historial de este comercio.</p><button className={styles.dangerButton} onClick={()=>setResetOpen(true)}>Restablecer ventas a cero</button></div>}
     <div className={styles.version}>Comercio Lleno · Rediseño V2 · build {buildVersion} · tenant {session.companyId.slice(0,8)}</div>
   </section></div>{newStaff&&<NewStaffModal session={session} close={()=>setNewStaff(false)} saved={async()=>{setNewStaff(false);await loadUsers()}}/>}{resetOpen&&<div className={styles.modal}><div className={styles.modalCard}><div className={styles.modalHead}><h3>Restablecer ventas</h3><button onClick={()=>setResetOpen(false)}>×</button></div><p>Se eliminará el historial de ventas de este comercio. Esta acción no afecta a ningún otro tenant.</p><label className={styles.field}>Contraseña del propietario<input type="password" value={resetPass} onChange={e=>setResetPass(e.target.value)}/></label>{resetError&&<div className={styles.error}>{resetError}</div>}<div className={styles.actions}><button onClick={()=>setResetOpen(false)}>Cancelar</button><button className={styles.dangerButton} disabled={resetBusy} onClick={resetSales}>{resetBusy?'Restableciendo…':'Confirmar'}</button></div></div></div>}</>
 }
