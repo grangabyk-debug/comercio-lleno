@@ -25,7 +25,7 @@ function key(companyId: string) {
 
 function normalize(value: Partial<SalesSettings> | null | undefined): SalesSettings {
   return {
-    allowNegativeStock: Boolean(value?.allowNegativeStock),
+    allowNegativeStock: value?.allowNegativeStock === true,
     timeFormat: value?.timeFormat === '12' ? '12' : '24',
     maxDiscount: Math.max(0, Math.min(100, Number(value?.maxDiscount ?? 100) || 0)),
     wholesalePricingEnabled: value?.wholesalePricingEnabled !== false,
@@ -86,22 +86,20 @@ export async function loadSalesSettings(session: TenantSession): Promise<SalesSe
 export async function saveSalesSettings(session: TenantSession, value: SalesSettings): Promise<SalesSettings> {
   if (!SUPABASE_URL || !PUBLISHABLE_KEY) throw new Error('Supabase no está configurado.')
   const next = normalize(value)
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/companies?id=eq.${encodeURIComponent(session.companyId)}`, {
-    method: 'PATCH',
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/save_sales_settings`, {
+    method: 'POST',
     headers: {
       apikey: PUBLISHABLE_KEY,
       Authorization: `Bearer ${session.token}`,
       'Content-Type': 'application/json',
-      Prefer: 'return=minimal',
     },
-    body: JSON.stringify({ sales_settings: next }),
+    body: JSON.stringify({ p_settings: next }),
     cache: 'no-store',
   })
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}))
-    throw new Error(data?.message || 'No se pudieron guardar los ajustes de ventas.')
-  }
-  cacheSalesSettings(session.companyId, next)
-  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('comercio:sales-settings', { detail: next }))
-  return next
+  const data = await response.json().catch(() => null)
+  if (!response.ok) throw new Error(data?.message || data?.error || 'No se pudieron guardar los ajustes de ventas.')
+  const saved = normalize(data || next)
+  cacheSalesSettings(session.companyId, saved)
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('comercio:sales-settings', { detail: saved }))
+  return saved
 }
