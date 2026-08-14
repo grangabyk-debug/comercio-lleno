@@ -34,6 +34,12 @@ export default function HumanSupportChat(){
   }
 
   useEffect(()=>{
+    const openFromOnboarding=()=>setOpen(true)
+    window.addEventListener('comercio:open-human-support',openFromOnboarding)
+    return()=>window.removeEventListener('comercio:open-human-support',openFromOnboarding)
+  },[])
+
+  useEffect(()=>{
     if(!open)return
     void refresh(true)
     const poll=()=>{if(document.visibilityState==='visible')void refresh(false)}
