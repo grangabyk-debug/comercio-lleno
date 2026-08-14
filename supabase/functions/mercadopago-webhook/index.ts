@@ -33,24 +33,29 @@ async function markProcessed(requestId:string,dataId:string,eventType:string){
   const cutoff=new Date(Date.now()-180*86400000).toISOString();
   await adminRest(`mercadopago_webhook_events?processed_at=lt.${encodeURIComponent(cutoff)}`,{method:'DELETE'}).catch(()=>{});
 }
-function localStatusFromRemote(providerStatus:string,currentStatus:string,trialEndsAt:string|null|undefined){
-  if(providerStatus==='authorized')return 'active';
-  if(providerStatus==='cancelled')return 'canceled';
-  if(providerStatus==='paused')return 'past_due';
-  if(providerStatus==='pending'&&trialEndsAt&&new Date(trialEndsAt).getTime()<=Date.now())return 'expired';
-  return currentStatus||'trialing';
+function trialActive(trialEndsAt:string|null|undefined){return Boolean(trialEndsAt&&new Date(trialEndsAt).getTime()>Date.now())}
+function localStatusFromRemote(providerStatus:string,currentStatus:string,trialEndsAt:string|null|undefined,lastPaymentAt:string|null|undefined,paymentStatus=''){
+  if(providerStatus==='cancelled'||providerStatus==='canceled')return'canceled';
+  if(providerStatus==='paused')return'past_due';
+  if(trialActive(trialEndsAt))return'trialing';
+  if(paymentStatus==='approved'||paymentStatus==='authorized')return'active';
+  if(['rejected','cancelled','canceled','refunded'].includes(paymentStatus))return'past_due';
+  if(currentStatus==='active'||lastPaymentAt)return'active';
+  if(providerStatus==='authorized'||providerStatus==='pending')return'expired';
+  return currentStatus||'expired';
 }
-async function currentSubscription(companyId:string){const response=await adminRest(`company_subscriptions?company_id=eq.${encodeURIComponent(companyId)}&select=status,trial_ends_at,payment_method_added_at&limit=1`);const rows=await response.json().catch(()=>[]);return response.ok&&Array.isArray(rows)?rows[0]||null:null}
-async function syncPreapproval(remote:any,dataId:string,paymentApproved=false){
+async function currentSubscription(companyId:string){const response=await adminRest(`company_subscriptions?company_id=eq.${encodeURIComponent(companyId)}&select=status,trial_ends_at,payment_method_added_at,last_payment_at&limit=1`);const rows=await response.json().catch(()=>[]);return response.ok&&Array.isArray(rows)?rows[0]||null:null}
+async function syncPreapproval(remote:any,dataId:string,paymentStatus=''){
   const companyId=String(remote?.external_reference||''),providerStatus=String(remote?.status||'').toLowerCase();
   if(!UUID_RE.test(companyId))return{ignored:true};
   const current=await currentSubscription(companyId);if(!current)return{ignored:true};
-  const patch:Record<string,unknown>={billing_provider:'mercadopago',provider_subscription_id:String(remote?.id||dataId),provider_status:providerStatus||null,provider_checkout_url:remote?.init_point||null,provider_last_synced_at:new Date().toISOString(),status:localStatusFromRemote(providerStatus,String(current.status||'trialing'),current.trial_ends_at),updated_at:new Date().toISOString()};
+  const status=localStatusFromRemote(providerStatus,String(current.status||'trialing'),current.trial_ends_at,current.last_payment_at,paymentStatus);
+  const patch:Record<string,unknown>={billing_provider:'mercadopago',provider_subscription_id:String(remote?.id||dataId),provider_status:providerStatus||null,provider_checkout_url:remote?.init_point||null,provider_last_synced_at:new Date().toISOString(),status,updated_at:new Date().toISOString()};
   if(providerStatus==='authorized'&&!current.payment_method_added_at)patch.payment_method_added_at=new Date().toISOString();
-  if(providerStatus==='authorized'&&paymentApproved)patch.last_payment_at=new Date().toISOString();
+  if(paymentStatus==='approved'||paymentStatus==='authorized')patch.last_payment_at=new Date().toISOString();
   const response=await adminRest(`company_subscriptions?company_id=eq.${encodeURIComponent(companyId)}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(patch)});
   if(!response.ok)throw new Error('No se pudo actualizar la suscripción local');
-  return{ignored:false};
+  return{ignored:false,status};
 }
 
 Deno.serve(async(req:Request)=>{
@@ -64,12 +69,12 @@ Deno.serve(async(req:Request)=>{
   if(await alreadyProcessed(requestId))return Response.json({ok:true,duplicate:true},{status:200});
   if(!dataId)return Response.json({ok:true,ignored:true},{status:200});
   try{
-    if(type==='subscription_preapproval'||/preapproval/i.test(String(body?.action||''))){const remote=await mp(`/preapproval/${encodeURIComponent(dataId)}`);const result=await syncPreapproval(remote,dataId,false);await markProcessed(requestId,dataId,type);return Response.json({ok:true,...result},{status:200})}
+    if(type==='subscription_preapproval'||/preapproval/i.test(String(body?.action||''))){const remote=await mp(`/preapproval/${encodeURIComponent(dataId)}`);const result=await syncPreapproval(remote,dataId,'');await markProcessed(requestId,dataId,type);return Response.json({ok:true,...result},{status:200})}
     if(type==='subscription_authorized_payment'){
       const payment=await mp(`/authorized_payments/${encodeURIComponent(dataId)}`),subscriptionId=String(payment?.preapproval_id||payment?.subscription_id||'');
       if(!subscriptionId){await markProcessed(requestId,dataId,type);return Response.json({ok:true,ignored:true},{status:200})}
-      const remote=await mp(`/preapproval/${encodeURIComponent(subscriptionId)}`),paymentStatus=String(payment?.status||'').toLowerCase(),paymentApproved=paymentStatus==='approved'||paymentStatus==='authorized';
-      const result=await syncPreapproval(remote,subscriptionId,paymentApproved);await markProcessed(requestId,dataId,type);return Response.json({ok:true,...result},{status:200});
+      const remote=await mp(`/preapproval/${encodeURIComponent(subscriptionId)}`),paymentStatus=String(payment?.status||'').toLowerCase();
+      const result=await syncPreapproval(remote,subscriptionId,paymentStatus);await markProcessed(requestId,dataId,type);return Response.json({ok:true,...result},{status:200});
     }
     await markProcessed(requestId,dataId,type);return Response.json({ok:true,ignored:true},{status:200});
   }catch(error){console.error('mercadopago-webhook',error instanceof Error?error.message:String(error));return Response.json({ok:false,error:'No se pudo sincronizar la notificación'},{status:500})}
