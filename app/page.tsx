@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Script from 'next/script'
 import styles from './landing.module.css'
 import BrandLogo from './BrandLogo'
 import HeroMerchantRotator from './HeroMerchantRotator'
@@ -55,6 +56,7 @@ export default function LandingPage(){
   const websiteLd={'@context':'https://schema.org','@type':'WebSite',name:'Comercio Lleno',alternateName:['ComercioLleno','comerciolleno.com'],url:'https://comerciolleno.com/'}
 
   return <main className={styles.page}>
+    <Script id="microsoft-clarity" strategy="afterInteractive">{`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","y23ygnz380");`}</Script>
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(softwareLd)}}/>
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(organizationLd)}}/>
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(websiteLd)}}/>
