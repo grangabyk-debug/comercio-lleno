@@ -1,140 +1,165 @@
 import Link from 'next/link'
 import styles from './landing.module.css'
 import BrandLogo from './BrandLogo'
-import UiIcon from './redesign/UiIcon'
+import HeroMerchantRotator from './HeroMerchantRotator'
 
-const heroPhoto='https://images.unsplash.com/photo-1742836531271-98fd8151d257?auto=format&fit=crop&fm=jpg&q=82&w=1800'
-const inventoryPhoto='https://images.unsplash.com/photo-1753161029353-f6bb0ff2ad3c?auto=format&fit=crop&fm=jpg&q=82&w=1800'
-const arcaLogo='https://arca.gob.ar/frameworkAFIP/img/logo_arca_blanco.svg'
+const arcaLogo = 'https://arca.gob.ar/frameworkAFIP/img/logo_arca_blanco.svg'
+const bakeryPhoto = 'https://images.pexels.com/videos/13061609/buying-cashier-check-out-chocolate-store-13061609.jpeg?auto=compress&fit=crop&w=1600'
+const barberPhoto = 'https://images.pexels.com/videos/7697072/pexels-photo-7697072.jpeg?auto=compress&fit=crop&w=1600'
+const furniturePhoto = 'https://images.pexels.com/videos/4824291/pexels-photo-4824291.jpeg?auto=compress&fit=crop&w=1600'
+const inventoryPhoto = 'https://images.pexels.com/videos/5103992/pexels-photo-5103992.jpeg?auto=compress&fit=crop&w=1600'
+const argentinaMap = 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Map_of_Argentina.svg'
 
-const differentiators=[
-  ['sparkles','IA que entiende tu negocio','Consultá ventas, tendencias, stock y métricas. También te ayuda a usar el sistema y a detectar oportunidades.'],
-  ['products','Pedido IA+','Sugiere reposición usando demanda reciente, stock actual y señales del movimiento real de tu comercio.'],
-  ['mobile','Scanner móvil','Usá la cámara del celular para leer códigos, buscar productos, cargar stock y actualizar datos desde el salón.'],
-  ['sale','Modo Simple','Una interfaz de operación rápida para cobrar, consultar productos, revisar caja y ver ventas sin distracciones.'],
-  ['cash','Caja manual o automática','Elegí control diario con apertura y cierre, o una operación automática para equipos que necesitan velocidad.'],
-  ['cloud','Online y offline','El sistema vive en la nube, pero puede seguir operando cuando la conexión se corta y sincronizar después.'],
-] as const
-
-const operations=[
-  ['Facturación electrónica ARCA','Emití comprobantes desde el flujo de venta con la configuración fiscal de cada comercio.'],
-  ['Lector USB de códigos','Conectá un scanner de códigos de barras y trabajá con la velocidad de un POS de escritorio.'],
-  ['Tickets térmicos 58 / 80 mm','Preparado para impresoras térmicas y formatos habituales de mostrador.'],
-  ['Stock y precios en tiempo real','Controlá existencias, costos, precios, mínimos, proveedores y movimientos.'],
+const productFeatures: Array<[string,string]> = [
+  ['Facturación electrónica ARCA','Cobrá y emití comprobantes desde el mismo flujo de venta, con la configuración fiscal de cada comercio.'],
+  ['Modo offline','Si Internet se corta, el sistema puede seguir operando y sincronizar cuando vuelve la conexión.'],
+  ['Modo Simple','Una interfaz reducida para cobrar, consultar productos, caja y ventas sin distracciones.'],
+  ['Scanner móvil','Leé códigos con la cámara del celular para consultar, cargar stock o editar productos desde el salón.'],
+  ['Pedido IA+','La reposición sugerida combina demanda reciente, stock actual y señales del movimiento real del negocio.'],
+  ['Asistente de inteligencia artificial','Preguntá por ventas, tendencias, stock, métricas y oportunidades en lenguaje natural.'],
+  ['Lectores USB','Conectá un lector de códigos de barras y trabajá con la velocidad de un POS de escritorio.'],
+  ['Tickets térmicos 58 / 80 mm','Preparado para formatos habituales de impresoras térmicas de mostrador.'],
+  ['Caja manual o automática','Elegí apertura y cierre diario o una operación automática para equipos que necesitan más velocidad.'],
   ['Promociones y campañas','Creá descuentos y acciones comerciales sobre productos o grupos de productos.'],
-  ['Asistencia humana','Si una configuración se complica, pedí ayuda desde el mismo sistema y hablá con soporte.'],
-] as const
+]
 
-const security=[
-  ['Conexión protegida','El acceso público funciona sobre HTTPS y el sistema utiliza autenticación por usuario.'],
-  ['Datos separados por comercio','Cada cuenta trabaja dentro de su propio espacio y permisos asociados.'],
-  ['Permisos por usuario','Propietarios y operadores pueden tener accesos distintos según su función.'],
-] as const
+const faq = [
+  ['¿Tengo que instalar un programa?','No. Comercio Lleno funciona desde el navegador y está pensado para operar en computadora, notebook y celular.'],
+  ['¿Puedo usar lector de códigos e impresora térmica?','Sí. El sistema contempla lectores USB y tickets térmicos de 58 y 80 milímetros.'],
+  ['¿Qué pasa si se corta Internet?','El modo offline permite continuar con la operación prevista y sincronizar cuando vuelve la conexión.'],
+  ['¿Incluye facturación electrónica?','Sí. Comercio Lleno integra el flujo de facturación electrónica con ARCA una vez configurado el certificado y el punto de venta del comercio.'],
+  ['¿La inteligencia artificial reemplaza el soporte?','No. La IA ayuda a entender el negocio y usar el sistema, pero también hay asistencia humana para configuraciones o problemas que necesiten una persona.'],
+  ['¿Puedo probarlo antes de pagar?','Sí. La cuenta comienza con 14 días de prueba. Después el plan base cuesta $14.900 por mes.'],
+]
 
-export const metadata={
-  title:'Comercio Lleno | Sistema POS online con ARCA, stock e IA',
-  description:'Sistema POS para comercios con ventas, stock, caja, facturación electrónica ARCA, modo offline, lector de códigos, impresora térmica, versión móvil e inteligencia artificial.',
-  keywords:['sistema pos','punto de venta','software para comercios','facturación ARCA','control de stock','caja diaria','lector código de barras','impresora térmica','POS Argentina','software de gestión comercial'],
-  alternates:{canonical:'https://comerciolleno.com'},
-  openGraph:{title:'Comercio Lleno | Tu comercio, más simple y bajo control',description:'POS online con ARCA, stock, caja, modo offline, scanner móvil e inteligencia artificial.',url:'https://comerciolleno.com',siteName:'Comercio Lleno',locale:'es_AR',type:'website'},
-  robots:{index:true,follow:true},
+export const metadata = {
+  title: 'Comercio Lleno | Sistema POS online para comercios en Argentina',
+  description: 'Sistema POS online con ventas, stock, caja, facturación electrónica ARCA, modo offline, lector de códigos, impresora térmica, scanner móvil e inteligencia artificial.',
+  keywords: ['sistema pos argentina','punto de venta','software para comercios','sistema de ventas','facturación ARCA','control de stock','caja diaria','lector código de barras','impresora térmica','POS online','software de gestión comercial'],
+  alternates: { canonical: 'https://comerciolleno.com' },
+  openGraph: {
+    title: 'Comercio Lleno | Tu negocio bajo control desde hoy',
+    description: 'POS online para vender, facturar, controlar stock y entender el negocio con inteligencia artificial.',
+    url: 'https://comerciolleno.com',
+    siteName: 'Comercio Lleno',
+    locale: 'es_AR',
+    type: 'website',
+  },
+  robots: { index: true, follow: true },
 }
 
-function Arrow(){return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5"/></svg>}
-function Check(){return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>}
-function Shield(){return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 20 6v5c0 5.2-3.2 8.4-8 10-4.8-1.6-8-4.8-8-10V6l8-3Z"/><path d="m8.5 12 2.1 2.1 4.9-5"/></svg>}
-function WhatsAppMark(){return <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16.1 4.2A11.4 11.4 0 0 0 6.3 21.4L4.8 27l5.7-1.5a11.5 11.5 0 1 0 5.6-21.3Zm0 20.6c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.4.9.9-3.3-.2-.4a9.2 9.2 0 1 1 8.2 4.4Zm5-6.9c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.7.2-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-1.7-.8-2.8-1.5-3.9-3.4-.3-.5.3-.5.8-1.6.1-.2 0-.4 0-.6l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.9s1.2 3.3 1.4 3.5c.2.2 2.4 3.7 5.9 5.2 2.2.9 3.1 1 4.2.8.7-.1 1.7-.7 1.9-1.3.2-.6.2-1.2.1-1.3-.1-.2-.3-.3-.6-.4Z"/></svg>}
-
-function AppMock(){return <div className={styles.appMock}>
-  <div className={styles.browserBar}><i/><i/><i/><span>comerciolleno.com</span></div>
-  <div className={styles.mockBody}>
-    <aside><BrandLogo size={34} markOnly/>{['Inicio','Nueva venta','Productos','Caja diaria','Configuración'].map((x,i)=><div className={i===1?styles.mockNavActive:styles.mockNav} key={x}><b>{x.slice(0,1)}</b><span>{x}</span></div>)}</aside>
-    <section>
-      <div className={styles.mockTop}><span>ARCA conectado</span><span>Offline listo</span></div>
-      <small>OPERACIÓN</small><h3>Nueva venta</h3>
-      <div className={styles.mockSearch}>Escaneá o buscá un producto <span>Buscar</span></div>
-      <div className={styles.mockGrid}><article><b>Venta rápida</b><strong>$ 28.450</strong><p>6 productos</p></article><article><b>Stock</b><strong>1.248</strong><p>actualizado</p></article><article><b>IA</b><strong>Pedido listo</strong><p>reposición sugerida</p></article></div>
-      <div className={styles.mockTable}>{[1,2,3,4].map(n=><div key={n}><span/><span/><span/></div>)}</div>
-    </section>
+function ProductWindow(){
+  return <div className={styles.productWindow}>
+    <div className={styles.productWindowTop}><span>Comercio Lleno</span><b>ARCA conectado</b><b>Offline listo</b></div>
+    <div className={styles.productWindowBody}>
+      <aside><strong>Inicio</strong><strong>Nueva venta</strong><span>Productos</span><span>Caja diaria</span><span>Configuración</span></aside>
+      <section><small>OPERACIÓN</small><h3>Nueva venta</h3><div className={styles.productSearch}>Escaneá o buscá un producto <b>Buscar</b></div><div className={styles.productStats}><div><span>Venta actual</span><strong>$ 28.450</strong></div><div><span>Productos</span><strong>6</strong></div><div><span>Stock</span><strong>Actualizado</strong></div></div><div className={styles.productRows}>{[1,2,3,4].map(n=><div key={n}><span/><span/><span/></div>)}</div></section>
+    </div>
   </div>
-</div>}
+}
 
-function SimpleMock(){return <div className={styles.simpleMock}>
-  <div className={styles.simpleHead}><span>MODO SIMPLE</span><b>¿Qué querés hacer?</b></div>
-  <div className={styles.simpleTiles}><div className={styles.greenTile}><strong>Cobrar</strong><span>Escanear y cobrar</span></div><div className={styles.blueTile}><strong>Productos</strong><span>Precios y stock</span></div><div className={styles.yellowTile}><strong>Caja diaria</strong><span>Apertura y cierre</span></div><div className={styles.purpleTile}><strong>Ventas</strong><span>Últimas operaciones</span></div></div>
-</div>}
+function SimpleMode(){
+  return <div className={styles.simpleMode}>
+    <span>MODO SIMPLE</span><h3>¿Qué querés hacer?</h3>
+    <div className={styles.simpleModeGrid}><div><b>Cobrar</b><small>Escanear y cobrar</small></div><div><b>Productos</b><small>Precios y stock</small></div><div><b>Caja diaria</b><small>Apertura y cierre</small></div><div><b>Ventas</b><small>Últimas operaciones</small></div></div>
+  </div>
+}
 
-function MobileMock(){return <div className={styles.phone}><div className={styles.phoneTop}/><div className={styles.phoneContent}><span>CONTROL MÓVIL</span><h4>Escáner de productos</h4><div className={styles.scannerBox}><i/><p>Código leído</p></div><div className={styles.codeRow}><b>7790070933652</b><button>Buscar</button></div><div className={styles.productFound}><small>PRODUCTO ENCONTRADO</small><strong>Detergente concentrado</strong><span>Stock 18 · $4.290</span><div><button>+ Stock</button><button>Editar</button></div></div></div></div>}
+function MobileScanner(){
+  return <div className={styles.phoneMock}><div className={styles.phoneBar}/><span>CONTROL MÓVIL</span><h4>Escáner de productos</h4><div className={styles.scannerScreen}><i/><small>Código leído</small></div><div className={styles.scannerSearch}><span>7790070933652</span><b>Buscar</b></div><div className={styles.scannerResult}><small>PRODUCTO ENCONTRADO</small><strong>Detergente concentrado</strong><span>Stock 18 · $4.290</span><div><b>Cargar stock</b><b>Editar</b></div></div></div>
+}
 
 export default function LandingPage(){
-  const softwareLd={
-    '@context':'https://schema.org','@type':'SoftwareApplication',name:'Comercio Lleno',applicationCategory:'BusinessApplication',operatingSystem:'Web',url:'https://comerciolleno.com',description:'Sistema POS online para comercios con ventas, stock, caja, facturación ARCA, modo offline, versión móvil e inteligencia artificial.',offers:{'@type':'Offer',price:'14900',priceCurrency:'ARS',description:'14 días de prueba gratis y luego abono mensual.'},featureList:differentiators.map(x=>x[1]).concat(operations.map(x=>x[0]))
+  const featureList: string[] = productFeatures.map(([title])=>title)
+  const softwareLd = {
+    '@context':'https://schema.org',
+    '@type':'SoftwareApplication',
+    name:'Comercio Lleno',
+    applicationCategory:'BusinessApplication',
+    operatingSystem:'Web',
+    url:'https://comerciolleno.com',
+    description:'Sistema POS online para comercios con ventas, stock, caja, facturación ARCA, modo offline, versión móvil e inteligencia artificial.',
+    offers:{'@type':'Offer',price:'14900',priceCurrency:'ARS',description:'14 días de prueba gratis y luego abono mensual.'},
+    featureList,
   }
+  const organizationLd = {
+    '@context':'https://schema.org',
+    '@type':'Organization',
+    name:'Llena Group',
+    brand:{'@type':'Brand',name:'Comercio Lleno'},
+    url:'https://comerciolleno.com',
+  }
+
   return <main className={styles.page}>
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(softwareLd)}}/>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(organizationLd)}}/>
 
     <header className={styles.header}>
-      <Link href="/" className={styles.brand}><BrandLogo size={40} inverse/></Link>
-      <nav className={styles.navLinks}><a href="#producto">Producto</a><a href="#ia">IA</a><a href="#seguridad">Seguridad</a><a href="#whatsapp">WhatsApp</a></nav>
-      <div className={styles.navCtas}><Link href="/redesign/access" className={styles.login}>Ingresar</Link><Link href="/prueba-gratis" className={styles.navTrial}>Probar 14 días</Link></div>
+      <Link href="/" className={styles.brand}><BrandLogo size={40}/></Link>
+      <nav className={styles.navLinks}><a href="#producto">Producto</a><a href="#comercios">Comercios</a><a href="#ia">Inteligencia artificial</a><a href="#soporte">Soporte</a><a href="#precio">Precio</a></nav>
+      <div className={styles.navCtas}><Link href="/redesign/access" className={styles.login}>Ingresar</Link><Link href="/prueba-gratis" className={styles.navTrial}>Probar gratis</Link></div>
     </header>
 
     <section className={styles.hero}>
-      <div className={styles.heroGlowA}/><div className={styles.heroGlowB}/><div className={styles.texture}/>
-      <div className={styles.heroInner}>
-        <div className={styles.heroCopy}>
-          <div className={styles.heroBadge}><i/> SISTEMA POS PARA COMERCIOS QUE QUIEREN CRECER</div>
-          <h1>Ordená tu negocio.<br/><span>Vendé más simple.</span></h1>
-          <p>Un punto de venta moderno para cobrar, facturar, controlar stock, entender tus números y operar desde cualquier dispositivo. Con ARCA, modo offline e inteligencia artificial integrados.</p>
-          <div className={styles.heroActions}><Link href="/prueba-gratis" className={styles.primary}>Empezar gratis hoy <Arrow/></Link><a href="#producto" className={styles.secondary}>Ver cómo funciona</a></div>
-          <div className={styles.heroNotes}><span><Check/>14 días sin cargo</span><span><Check/>Sin instalación</span><span><Check/>Asistencia humana</span></div>
-        </div>
-        <div className={styles.heroVisual}>
-          <div className={styles.visualHalo}/><AppMock/>
-          <div className={styles.floatCardA}><span>VENTAS HOY</span><strong>$ 486.230</strong><small>+18,4% vs. período anterior</small></div>
-          <div className={styles.floatCardB}><span>PEDIDO IA+</span><strong>12 prioridades detectadas</strong><small>Demanda + stock + movimiento</small></div>
-        </div>
+      <HeroMerchantRotator/>
+      <div className={styles.heroOverlay}/>
+      <div className={styles.heroCopy}>
+        <p className={styles.heroKicker}>SISTEMA POS PARA COMERCIOS EN ARGENTINA</p>
+        <h1>Vendé más simple.<br/>Ordená todo desde <span>un solo lugar.</span></h1>
+        <p className={styles.heroLead}>Cobrá, facturá, controlá stock, seguí tu caja y entendé tus números con un sistema pensado para el ritmo real del comercio.</p>
+        <div className={styles.heroActions}><Link href="/prueba-gratis" className={styles.primary}>Empezar 14 días gratis</Link><a href="#producto" className={styles.secondary}>Conocer el sistema</a></div>
+        <p className={styles.humanLine}>Soporte humano disponible cuando una configuración necesita una persona de verdad.</p>
       </div>
-      <div className={styles.trustBar}><div><strong>150+</strong><span>comercios trabajando con la plataforma</span></div><div><strong>14 días</strong><span>para probar antes de pagar</span></div><div><strong>58 / 80 mm</strong><span>tickets térmicos preparados</span></div><div><strong>USB + móvil</strong><span>lectura de códigos en mostrador y salón</span></div></div>
+      <div className={styles.heroProof}><div><strong>150+</strong><span>comercios en Argentina</span></div><div><strong>14 días</strong><span>para probar sin cargo</span></div><div><strong>Online + offline</strong><span>seguí trabajando ante cortes</span></div></div>
     </section>
 
-    <section className={styles.logoStrip} aria-label="Integraciones y capacidades"><div className={styles.arcaBadge}><img src={arcaLogo} alt="ARCA"/><span>Facturación electrónica integrada</span></div><div><b>OFFLINE</b><span>seguí operando sin conexión</span></div><div><b>IA</b><span>asistente y reposición inteligente</span></div><div><b>POS</b><span>web, escritorio y móvil</span></div></section>
-
-    <section className={styles.section} id="producto">
-      <div className={styles.sectionHeading}><span>UNA EXPERIENCIA MÁS RÁPIDA</span><h2>Hecho para el ritmo real de un comercio.</h2><p>No es sólo una caja para cobrar. Comercio Lleno reúne operación, control y análisis en una misma interfaz, sin obligarte a instalar un programa pesado en cada computadora.</p></div>
-      <div className={styles.diffGrid}>{differentiators.map(([icon,title,text],i)=><article className={i<2?styles.diffFeatured:styles.diffCard} key={title}><div className={styles.iconWrap}><UiIcon name={icon} size={22}/></div><h3>{title}</h3><p>{text}</p>{i===0&&<div className={styles.miniChat}><span>¿Qué producto debería promocionar esta semana?</span><b>Te conviene revisar los artículos con buena rotación y margen alto. Encontré 4 candidatos.</b></div>}</article>)}</div>
+    <section className={styles.integrationStrip} aria-label="Integraciones y compatibilidades">
+      <span>INTEGRACIONES Y COMPATIBILIDADES</span>
+      <div className={styles.integrationBrands}><div className={styles.arcaBrand}><img src={arcaLogo} alt="ARCA"/><small>Facturación electrónica</small></div><div><b>Mercado Pago</b><small>Suscripciones y cobros</small></div><div><b>WhatsApp</b><small>Módulo opcional</small></div><div><b>58 / 80 mm</b><small>Impresoras térmicas</small></div><div><b>USB</b><small>Lectores de códigos</small></div></div>
     </section>
 
-    <section className={styles.simpleSection}>
-      <div className={styles.splitCopy}><span>VELOCIDAD DE MOSTRADOR</span><h2>Modo Simple para cuando sólo necesitás operar.</h2><p>Reducí la interfaz a cuatro acciones claras. Ideal para cajeros, equipos nuevos o momentos de alto movimiento.</p><ul><li><Check/>Cobrar con lector de códigos</li><li><Check/>Consultar precios y stock</li><li><Check/>Abrir, revisar y cerrar caja</li><li><Check/>Volver al panel completo cuando lo necesites</li></ul></div>
-      <SimpleMock/>
+    <section className={styles.editorialSection} id="producto">
+      <div className={styles.editorialHeading}><p>TODO LO QUE PASA EN EL MOSTRADOR</p><h2>Un sistema que se siente rápido porque está diseñado alrededor de la operación.</h2></div>
+      <div className={styles.editorialGrid}>
+        <article className={`${styles.mediaCard} ${styles.mediaCardLarge}`}><img src={bakeryPhoto} alt="Comerciante atendiendo a un cliente en un local"/><div><span>VENTAS Y CAJA</span><h3>Cobrá sin frenar la fila.</h3><p>Buscá o escaneá productos, elegí el medio de pago, calculá vuelto y dejá cada operación registrada.</p></div></article>
+        <article className={styles.lightCard}><span>FACTURACIÓN ELECTRÓNICA</span><h3>ARCA integrado al flujo de venta.</h3><p>Una vez configurado el comercio, facturación y venta dejan de ser dos procesos separados.</p><div className={styles.arcaWord}>ARCA</div></article>
+        <article className={styles.darkFeature}><span>PEDIDO IA+</span><h3>Reposición basada en lo que realmente se mueve.</h3><p>Demanda reciente, stock actual y señales del día a día ayudan a priorizar qué comprar primero.</p><div className={styles.orderList}>{['Detergente concentrado','Alcohol etílico','Desengrasante','Jabón líquido'].map((x,i)=><div key={x}><b>{String(i+1).padStart(2,'0')}</b><span>{x}</span></div>)}</div></article>
+        <article className={styles.mediaCard}><img src={inventoryPhoto} alt="Persona revisando inventario en un comercio"/><div><span>INVENTARIO</span><h3>Controlá stock donde está el producto.</h3><p>La versión móvil permite consultar y actualizar sin volver a la computadora.</p></div></article>
+        <article className={styles.simpleFeature}><SimpleMode/></article>
+      </div>
     </section>
 
-    <section className={styles.mobileSection}>
-      <div className={styles.mobilePhoto}><img src={inventoryPhoto} alt="Persona controlando inventario desde una tablet en un comercio"/><div className={styles.photoTag}><b>Control desde el salón</b><span>Stock, precios y productos sin volver a la caja.</span></div></div>
-      <div className={styles.mobileCopy}><span>VERSIÓN MÓVIL</span><h2>Tu stock también se controla con el celular.</h2><p>El scanner móvil permite leer códigos con la cámara para identificar productos y actuar en el momento.</p><div className={styles.mobileBullets}><div><b>Cargar stock</b><span>Sumá unidades mientras recibís mercadería.</span></div><div><b>Editar productos</b><span>Actualizá nombre, precio y datos desde el teléfono.</span></div><div><b>Consultar en segundos</b><span>Escaneá un artículo y encontrá su ficha inmediatamente.</span></div></div></div>
-      <MobileMock/>
+    <section className={styles.argentinaSection} id="comercios">
+      <div className={styles.argentinaCopy}><p>UNA RED QUE SIGUE CRECIENDO</p><h2>Más de 150 comercios ya trabajan con Comercio Lleno en Argentina.</h2><p>Almacenes, locales de cercanía, perfumerías, bazares, servicios y otros negocios usan la plataforma para ordenar ventas, stock y caja desde una misma cuenta.</p><div className={styles.metricRow}><div><strong>150+</strong><span>comercios</span></div><div><strong>24/7</strong><span>acceso web</span></div><div><strong>1 sistema</strong><span>para toda la operación</span></div></div></div>
+      <div className={styles.mapCard}><img src={argentinaMap} alt="Mapa de Argentina"/><div className={styles.mapGlow}/>{[['18%','16%'],['34%','25%'],['51%','31%'],['65%','37%'],['43%','44%'],['58%','50%'],['39%','58%'],['55%','64%'],['49%','72%'],['46%','82%']].map(([left,top],i)=><i key={i} style={{left,top}}/>)}</div>
+    </section>
+
+    <section className={styles.humanMosaic}>
+      <div className={styles.humanIntro}><p>HECHO PARA NEGOCIOS REALES</p><h2>El mismo sistema puede acompañar formas muy distintas de trabajar.</h2></div>
+      <div className={styles.mosaicGrid}><figure><img src={barberPhoto} alt="Profesional atendiendo en una barbería"/><figcaption><b>Servicios</b><span>Clientes, productos, ventas y caja.</span></figcaption></figure><figure><img src={furniturePhoto} alt="Personas en una mueblería"/><figcaption><b>Mueblerías y showrooms</b><span>Catálogo, stock, precios y seguimiento.</span></figcaption></figure><figure><img src={bakeryPhoto} alt="Local minorista atendiendo clientes"/><figcaption><b>Comercios de cercanía</b><span>Velocidad de mostrador y facturación.</span></figcaption></figure></div>
     </section>
 
     <section className={styles.aiSection} id="ia">
-      <div className={styles.aiOrb}/><div className={styles.aiGrid}><div><span>INTELIGENCIA ARTIFICIAL INCLUIDA</span><h2>Preguntale a tu negocio y obtené una respuesta útil.</h2><p>El asistente puede interpretar información del comercio para ayudarte a entender ventas, productos, stock y tendencias. También funciona como guía para aprender a usar Comercio Lleno.</p><div className={styles.promptGrid}><div>“¿Qué días vendo más?”</div><div>“¿Qué producto tiene buen margen?”</div><div>“¿Qué stock debería reponer?”</div><div>“¿Conviene hacer una promoción?”</div></div></div><div className={styles.aiPanel}><div className={styles.aiPanelTop}><BrandLogo size={30} markOnly/><div><b>Asistente IA</b><span>Información de tu comercio</span></div></div><div className={styles.userBubble}>¿Qué debería reponer primero?</div><div className={styles.aiBubble}><b>Detecté 12 prioridades.</b><p>Las ordené combinando ventas recientes, stock actual y productos que están cerca del mínimo.</p><div className={styles.orderRows}>{['Detergente 750 ml','Alcohol 500 ml','Limpiador 5 L','Shampoo 400 ml'].map((x,i)=><span key={x}><i>{i+1}</i>{x}</span>)}</div></div></div></div>
+      <div className={styles.aiCopy}><p>INTELIGENCIA ARTIFICIAL INCLUIDA</p><h2>No sólo te muestra datos. Te ayuda a entender qué hacer con ellos.</h2><p>Preguntale cuánto vendiste, qué día funciona mejor, qué producto rota más, qué stock está bajo o qué conviene promocionar. También puede guiarte dentro del sistema.</p><div className={styles.aiQuestions}><span>“¿Qué producto bajó sus ventas esta semana?”</span><span>“¿Qué debería reponer primero?”</span><span>“¿Qué día tengo el ticket promedio más alto?”</span><span>“¿Qué producto tiene margen para una promoción?”</span></div></div>
+      <div className={styles.aiPanel}><span>COMERCIO LLENO IA</span><div><small>PREGUNTA</small><p>¿Qué producto me conviene promocionar esta semana?</p></div><div className={styles.aiAnswer}><small>ANÁLISIS</small><p>Encontré cuatro productos con buena rotación y margen suficiente. El mejor candidato combina ventas estables con stock alto.</p></div><div className={styles.aiBars}><i/><i/><i/><i/></div></div>
     </section>
 
-    <section className={styles.opsSection}>
-      <div className={styles.opsPhoto}><img src={heroPhoto} alt="Persona utilizando un sistema de punto de venta moderno en un comercio"/><div className={styles.glassNote}><strong>Un POS moderno no debería frenarte.</strong><span>Trabajá desde la caja, una notebook o el celular.</span></div></div>
-      <div><div className={styles.sectionHeadingLeft}><span>TODO EN EL MISMO FLUJO</span><h2>Hardware conocido. Software mucho más flexible.</h2></div><div className={styles.opsList}>{operations.map(([title,text])=><article key={title}><div><Check/></div><span><b>{title}</b><small>{text}</small></span></article>)}</div></div>
+    <section className={styles.mobileStory}>
+      <div className={styles.mobileVisual}><MobileScanner/></div><div className={styles.mobileStoryCopy}><p>VERSIÓN MÓVIL</p><h2>Escaneá, consultá y corregí stock desde el celular.</h2><p>Ideal para recibir mercadería, recorrer góndolas o revisar productos sin depender de la caja principal.</p><div className={styles.textList}><span>Cargar unidades recibidas</span><span>Modificar nombre y precio</span><span>Consultar stock en segundos</span><span>Buscar por código con la cámara</span></div></div>
     </section>
 
-    <section className={styles.whatsappSection} id="whatsapp">
-      <div className={styles.whatsappGlow}/><div className={styles.whatsappCopy}><div className={styles.waTitle}><div className={styles.waLogo}><WhatsAppMark/></div><span>MÓDULO ADICIONAL</span></div><h2>WhatsApp + IA para convertir conversaciones en ventas.</h2><p>Sumá un módulo opcional para conectar el WhatsApp del comercio y automatizar parte de la atención comercial. Se contrata por separado del plan base.</p><div className={styles.waFeatures}><span><Check/>Responder consultas frecuentes</span><span><Check/>Tomar pedidos y guiar compras</span><span><Check/>Recuperar clientes con campañas</span><span><Check/>Derivar a una persona cuando haga falta</span></div><div className={styles.extraPill}>Costo adicional · configuración según uso y volumen</div></div><div className={styles.waChat}><div className={styles.waChatHead}><WhatsAppMark/><div><b>Comercio Lleno + WhatsApp</b><span>Atención asistida por IA</span></div></div><div className={styles.waCustomer}>Hola, ¿tenés detergente de 750 ml?</div><div className={styles.waAi}>Sí. Hay stock disponible. También puedo prepararte el pedido y dejarlo listo para retirar.</div><div className={styles.waCustomer}>Dale, quiero 3.</div><div className={styles.waAi}>Perfecto. Armé el pedido por 3 unidades y lo dejé pendiente de confirmación en Comercio Lleno.</div><div className={styles.waCampaign}>CAMPAÑAS <b>Clientes sin comprar hace 30 días</b><span>Segmento listo para una acción de recuperación.</span></div></div>
-    </section>
+    <section className={styles.supportSection} id="soporte"><div><p>SOPORTE HUMANO</p><h2>Cuando necesitás una persona, hablás con una persona.</h2><p>La inteligencia artificial resuelve consultas rápidas, pero configuraciones como ARCA, certificados, hardware o situaciones particulares pueden necesitar asistencia. Desde Comercio Lleno podés pedir ayuda y comunicarte con soporte humano.</p></div><aside><strong>Asistencia técnica desde el sistema</strong><span>Configuración ARCA</span><span>Impresoras y hardware</span><span>Consultas de uso</span><span>Problemas de operación</span></aside></section>
 
-    <section className={styles.securitySection} id="seguridad"><div className={styles.securityIntro}><span>CONFIANZA DESDE EL PRIMER ACCESO</span><h2>La información de tu negocio merece una plataforma seria.</h2><p>Seguridad, permisos y aislamiento de datos están integrados al funcionamiento del sistema, no agregados como una pantalla decorativa.</p></div><div className={styles.securityCards}>{security.map(([title,text])=><article key={title}><div><Shield/></div><h3>{title}</h3><p>{text}</p></article>)}</div><div className={styles.supportBanner}><div><b>Asistencia humana disponible</b><span>Si ARCA, impresoras o una configuración técnica se complican, podés pedir ayuda desde el sistema.</span></div><Link href="/prueba-gratis">Empezar con asistencia <Arrow/></Link></div></section>
+    <section className={styles.whatsappSection} id="whatsapp"><div className={styles.whatsappCopy}><span>MÓDULO ADICIONAL</span><h2>WhatsApp + inteligencia artificial para atender y vender mientras tu equipo trabaja.</h2><p>El módulo opcional puede responder consultas, tomar pedidos, acompañar ventas y ayudar a crear campañas para recuperar clientes. Se contrata por separado del plan base.</p><div className={styles.whatsappItems}><span>Respuestas automáticas con contexto del negocio</span><span>Pedidos y consultas por WhatsApp</span><span>Campañas y recuperación de clientes</span><span>Derivación a atención humana cuando haga falta</span></div></div><div className={styles.whatsappPanel}><b>WhatsApp</b><span>Cliente</span><p>Hola, ¿tenés detergente concentrado?</p><span>Comercio Lleno IA</span><p>Sí. Hay stock disponible. Si querés, puedo prepararte el pedido y decirte el total.</p><small>Módulo opcional · costo adicional</small></div></section>
 
-    <section className={styles.priceSection}><div className={styles.priceCopy}><span>EMPEZÁ HOY</span><h2>Probalo con tu negocio real antes de decidir.</h2><p>Cargá productos, hacé ventas, conocé los reportes y probá el flujo completo. No necesitás comprar hardware nuevo para empezar.</p><div className={styles.priceTrust}><span><Check/>14 días sin cargo</span><span><Check/>Después $14.900 por mes</span><span><Check/>Podés asociar la tarjeta durante la prueba</span></div></div><div className={styles.priceCard}><small>COMERCIO LLENO</small><div className={styles.priceBig}>$14.900 <span>/ mes</span></div><p>después de los primeros 14 días gratis</p><ul><li>POS y caja diaria</li><li>Productos, stock y clientes</li><li>ARCA y tickets térmicos</li><li>Modo offline y versión móvil</li><li>Asistente IA y Pedido IA+</li><li>Soporte humano</li></ul><Link href="/prueba-gratis" className={styles.priceButton}>Crear mi comercio <Arrow/></Link><em>El módulo WhatsApp + IA se contrata aparte.</em></div></section>
+    <section className={styles.securitySection}><div><p>SEGURIDAD Y CONTINUIDAD</p><h2>Tu operación tiene que seguir funcionando y tus datos tienen que estar separados.</h2></div><div className={styles.securityGrid}><article><b>Acceso autenticado</b><p>Cada usuario entra con sus propias credenciales y permisos.</p></article><article><b>Datos por comercio</b><p>La información se organiza dentro del espacio correspondiente a cada cuenta.</p></article><article><b>HTTPS</b><p>La conexión pública del sistema se sirve de forma cifrada.</p></article><article><b>Modo offline</b><p>La continuidad de venta no depende de que cada segundo haya Internet.</p></article></div></section>
 
-    <section className={styles.finalCta}><div><span>NO LO MIRES DESDE AFUERA</span><h2>Registrate y usá Comercio Lleno hoy mismo.</h2><p>La mejor forma de saber si encaja en tu comercio es probarlo con tus propios productos y tu propia operación.</p></div><Link href="/prueba-gratis">Empezar mis 14 días gratis <Arrow/></Link></section>
+    <section className={styles.priceSection} id="precio"><div className={styles.priceCopy}><p>EMPEZÁ HOY</p><h2>Probalo con tu negocio funcionando.</h2><p>Cargá productos, hacé ventas, conocé el sistema y decidí después de usarlo de verdad.</p></div><div className={styles.priceCard}><span>14 DÍAS GRATIS</span><strong>$14.900 <small>/ mes después</small></strong><p>Plan base de Comercio Lleno.</p><Link href="/prueba-gratis">Crear mi cuenta</Link><small>El módulo WhatsApp + IA se contrata por separado.</small></div></section>
 
-    <footer className={styles.footer}><BrandLogo size={34}/><div><a href="#producto">Producto</a><a href="#seguridad">Seguridad</a><Link href="/terminos">Términos</Link><Link href="/privacidad">Privacidad</Link></div><small>Comercio Lleno · Sistema POS online para comercios</small></footer>
+    <section className={styles.faqSection}><div className={styles.faqHeading}><p>PREGUNTAS FRECUENTES</p><h2>Antes de empezar.</h2></div><div className={styles.faqGrid}>{faq.map(([q,a])=><article key={q}><h3>{q}</h3><p>{a}</p></article>)}</div></section>
+
+    <section className={styles.finalCta}><div><p>ORDENÁ TU NEGOCIO DESDE HOY</p><h2>Tu primera venta puede estar cargada en minutos.</h2></div><Link href="/prueba-gratis">Empezar 14 días gratis</Link></section>
+
+    <footer className={styles.footer}><BrandLogo size={34}/><div><a href="#producto">Producto</a><a href="#soporte">Soporte</a><Link href="/terminos">Términos</Link><Link href="/privacidad">Privacidad</Link></div><small>Comercio Lleno · Sistema POS online para comercios</small></footer>
   </main>
 }
