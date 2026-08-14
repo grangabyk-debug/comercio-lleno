@@ -46,7 +46,7 @@ export default function TrialStatus(){
             body:JSON.stringify({action:'sync'}),
           })
           const data=await response.json().catch(()=>({}))
-          if(response.ok&&data?.active){
+          if(response.ok&&(data?.payment_method_added||data?.active)){
             window.history.replaceState({},'',window.location.pathname)
           }
         }
@@ -76,10 +76,14 @@ export default function TrialStatus(){
       const data=await response.json().catch(()=>({}))
       if(!response.ok||!data?.ok){
         if(data?.configured===false)throw new Error('La asociación de tarjeta estará disponible en breve.')
-        throw new Error('No pudimos abrir Mercado Pago en este momento. Probá nuevamente en unos minutos.')
+        throw new Error(data?.error||'No pudimos abrir Mercado Pago en este momento. Probá nuevamente en unos minutos.')
+      }
+      if(data.payment_method_added){
+        setSubscription(current=>current?{...current,status:data.local_status||current.status,provider_status:data.status,payment_method_added_at:current.payment_method_added_at||new Date().toISOString()}:current)
+        return
       }
       if(data.active){
-        setSubscription(current=>current?{...current,status:'active',provider_status:data.status,payment_method_added_at:new Date().toISOString()}:current)
+        setSubscription(current=>current?{...current,status:'active',provider_status:data.status,payment_method_added_at:current.payment_method_added_at||new Date().toISOString()}:current)
         return
       }
       if(data.init_point){window.location.href=String(data.init_point);return}
@@ -97,7 +101,7 @@ export default function TrialStatus(){
   const hasPayment=Boolean(subscription.payment_method_added_at)||subscription.provider_status==='authorized'
   return <div className={`${styles.pill} ${expired?styles.danger:warning?styles.warning:''}`}>
     <i className={styles.dot}/>
-    {expired?<><b>Prueba finalizada</b><span>Activá el plan de {money.format(price)}/mes para seguir usando Comercio Lleno.</span><button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo Mercado Pago…':'Activar con tarjeta'}</button></>:<><b>Prueba gratis</b><span>{days} día{days===1?'':'s'} restante{days===1?'':'s'} · luego {money.format(price)}/mes</span>{!hasPayment&&<button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo…':'Asociar tarjeta'}</button>}</>}
+    {expired?<><b>Prueba finalizada</b><span>Activá el plan de {money.format(price)}/mes para seguir usando Comercio Lleno.</span><button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo Mercado Pago…':'Activar con tarjeta'}</button></>:<><b>Prueba gratis</b><span>{days} día{days===1?'':'s'} restante{days===1?'':'s'} · luego {money.format(price)}/mes</span>{hasPayment?<span style={{fontWeight:900,color:'#147348'}}>✓ Tarjeta asociada</span>:<button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo…':'Asociar tarjeta'}</button>}</>}
     {error&&<span title={error}> · {error}</span>}
   </div>
 }
