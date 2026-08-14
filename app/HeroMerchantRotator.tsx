@@ -9,7 +9,7 @@ const scenes:Scene[]=[
   {kind:'video',src:'https://videos.pexels.com/video-files/4121754/4121754-hd_1920_1080_25fps.mp4',poster:'https://images.pexels.com/videos/4121754/barcode-buying-cashier-consumerism-4121754.jpeg?auto=compress&fit=crop&w=1800',label:'Comercios de cercanía',detail:'Cobro ágil y control diario'},
   {kind:'video',src:'https://videos.pexels.com/video-files/5103988/5103988-hd_1920_1080_30fps.mp4',poster:'https://images.pexels.com/videos/5103988/pexels-photo-5103988.jpeg?auto=compress&fit=crop&w=1800',label:'Supermercados y almacenes',detail:'Ventas, caja y stock en un mismo lugar'},
   {kind:'video',src:'https://videos.pexels.com/video-files/4292582/4292582-hd_1920_1080_25fps.mp4',poster:'https://images.pexels.com/videos/4292582/pexels-photo-4292582.jpeg?auto=compress&fit=crop&w=1800',label:'Stock e inventario',detail:'Control desde el salón y el celular'},
-  {kind:'image',src:'https://images.pexels.com/photos/7697320/pexels-photo-7697320.jpeg?auto=compress&cs=tinysrgb&w=1800',poster:'https://images.pexels.com/photos/7697320/pexels-photo-7697320.jpeg?auto=compress&cs=tinysrgb&w=1800',label:'Servicios',detail:'También para peluquerías y negocios por atención'},
+  {kind:'image',src:'https://images.pexels.com/photos/12326636/pexels-photo-12326636.jpeg?auto=compress&cs=tinysrgb&w=1800',poster:'https://images.pexels.com/photos/12326636/pexels-photo-12326636.jpeg?auto=compress&cs=tinysrgb&w=1800',label:'Tiendas de cercanía',detail:'Ventas, productos y caja en un solo lugar'},
   {kind:'image',src:'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1800',poster:'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1800',label:'Showrooms y locales',detail:'Productos, precios, clientes y ventas'},
 ]
 
@@ -36,6 +36,10 @@ export default function HeroMerchantRotator(){
       <div style={{display:'flex',alignItems:'baseline',gap:10,marginTop:5}}><del style={{fontSize:16,color:'#adb8b3'}}>$39.900</del><strong style={{fontSize:28,letterSpacing:'-1px'}}>$14.900</strong><small style={{fontSize:9,color:'#cbd4d0'}}>/ mes</small></div>
       <p style={{fontSize:9,lineHeight:1.45,color:'#d4dcd8',margin:'5px 0 0'}}>Ahorrás $25.000 por mes durante tus primeros 3 meses.</p>
       <b style={{display:'block',fontSize:9,color:'#7ce3ae',marginTop:6}}>Además, empezás con 14 días gratis antes del primer cobro.</b>
+    </div>
+    <div className="clMobileHeroQuickActions" aria-label="Accesos rápidos">
+      <a href="/prueba-gratis">Probar gratis 14 días</a>
+      <a href="/redesign/access">Ingresar</a>
     </div>
     <div className={styles.heroSceneCaption}><span>{scene.label}</span><strong>{scene.detail}</strong></div>
     <div className={styles.heroSceneRail} aria-label="Rubros que usan Comercio Lleno">{scenes.map((item,index)=><button type="button" aria-label={`Ver ${item.label}`} aria-current={index===current?'true':undefined} className={index===current?styles.heroSceneActive:styles.heroSceneDot} onClick={()=>setCurrent(index)} key={item.label}/>)}</div>
