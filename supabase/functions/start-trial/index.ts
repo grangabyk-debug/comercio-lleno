@@ -117,9 +117,9 @@ Deno.serve(async(req:Request)=>{
   if(phone.length<6||phone.length>40)return json(req,{ok:false,error:'Ingresá un WhatsApp válido del propietario.'},400);
   if(province.length>120||address.length>240)return json(req,{ok:false,error:'La dirección o provincia supera el máximo permitido.'},400);
 
-  const complete=requestedComplete&&taxId.length===11&&countries.includes(country)&&(country!=='Argentina'||province.length>1);
-  if(requestedComplete&&taxId.length!==11)return json(req,{ok:false,error:'El CUIT/CUIL debe tener exactamente 11 dígitos.'},400);
-  if(requestedComplete&&!complete)return json(req,{ok:false,error:'Faltan CUIT/CUIL, país o provincia para completar la configuración.'},400);
+  const complete=requestedComplete&&countries.includes(country)&&(country!=='Argentina'||province.length>1);
+  if(taxId.length>0&&taxId.length!==11)return json(req,{ok:false,error:'Si completás el CUIT/CUIL, debe tener exactamente 11 dígitos.'},400);
+  if(requestedComplete&&!complete)return json(req,{ok:false,error:'Faltan país o provincia para completar la configuración.'},400);
 
   let attemptId='';
   try{attemptId=await consumeSignupAttempt(req,email,challengeToken)}catch(e){const status=Number((e as any)?.status)||500;return json(req,{ok:false,error:e instanceof Error?e.message:String(e)},status)}
@@ -136,7 +136,7 @@ Deno.serve(async(req:Request)=>{
     userId=String(user.id);
 
     const acceptedAt=new Date().toISOString();
-    const companyResponse=await rest('companies',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({name:companyName,legal_name:companyName,tax_id:complete?taxId:null,owner_phone:phone,country:complete?country:null,province:complete&&country==='Argentina'?province:null,address:complete&&address?address:null,onboarding_complete:complete,terms_accepted_at:acceptedAt,privacy_accepted_at:acceptedAt,terms_version:TERMS_VERSION,privacy_version:PRIVACY_VERSION})});
+    const companyResponse=await rest('companies',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({name:companyName,legal_name:companyName,tax_id:taxId.length===11?taxId:null,owner_phone:phone,country:complete?country:null,province:complete&&country==='Argentina'?province:null,address:complete&&address?address:null,onboarding_complete:complete,terms_accepted_at:acceptedAt,privacy_accepted_at:acceptedAt,terms_version:TERMS_VERSION,privacy_version:PRIVACY_VERSION})});
     const companies=await companyResponse.json().catch(()=>[]);
     if(!companyResponse.ok||!companies?.[0]?.id)throw new Error('No se pudo crear el comercio.');
     companyId=String(companies[0].id);
