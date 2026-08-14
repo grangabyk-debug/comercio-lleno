@@ -4,6 +4,7 @@ import LegacyScripts from './LegacyScripts'
 import './globals.css'
 import './prepaint.css'
 import './landing-final-trust.css'
+import './mobile-viewport-boost.css'
 
 export const metadata: Metadata = {
   metadataBase:new URL('https://comerciolleno.com'),
