@@ -11,6 +11,9 @@ type Subscription = {
   status: string
   trial_ends_at: string | null
   price_amount: number | string
+  promo_price_amount?: number | string | null
+  regular_price_amount?: number | string | null
+  promo_cycles?: number | string | null
   currency: string
   provider_status?: string | null
 }
@@ -33,7 +36,7 @@ export default function SubscriptionGate() {
     const current = readTenantSession()
     setSession(current)
     if (!current) { setLoaded(true); return }
-    fetch(`${SUPABASE_URL}/rest/v1/company_subscriptions?company_id=eq.${encodeURIComponent(current.companyId)}&select=status,trial_ends_at,price_amount,currency,provider_status&limit=1`, {
+    fetch(`${SUPABASE_URL}/rest/v1/company_subscriptions?company_id=eq.${encodeURIComponent(current.companyId)}&select=status,trial_ends_at,price_amount,promo_price_amount,regular_price_amount,promo_cycles,currency,provider_status&limit=1`, {
       headers: { apikey:PUBLISHABLE_KEY, Authorization:`Bearer ${current.token}` },
       cache: 'no-store',
     })
@@ -51,7 +54,9 @@ export default function SubscriptionGate() {
   if (allowed) return null
 
   const owner = session.role === 'owner'
-  const price = Number(subscription.price_amount || 14900)
+  const promoPrice = Number(subscription.promo_price_amount || subscription.price_amount || 14900)
+  const regularPrice = Number(subscription.regular_price_amount || 39900)
+  const promoCycles = Number(subscription.promo_cycles || 3)
   const statusText = subscription.status === 'past_due'
     ? 'El pago necesita regularización.'
     : subscription.status === 'canceled'
@@ -89,7 +94,9 @@ export default function SubscriptionGate() {
       <p style={{margin:0,color:'#5c6d65',lineHeight:1.55}}>{statusText} Tus datos, productos y ventas siguen guardados; el acceso operativo queda protegido hasta activar el plan.</p>
       <div style={{margin:'20px 0',padding:16,border:'1px solid #dfe8e3',borderRadius:14,background:'#f8faf9'}}>
         <div style={{fontSize:12,color:'#66776f',fontWeight:800}}>Plan Comercio Lleno</div>
-        <div style={{fontSize:30,fontWeight:950,marginTop:3}}>{money.format(price)} <span style={{fontSize:13,fontWeight:700,color:'#718078'}}>/ mes</span></div>
+        <div style={{fontSize:13,color:'#8a948f',textDecoration:'line-through',marginTop:6}}>{money.format(regularPrice)} / mes</div>
+        <div style={{fontSize:30,fontWeight:950,marginTop:2}}>{money.format(promoPrice)} <span style={{fontSize:13,fontWeight:700,color:'#718078'}}>/ mes x {promoCycles} meses</span></div>
+        <div style={{fontSize:11,color:'#66776f',marginTop:5}}>Después, {money.format(regularPrice)}/mes.</div>
       </div>
       {owner ? <>
         <button onClick={activate} disabled={busy} style={{width:'100%',border:0,borderRadius:12,padding:'14px 16px',background:'#168a55',color:'#fff',fontWeight:950,fontSize:15,cursor:busy?'wait':'pointer'}}>{busy?'Abriendo Mercado Pago…':'Activar con Mercado Pago'}</button>
