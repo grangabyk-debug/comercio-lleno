@@ -64,7 +64,7 @@ export function Trend({ current, previous, label }: {
     <span className={polish.trendCopy}>
       {previous > 0
         ? <><b>{Math.abs(change).toFixed(0)}% {up ? 'más' : down ? 'menos' : 'igual'}</b><small>que el {label}</small></>
-        : <><b>Sin referencia</b><small>No hay un día anterior comparable</small></>}
+        : <><b>Sin referencia</b><small>Sin datos previos</small></>}
     </span>
   </div>
 }
