@@ -31,7 +31,7 @@ export default function HeroMerchantRotator(){
     </div>
     {next.kind==='video'&&<video aria-hidden="true" src={next.src} muted playsInline preload="metadata" style={{position:'absolute',width:1,height:1,opacity:0,pointerEvents:'none'}}/>}
     <div className={styles.heroMediaShade}/>
-    <div style={promoStyle}>
+    <div className="clHeroPromo" style={promoStyle}>
       <span style={{fontSize:8,fontWeight:900,letterSpacing:'.14em',color:'#78e2ae'}}>OPORTUNIDAD ESPECIAL</span>
       <div style={{display:'flex',alignItems:'baseline',gap:10,marginTop:5}}><del style={{fontSize:16,color:'#adb8b3'}}>$39.900</del><strong style={{fontSize:28,letterSpacing:'-1px'}}>$14.900</strong><small style={{fontSize:9,color:'#cbd4d0'}}>/ mes</small></div>
       <p style={{fontSize:9,lineHeight:1.45,color:'#d4dcd8',margin:'5px 0 0'}}>Ahorrás $25.000 por mes durante tus primeros 3 meses.</p>
