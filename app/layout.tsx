@@ -3,6 +3,7 @@ import Script from 'next/script'
 import LegacyScripts from './LegacyScripts'
 import './globals.css'
 import './prepaint.css'
+import './landing-final-trust.css'
 
 export const metadata: Metadata = {
   metadataBase:new URL('https://comerciolleno.com'),
