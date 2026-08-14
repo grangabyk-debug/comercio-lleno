@@ -11,6 +11,9 @@ type Subscription = {
   status:string
   trial_ends_at:string
   price_amount:number|string
+  promo_price_amount?:number|string|null
+  regular_price_amount?:number|string|null
+  promo_cycles?:number|string|null
   currency:string
   payment_method_added_at?:string|null
   billing_provider?:string|null
@@ -30,7 +33,7 @@ export default function TrialStatus(){
     const session=readTenantSession()
     if(!session){setLoaded(true);return}
 
-    const loadSubscription=()=>fetch(`${SUPABASE_URL}/rest/v1/company_subscriptions?company_id=eq.${encodeURIComponent(session.companyId)}&select=status,trial_ends_at,price_amount,currency,payment_method_added_at,billing_provider,provider_status&limit=1`,{
+    const loadSubscription=()=>fetch(`${SUPABASE_URL}/rest/v1/company_subscriptions?company_id=eq.${encodeURIComponent(session.companyId)}&select=status,trial_ends_at,price_amount,promo_price_amount,regular_price_amount,promo_cycles,currency,payment_method_added_at,billing_provider,provider_status&limit=1`,{
       headers:{apikey:PUBLISHABLE_KEY,Authorization:`Bearer ${session.token}`},cache:'no-store',
     }).then(r=>r.ok?r.json():[]).then(rows=>setSubscription(Array.isArray(rows)?rows[0]||null:null))
 
@@ -61,7 +64,9 @@ export default function TrialStatus(){
   },[])
 
   const days=useMemo(()=>subscription?.trial_ends_at?Math.max(0,Math.ceil((new Date(subscription.trial_ends_at).getTime()-now)/86_400_000)):0,[subscription,now])
-  const price=Number(subscription?.price_amount || 14900)
+  const promoPrice=Number(subscription?.promo_price_amount || subscription?.price_amount || 14900)
+  const regularPrice=Number(subscription?.regular_price_amount || 39900)
+  const promoCycles=Number(subscription?.promo_cycles || 3)
 
   async function activate(){
     const session=readTenantSession()
@@ -99,9 +104,10 @@ export default function TrialStatus(){
   const expired=subscription.status==='expired'||days<=0
   const warning=!expired&&days<=5
   const hasPayment=Boolean(subscription.payment_method_added_at)||subscription.provider_status==='authorized'
+  const pricingText=`${money.format(promoPrice)}/mes por ${promoCycles} meses · después ${money.format(regularPrice)}/mes`
   return <div className={`${styles.pill} ${expired?styles.danger:warning?styles.warning:''}`}>
     <i className={styles.dot}/>
-    {expired?<><b>Prueba finalizada</b><span>Activá el plan de {money.format(price)}/mes para seguir usando Comercio Lleno.</span><button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo Mercado Pago…':'Activar con tarjeta'}</button></>:<><b>Prueba gratis</b><span>{days} día{days===1?'':'s'} restante{days===1?'':'s'} · luego {money.format(price)}/mes</span>{hasPayment?<span style={{fontWeight:900,color:'#147348'}}>✓ Tarjeta asociada</span>:<button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo…':'Asociar tarjeta'}</button>}</>}
+    {expired?<><b>Prueba finalizada</b><span>Activá el plan: {pricingText}.</span><button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo Mercado Pago…':'Activar con tarjeta'}</button></>:<><b>Prueba gratis</b><span>{days} día{days===1?'':'s'} restante{days===1?'':'s'} · luego {pricingText}</span>{hasPayment?<span style={{fontWeight:900,color:'#147348'}}>✓ Tarjeta asociada</span>:<button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo…':'Asociar tarjeta'}</button>}</>}
     {error&&<span title={error}> · {error}</span>}
   </div>
 }

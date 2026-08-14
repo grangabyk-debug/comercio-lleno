@@ -3,8 +3,20 @@ import Script from 'next/script'
 import LegacyScripts from './LegacyScripts'
 import './globals.css'
 import './prepaint.css'
+import './landing-final-trust.css'
 
-export const metadata: Metadata = { title: 'Comercio Lleno', description: 'Punto de venta y gestión para comercios' }
+export const metadata: Metadata = {
+  metadataBase:new URL('https://comerciolleno.com'),
+  title:{default:'Comercio Lleno',template:'%s | Comercio Lleno'},
+  description:'Sistema POS online para comercios con ventas, stock, caja, ARCA, modo offline e inteligencia artificial.',
+  applicationName:'Comercio Lleno',
+  icons:{
+    icon:[{url:'/icon.svg',type:'image/svg+xml',sizes:'any'}],
+    shortcut:'/icon.svg',
+    apple:'/icon.svg',
+  },
+  openGraph:{siteName:'Comercio Lleno'},
+}
 
 const privateRouteGuard = `
 (function(){

@@ -31,7 +31,25 @@ export default function DashboardEnhanced({ data, todayTotal, todayCount, lowSto
 
   return <>
     <Head eyebrow={data.company.name} title="Inicio" subtitle="Resumen del comercio y accesos de operación.">
-      <button style={{border:'1px solid #8ed0e5',background:'#e9f8ff',color:'#19718d',borderRadius:11,padding:'10px 15px',fontWeight:950,cursor:'pointer'}} onClick={()=>window.dispatchEvent(new Event('comercio:enter-simple'))}>◫ Modo Simple</button>
+      <button
+        style={{
+          border:'1px solid rgba(255,255,255,.4)',
+          background:'linear-gradient(135deg,#1769e8 0%,#3187ff 58%,#5aa7ff 100%)',
+          color:'#fff',
+          borderRadius:999,
+          padding:'15px 28px',
+          minWidth:190,
+          fontSize:15,
+          fontWeight:950,
+          letterSpacing:'-.2px',
+          cursor:'pointer',
+          boxShadow:'0 10px 28px rgba(34,119,238,.30), inset 0 1px 0 rgba(255,255,255,.35)',
+          transition:'transform .18s ease, box-shadow .18s ease',
+        }}
+        onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-1px)';e.currentTarget.style.boxShadow='0 14px 34px rgba(34,119,238,.38), inset 0 1px 0 rgba(255,255,255,.4)'}}
+        onMouseLeave={e=>{e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.boxShadow='0 10px 28px rgba(34,119,238,.30), inset 0 1px 0 rgba(255,255,255,.35)'}}
+        onClick={()=>window.dispatchEvent(new Event('comercio:enter-simple'))}
+      >Modo Simple</button>
     </Head>
     {role === 'supervisor' && <div className={core.notice}><span>Panel de supervisión · indicadores visibles según tus permisos.</span></div>}
     <div className={core.kpis}>
