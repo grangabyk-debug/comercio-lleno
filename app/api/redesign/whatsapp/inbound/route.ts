@@ -1,6 +1,6 @@
 import { timingSafeEqual } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
-import { processSellerMessage } from '../seller/engine'
+import { processSellerMessageStyled } from '../seller/training'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
     locked = (await serviceRpc('claim_whatsapp_processing_lock', { p_company_id: companyId, p_phone: phone })) === true
     if (!locked) return NextResponse.json({ ok: false, error: 'busy' }, { status: 503 })
 
-    const result = await processSellerMessage({
+    const result = await processSellerMessageStyled({
       token: SERVICE_KEY,
       companyId,
       companyName: await companyName(companyId),
