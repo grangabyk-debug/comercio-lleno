@@ -53,6 +53,21 @@ const scenes: Scene[] = [
   },
 ]
 
+const promoStyle = {
+  position: 'absolute' as const,
+  zIndex: 6,
+  right: 38,
+  top: 28,
+  width: 300,
+  padding: '14px 16px',
+  borderRadius: 16,
+  color: '#fff',
+  background: 'rgba(9,15,20,.62)',
+  border: '1px solid rgba(255,255,255,.2)',
+  backdropFilter: 'blur(16px)',
+  boxShadow: '0 18px 45px rgba(0,0,0,.22)',
+}
+
 export default function HeroMerchantRotator() {
   const [current, setCurrent] = useState(0)
 
@@ -67,41 +82,22 @@ export default function HeroMerchantRotator() {
     <div className={styles.heroMedia}>
       <div className={styles.heroMediaFrame} key={`${current}-${scene.src}`}>
         {scene.kind === 'video' ? (
-          <video
-            className={styles.heroMediaAsset}
-            src={scene.src}
-            poster={scene.poster}
-            autoPlay
-            muted
-            playsInline
-            loop
-            preload="metadata"
-          />
+          <video className={styles.heroMediaAsset} src={scene.src} poster={scene.poster} autoPlay muted playsInline loop preload="metadata" />
         ) : (
           <img className={styles.heroMediaAsset} src={scene.src} alt="Comerciante trabajando en su local" />
         )}
       </div>
       <div className={styles.heroMediaShade} />
-      <div className={styles.heroPromo}>
-        <span>OFERTA DE LANZAMIENTO</span>
-        <div><del>$39.900</del><strong>$14.900</strong><small>/ mes</small></div>
-        <p>Ahorrás $25.000 por mes durante tus primeros 3 meses.</p>
-        <b>Además, empezás con 14 días gratis.</b>
+      <div style={promoStyle}>
+        <span style={{fontSize:8,fontWeight:900,letterSpacing:'.14em',color:'#78e2ae'}}>OFERTA DE LANZAMIENTO</span>
+        <div style={{display:'flex',alignItems:'baseline',gap:10,marginTop:5}}><del style={{fontSize:16,color:'#adb8b3'}}>$39.900</del><strong style={{fontSize:28,letterSpacing:'-1px'}}>$14.900</strong><small style={{fontSize:9,color:'#cbd4d0'}}>/ mes</small></div>
+        <p style={{fontSize:9,lineHeight:1.45,color:'#d4dcd8',margin:'5px 0 0'}}>Ahorrás $25.000 por mes durante tus primeros 3 meses.</p>
+        <b style={{display:'block',fontSize:9,color:'#7ce3ae',marginTop:6}}>Además, empezás con 14 días gratis.</b>
       </div>
-      <div className={styles.heroSceneCaption}>
-        <span>{scene.label}</span>
-        <strong>{scene.detail}</strong>
-      </div>
+      <div className={styles.heroSceneCaption}><span>{scene.label}</span><strong>{scene.detail}</strong></div>
       <div className={styles.heroSceneRail} aria-label="Rubros que usan Comercio Lleno">
         {scenes.map((item, index) => (
-          <button
-            type="button"
-            aria-label={`Ver ${item.label}`}
-            aria-current={index === current ? 'true' : undefined}
-            className={index === current ? styles.heroSceneActive : styles.heroSceneDot}
-            onClick={() => setCurrent(index)}
-            key={item.label}
-          />
+          <button type="button" aria-label={`Ver ${item.label}`} aria-current={index === current ? 'true' : undefined} className={index === current ? styles.heroSceneActive : styles.heroSceneDot} onClick={() => setCurrent(index)} key={item.label} />
         ))}
       </div>
     </div>
