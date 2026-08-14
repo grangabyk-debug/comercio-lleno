@@ -1,7 +1,6 @@
 import styles from './landingEnhancements.module.css'
 
-const argentinaPhoto='https://images.pexels.com/photos/32864389/pexels-photo-32864389.jpeg?auto=compress&cs=tinysrgb&w=1800'
-const supportPhoto='https://images.pexels.com/photos/8866777/pexels-photo-8866777.jpeg?auto=compress&cs=tinysrgb&w=1600'
+const supportPhoto='https://images.pexels.com/photos/7709235/pexels-photo-7709235.jpeg?auto=compress&cs=tinysrgb&w=1600'
 const whatsappPhoto='https://images.pexels.com/photos/4132538/pexels-photo-4132538.jpeg?auto=compress&cs=tinysrgb&w=1400'
 
 export function AiSignature({compact=false}:{compact?:boolean}){
@@ -11,19 +10,18 @@ export function AiSignature({compact=false}:{compact?:boolean}){
 }
 
 export function ArgentinaPresence({mapSrc}:{mapSrc:string}){
-  const dots=[['31%','25%'],['52%','29%'],['60%','36%'],['45%','43%'],['57%','49%'],['43%','57%'],['54%','64%'],['48%','72%'],['46%','82%']]
+  const dots=[['51%','17%'],['47%','25%'],['56%','31%'],['44%','38%'],['52%','45%'],['45%','52%'],['53%','59%'],['47%','67%'],['49%','76%'],['46%','86%']]
   return <div className={styles.argentinaVisual}>
-    <img className={styles.argentinaPhoto} src={argentinaPhoto} alt="Bandera argentina sobre la ciudad de Buenos Aires"/>
-    <div className={styles.argentinaShade}/>
-    <div className={styles.flagLines}><i/><i/><i/></div>
-    <div className={styles.argentinaMapWrap}><img src={mapSrc} alt="Mapa de Argentina"/>{dots.map(([left,top],i)=><i key={i} style={{left,top}}/>)}</div>
+    <div className={styles.nationalBackdrop}><i/><i/><i/></div>
+    <div className={styles.argentinaMapWrap}><img src={mapSrc} alt="Mapa de Argentina"/>{dots.map(([left,top],i)=><i key={i} style={{left,top}} aria-hidden="true"/>)}</div>
+    <div className={styles.argentinaGlow}/>
     <div className={styles.argentinaCaption}><span>ARGENTINA</span><strong>Una red de comercios que sigue creciendo.</strong><small>Más de 150 negocios usando Comercio Lleno.</small></div>
   </div>
 }
 
 export function HumanSupportVisual(){
   return <div className={styles.supportVisual}>
-    <img src={supportPhoto} alt="Persona de atención al cliente con auriculares"/>
+    <img src={supportPhoto} alt="Persona de soporte atendiendo con auriculares"/>
     <div className={styles.supportShade}/>
     <div className={styles.supportBadge}><span>ASISTENCIA HUMANA</span><b>Cuando necesitás una persona, te conectamos con soporte.</b><small>El canal de ayuda está disponible desde el sistema para dejar tu consulta en cualquier momento.</small></div>
   </div>
