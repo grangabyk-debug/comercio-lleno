@@ -25,6 +25,14 @@ type ManagementItem = {
 
 const EXACT_VIEWS: ViewKey[] = ['dashboard','pos','products','cash','settings','assistant','sales','reports','customers','profitability','accounts','returns','promotions','purchases','suppliers'] as ViewKey[]
 
+function tourKey(key:ViewKey){
+  if(key==='pos')return 'sale'
+  if(key==='products')return 'products'
+  if(key==='cash')return 'cash'
+  if(key==='settings')return 'settings'
+  return undefined
+}
+
 export default function SidebarNavigation({ tenant, view, buildVersion, canView, onNavigate }: Props) {
   const [managementOpen, setManagementOpen] = useState(false)
   const managementRef = useRef<HTMLDivElement | null>(null)
@@ -97,6 +105,8 @@ export default function SidebarNavigation({ tenant, view, buildVersion, canView,
     <div className={styles.navLabel}>OPERACIÓN</div>
     {mainNav.map(([key, icon, label, special]) => canView(key) && <button
       key={key}
+      data-tour={tourKey(key)}
+      data-tour-context={tourKey(key)}
       className={`${styles.navButton} ${view === key ? styles.navActive : ''} ${special === 'assistant' ? parity.supportAssistant : ''} ${special === 'sale' ? enh.saleNav : ''}`}
       onClick={() => { closeFinances(); setManagementOpen(false); onNavigate(key) }}
     ><span>{icon}</span>{label}</button>)}
