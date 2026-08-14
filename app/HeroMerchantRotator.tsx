@@ -82,6 +82,12 @@ export default function HeroMerchantRotator() {
         )}
       </div>
       <div className={styles.heroMediaShade} />
+      <div className={styles.heroPromo}>
+        <span>OFERTA DE LANZAMIENTO</span>
+        <div><del>$39.900</del><strong>$14.900</strong><small>/ mes</small></div>
+        <p>Ahorrás $25.000 por mes durante tus primeros 3 meses.</p>
+        <b>Además, empezás con 14 días gratis.</b>
+      </div>
       <div className={styles.heroSceneCaption}>
         <span>{scene.label}</span>
         <strong>{scene.detail}</strong>
