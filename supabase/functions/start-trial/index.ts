@@ -6,6 +6,8 @@ const TRIAL_DAYS = 14;
 const MONTHLY_PRICE = 14900;
 const HOURLY_LIMIT = 8;
 const DAILY_LIMIT = 20;
+const TERMS_VERSION = '2026-08-13';
+const PRIVACY_VERSION = '2026-08-13';
 const countries = ['Argentina','Bolivia','Brasil','Chile','Colombia','Costa Rica','Cuba','Ecuador','El Salvador','Guatemala','Honduras','México','Nicaragua','Panamá','Paraguay','Perú','República Dominicana','Uruguay','Venezuela','España'];
 
 function originAllowed(origin:string){
@@ -103,7 +105,10 @@ Deno.serve(async(req:Request)=>{
   const address=String(body.address||'').trim();
   const requestedComplete=body.onboarding_complete===true;
   const challengeToken=String(body.challenge_token||'');
+  const acceptedTerms=body.accepted_terms===true;
+  const acceptedPrivacy=body.accepted_privacy===true;
 
+  if(!acceptedTerms||!acceptedPrivacy)return json(req,{ok:false,error:'Para registrarte tenés que aceptar los Términos y Condiciones y la Política de Privacidad.'},400);
   if(!await validChallenge(challengeToken,String(body.challenge_answer||'')))return json(req,{ok:false,error:'La verificación humana venció o es incorrecta. Volvé a resolverla.'},400);
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>200)return json(req,{ok:false,error:'Ingresá un email válido.'},400);
   if(!strong(password)||password.length>128)return json(req,{ok:false,error:'La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un signo especial.'},400);
@@ -130,7 +135,8 @@ Deno.serve(async(req:Request)=>{
     }
     userId=String(user.id);
 
-    const companyResponse=await rest('companies',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({name:companyName,legal_name:companyName,tax_id:complete?taxId:null,owner_phone:phone,country:complete?country:null,province:complete&&country==='Argentina'?province:null,address:complete&&address?address:null,onboarding_complete:complete})});
+    const acceptedAt=new Date().toISOString();
+    const companyResponse=await rest('companies',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({name:companyName,legal_name:companyName,tax_id:complete?taxId:null,owner_phone:phone,country:complete?country:null,province:complete&&country==='Argentina'?province:null,address:complete&&address?address:null,onboarding_complete:complete,terms_accepted_at:acceptedAt,privacy_accepted_at:acceptedAt,terms_version:TERMS_VERSION,privacy_version:PRIVACY_VERSION})});
     const companies=await companyResponse.json().catch(()=>[]);
     if(!companyResponse.ok||!companies?.[0]?.id)throw new Error('No se pudo crear el comercio.');
     companyId=String(companies[0].id);
