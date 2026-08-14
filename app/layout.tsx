@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
 import LegacyScripts from './LegacyScripts'
+import FloatingWhatsApp from './FloatingWhatsApp'
 import './globals.css'
 import './prepaint.css'
 import './landing-final-trust.css'
@@ -75,6 +76,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         />
         <Script id="google-ads-tag" strategy="afterInteractive">{googleAdsTag}</Script>
         {children}
+        <FloatingWhatsApp />
         <LegacyScripts />
       </body>
     </html>
