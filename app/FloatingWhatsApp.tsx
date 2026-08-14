@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import styles from './FloatingWhatsApp.module.css'
 
-const whatsappUrl='https://wa.me/5491159609135?text=Hola%2C%20quiero%20consultar%20por%20Comercio%20Lleno.'
+const whatsappUrl='https://wa.me/5491140540970?text=Hola%2C%20quiero%20consultar%20por%20Comercio%20Lleno.'
 
 export default function FloatingWhatsApp(){
   const pathname=usePathname()
