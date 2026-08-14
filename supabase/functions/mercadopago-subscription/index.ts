@@ -13,14 +13,23 @@ function json(req:Request,body:unknown,status=200){return Response.json(body,{st
 function adminHeaders(extra:Record<string,string>={}){return{apikey:SERVICE_ROLE,Authorization:`Bearer ${SERVICE_ROLE}`,'Content-Type':'application/json',...extra}}
 async function adminRest(path:string,init:RequestInit={}){return fetch(`${SUPABASE_URL}/rest/v1/${path}`,{...init,headers:adminHeaders(init.headers as Record<string,string>||{})})}
 async function mp(path:string,init:RequestInit={}){const response=await fetch(`${MP_API}${path}`,{...init,headers:{Authorization:`Bearer ${MP_ACCESS_TOKEN}`,'Content-Type':'application/json',...(init.headers||{})},cache:'no-store'});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data?.message||data?.error||`Mercado Pago respondió ${response.status}`);return data}
-function localStatus(providerStatus:string,currentStatus:string,trialEndsAt:string|null|undefined){if(providerStatus==='authorized')return'active';if(providerStatus==='cancelled')return'canceled';if(providerStatus==='paused')return'past_due';if(providerStatus==='pending'&&trialEndsAt&&new Date(trialEndsAt).getTime()<=Date.now())return'expired';return currentStatus||'trialing'}
+function trialActive(trialEndsAt:string|null|undefined){return Boolean(trialEndsAt&&new Date(trialEndsAt).getTime()>Date.now())}
+function localStatus(providerStatus:string,currentStatus:string,trialEndsAt:string|null|undefined,lastPaymentAt:string|null|undefined){
+  if(providerStatus==='cancelled'||providerStatus==='canceled')return'canceled';
+  if(providerStatus==='paused')return'past_due';
+  if(trialActive(trialEndsAt))return'trialing';
+  if(currentStatus==='active'||lastPaymentAt)return'active';
+  if(providerStatus==='authorized'||providerStatus==='pending')return'expired';
+  return currentStatus||'expired';
+}
 async function saveRemoteState(companyId:string,subscription:any,existing:any){
   const providerStatus=String(existing?.status||'').toLowerCase(),authorized=providerStatus==='authorized';
-  const patch:Record<string,unknown>={billing_provider:'mercadopago',provider_status:providerStatus||null,provider_checkout_url:existing?.init_point||subscription.provider_checkout_url||null,provider_last_synced_at:new Date().toISOString(),status:localStatus(providerStatus,String(subscription.status||'trialing'),subscription.trial_ends_at),updated_at:new Date().toISOString()};
-  if(authorized)patch.payment_method_added_at=subscription.payment_method_added_at||new Date().toISOString();
+  const status=localStatus(providerStatus,String(subscription.status||'trialing'),subscription.trial_ends_at,subscription.last_payment_at);
+  const patch:Record<string,unknown>={billing_provider:'mercadopago',provider_status:providerStatus||null,provider_checkout_url:existing?.init_point||subscription.provider_checkout_url||null,provider_last_synced_at:new Date().toISOString(),status,updated_at:new Date().toISOString()};
+  if(authorized&&!subscription.payment_method_added_at)patch.payment_method_added_at=new Date().toISOString();
   const update=await adminRest(`company_subscriptions?company_id=eq.${encodeURIComponent(companyId)}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(patch)});
   if(!update.ok)throw new Error('No se pudo actualizar la suscripción local.');
-  return{providerStatus,authorized,patch};
+  return{providerStatus,authorized,status,patch};
 }
 
 Deno.serve(async(req:Request)=>{
@@ -42,12 +51,13 @@ Deno.serve(async(req:Request)=>{
   try{
     if(subscription.provider_subscription_id){
       const existing=await mp(`/preapproval/${encodeURIComponent(subscription.provider_subscription_id)}`);
-      const {providerStatus,authorized,patch}=await saveRemoteState(companyId,subscription,existing);
-      if(action==='sync'||authorized)return json(req,{ok:true,status:providerStatus,active:authorized,local_status:patch.status,init_point:existing?.init_point||subscription.provider_checkout_url||null});
-      if(providerStatus==='pending'&&existing?.init_point)return json(req,{ok:true,status:providerStatus,active:false,local_status:patch.status,init_point:String(existing.init_point)});
-      if(!['cancelled','paused'].includes(providerStatus))return json(req,{ok:true,status:providerStatus,active:false,local_status:patch.status,init_point:existing?.init_point||null});
+      const {providerStatus,authorized,status}=await saveRemoteState(companyId,subscription,existing);
+      const paymentMethodAdded=authorized||Boolean(subscription.payment_method_added_at);
+      if(action==='sync'||authorized)return json(req,{ok:true,status:providerStatus,active:status==='active',payment_method_added:paymentMethodAdded,local_status:status,init_point:existing?.init_point||subscription.provider_checkout_url||null});
+      if(providerStatus==='pending'&&existing?.init_point)return json(req,{ok:true,status:providerStatus,active:false,payment_method_added:false,local_status:status,init_point:String(existing.init_point)});
+      if(!['cancelled','canceled','paused'].includes(providerStatus))return json(req,{ok:true,status:providerStatus,active:status==='active',payment_method_added:paymentMethodAdded,local_status:status,init_point:existing?.init_point||null});
     }else if(action==='sync'){
-      return json(req,{ok:true,status:subscription.provider_status||null,active:subscription.status==='active',local_status:subscription.status,init_point:null});
+      return json(req,{ok:true,status:subscription.provider_status||null,active:subscription.status==='active',payment_method_added:Boolean(subscription.payment_method_added_at),local_status:subscription.status,init_point:null});
     }
 
     const trialEnd=subscription.trial_ends_at?new Date(subscription.trial_ends_at):new Date(0),remainingMs=Math.max(0,trialEnd.getTime()-Date.now()),remainingDays=Math.max(0,Math.ceil(remainingMs/86_400_000)),originUrl=allowedOrigin(req);
@@ -55,7 +65,8 @@ Deno.serve(async(req:Request)=>{
     if(remainingDays>0)autoRecurring.free_trial={frequency:remainingDays,frequency_type:'days'};
     const created=await mp('/preapproval',{method:'POST',body:JSON.stringify({reason:'Comercio Lleno',external_reference:companyId,payer_email:String(user.email),auto_recurring:autoRecurring,back_url:`${originUrl}/redesign?billing=return`,status:'pending'})});
     if(!created?.id||!created?.init_point)throw new Error('Mercado Pago no devolvió un checkout válido.');
-    const update=await adminRest(`company_subscriptions?company_id=eq.${encodeURIComponent(companyId)}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({billing_provider:'mercadopago',provider_subscription_id:String(created.id),provider_status:String(created.status||'pending'),provider_checkout_url:String(created.init_point),provider_last_synced_at:new Date().toISOString(),status:remainingDays>0?'trialing':subscription.status==='active'?'active':'expired',updated_at:new Date().toISOString()})});if(!update.ok)throw new Error('No se pudo guardar el checkout de Mercado Pago.');
-    return json(req,{ok:true,status:String(created.status||'pending'),active:false,local_status:remainingDays>0?'trialing':'expired',init_point:String(created.init_point),remaining_trial_days:remainingDays});
+    const localStatus=remainingDays>0?'trialing':subscription.status==='active'?'active':'expired';
+    const update=await adminRest(`company_subscriptions?company_id=eq.${encodeURIComponent(companyId)}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({billing_provider:'mercadopago',provider_subscription_id:String(created.id),provider_status:String(created.status||'pending'),provider_checkout_url:String(created.init_point),provider_last_synced_at:new Date().toISOString(),status:localStatus,updated_at:new Date().toISOString()})});if(!update.ok)throw new Error('No se pudo guardar el checkout de Mercado Pago.');
+    return json(req,{ok:true,status:String(created.status||'pending'),active:false,payment_method_added:false,local_status:localStatus,init_point:String(created.init_point),remaining_trial_days:remainingDays});
   }catch(error){return json(req,{ok:false,error:error instanceof Error?error.message:String(error)},502)}
 });
