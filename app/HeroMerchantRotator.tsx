@@ -9,47 +9,41 @@ type Scene = {
   poster?: string
   label: string
   detail: string
-  credit: string
 }
 
 const scenes: Scene[] = [
   {
     kind: 'video',
-    src: 'https://videos.pexels.com/video-files/6539945/6539945-uhd_3840_2160_25fps.mp4',
-    poster: 'https://images.pexels.com/videos/6539945/free-video-6539945.jpg?auto=compress&fit=crop&w=1800',
+    src: 'https://videos.pexels.com/video-files/4121754/4121754-uhd_3840_2160_25fps.mp4',
+    poster: 'https://images.pexels.com/videos/4121754/barcode-buying-cashier-consumerism-4121754.jpeg?auto=compress&fit=crop&w=1800',
     label: 'Comercios de cercanía',
     detail: 'Cobro ágil y control diario',
-    credit: 'Pexels',
   },
   {
     kind: 'video',
-    src: 'https://videos.pexels.com/video-files/13061609/13061609-hd_1920_1080_60fps.mp4',
-    poster: 'https://images.pexels.com/videos/13061609/buying-cashier-check-out-chocolate-store-13061609.jpeg?auto=compress&fit=crop&w=1800',
-    label: 'Panaderías y locales',
+    src: 'https://videos.pexels.com/video-files/5103988/5103988-uhd_3840_2160_30fps.mp4',
+    poster: 'https://images.pexels.com/videos/5103988/pexels-photo-5103988.jpeg?auto=compress&fit=crop&w=1800',
+    label: 'Supermercados y almacenes',
     detail: 'Ventas, caja y stock en un mismo lugar',
-    credit: 'Pexels',
   },
   {
     kind: 'video',
-    src: 'https://videos.pexels.com/video-files/5103992/5103992-uhd_3840_2160_30fps.mp4',
-    poster: 'https://images.pexels.com/videos/5103992/pexels-photo-5103992.jpeg?auto=compress&fit=crop&w=1800',
+    src: 'https://videos.pexels.com/video-files/4292582/4292582-uhd_3840_2160_25fps.mp4',
+    poster: 'https://images.pexels.com/videos/4292582/pexels-photo-4292582.jpeg?auto=compress&fit=crop&w=1800',
     label: 'Stock e inventario',
     detail: 'Control desde el salón y el celular',
-    credit: 'Pexels',
   },
   {
     kind: 'image',
     src: 'https://images.pexels.com/videos/7697072/pexels-photo-7697072.jpeg?auto=compress&fit=crop&w=1800',
     label: 'Servicios',
     detail: 'También para peluquerías y negocios por atención',
-    credit: 'Pexels',
   },
   {
     kind: 'image',
     src: 'https://images.pexels.com/videos/4824291/pexels-photo-4824291.jpeg?auto=compress&fit=crop&w=1800',
     label: 'Mueblerías y showrooms',
     detail: 'Productos, precios, clientes y ventas',
-    credit: 'Pexels',
   },
 ]
 
