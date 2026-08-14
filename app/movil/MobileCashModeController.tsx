@@ -77,7 +77,7 @@ export default function MobileCashModeController(){
           setTarget(currentTarget)
         }
       }
-      if(currentTarget)paint(readCachedSalesSettings(session.companyId),currentTarget)
+      if(currentTarget)paint(readCachedSalesSettings(session.companyId).cashMode,currentTarget)
     }
 
     find()
