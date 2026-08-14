@@ -3,12 +3,15 @@ import type { TenantSession } from './types'
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? ''
 
+export type CashMode = 'ask' | 'manual' | 'automatic'
+
 export type SalesSettings = {
   allowNegativeStock: boolean
   timeFormat: '24' | '12'
   maxDiscount: number
   wholesalePricingEnabled: boolean
   whatsappAutoTicket: boolean
+  cashMode: CashMode
 }
 
 export const DEFAULT_SALES_SETTINGS: SalesSettings = {
@@ -17,6 +20,7 @@ export const DEFAULT_SALES_SETTINGS: SalesSettings = {
   maxDiscount: 100,
   wholesalePricingEnabled: true,
   whatsappAutoTicket: false,
+  cashMode: 'ask',
 }
 
 function key(companyId: string) {
@@ -24,12 +28,15 @@ function key(companyId: string) {
 }
 
 function normalize(value: Partial<SalesSettings> | null | undefined): SalesSettings {
+  const rawCashMode = value?.cashMode
+  const cashMode: CashMode = rawCashMode === 'manual' || rawCashMode === 'automatic' ? rawCashMode : 'ask'
   return {
     allowNegativeStock: value?.allowNegativeStock === true,
     timeFormat: value?.timeFormat === '12' ? '12' : '24',
     maxDiscount: Math.max(0, Math.min(100, Number(value?.maxDiscount ?? 100) || 0)),
     wholesalePricingEnabled: value?.wholesalePricingEnabled !== false,
     whatsappAutoTicket: value?.whatsappAutoTicket === true,
+    cashMode,
   }
 }
 
@@ -45,6 +52,7 @@ function legacySettings(): Partial<SalesSettings> | null {
       maxDiscount: Number(sales.maxDiscount ?? 100),
       wholesalePricingEnabled: sales.wholesalePricingEnabled !== false,
       whatsappAutoTicket: Boolean(sales.whatsappAutoTicket),
+      cashMode: sales.cashMode === 'manual' || sales.cashMode === 'automatic' ? sales.cashMode : 'ask',
     }
   } catch {
     return null
