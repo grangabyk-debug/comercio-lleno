@@ -1,4 +1,5 @@
 import type { CommerceSnapshot, Sale } from './types'
+import { scopedCompanyKey } from './branch-context'
 
 const DB_NAME = 'comercio-lleno-offline'
 const DB_VERSION = 1
@@ -77,8 +78,9 @@ export function getOfflineDeviceId(companyId: string) {
 
 export async function saveOfflineSnapshot(companyId: string, snapshot: CommerceSnapshot) {
   if (!available()) return
+  const scope=scopedCompanyKey(companyId)
   await tx<void>(SNAPSHOT_STORE, 'readwrite', (store, resolve, reject) => {
-    const request = store.put({ companyId, snapshot: normalizeSnapshot(snapshot), savedAt: new Date().toISOString() } satisfies SnapshotRecord)
+    const request = store.put({ companyId:scope, snapshot: normalizeSnapshot(snapshot), savedAt: new Date().toISOString() } satisfies SnapshotRecord)
     request.onsuccess = () => resolve()
     request.onerror = () => reject(request.error)
   })
@@ -86,8 +88,9 @@ export async function saveOfflineSnapshot(companyId: string, snapshot: CommerceS
 
 export async function loadOfflineSnapshot(companyId: string): Promise<CommerceSnapshot | null> {
   if (!available()) return null
+  const scope=scopedCompanyKey(companyId)
   return tx<CommerceSnapshot | null>(SNAPSHOT_STORE, 'readonly', (store, resolve, reject) => {
-    const request = store.get(companyId)
+    const request = store.get(scope)
     request.onsuccess = () => {
       const snapshot = (request.result as SnapshotRecord | undefined)?.snapshot
       resolve(snapshot ? normalizeSnapshot(snapshot) : null)
@@ -99,7 +102,7 @@ export async function loadOfflineSnapshot(companyId: string): Promise<CommerceSn
 export async function queueOfflineSale(companyId: string, sale: Sale) {
   const item: OfflineSaleQueueItem = {
     id: sale.id,
-    companyId,
+    companyId: scopedCompanyKey(companyId),
     sale,
     createdAt: new Date().toISOString(),
     attempts: 0,
@@ -114,9 +117,10 @@ export async function queueOfflineSale(companyId: string, sale: Sale) {
 
 export async function listOfflineSales(companyId: string): Promise<OfflineSaleQueueItem[]> {
   if (!available()) return []
+  const scope=scopedCompanyKey(companyId)
   return tx<OfflineSaleQueueItem[]>(QUEUE_STORE, 'readonly', (store, resolve, reject) => {
     const index = store.index('companyId')
-    const request = index.getAll(IDBKeyRange.only(companyId))
+    const request = index.getAll(IDBKeyRange.only(scope))
     request.onsuccess = () => resolve((request.result as OfflineSaleQueueItem[]).sort((a, b) => a.createdAt.localeCompare(b.createdAt)))
     request.onerror = () => reject(request.error)
   })
