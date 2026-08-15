@@ -7,6 +7,7 @@ import './prepaint.css'
 import './landing-final-trust.css'
 import './mobile-viewport-boost.css'
 import './landing-mobile-entry.css'
+import './landing-readable.css'
 
 export const metadata: Metadata = {
   metadataBase:new URL('https://comerciolleno.com'),
