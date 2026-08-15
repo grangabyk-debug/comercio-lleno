@@ -112,15 +112,6 @@ header:has(> nav[aria-label="Navegación principal"]) > nav[aria-label="Navegaci
 }
 .appbar .brand > * { display:none !important; }
 
-/* V2 dashboard already has a legacy brand block in CommerceApp.
-   Keep its layout space, but hide its pixels completely so the single
-   RedesignBrandOverlay wordmark is the only visible brand in the header. */
-main[class*="shell"] > header[class*="topbar"] > [class*="brandWrap"] {
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
 @media (max-width: 1080px) {
   header:has(> nav[aria-label="Navegación principal"]) > a[aria-label="Comercio Lleno"] {
     left: 50% !important;
@@ -131,12 +122,5 @@ main[class*="shell"] > header[class*="topbar"] > [class*="brandWrap"] {
   header:has(> nav[aria-label="Navegación principal"]) > a[aria-label="Comercio Lleno"] {
     transform: translate(-50%,-50%) scale(.86) !important;
     transform-origin: center !important;
-  }
-  .cl-brand-overlay {
-    width: 166px !important;
-    height: 46px !important;
-    left: 12px !important;
-    top: 10px !important;
-    padding: 7px 10px !important;
   }
 }
