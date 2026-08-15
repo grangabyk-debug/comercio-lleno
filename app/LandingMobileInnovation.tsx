@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import styles from './LandingMobileInnovation.module.css'
 
 const mobilePhoto='https://images.pexels.com/photos/28153646/pexels-photo-28153646.jpeg?auto=compress&cs=tinysrgb&w=1900'
@@ -32,7 +31,6 @@ export default function LandingMobileInnovation(){
         <div><span>02</span><b>Controlá productos y stock</b><small>Buscá, escaneá con la cámara y revisá existencias mientras te movés por el local.</small></div>
         <div><span>03</span><b>Seguí caja y negocio</b><small>Consultá caja, actividad e información importante sin depender de una computadora.</small></div>
       </div>
-      <Link href="/movil" className={styles.link}>Ver la experiencia móvil <span>→</span></Link>
     </div>
   </section>
 }
