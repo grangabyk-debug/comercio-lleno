@@ -109,4 +109,102 @@ main[class*="dark"] [class*="simpleLaunch"] [class*="simpleButton"]{
   border:1px solid #44364b!important;
   box-shadow:none!important;
 }
+
+/* Gestión en modo oscuro: contraste real y estable, aunque otros estilos globales intenten aclarar los botones. */
+body.comercio-dark main[class*="shell"] [class*="flyout"] button[class*="managementItem"],
+main[class*="dark"] [class*="flyout"] button[class*="managementItem"]{
+  background:linear-gradient(145deg,#faf8fb,#f1edf4)!important;
+  border-color:#dcd4e1!important;
+  color:#241d29!important;
+  -webkit-text-fill-color:#241d29!important;
+  text-shadow:none!important;
+  opacity:1!important;
+}
+body.comercio-dark main[class*="shell"] [class*="flyout"] button[class*="managementItem"] *,
+main[class*="dark"] [class*="flyout"] button[class*="managementItem"] *{
+  color:#241d29!important;
+  -webkit-text-fill-color:#241d29!important;
+  opacity:1!important;
+}
+body.comercio-dark main[class*="shell"] [class*="flyout"] button[class*="managementItem"]>span,
+main[class*="dark"] [class*="flyout"] button[class*="managementItem"]>span{
+  background:#edf3f0!important;
+  color:#315347!important;
+  -webkit-text-fill-color:#315347!important;
+  border-color:#d3e0da!important;
+}
+body.comercio-dark main[class*="shell"] [class*="flyout"] button[class*="managementItem"]:hover,
+main[class*="dark"] [class*="flyout"] button[class*="managementItem"]:hover{
+  background:#fff!important;
+  border-color:#bca9d3!important;
+  color:#321d4c!important;
+  -webkit-text-fill-color:#321d4c!important;
+}
+body.comercio-dark main[class*="shell"] [class*="flyout"] button[class*="managementItemActive"],
+main[class*="dark"] [class*="flyout"] button[class*="managementItemActive"]{
+  background:#fff0e8!important;
+  border-color:#efb996!important;
+  color:#7b2f10!important;
+  -webkit-text-fill-color:#7b2f10!important;
+}
+
+/* Compras en modo oscuro: títulos y descripciones de Pago total / Pago parcial siempre blancos. */
+body.comercio-dark .cl-purchase-choice button,
+body.comercio-dark .cl-purchase-choice button b,
+body.comercio-dark .cl-purchase-choice button small,
+main[class*="dark"] .cl-purchase-choice button,
+main[class*="dark"] .cl-purchase-choice button b,
+main[class*="dark"] .cl-purchase-choice button small{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  opacity:1!important;
+}
+
+/* Inicio > Contexto: más presencia visual y mejor lectura. */
+main [class*="comparisonPanel"]{
+  padding:28px!important;
+}
+main [class*="comparisonPanel"] [class*="sectionTitle"]{
+  padding-bottom:19px!important;
+}
+main [class*="comparisonPanel"] [class*="sectionTitle"]>div>span{
+  font-size:10.5px!important;
+  letter-spacing:.16em!important;
+}
+main [class*="comparisonPanel"] [class*="sectionTitle"] h2{
+  font-size:27px!important;
+  line-height:1.08!important;
+}
+main [class*="comparisonPanel"] [class*="comparisonList"]{
+  gap:11px!important;
+  padding-top:17px!important;
+}
+main [class*="comparisonPanel"] [class*="comparisonCard"]{
+  min-height:78px!important;
+  padding:18px 18px!important;
+  border-radius:19px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+}
+main [class*="comparisonPanel"] [class*="comparisonCard"] span,
+main [class*="comparisonPanel"] [class*="comparisonCard"] b{
+  font-size:12.5px!important;
+  line-height:1.25!important;
+}
+main [class*="comparisonPanel"] [class*="comparisonCard"] small{
+  margin-top:8px!important;
+  font-size:11.5px!important;
+  line-height:1.35!important;
+}
+@media(min-width:1181px){
+  main [class*="lowerGrid"]{
+    grid-template-columns:minmax(0,1fr) minmax(430px,1fr)!important;
+  }
+}
+@media(max-width:760px){
+  main [class*="comparisonPanel"]{padding:20px!important}
+  main [class*="comparisonPanel"] [class*="sectionTitle"] h2{font-size:23px!important}
+  main [class*="comparisonPanel"] [class*="comparisonCard"]{min-height:70px!important;padding:15px!important}
+}
 `
