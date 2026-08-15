@@ -1,0 +1,27 @@
+{
+  "appId": "com.llenagroup.comerciolleno",
+  "appName": "Comercio Lleno",
+  "webDir": "www",
+  "loggingBehavior": "debug",
+  "backgroundColor": "#f5faf7",
+  "appendUserAgent": " ComercioLlenoApp/1.0",
+  "server": {
+    "url": "https://www.comerciolleno.com/movil",
+    "cleartext": false,
+    "errorPath": "offline.html"
+  },
+  "android": {
+    "backgroundColor": "#f5faf7",
+    "allowMixedContent": false,
+    "captureInput": false,
+    "webContentsDebuggingEnabled": false,
+    "resolveServiceWorkerRequests": false
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "style": "DARK",
+      "hidden": false
+    }
+  }
+}
