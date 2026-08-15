@@ -1,1 +1,53 @@
-.host{min-width:0}.specialLegacy>section{display:none!important}.specialLegacy>div:nth-child(n+3){display:none!important}.specialPanel{margin-top:0}.mobileTab{white-space:nowrap}.mobileTabActive{background:#173d2c!important;color:#fff!important;border-color:#173d2c!important}.salesLegacy section label:first-of-type{display:none!important}
+.host{min-width:0}
+.specialLegacy>section{display:none!important}
+.specialLegacy>div:nth-child(n+3){display:none!important}
+.specialPanel{margin-top:0}
+.mobileTab{white-space:nowrap}
+.mobileTabActive{background:#6d36d8!important;color:#fff!important;border-color:#6d36d8!important}
+.salesLegacy section label:first-of-type{display:none!important}
+
+/* Configuración: escala amplia para usuarios mayores, aplicada también a paneles especiales. */
+.host h1{font-size:36px!important;line-height:1.05!important;letter-spacing:-.04em!important}
+.host h2{font-size:28px!important;line-height:1.12!important}
+.host h3{font-size:24px!important;line-height:1.15!important;font-weight:950!important}
+.host p{font-size:16px!important;line-height:1.55!important;font-weight:650!important}
+.host small{font-size:14px!important;line-height:1.48!important;font-weight:700!important}
+.host label{font-size:15.5px!important;line-height:1.4!important;font-weight:900!important}
+.host input,.host select,.host textarea{font-size:16px!important;min-height:50px!important;padding:13px 14px!important;border-radius:13px!important;font-weight:750!important}
+.host button{font-size:15.5px!important;min-height:48px!important;padding:12px 16px!important;border-radius:13px!important;font-weight:950!important;line-height:1.15!important}
+.host :global([class*="tabs"]){gap:10px!important;margin-bottom:20px!important}
+.host :global([class*="tabs"]) button{font-size:15.5px!important;min-height:50px!important;padding:12px 17px!important;border-radius:15px!important}
+.host :global([class*="panel"]){padding:25px!important;gap:19px!important;border-radius:24px!important}
+.host :global([class*="title"]),.host :global([class*="subhead"]){gap:16px!important}
+.host :global([class*="grid"]){gap:16px!important}
+.host :global([class*="switch"]){padding:17px!important;border-radius:18px!important;gap:16px!important}
+.host :global([class*="switch"]) b{font-size:16.5px!important;line-height:1.3!important}
+.host :global([class*="switch"]) small{font-size:14px!important;margin-top:5px!important}
+.host :global([class*="switch"]) input{width:26px!important;height:26px!important;min-height:26px!important;padding:0!important}
+.host :global([class*="choice"]){gap:10px!important}
+.host :global([class*="choice"]) button{font-size:15px!important;min-height:48px!important;padding:12px 17px!important}
+.host :global([class*="saveRow"]){padding-top:18px!important;gap:14px!important}
+.host :global([class*="saveRow"]) small{font-size:13.5px!important}
+.host :global([class*="primary"]){font-size:15.5px!important;min-height:50px!important;padding:13px 19px!important;border-radius:14px!important}
+.host :global([class*="branch"]),.host :global([class*="staff"]){padding:16px 17px!important;min-height:64px!important}
+.host :global([class*="branch"]) b,.host :global([class*="staff"]) b{font-size:15.5px!important}
+.host :global([class*="branch"]) small,.host :global([class*="staff"]) small{font-size:13.5px!important;margin-top:4px!important}
+.host :global([class*="lines"])>div{padding:15px 16px!important;font-size:15px!important;min-height:52px!important;align-items:center!important}
+.host :global([class*="permissions"]){gap:11px!important}
+.host :global([class*="permissions"]) label{padding:14px!important;border-radius:15px!important;grid-template-columns:25px 1fr!important}
+.host :global([class*="permissions"]) input{width:22px!important;height:22px!important;min-height:22px!important;padding:0!important}
+.host :global([class*="permissions"]) b{font-size:15px!important}
+.host :global([class*="permissions"]) small{font-size:13px!important}
+.host :global([class*="pending"]),.host :global([class*="error"]),.host :global([class*="version"]){font-size:13.5px!important}
+
+@media(max-width:760px){
+  .host h1{font-size:31px!important}
+  .host h2{font-size:25px!important}
+  .host h3{font-size:22px!important}
+  .host p{font-size:15px!important}
+  .host small{font-size:13.5px!important}
+  .host label{font-size:15px!important}
+  .host input,.host select,.host textarea{font-size:15px!important;min-height:48px!important}
+  .host button,.host :global([class*="tabs"]) button{font-size:14.5px!important;min-height:47px!important}
+  .host :global([class*="panel"]){padding:19px!important}
+}
