@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import styles from './LandingMobileInnovation.module.css'
+import fixes from './LandingMobileInnovationFixes.module.css'
 
 type IconName='phone'|'scan'|'ai'|'arca'|'cash'|'sale'|'products'|'moves'|'home'
 
@@ -25,7 +26,7 @@ function MobileDashboardMock(){
     <div className={styles.phone}>
       <div className={styles.phoneTop}>
         <div className={styles.miniLogo}>CL</div>
-        <div><strong>Comercio Lleno</strong><span>La Económica</span></div>
+        <div><strong>Comercio Lleno</strong><span>Tu comercio</span></div>
         <div className={styles.settingsDot}/>
       </div>
       <div className={styles.planBar}>PLAN SIMPLE · MÓVIL</div>
@@ -55,8 +56,8 @@ function MobileDashboardMock(){
         <span><Icon name="moves"/><small>Movimientos</small></span>
       </div>
     </div>
-    <div className={`${styles.floatingBadge} ${styles.badgeAi}`}><span><Icon name="ai"/></span><div><b>IA integrada</b><small>Consultá ventas y stock</small></div></div>
-    <div className={`${styles.floatingBadge} ${styles.badgeArca}`}><span><Icon name="arca"/></span><div><b>ARCA directo</b><small>Facturá desde el teléfono</small></div></div>
+    <div className={`${styles.floatingBadge} ${styles.badgeAi} ${fixes.badgeAi}`}><span><Icon name="ai"/></span><div><b>IA integrada</b><small>Consultá ventas y stock</small></div></div>
+    <div className={`${styles.floatingBadge} ${styles.badgeArca} ${fixes.badgeArca}`}><span><Icon name="arca"/></span><div><b>ARCA directo</b><small>Facturá desde el teléfono</small></div></div>
     <div className={`${styles.floatingBadge} ${styles.badgeScan}`}><span><Icon name="scan"/></span><div><b>Lector por cámara</b><small>Sin hardware extra</small></div></div>
   </div>
 }
