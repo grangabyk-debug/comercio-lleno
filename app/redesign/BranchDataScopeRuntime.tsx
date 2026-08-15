@@ -18,12 +18,43 @@ function bodyWithBranch(body:BodyInit|null|undefined,branchId:string,rpc:string)
   return body
 }
 
+function isScopedCandidate(raw:string){
+  if(raw.startsWith('/api/redesign/products-sheet')||raw.startsWith(`${location.origin}/api/redesign/products-sheet`))return true
+  try{
+    const url=new URL(raw,location.origin)
+    if(url.hostname!==SUPABASE_HOST||!url.pathname.startsWith('/rest/v1/'))return false
+    const resource=url.pathname.slice('/rest/v1/'.length).split('/')[0]
+    if(SCOPED_TABLES.has(resource))return true
+    if(resource!=='rpc')return false
+    const rpc=url.pathname.slice('/rest/v1/rpc/'.length).split('/')[0]
+    return rpc==='persist_sale_atomic'||rpc==='bulk_increase_product_prices'
+  }catch{return false}
+}
+
+async function waitForBranch(){
+  const existing=readActiveBranchId()
+  if(existing)return existing
+  return new Promise<string>(resolve=>{
+    let finished=false
+    const done=()=>{
+      if(finished)return
+      finished=true
+      window.removeEventListener('comercio:branch-ready',done)
+      clearTimeout(timer)
+      resolve(readActiveBranchId())
+    }
+    const timer=window.setTimeout(done,4000)
+    window.addEventListener('comercio:branch-ready',done,{once:true})
+  })
+}
+
 export default function BranchDataScopeRuntime(){
   useLayoutEffect(()=>{
     const original=window.fetch.bind(window)
     window.fetch=(async(input:RequestInfo|URL,init?:RequestInit)=>{
       const raw=typeof input==='string'?input:input instanceof URL?input.toString():input.url
-      const branchId=readActiveBranchId()
+      if(!isScopedCandidate(raw))return original(input,init)
+      const branchId=readActiveBranchId()||await waitForBranch()
       if(!branchId)return original(input,init)
 
       if(raw.startsWith('/api/redesign/products-sheet')||raw.startsWith(`${location.origin}/api/redesign/products-sheet`)){
@@ -34,12 +65,10 @@ export default function BranchDataScopeRuntime(){
 
       let url:URL
       try{url=new URL(raw,location.origin)}catch{return original(input,init)}
-      if(url.hostname!==SUPABASE_HOST||!url.pathname.startsWith('/rest/v1/'))return original(input,init)
       const resource=url.pathname.slice('/rest/v1/'.length).split('/')[0]
       const isRpc=resource==='rpc'
       const rpc=isRpc?url.pathname.slice('/rest/v1/rpc/'.length).split('/')[0]:''
       const scoped=SCOPED_TABLES.has(resource)
-      if(!scoped&&rpc!=='persist_sale_atomic'&&rpc!=='bulk_increase_product_prices')return original(input,init)
 
       const method=(init?.method||(input instanceof Request?input.method:'GET')).toUpperCase()
       if(scoped&&method!=='POST'&&!url.searchParams.has('branch_id'))url.searchParams.append('branch_id',`eq.${branchId}`)
