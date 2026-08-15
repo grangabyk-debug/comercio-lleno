@@ -1,0 +1,41 @@
+.mobileDemo,.mobileSuccess{display:none}.desktopOnly{}.compactHead{}.compactFoot{}
+
+@media(max-width:700px){
+  .desktopOnly{display:none!important}
+  .compactFoot{display:none!important}
+  .compactHead{padding:18px 18px 15px!important;gap:12px!important}
+  .compactHead>div{max-width:calc(100% - 48px)!important}
+  .compactHead h2{font-size:27px!important;line-height:1!important;margin-top:6px!important}
+  .compactHead p{font-size:12px!important;line-height:1.4!important;margin-top:8px!important}
+  .compactHead>button{width:38px!important;height:38px!important;flex-basis:38px!important;border-radius:12px!important}
+
+  .mobileDemo{display:block;padding:15px 14px 16px;background:linear-gradient(180deg,#fff 0%,#fbf8ff 58%,#fff8f4 100%)}
+  .mobileStep{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;margin-bottom:12px}
+  .mobileStep>span{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:#17121c;color:#fff;font-size:14px;font-weight:950;box-shadow:0 8px 18px rgba(23,18,28,.16)}
+  .mobileStep b,.mobileStep small{display:block}.mobileStep b{font-size:15px;line-height:1.15}.mobileStep small{font-size:9.5px;color:#7b717f;margin-top:3px;font-weight:650}.mobileStep>button{border:0;background:#f4eff7;color:#8c4b3d;border-radius:9px;min-height:34px;padding:0 10px;font-size:9px;font-weight:900}
+
+  .mobileProducts{display:flex;gap:9px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 1px 7px;margin:0 -1px;scrollbar-width:none}.mobileProducts::-webkit-scrollbar{display:none}
+  .mobileProduct{scroll-snap-align:start;flex:0 0 148px;min-height:126px;padding:12px;border-radius:16px;border:1px solid #e5dce9;background:linear-gradient(145deg,#fff,#fbf9fc);box-shadow:0 8px 20px rgba(47,28,57,.055);display:flex;flex-direction:column}
+  .mobileProduct>span{width:max-content;max-width:100%;padding:4px 7px;border-radius:999px;background:#f0e7ff;color:#6d36d8;font-size:7.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:950}
+  .mobileProduct>b{font-size:12.5px;line-height:1.14;margin-top:8px;min-height:29px}.mobileProduct>strong{font-size:13px;margin-top:6px}.mobileProduct>div{margin-top:auto;display:flex;align-items:center;justify-content:flex-end;gap:6px}.mobileProduct button{border:0;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#f3eff5;color:#2b222e;font-size:17px;font-weight:900}.mobileProduct em{font-style:normal;font-size:11px;font-weight:950;min-width:14px;text-align:center}.mobileProduct .mobileAdd{background:linear-gradient(135deg,#ff7a39,#ff5615);color:#fff;box-shadow:0 7px 14px rgba(255,100,29,.18)}
+
+  .mobileSale{margin-top:10px;padding:13px 14px;border-radius:16px;background:#17121c;color:#fff;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;box-shadow:0 12px 26px rgba(23,18,28,.16)}
+  .mobileSale span,.mobileSale b{display:block}.mobileSale span{font-size:7.5px;letter-spacing:.12em;color:#a99ead;font-weight:950}.mobileSale b{font-size:14px;margin-top:4px}.mobileSale>strong{font-size:25px;line-height:1;letter-spacing:-.045em}
+  .mobileSummary{display:flex;gap:6px;overflow:hidden;margin-top:7px}.mobileSummary span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:5px 7px;border-radius:8px;background:#f3eef6;color:#6c6171;font-size:8px;font-weight:800}
+
+  .mobilePayment{margin-top:10px;padding:11px;border-radius:15px;border:1px solid #e6ddea;background:rgba(255,255,255,.82)}
+  .mobilePayment>span{display:block;font-size:8px;letter-spacing:.11em;font-weight:950;color:#695e6e;margin-bottom:8px}.mobilePayment>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.mobilePayment button{min-height:39px;border:1px solid #e1d7e5;background:#fff;border-radius:10px;color:#2d2531;font-size:9px;font-weight:900;padding:0 5px}.mobilePayment .mobilePaymentActive{background:linear-gradient(135deg,#7540df,#5420b8);color:#fff;border-color:#6c36cf;box-shadow:0 8px 16px rgba(109,54,216,.19)}
+
+  .mobileCheckout{width:100%;min-height:54px;margin-top:10px;border:0;border-radius:14px;background:linear-gradient(100deg,#6d36d8 0%,#7b3cde 52%,#ff641d 100%);color:#fff;padding:0 15px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;font-weight:950;box-shadow:0 13px 26px rgba(94,48,153,.2)}.mobileCheckout:disabled{opacity:.38;box-shadow:none}.mobileCheckout b{font-size:15px}.mobileSafe{display:block;text-align:center;font-size:8px;color:#8b818f;font-weight:700;margin-top:7px}
+
+  .mobileSuccess{display:flex;min-height:390px;padding:28px 20px 22px;flex-direction:column;align-items:center;text-align:center;background:radial-gradient(circle at 50% 0,rgba(109,54,216,.12),transparent 32%),linear-gradient(180deg,#fff,#fff9f5)}
+  .mobileSuccessMark{width:54px;height:54px;border-radius:17px;display:grid;place-items:center;background:linear-gradient(135deg,#6d36d8,#8c52ec);color:#fff;font-size:25px;font-weight:950;box-shadow:0 13px 28px rgba(109,54,216,.22)}
+  .mobileSuccess>span{font-size:8px;letter-spacing:.14em;color:#ff641d;font-weight:950;margin-top:16px}.mobileSuccess h3{font-size:31px;line-height:1;margin:7px 0 6px;letter-spacing:-.04em}.mobileSuccess>p{font-size:12px;color:#746a79;margin:0}
+  .mobileReceipt{width:100%;margin-top:18px;padding:15px;border-radius:15px;background:#17121c;color:#fff;text-align:left;box-shadow:0 14px 28px rgba(23,18,28,.16)}.mobileReceipt>div{display:flex;align-items:end;justify-content:space-between;gap:10px}.mobileReceipt span{font-size:10px;color:#c6bbc9}.mobileReceipt b{font-size:23px;letter-spacing:-.04em}.mobileReceipt small{display:block;font-size:9px;color:#a99ead;margin-top:8px}.mobileReceipt i{display:inline-flex;margin-top:10px;font-style:normal;font-size:8px;font-weight:950;color:#d4c3ff;background:#2b2032;padding:5px 7px;border-radius:7px}
+  .mobileSuccess>button,.mobileSuccess>a{width:100%;min-height:46px;border-radius:12px;display:grid;place-items:center;font-size:11px;font-weight:950;text-decoration:none}.mobileSuccess>button{margin-top:15px;border:1px solid #ded5e2;background:#fff;color:#2b2330}.mobileSuccess>a{margin-top:8px;background:#ff641d;color:#fff}
+}
+
+@media(max-width:380px){
+  .compactHead h2{font-size:24px!important}.compactHead p{font-size:11px!important}
+  .mobileProduct{flex-basis:138px;min-height:120px}.mobileProduct>b{font-size:12px}.mobileSale>strong{font-size:23px}.mobilePayment button{font-size:8.5px}
+}
