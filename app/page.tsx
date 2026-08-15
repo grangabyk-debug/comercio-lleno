@@ -6,7 +6,7 @@ import LandingQuickDemo from './LandingQuickDemo'
 import ArgentinaPride from './ArgentinaPride'
 import styles from './LandingPremium.module.css'
 
-const heroPhoto='https://images.pexels.com/photos/36917608/pexels-photo-36917608.jpeg?auto=compress&cs=tinysrgb&w=2200'
+const heroPhoto='https://images.pexels.com/photos/12935045/pexels-photo-12935045.jpeg?auto=compress&cs=tinysrgb&w=2200'
 const arcaLogo='https://arca.gob.ar/frameworkAFIP/img/logo_arca_blanco.svg'
 const mercadoPagoIcon='https://cdn.simpleicons.org/mercadopago/009EE3'
 const whatsappIcon='https://cdn.simpleicons.org/whatsapp/25D366'
@@ -71,7 +71,7 @@ export default function LandingPage(){
 
       <div className={styles.heroVisual}>
         <div className={styles.photoFrame}>
-          <img src={heroPhoto} alt="Fiambrería y delicatessen del Mercado de San Telmo, Buenos Aires" fetchPriority="high"/>
+          <img src={heroPhoto} alt="Cajera operando un sistema POS moderno en un comercio" fetchPriority="high"/>
         </div>
         <div className={styles.heroStamp}><b>HECHO PARA EL<br/>COMERCIO REAL</b><span>Argentina · 2026</span></div>
         <div className={`${styles.floatCard} ${styles.floatSale}`}><span>VENTAS HOY</span><strong>$428.650</strong><small>36 operaciones</small></div>
