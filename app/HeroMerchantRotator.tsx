@@ -6,50 +6,27 @@ import styles from './landing.module.css'
 type Scene={kind:'video'|'image';src:string;poster:string;label:string;detail:string}
 
 const scenes:Scene[]=[
-  {kind:'image',src:'/landing/ferreteria.webp',poster:'/landing/ferreteria.webp',label:'Ferreterías y locales',detail:'Cobros, productos y caja en una misma operación'},
-  {kind:'image',src:'/landing/supermercado.webp',poster:'/landing/supermercado.webp',label:'Supermercados y almacenes',detail:'Stock y precios para miles de productos'},
-  {kind:'image',src:'/landing/cafeteria-sutil.webp',poster:'/landing/cafeteria-sutil.webp',label:'Cafeterías y panaderías',detail:'Ventas ágiles en horas de mayor movimiento'},
-  {kind:'image',src:'/landing/queseria.webp',poster:'/landing/queseria.webp',label:'Fiambrerías y delicatessen',detail:'Control de productos, stock y mostrador'},
-  {kind:'image',src:'/landing/cafeteria.webp',poster:'/landing/cafeteria.webp',label:'Comercios de cercanía',detail:'Una experiencia simple para el equipo del local'},
-]
-
-const photoOverrides:Array<[string,string]>=[
-  ['13061609','/landing/cafeteria-sutil.webp'],
-  ['12326636','/landing/ferreteria.webp'],
-  ['3184465','/landing/supermercado.webp'],
-  ['5103992','/landing/queseria.webp'],
-  ['33752264','/landing/cafeteria.webp'],
+  {kind:'image',src:'/landing/ferreteria.webp',poster:'/landing/ferreteria.webp',label:'Ferreterías y casas de herramientas',detail:'Ventas, caja y productos en un mismo lugar'},
+  {kind:'image',src:'/landing/supermercado.webp',poster:'/landing/supermercado.webp',label:'Supermercados y almacenes',detail:'Stock, precios y operación diaria'},
+  {kind:'image',src:'/landing/cafeteria-sutil.webp',poster:'/landing/cafeteria-sutil.webp',label:'Cafeterías y panaderías',detail:'Cobro ágil y control del mostrador'},
+  {kind:'image',src:'/landing/queseria.webp',poster:'/landing/queseria.webp',label:'Fiambrerías y comercios de alimentos',detail:'Productos, stock y ventas sin vueltas'},
+  {kind:'image',src:'/landing/cafeteria.webp',poster:'/landing/cafeteria.webp',label:'Locales de cercanía',detail:'Todo el negocio desde una misma cuenta'},
 ]
 
 const promoStyle={position:'absolute' as const,zIndex:6,right:38,top:28,width:310,padding:'14px 16px',borderRadius:16,color:'#fff',background:'rgba(9,15,20,.62)',border:'1px solid rgba(255,255,255,.2)',backdropFilter:'blur(16px)',boxShadow:'0 18px 45px rgba(0,0,0,.22)'}
 
 export default function HeroMerchantRotator(){
   const[current,setCurrent]=useState(0)
-  const[videoReady,setVideoReady]=useState(false)
   const scene=scenes[current]
   const next=useMemo(()=>scenes[(current+1)%scenes.length],[current])
 
-  useEffect(()=>{setVideoReady(scene.kind==='image')},[current,scene.kind])
   useEffect(()=>{const timer=window.setInterval(()=>setCurrent(value=>(value+1)%scenes.length),7200);return()=>window.clearInterval(timer)},[])
-  useEffect(()=>{
-    const applyPreviewPhotos=()=>{
-      document.querySelectorAll<HTMLImageElement>('img').forEach(img=>{
-        const original=img.getAttribute('src')||''
-        const match=photoOverrides.find(([needle])=>original.includes(needle))
-        if(match&&img.getAttribute('src')!==match[1])img.setAttribute('src',match[1])
-      })
-    }
-    applyPreviewPhotos()
-    const frame=window.requestAnimationFrame(applyPreviewPhotos)
-    return()=>window.cancelAnimationFrame(frame)
-  },[])
 
   return <div className={styles.heroMedia}>
     <div className={styles.heroMediaFrame} key={`scene-${current}`}>
       <img className={styles.heroMediaAsset} src={scene.poster} alt="Comerciante trabajando en su local"/>
-      {scene.kind==='video'&&<video className={styles.heroMediaAsset} src={scene.src} poster={scene.poster} autoPlay muted playsInline loop preload="auto" onCanPlay={()=>setVideoReady(true)} onLoadedData={()=>setVideoReady(true)} style={{opacity:videoReady?1:0,transition:'opacity 700ms ease'}}/>}
     </div>
-    {next.kind==='video'&&<video aria-hidden="true" src={next.src} muted playsInline preload="metadata" style={{position:'absolute',width:1,height:1,opacity:0,pointerEvents:'none'}}/>}
+    {next.kind==='image'&&<link rel="preload" as="image" href={next.src}/>} 
     <div className={styles.heroMediaShade}/>
     <div className="clHeroPromo" style={promoStyle}>
       <span style={{fontSize:8,fontWeight:900,letterSpacing:'.14em',color:'#78e2ae'}}>50% DE DESCUENTO · 3 MESES</span>
