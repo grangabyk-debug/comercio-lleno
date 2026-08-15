@@ -1,5 +1,6 @@
 'use client'
 
+// Preview landing: assets locales verificados 2026-08-15
 import { useEffect, useState } from 'react'
 import styles from './landing.module.css'
 
