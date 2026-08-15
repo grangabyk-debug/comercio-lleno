@@ -11,14 +11,29 @@ export type BranchAssignment={profile_id:string;company_id:string;branch_id:stri
 
 async function req<T>(session:TenantSession,path:string,init:RequestInit={}){const r=await fetch(`${URL}/rest/v1/${path}`,{...init,headers:{apikey:KEY,Authorization:`Bearer ${session.token}`,'Content-Type':'application/json',...(init.headers||{})},cache:'no-store'});const d=await r.json().catch(()=>null);if(!r.ok)throw new Error(d?.message||d?.error||`Error ${r.status}`);return d as T}
 
+function jwtSubject(token:string){
+  if(typeof window==='undefined')return ''
+  try{
+    const payload=token.split('.')[1]
+    if(!payload)return ''
+    const normalized=payload.replace(/-/g,'+').replace(/_/g,'/')
+    const padded=normalized.padEnd(Math.ceil(normalized.length/4)*4,'=')
+    const decoded=JSON.parse(window.atob(padded))
+    return String(decoded?.sub||'')
+  }catch{return ''}
+}
+
 export async function loadTenantAdmin(session:TenantSession){const [companies,branches,staff,assignments]=await Promise.all([req<CompanyAdmin[]>(session,`companies?select=id,name,legal_name,tax_id,owner_phone,country,province,address,onboarding_complete&id=eq.${encodeURIComponent(session.companyId)}&limit=1`),req<BranchAdmin[]>(session,`branches?select=id,name,address,country,province,is_primary,active,created_at&company_id=eq.${encodeURIComponent(session.companyId)}&active=eq.true&order=is_primary.desc,created_at.asc`),req<StaffProfile[]>(session,`profiles?select=id,full_name,username,role,permissions,active&company_id=eq.${encodeURIComponent(session.companyId)}&order=created_at.asc`),req<BranchAssignment[]>(session,`profile_branch_assignments?select=profile_id,company_id,branch_id,role,permissions,active,created_at,updated_at&company_id=eq.${encodeURIComponent(session.companyId)}&active=eq.true&order=created_at.asc`)]);return{company:companies[0],branches,staff,assignments}}
 
 export async function loadMyBranchOptions(session:TenantSession):Promise<BranchOption[]>{
+  const admin=session.role==='owner'||session.role==='supervisor'
+  const profileId=admin?'':jwtSubject(session.token)
+  if(!admin&&!profileId)return []
+  const assignmentFilter=admin?'':`&profile_id=eq.${encodeURIComponent(profileId)}`
   const [branches,assignments]=await Promise.all([
     req<BranchAdmin[]>(session,`branches?select=id,name,is_primary,active,created_at&company_id=eq.${encodeURIComponent(session.companyId)}&active=eq.true&order=is_primary.desc,created_at.asc`),
-    req<BranchAssignment[]>(session,`profile_branch_assignments?select=profile_id,company_id,branch_id,role,permissions,active&company_id=eq.${encodeURIComponent(session.companyId)}&active=eq.true`),
+    req<BranchAssignment[]>(session,`profile_branch_assignments?select=profile_id,company_id,branch_id,role,permissions,active&company_id=eq.${encodeURIComponent(session.companyId)}&active=eq.true${assignmentFilter}`),
   ])
-  const admin=session.role==='owner'||session.role==='supervisor'
   return (branches||[]).map(branch=>{
     const assignment=(assignments||[]).find(a=>a.branch_id===branch.id)
     if(!admin&&!assignment)return null
