@@ -11,15 +11,17 @@ import './requested-polish.css'
 import './dashboard-image-polish.css'
 import './brand-global.css'
 
+const faviconUrl='/comercio-lleno-favicon-v3.svg?v=20260815'
+
 export const metadata: Metadata = {
   metadataBase:new URL('https://comerciolleno.com'),
   title:{default:'Comercio Lleno',template:'%s | Comercio Lleno'},
   description:'Sistema POS online para comercios con ventas, stock, caja, ARCA, modo offline e inteligencia artificial.',
   applicationName:'Comercio Lleno',
   icons:{
-    icon:[{url:'/icon.svg',type:'image/svg+xml',sizes:'any'}],
-    shortcut:'/icon.svg',
-    apple:'/icon.svg',
+    icon:[{url:faviconUrl,type:'image/svg+xml',sizes:'any'}],
+    shortcut:faviconUrl,
+    apple:faviconUrl,
   },
   openGraph:{siteName:'Comercio Lleno'},
 }
