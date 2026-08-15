@@ -6,6 +6,7 @@ import LandingQuickDemo from './LandingQuickDemo'
 import LandingSystemShowcase from './LandingSystemShowcase'
 import ArgentinaPride from './ArgentinaPride'
 import styles from './LandingPremium.module.css'
+import mobileFix from './LandingMobileHeaderFooterFix.module.css'
 
 const heroPhoto='https://images.pexels.com/photos/12935045/pexels-photo-12935045.jpeg?auto=compress&cs=tinysrgb&w=2200'
 const arcaLogo='https://arca.gob.ar/frameworkAFIP/img/logo_arca_blanco.svg'
@@ -42,17 +43,17 @@ export default function LandingPage(){
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(organizationLd)}}/>
 
     <div className={styles.topLine}/>
-    <header className={styles.header}>
-      <Link href="/" className={styles.brand} aria-label="Comercio Lleno"><BrandLogo size={42}/></Link>
+    <header className={`${styles.header} ${mobileFix.header}`}>
+      <Link href="/" className={`${styles.brand} ${mobileFix.brand}`} aria-label="Comercio Lleno"><BrandLogo size={42}/></Link>
       <nav className={styles.nav} aria-label="Navegación principal">
         <a href="#producto">Producto</a>
         <a href="#movil">Móvil</a>
         <a href="#precio">Precio</a>
         <a href="#preguntas">Preguntas</a>
       </nav>
-      <div className={styles.headerActions}>
-        <Link href="/redesign/access" className={styles.login}>Ingresar</Link>
-        <Link href="/prueba-gratis" className={styles.tryButton}>Probar gratis</Link>
+      <div className={`${styles.headerActions} ${mobileFix.headerActions}`}>
+        <Link href="/redesign/access" className={`${styles.login} ${mobileFix.login}`}>Ingresar</Link>
+        <Link href="/prueba-gratis" className={`${styles.tryButton} ${mobileFix.tryButton}`}>Probar gratis</Link>
       </div>
     </header>
 
@@ -131,8 +132,8 @@ export default function LandingPage(){
       </div>
     </section>
 
-    <footer className={styles.footer}>
-      <div className={styles.footerBrand}><BrandLogo size={38}/><p>Software de gestión comercial de Llena Group.</p></div>
+    <footer className={`${styles.footer} ${mobileFix.footer}`}>
+      <div className={`${styles.footerBrand} ${mobileFix.footerBrand}`}><BrandLogo size={38}/><p>Software de gestión comercial de Llena Group.</p></div>
       <div className={styles.footerLinks}><Link href="/politica-de-privacidad">Privacidad</Link><Link href="/politica-de-cookies">Cookies</Link><button type="button" data-cookie-settings>Configurar cookies</button><Link href="/eliminar-cuenta">Eliminar cuenta</Link></div>
       <div className={styles.footerCta}><span>¿Querés verlo con tus datos?</span><Link href="/prueba-gratis">Empezar gratis →</Link></div>
     </footer>
