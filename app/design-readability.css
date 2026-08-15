@@ -1,1 +1,132 @@
-/* placeholder */
+/* Visual and readability pass shared across the public landing, trial, access, desktop POS and mobile POS. */
+
+/* PUBLIC LANDING */
+body:has(#precio) main{font-family:"Avenir Next","Segoe UI Variable","SF Pro Text",Inter,ui-sans-serif,system-ui,sans-serif}
+body:has(#precio) [class*="photoFrame"] img{object-position:22% 50%!important;transform:scale(1.08);transform-origin:center left}
+body:has(#precio) [class*="heroLead"],body:has(#precio) [class*="sectionLead"],body:has(#precio) [class*="detailsList"] p{color:#302934!important;font-weight:620!important}
+body:has(#precio) [class*="integrationIntro"] span,body:has(#precio) [class*="integrationRail"] small,body:has(#precio) [class*="heroFacts"] span,body:has(#precio) [class*="floatSale"] small,body:has(#precio) [class*="floatArca"] small{font-size:10.5px!important;font-weight:720!important;line-height:1.35!important}
+body:has(#precio) [class*="integrationRail"] b{font-size:12.5px!important;font-weight:850!important}
+body:has(#precio) [class*="integrationIntro"] b{font-size:14px!important;font-weight:850!important}
+body:has(#precio) [class*="footerBrand"] p,body:has(#precio) [class*="footerLinks"] a,body:has(#precio) [class*="footerLinks"] button,body:has(#precio) [class*="footerCta"] span{font-size:11px!important;font-weight:720!important;color:#302934!important}
+body:has(#precio) [class*="login"]{display:inline-flex!important;align-items:center;justify-content:center;border:1px solid #d8d1dc;border-radius:10px;min-height:40px;padding:0 14px!important;color:#211a24!important;font-size:12.5px!important;font-weight:850!important;background:#fff}
+body:has(#precio) [class*="login"]:hover{border-color:#6d36d8;color:#6d36d8!important}
+
+@media(max-width:760px){
+  body:has(#precio) main>header{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:10px!important;height:66px!important;padding:0 14px!important}
+  body:has(#precio) main>header [class*="brand"]{min-width:0!important;overflow:hidden!important}
+  body:has(#precio) main>header [class*="brand"] svg{max-width:178px!important;height:auto!important}
+  body:has(#precio) main>header [class*="headerActions"]{min-width:auto!important;display:block!important}
+  body:has(#precio) main>header [class*="tryButton"]{display:none!important}
+  body:has(#precio) main>header [class*="login"]{display:inline-flex!important;min-height:40px!important;background:#17121c!important;color:#fff!important;border-color:#17121c!important;padding:0 13px!important;border-radius:10px!important;font-size:12px!important;white-space:nowrap!important}
+  body:has(#precio) [class*="photoFrame"] img{object-position:18% 50%!important;transform:scale(1.13)!important}
+  body:has(#precio) [class*="kicker"]{font-size:10px!important;font-weight:900!important;line-height:1.35!important}
+  body:has(#precio) [class*="heroLead"]{font-size:16px!important;line-height:1.52!important;font-weight:620!important}
+  body:has(#precio) [class*="heroFacts"] span{font-size:10px!important;color:#302934!important}
+  body:has(#precio) [class*="integrationRail"]>span{min-width:164px!important;padding:16px!important}
+  body:has(#precio) [class*="sectionLead"],body:has(#precio) [class*="detailsList"] p{font-size:14px!important}
+  body:has(#precio) [class*="detailsList"] summary{font-size:14.5px!important;font-weight:850!important}
+  body:has(#precio) [class*="footerLinks"] a,body:has(#precio) [class*="footerLinks"] button{font-size:11.5px!important}
+}
+
+/* FEATURE TABS: keep editorial but readable. */
+body:has(#precio) [class*="tabs"] button{font-size:13.5px!important;font-weight:850!important;color:#302934!important}
+body:has(#precio) [class*="tabs"] button span{font-size:9.5px!important;font-weight:850!important}
+body:has(#precio) [class*="metric"] span{font-size:10px!important;font-weight:700!important}
+body:has(#precio) [class*="copy"]>p:first-child{font-size:10.5px!important;font-weight:900!important}
+body:has(#precio) [class*="copy"] [class*="body"]{font-size:15px!important;color:#302934!important;font-weight:620!important}
+body:has(#precio) [class*="copy"] li{font-size:12px!important;font-weight:800!important;color:#302934!important}
+
+/* DESKTOP POS: legibility defaults for every operational screen. */
+main[class*="shell"]{--muted:#403845!important;color:var(--text,#201923)!important;font-family:"Avenir Next","Segoe UI Variable","SF Pro Text",Inter,ui-sans-serif,system-ui,sans-serif!important}
+main[class*="shell"] small{font-size:11px!important;font-weight:700!important;line-height:1.4!important}
+main[class*="shell"] label{font-size:12px!important;font-weight:820!important;color:var(--text,#201923)!important;line-height:1.35!important}
+main[class*="shell"] input,main[class*="shell"] select,main[class*="shell"] textarea{font-size:13.5px!important;font-weight:650!important;color:var(--text,#201923)!important;line-height:1.35!important}
+main[class*="shell"] [class*="navLabel"]{font-size:9.5px!important;font-weight:900!important;color:#4d4552!important}
+main[class*="shell"] [class*="navButton"],main[class*="shell"] [class*="managementButton"],main[class*="shell"] [class*="managementItem"]{font-size:12px!important;font-weight:820!important}
+main[class*="shell"] [class*="tenant"],main[class*="shell"] [class*="versionPill"]{font-size:10.5px!important;font-weight:760!important}
+main[class*="shell"] [class*="pageHead"] p,main[class*="shell"] [class*="pageHead"] span{font-size:11px!important;font-weight:760!important;color:var(--text,#201923)!important}
+main[class*="shell"] [class*="hint"],main[class*="shell"] [class*="description"],main[class*="shell"] [class*="subtitle"],main[class*="shell"] [class*="meta"]{font-size:11px!important;font-weight:680!important;line-height:1.45!important}
+main[class*="shell"] [class*="settingCard"] p,main[class*="shell"] [class*="settingCard"] small,main[class*="shell"] [class*="settings"] p,main[class*="shell"] [class*="settings"] small{font-size:11.5px!important;font-weight:680!important;line-height:1.45!important}
+main[class*="shell"] [class*="settingCard"] h3,main[class*="shell"] [class*="settingCard"] b{font-weight:850!important}
+
+/* Dashboard photograph: favor the cashier/store and crop the person on the far right. */
+main[class*="shell"] [class*="dashboard"] [class*="heroPhoto"]>img{object-position:16% 50%!important;transform:scale(1.12)!important;transform-origin:center left!important}
+main[class*="shell"] [class*="dashboard"] [class*="eyebrow"]{font-size:11px!important;font-weight:900!important;color:#302934!important}
+main[class*="shell"] [class*="dashboard"] [class*="totalBlock"]>span{font-size:10px!important;color:#302934!important}
+main[class*="shell"] [class*="dashboard"] [class*="totalBlock"] small{font-size:11px!important;color:#403845!important}
+main[class*="shell"] [class*="dashboard"] [class*="metrics"] span{font-size:9.5px!important;font-weight:900!important}
+main[class*="shell"] [class*="dashboard"] [class*="metrics"] small{font-size:10.5px!important;font-weight:700!important;color:#d4cbd8!important}
+main[class*="shell"] [class*="dashboard"] [class*="sectionTitle"] span{font-size:9.5px!important}
+main[class*="shell"] [class*="dashboard"] [class*="sectionTitle"]>button{font-size:11px!important}
+main[class*="shell"] [class*="dashboard"] [class*="saleInfo"] b,main[class*="shell"] [class*="dashboard"] [class*="saleRow"]>strong,main[class*="shell"] [class*="dashboard"] [class*="actionList"] b{font-size:12px!important;font-weight:850!important}
+main[class*="shell"] [class*="dashboard"] [class*="saleInfo"] small,main[class*="shell"] [class*="dashboard"] [class*="actionList"] small{font-size:10.5px!important;font-weight:700!important;color:#403845!important}
+
+/* Full dark-mode pass. All common surfaces inherit the dark palette instead of remaining white. */
+main[class*="shell"][class*="dark"]{--muted:#d4cbd7!important;color:var(--text)!important}
+main[class*="shell"][class*="dark"] [class*="dashboard"]{--line:#3b303f!important;--soft:#2b2130!important;color:var(--text)!important}
+main[class*="shell"][class*="dark"] [class*="dashboard"] [class*="hero"],main[class*="shell"][class*="dark"] [class*="dashboard"] [class*="activity"],main[class*="shell"][class*="dark"] [class*="dashboard"] [class*="actionsPanel"],main[class*="shell"][class*="dark"] [class*="dashboard"] [class*="actionList"] button,main[class*="shell"][class*="dark"] [class*="dashboard"] [class*="simple"]{background:#1c161f!important;color:#f7f1f8!important;border-color:#3b303f!important}
+main[class*="shell"][class*="dark"] [class*="dashboard"] [class*="sectionTitle"],main[class*="shell"][class*="dark"] [class*="dashboard"] [class*="saleRow"],main[class*="shell"][class*="dark"] [class*="dashboard"] [class*="actionList"] button{border-color:#3b303f!important}
+main[class*="shell"][class*="dark"] [class*="dashboard"] [class*="eyebrow"],main[class*="shell"][class*="dark"] [class*="dashboard"] [class*="totalBlock"]>span,main[class*="shell"][class*="dark"] [class*="dashboard"] [class*="totalBlock"] small,main[class*="shell"][class*="dark"] [class*="dashboard"] [class*="saleInfo"] small,main[class*="shell"][class*="dark"] [class*="dashboard"] [class*="actionList"] small{color:#d4cbd7!important}
+main[class*="shell"][class*="dark"] [class*="dashboard"] [class*="saleIcon"]{background:#2b2136!important;color:#c7a8ff!important}
+main[class*="shell"][class*="dark"] [class*="dashboard"] [class*="aiAction"]{background:#2a2036!important}
+main[class*="shell"][class*="dark"] [class*="headerButton"],main[class*="shell"][class*="dark"] [class*="versionPill"],main[class*="shell"][class*="dark"] [class*="flyout"],main[class*="shell"][class*="dark"] [class*="sidebarBottom"]{background:#241c28!important;color:#f7f1f8!important;border-color:#3b303f!important}
+main[class*="shell"][class*="dark"] [class*="navLabel"]{color:#c4b9c9!important}
+main[class*="shell"][class*="dark"] [class*="managementItem"]{color:#ddd3e1!important}
+main[class*="shell"][class*="dark"] [class*="navActive"]{background:#34231f!important;color:#ff9b6a!important;box-shadow:inset 3px 0 0 #ff641d!important}
+main[class*="shell"][class*="dark"] [class*="settingCard"],main[class*="shell"][class*="dark"] [class*="panel"],main[class*="shell"][class*="dark"] [class*="reportCard"],main[class*="shell"][class*="dark"] [class*="counterCard"],main[class*="shell"][class*="dark"] [class*="searchCard"],main[class*="shell"][class*="dark"] [class*="saleCard"],main[class*="shell"][class*="dark"] [class*="productList"],main[class*="shell"][class*="dark"] [class*="table"],main[class*="shell"][class*="dark"] [class*="modalCard"],main[class*="shell"][class*="dark"] [class*="drawer"]{background-color:#1c161f!important;color:#f7f1f8!important;border-color:#3b303f!important;box-shadow:none!important}
+main[class*="shell"][class*="dark"] input,main[class*="shell"][class*="dark"] select,main[class*="shell"][class*="dark"] textarea{background:#241c28!important;color:#f7f1f8!important;border-color:#493b4f!important}
+main[class*="shell"][class*="dark"] label,main[class*="shell"][class*="dark"] [class*="pageHead"] p,main[class*="shell"][class*="dark"] [class*="pageHead"] span{color:#f1e9f4!important}
+
+/* AI assistant: larger, calmer typography and less 'generated-card' feeling. */
+main[class*="shell"] [class*="chatTitle"] b{font-size:13px!important;font-weight:850!important}
+main[class*="shell"] [class*="chatTitle"] small{font-size:10.5px!important;font-weight:650!important}
+main[class*="shell"] [class*="messages"] [class*="bot"],main[class*="shell"] [class*="messages"] [class*="user"]{font-size:12.5px!important;line-height:1.55!important;font-weight:620!important}
+main[class*="shell"] [class*="quick"] button{font-size:10.5px!important;font-weight:780!important}
+main[class*="shell"] [class*="form"] input{font-size:13px!important}
+main[class*="shell"] [class*="form"] button{font-size:11px!important;font-weight:850!important}
+main[class*="shell"] [class*="aiOrder"] p,main[class*="shell"] [class*="aiOrder"] small{font-size:10.5px!important;line-height:1.45!important;font-weight:650!important}
+
+/* MOBILE POS + SETTINGS */
+main[class*="app"]{font-family:"Avenir Next","Segoe UI Variable","SF Pro Text",Inter,ui-sans-serif,system-ui,sans-serif!important}
+main[class*="app"] [class*="content"] small,main[class*="app"] [class*="summaryCard"] small,main[class*="app"] [class*="settingsCard"] small{font-size:11px!important;font-weight:700!important;color:#342d38!important;line-height:1.4!important}
+main[class*="app"] [class*="bottomNav"] button{font-size:10.5px!important;font-weight:820!important}
+main[class*="app"] [class*="searchBox"] input{font-size:13px!important;font-weight:650!important}
+main[class*="app"] [class*="productItem"] b,main[class*="app"] [class*="catalogRow"] b{font-size:12.5px!important;font-weight:850!important}
+main[class*="app"] [class*="productItem"] small,main[class*="app"] [class*="catalogRow"] small{font-size:10.5px!important;font-weight:680!important;color:#352e39!important}
+[class*="overlay"] [class*="header"] span{font-size:10px!important;font-weight:850!important}
+[class*="overlay"] [class*="header"] h1{font-size:22px!important;font-weight:800!important}
+[class*="overlay"] [class*="hero"] b{font-size:16px!important;font-weight:850!important}
+[class*="overlay"] [class*="hero"] span{font-size:11px!important;font-weight:650!important;color:#332c37!important}
+[class*="overlay"] [class*="menuItem"] b{font-size:14px!important;font-weight:850!important}
+[class*="overlay"] [class*="menuItem"] small{font-size:11px!important;font-weight:680!important;line-height:1.4!important;color:#332c37!important}
+[class*="overlay"] [class*="readOnly"],[class*="overlay"] [class*="info"],[class*="overlay"] [class*="card"]>p{font-size:11.5px!important;font-weight:650!important;line-height:1.5!important;color:#332c37!important}
+[class*="overlay"] [class*="fields"] label,[class*="overlay"] [class*="field"]{font-size:11.5px!important;font-weight:850!important;color:#28212c!important}
+[class*="overlay"] [class*="fields"] input,[class*="overlay"] [class*="field"] input,[class*="overlay"] [class*="newBranch"] input{font-size:14px!important;font-weight:650!important}
+[class*="overlay"] [class*="row"]>span,[class*="overlay"] [class*="switchRow"] b,[class*="overlay"] [class*="options"] b{font-size:12px!important;font-weight:820!important}
+[class*="overlay"] [class*="row"] small,[class*="overlay"] [class*="switchRow"] small,[class*="overlay"] [class*="options"] small,[class*="overlay"] [class*="statusHero"] small,[class*="overlay"] [class*="lines"] span,[class*="overlay"] [class*="lines"] b{font-size:10.5px!important;font-weight:650!important;line-height:1.4!important;color:#332c37!important}
+[class*="overlay"] [class*="choice"] button,[class*="overlay"] [class*="options"] button,[class*="overlay"] [class*="primary"],[class*="overlay"] [class*="secondary"]{font-size:11.5px!important;font-weight:850!important}
+
+/* Mobile AI sheet */
+[class*="sheet"] [class*="secure"]{font-size:10px!important;font-weight:700!important}
+[class*="sheet"] [class*="bot"],[class*="sheet"] [class*="user"]{font-size:12px!important;line-height:1.5!important;font-weight:620!important}
+[class*="sheet"] [class*="quick"] button{font-size:10px!important;font-weight:780!important}
+[class*="sheet"] form input{font-size:13px!important;font-weight:650!important}
+[class*="sheet"] form button{font-size:11px!important;font-weight:850!important}
+
+/* TRIAL REGISTRATION */
+main:has([class*="optionalGrid"]) [class*="card"]{font-family:"Avenir Next","Segoe UI Variable","SF Pro Text",Inter,ui-sans-serif,system-ui,sans-serif!important}
+main:has([class*="optionalGrid"]) [class*="card"]>p{font-size:13px!important;font-weight:650!important;color:#2d2631!important}
+main:has([class*="optionalGrid"]) [class*="label"]{font-size:12px!important;font-weight:850!important;color:#2b2430!important}
+main:has([class*="optionalGrid"]) [class*="hint"],main:has([class*="optionalGrid"]) [class*="goodHint"]{font-size:10.5px!important;font-weight:700!important;color:#3e3542!important}
+main:has([class*="optionalGrid"]) [class*="input"],main:has([class*="optionalGrid"]) select{font-size:14px!important;font-weight:650!important;color:#211a24!important}
+main:has([class*="optionalGrid"]) [class*="terms"]{font-size:11.5px!important;font-weight:650!important;color:#2d2631!important}
+main:has([class*="optionalGrid"]) [class*="optionalAdd"] b,main:has([class*="optionalGrid"]) [class*="optionalHead"] b{font-size:12.5px!important;font-weight:850!important}
+main:has([class*="optionalGrid"]) [class*="optionalAdd"] small,main:has([class*="optionalGrid"]) [class*="optionalHead"] small,main:has([class*="optionalGrid"]) [class*="foot"],main:has([class*="optionalGrid"]) [class*="security"]{font-size:10.5px!important;font-weight:650!important;line-height:1.45!important}
+
+/* LOGIN / ACCESS */
+main:has(input[autocomplete="current-password"]) [class*="card"] [class*="copy"]>p:last-child{font-size:13px!important;font-weight:650!important;color:#2f2833!important}
+main:has(input[autocomplete="current-password"]) [class*="form"] label{font-size:12px!important;font-weight:850!important;color:#2b2430!important}
+main:has(input[autocomplete="current-password"]) [class*="note"]{font-size:10.5px!important;font-weight:650!important;color:#322b36!important}
+main:has(input[autocomplete="current-password"]) [class*="textButton"]{font-size:11.5px!important;font-weight:850!important}
+main:has(input[autocomplete="current-password"]) [class*="visualCopy"]>span,main:has(input[autocomplete="current-password"]) [class*="visualFoot"] span{font-size:10px!important;font-weight:850!important}
+main:has(input[autocomplete="current-password"]) [class*="visualCopy"] p{font-size:14px!important;font-weight:600!important}

@@ -6,6 +6,7 @@ import MarketingScripts from './MarketingScripts'
 import CookieConsent from './CookieConsent'
 import './globals.css'
 import './prepaint.css'
+import './design-readability.css'
 
 export const metadata: Metadata = {
   metadataBase:new URL('https://comerciolleno.com'),
