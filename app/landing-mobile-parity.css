@@ -16,7 +16,7 @@
 
   /* Mobile gets its own compact hero. Desktop copy/proof are hidden only on phones. */
   body:has(#precio) main>section[class*="hero"]{
-    height:690px!important;min-height:690px!important;max-height:690px!important;
+    height:720px!important;min-height:720px!important;max-height:720px!important;
     position:relative!important;overflow:hidden!important;background:#071019!important;
   }
   body:has(#precio) main [class*="heroCopy"],
@@ -68,17 +68,23 @@
     color:#e7ece9!important;text-shadow:0 2px 12px rgba(0,0,0,.34)!important;
   }
   .clMobileHeroActions{
-    display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;margin-top:14px!important;
+    display:grid!important;grid-template-columns:1fr!important;gap:9px!important;margin-top:14px!important;
   }
   .clMobileHeroActions a{
     display:flex!important;align-items:center!important;justify-content:center!important;
-    min-height:45px!important;padding:0 9px!important;border-radius:13px!important;
-    font-size:11px!important;line-height:1.15!important;font-weight:900!important;text-align:center!important;
+    width:100%!important;min-height:50px!important;padding:0 14px!important;border-radius:14px!important;
+    font-size:13.5px!important;line-height:1.15!important;font-weight:900!important;text-align:center!important;
   }
-  .clMobileHeroActions a:first-child{background:#67dfaa!important;color:#08130e!important}
-  .clMobileHeroActions a:last-child{border:1px solid rgba(255,255,255,.48)!important;color:#fff!important;background:rgba(10,18,24,.35)!important;backdrop-filter:blur(10px)!important}
+  .clMobileHeroActions a:first-child{
+    border:1.5px solid rgba(255,255,255,.65)!important;color:#fff!important;
+    background:rgba(8,16,22,.46)!important;backdrop-filter:blur(10px)!important;
+  }
+  .clMobileHeroActions a:last-child{
+    border:1px solid #67dfaa!important;background:#67dfaa!important;color:#08130e!important;
+    box-shadow:0 10px 26px rgba(55,222,151,.24)!important;
+  }
   .clMobileHeroHuman{
-    margin:10px 0 0!important;max-width:350px!important;font-size:9.5px!important;line-height:1.35!important;color:#d3dcd8!important;
+    margin:9px 0 0!important;max-width:350px!important;font-size:9.5px!important;line-height:1.35!important;color:#d3dcd8!important;
   }
   .clMobileHeroProof{
     display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;
@@ -95,14 +101,14 @@
     min-height:38px!important;padding:0 8px!important;font-size:10.5px!important;
   }
   body:has(#precio) main>section[class*="hero"]{
-    height:720px!important;min-height:720px!important;max-height:720px!important;
+    height:740px!important;min-height:740px!important;max-height:740px!important;
   }
   .clHeroPromo{left:12px!important;right:12px!important}
   .clMobileHeroContent{top:158px!important;left:14px!important;right:14px!important;bottom:14px!important}
   .clMobileHeroContent h1{font-size:33px!important;max-width:330px!important}
   .clMobileHeroLead{font-size:13px!important}
-  .clMobileHeroActions{grid-template-columns:1fr!important;gap:7px!important;margin-top:12px!important}
-  .clMobileHeroActions a{min-height:42px!important;font-size:11.5px!important}
+  .clMobileHeroActions{gap:8px!important;margin-top:12px!important}
+  .clMobileHeroActions a{min-height:48px!important;font-size:13px!important}
   .clMobileHeroHuman{font-size:9px!important}
   .clMobileHeroProof strong{font-size:13px!important}
   .clMobileHeroProof span{font-size:7.5px!important}
