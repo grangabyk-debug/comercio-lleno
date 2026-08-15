@@ -56,9 +56,42 @@ const css=`
     box-shadow:0 10px 24px rgba(43,27,52,.08),inset 0 1px 0 rgba(255,255,255,.96)!important;
     backdrop-filter:blur(16px)!important;
   }
+
+  /* Login móvil: sacar completamente el bloque naranja y dejar sólo la marca. */
+  main[class*="loginScreen"] [class*="loginCard"] [class*="logo"]{
+    width:auto!important;
+    height:auto!important;
+    min-width:0!important;
+    display:block!important;
+    place-items:unset!important;
+    padding:0!important;
+    margin:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    color:transparent!important;
+    font-size:0!important;
+    line-height:1!important;
+    overflow:visible!important;
+  }
+  main[class*="loginScreen"] [class*="loginCard"] [class*="logo"]:before{
+    content:"ComercioLleno.com"!important;
+    display:inline-block!important;
+    white-space:nowrap!important;
+    font-family:"Arial Black","Avenir Next",Inter,ui-sans-serif,system-ui,sans-serif!important;
+    font-size:25px!important;
+    line-height:1!important;
+    font-weight:950!important;
+    letter-spacing:-.075em!important;
+    background:linear-gradient(90deg,#111014 0 48%,#6429e8 48% 77%,#ff641d 77% 100%)!important;
+    -webkit-background-clip:text!important;
+    background-clip:text!important;
+    color:transparent!important;
+  }
 }
 @media(max-width:380px){
   main[class*="app"] header[class*="topbar"] [class*="brandBlock"]:before{font-size:19px!important}
+  main[class*="loginScreen"] [class*="loginCard"] [class*="logo"]:before{font-size:22px!important}
 }
 `
 
