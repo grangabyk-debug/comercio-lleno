@@ -60,25 +60,27 @@ async function supa<T>(token: string, path: string, init: RequestInit = {}): Pro
   return data as T
 }
 
-function canAdminProducts(profile: Profile) {
-  if (profile.role === 'owner') return true
-  const permissions = profile.permissions || {}
-  const relevant = [permissions.can_manage_stock, permissions.can_edit_products, permissions.can_import_export_products]
-  if (relevant.some(value => value === true)) return true
-  if (relevant.some(value => typeof value === 'boolean')) return false
-  return profile.role === 'manager' || profile.role === 'supervisor'
+async function branchPermission(token:string,branchId:string,key:string){
+  return supa<boolean>(token,'rpc/branch_has_permission',{method:'POST',body:JSON.stringify({p_branch:branchId,p_key:key,p_default_roles:['manager','supervisor']})})
 }
 
 async function context(request: Request) {
   const token = bearer(request)
   if (!token) throw new Error('Sesión no válida.')
+  const branchId=String(request.headers.get('x-comercio-branch-id')||'').trim()
+  if(!/^[0-9a-f-]{36}$/i.test(branchId))throw new Error('Elegí una sucursal válida antes de importar o exportar productos.')
   const userId = tokenSubject(token)
   if (!userId) throw new Error('No se pudo validar el usuario de la sesión.')
   const profiles = await supa<Profile[]>(token, `profiles?select=company_id,role,permissions,active&id=eq.${encodeURIComponent(userId)}&limit=1`)
   const profile = profiles[0]
   if (!profile?.company_id || !profile.active) throw new Error('Perfil del comercio no disponible.')
-  if (!canAdminProducts(profile)) throw new Error('No tenés permiso para importar, exportar o administrar productos.')
-  return { token, profile }
+  const [stock,edit,sheets]=await Promise.all([
+    branchPermission(token,branchId,'can_manage_stock'),
+    branchPermission(token,branchId,'can_edit_products'),
+    branchPermission(token,branchId,'can_import_export_products'),
+  ])
+  if(!stock&&!edit&&!sheets)throw new Error('No tenés permiso para importar, exportar o administrar productos en esta sucursal.')
+  return { token, profile, branchId }
 }
 
 function safeNumber(value: unknown) {
@@ -128,10 +130,10 @@ function styleSheet(sheet: ExcelJS.Worksheet) {
   for (const col of ['D','E','F','G','H','I']) sheet.getColumn(col).numFmt = '#,##0.00'
 }
 
-async function makeWorkbook(token: string, companyId: string, products?: ProductRow[]) {
+async function makeWorkbook(token: string, companyId: string, branchId:string, products?: ProductRow[]) {
   const [suppliers, categoryRows] = await Promise.all([
     supa<Supplier[]>(token, `suppliers?select=id,name&company_id=eq.${encodeURIComponent(companyId)}&active=eq.true&order=name.asc`),
-    supa<Array<{category?: string | null}>>(token, `products?select=category&company_id=eq.${encodeURIComponent(companyId)}&active=eq.true&order=category.asc&limit=5000`),
+    supa<Array<{category?: string | null}>>(token, `products?select=category&company_id=eq.${encodeURIComponent(companyId)}&branch_id=eq.${encodeURIComponent(branchId)}&active=eq.true&order=category.asc&limit=5000`),
   ])
   const supplierMap = new Map(suppliers.map(s => [s.id, s.name]))
   const categories = Array.from(new Set(categoryRows.map(x => (x.category || 'General').trim()).filter(Boolean))).sort((a,b) => a.localeCompare(b,'es'))
@@ -204,8 +206,8 @@ async function makeWorkbook(token: string, companyId: string, products?: Product
 
 export async function GET(request: Request) {
   try {
-    const { token, profile } = await context(request)
-    const workbook = await makeWorkbook(token, profile.company_id)
+    const { token, profile, branchId } = await context(request)
+    const workbook = await makeWorkbook(token, profile.company_id, branchId)
     return excelResponse(workbook, 'modelo-productos-comercio-lleno.xlsx')
   } catch (error) {
     return Response.json({ ok:false, error: error instanceof Error ? error.message : String(error) }, { status: 400 })
@@ -214,7 +216,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { token, profile } = await context(request)
+    const { token, profile, branchId } = await context(request)
     const contentType = request.headers.get('content-type') || ''
 
     if (contentType.includes('application/json')) {
@@ -222,8 +224,8 @@ export async function POST(request: Request) {
       if (body.action !== 'export') throw new Error('Acción no válida.')
       const ids = Array.isArray(body.ids) ? body.ids.filter(Boolean).slice(0, 5000) : []
       const filter = ids.length ? `&id=in.(${ids.map(x => encodeURIComponent(x)).join(',')})` : ''
-      const products = await supa<ProductRow[]>(token, `products?select=id,name,barcode,category,cost,price,wholesale_price,stock,min_stock,target_stock,unit,supplier_id&company_id=eq.${encodeURIComponent(profile.company_id)}&active=eq.true${filter}&order=name.asc&limit=5000`)
-      const workbook = await makeWorkbook(token, profile.company_id, products)
+      const products = await supa<ProductRow[]>(token, `products?select=id,name,barcode,category,cost,price,wholesale_price,stock,min_stock,target_stock,unit,supplier_id&company_id=eq.${encodeURIComponent(profile.company_id)}&branch_id=eq.${encodeURIComponent(branchId)}&active=eq.true${filter}&order=name.asc&limit=5000`)
+      const workbook = await makeWorkbook(token, profile.company_id, branchId, products)
       return excelResponse(workbook, ids.length ? 'productos-seleccionados.xlsx' : 'productos-comercio-lleno.xlsx')
     }
 
@@ -266,6 +268,7 @@ export async function POST(request: Request) {
       const unitRaw = textValue(get(row, 'Unidad')).toLowerCase()
       payload.push({
         company_id: profile.company_id,
+        branch_id: branchId,
         name,
         barcode,
         category: textValue(get(row, 'Categoría')) || 'General',
@@ -283,7 +286,7 @@ export async function POST(request: Request) {
     }
 
     if (!payload.length) throw new Error('No encontré productos para importar.')
-    await supa(token, 'products?on_conflict=company_id,barcode', {
+    await supa(token, 'products?on_conflict=company_id,branch_id,barcode', {
       method: 'POST',
       headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify(payload),
