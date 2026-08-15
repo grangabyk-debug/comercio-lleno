@@ -24,6 +24,9 @@ import ReadabilityBoost from './ReadabilityBoost'
 import PosBrandExperience from './PosBrandExperience'
 import DarkExperiencePolish from './DarkExperiencePolish'
 import AccessibilityScale from './AccessibilityScale'
+import PreviewVisualFixes from './PreviewVisualFixes'
+import PettyCashRuntime from './PettyCashRuntime'
+import DisplayFitControl from './DisplayFitControl'
 
 const posLayoutGuard = `
 /*
@@ -150,5 +153,8 @@ export default function RedesignPage(){
     <BranchSettingsRuntime/>
     <style id="cl-pos-layout-guard">{posLayoutGuard}</style>
     <CommerceApp buildVersion={buildVersion}/>
+    <PreviewVisualFixes/>
+    <PettyCashRuntime/>
+    <DisplayFitControl/>
   </>
 }
