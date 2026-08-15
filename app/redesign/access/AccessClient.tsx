@@ -70,7 +70,6 @@ export default function AccessClient() {
       <aside className={styles.visual}>
         <img src={loginPhoto} alt="Comerciante latinoamericana detrás del mostrador"/>
         <div className={styles.visualShade}/>
-        <div className={styles.visualBrand}><BrandLogo size={46}/></div>
         <div className={styles.visualCopy}>
           <span>TU NEGOCIO, EN MARCHA</span>
           <h2>Entrá. Vendé.<br/>Seguí con tu día.</h2>
