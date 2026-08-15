@@ -1,5 +1,6 @@
-/* Public landing mobile parity. Loaded last so it wins over older responsive rules. */
+/* Public landing mobile layout. Loaded last. */
 #requisitos{display:none!important}
+.clMobileHeroContent{display:none}
 
 @media(max-width:700px){
   body:has(#precio) main>header{
@@ -13,97 +14,79 @@
     font-size:11.5px!important;font-weight:850!important;white-space:nowrap!important;
   }
 
-  body:has(#precio) main [class*="hero"]{
-    position:relative!important;
-  }
+  /* Mobile gets its own compact hero. Desktop copy/proof are hidden only on phones. */
   body:has(#precio) main>section[class*="hero"]{
-    height:900px!important;min-height:900px!important;overflow:hidden!important;background:#071019!important;
+    height:690px!important;min-height:690px!important;max-height:690px!important;
+    position:relative!important;overflow:hidden!important;background:#071019!important;
+  }
+  body:has(#precio) main [class*="heroCopy"],
+  body:has(#precio) main [class*="heroProof"],
+  body:has(#precio) main [class*="heroSceneCaption"],
+  body:has(#precio) main [class*="heroSceneRail"],
+  .clMobileHeroQuickActions{
+    display:none!important;
   }
   body:has(#precio) main [class*="heroMediaAsset"]{
     width:100%!important;height:100%!important;object-fit:cover!important;object-position:56% center!important;
   }
   body:has(#precio) main [class*="heroMediaShade"]{
-    background:linear-gradient(180deg,rgba(3,8,14,.54) 0%,rgba(3,8,14,.58) 28%,rgba(3,8,14,.76) 62%,rgba(3,8,14,.94) 100%)!important;
+    background:linear-gradient(180deg,rgba(3,8,14,.48) 0%,rgba(3,8,14,.56) 26%,rgba(3,8,14,.78) 58%,rgba(3,8,14,.96) 100%)!important;
   }
   body:has(#precio) main [class*="heroOverlay"]{
-    background:linear-gradient(180deg,rgba(2,7,11,.08) 0%,rgba(2,7,11,.2) 40%,rgba(2,7,11,.8) 100%)!important;
+    background:linear-gradient(180deg,rgba(2,7,11,.06) 0%,rgba(2,7,11,.14) 34%,rgba(2,7,11,.68) 100%)!important;
   }
 
   .clHeroPromo{
-    top:14px!important;left:14px!important;right:14px!important;width:auto!important;
-    padding:13px 14px!important;border-radius:16px!important;z-index:35!important;
+    top:13px!important;left:14px!important;right:14px!important;width:auto!important;
+    padding:12px 14px!important;border-radius:16px!important;z-index:40!important;
   }
-  .clHeroPromo>span{font-size:9px!important;letter-spacing:.12em!important}
-  .clHeroPromo del{font-size:14px!important}
-  .clHeroPromo strong{font-size:26px!important;letter-spacing:-1px!important}
-  .clHeroPromo small{font-size:9px!important}
-  .clHeroPromo p,.clHeroPromo b{font-size:10.5px!important;line-height:1.35!important}
+  .clHeroPromo>span{font-size:8.5px!important;letter-spacing:.12em!important}
+  .clHeroPromo del{font-size:13px!important}
+  .clHeroPromo strong{font-size:25px!important;letter-spacing:-1px!important}
+  .clHeroPromo small{font-size:8.5px!important}
+  .clHeroPromo p,.clHeroPromo b{font-size:9.5px!important;line-height:1.35!important}
 
-  body:has(#precio) main [class*="heroCopy"]{
-    display:block!important;visibility:visible!important;opacity:1!important;
-    position:absolute!important;z-index:30!important;
-    top:205px!important;left:18px!important;right:18px!important;
-    max-width:none!important;margin:0!important;padding:0!important;
-    color:#fff!important;transform:none!important;pointer-events:auto!important;
+  .clMobileHeroContent{
+    display:flex!important;flex-direction:column!important;
+    position:absolute!important;z-index:35!important;
+    top:160px!important;left:16px!important;right:16px!important;bottom:15px!important;
+    color:#fff!important;pointer-events:auto!important;
   }
-  body:has(#precio) main [class*="heroKicker"]{
-    display:block!important;visibility:visible!important;opacity:1!important;
-    margin:0 0 10px!important;font-size:10px!important;line-height:1.35!important;
-    font-weight:900!important;letter-spacing:.14em!important;color:#7fe2b0!important;
+  .clMobileHeroKicker{
+    margin:0 0 8px!important;font-size:9.5px!important;line-height:1.3!important;
+    font-weight:900!important;letter-spacing:.13em!important;color:#7fe2b0!important;
   }
-  body:has(#precio) main [class*="heroCopy"] h1{
-    display:block!important;visibility:visible!important;opacity:1!important;
-    max-width:365px!important;margin:0!important;
-    font-size:39px!important;line-height:1.01!important;letter-spacing:-1.8px!important;
+  .clMobileHeroContent h1{
+    margin:0!important;max-width:360px!important;
+    font-size:36px!important;line-height:1!important;letter-spacing:-1.65px!important;
     color:#fff!important;text-shadow:0 3px 20px rgba(0,0,0,.42)!important;
   }
-  body:has(#precio) main [class*="heroCopy"] h1 span{color:#62e4aa!important}
-  body:has(#precio) main [class*="heroLead"]{
-    display:block!important;visibility:visible!important;opacity:1!important;
-    max-width:365px!important;margin:16px 0 0!important;
-    font-size:14px!important;line-height:1.5!important;font-weight:500!important;
-    color:#e5ebe8!important;text-shadow:0 2px 12px rgba(0,0,0,.38)!important;
+  .clMobileHeroContent h1 span{color:#62e4aa!important}
+  .clMobileHeroLead{
+    margin:13px 0 0!important;max-width:365px!important;
+    font-size:13.5px!important;line-height:1.45!important;font-weight:520!important;
+    color:#e7ece9!important;text-shadow:0 2px 12px rgba(0,0,0,.34)!important;
   }
-  body:has(#precio) main [class*="heroActions"]{
-    display:grid!important;visibility:visible!important;opacity:1!important;
-    grid-template-columns:1fr 1fr!important;gap:9px!important;
-    margin-top:18px!important;height:auto!important;
+  .clMobileHeroActions{
+    display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;margin-top:14px!important;
   }
-  body:has(#precio) main [class*="heroActions"] a{
-    display:flex!important;visibility:visible!important;opacity:1!important;
-    align-items:center!important;justify-content:center!important;
-    width:100%!important;height:47px!important;min-height:47px!important;
-    padding:0 9px!important;border-radius:14px!important;
-    font-size:11.5px!important;line-height:1.15!important;font-weight:900!important;
-    text-align:center!important;pointer-events:auto!important;
+  .clMobileHeroActions a{
+    display:flex!important;align-items:center!important;justify-content:center!important;
+    min-height:45px!important;padding:0 9px!important;border-radius:13px!important;
+    font-size:11px!important;line-height:1.15!important;font-weight:900!important;text-align:center!important;
   }
-  body:has(#precio) main [class*="humanLine"]{
-    display:block!important;visibility:visible!important;opacity:1!important;
-    max-width:350px!important;margin:12px 0 0!important;
-    font-size:10.5px!important;line-height:1.4!important;color:#d1dad6!important;
+  .clMobileHeroActions a:first-child{background:#67dfaa!important;color:#08130e!important}
+  .clMobileHeroActions a:last-child{border:1px solid rgba(255,255,255,.48)!important;color:#fff!important;background:rgba(10,18,24,.35)!important;backdrop-filter:blur(10px)!important}
+  .clMobileHeroHuman{
+    margin:10px 0 0!important;max-width:350px!important;font-size:9.5px!important;line-height:1.35!important;color:#d3dcd8!important;
   }
-
-  body:has(#precio) main [class*="heroProof"]{
-    display:grid!important;visibility:visible!important;opacity:1!important;
-    position:absolute!important;z-index:32!important;
-    left:18px!important;right:18px!important;bottom:20px!important;top:auto!important;
-    grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;
-    margin:0!important;padding:13px 0 0!important;
-    border-top:1px solid rgba(255,255,255,.36)!important;
-    transform:none!important;
+  .clMobileHeroProof{
+    display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;
+    margin-top:auto!important;padding-top:10px!important;border-top:1px solid rgba(255,255,255,.34)!important;
   }
-  body:has(#precio) main [class*="heroProof"]>div{
-    display:block!important;min-width:0!important;padding:0 6px 0 0!important;margin:0!important;
-  }
-  body:has(#precio) main [class*="heroProof"] strong{
-    display:block!important;font-size:15px!important;line-height:1.05!important;color:#fff!important;
-  }
-  body:has(#precio) main [class*="heroProof"] span{
-    display:block!important;margin-top:4px!important;font-size:8.5px!important;line-height:1.25!important;
-    font-weight:600!important;color:#edf4f0!important;
-  }
-  body:has(#precio) main [class*="heroSceneCaption"],
-  body:has(#precio) main [class*="heroSceneRail"]{display:none!important}
+  .clMobileHeroProof>div{min-width:0!important}
+  .clMobileHeroProof strong{display:block!important;font-size:14px!important;line-height:1.05!important;color:#fff!important}
+  .clMobileHeroProof span{display:block!important;margin-top:3px!important;font-size:8px!important;line-height:1.2!important;font-weight:600!important;color:#eaf0ed!important}
 }
 
 @media(max-width:380px){
@@ -111,13 +94,16 @@
   body:has(#precio) main>header a[href="/prueba-gratis"]{
     min-height:38px!important;padding:0 8px!important;font-size:10.5px!important;
   }
-  body:has(#precio) main>section[class*="hero"]{height:920px!important;min-height:920px!important}
-  body:has(#precio) main [class*="heroCopy"]{top:202px!important;left:15px!important;right:15px!important}
-  body:has(#precio) main [class*="heroCopy"] h1{max-width:335px!important;font-size:35px!important}
-  body:has(#precio) main [class*="heroLead"]{font-size:13.5px!important}
-  body:has(#precio) main [class*="heroActions"]{grid-template-columns:1fr!important;gap:8px!important}
-  body:has(#precio) main [class*="heroActions"] a{font-size:12px!important}
-  body:has(#precio) main [class*="heroProof"]{left:15px!important;right:15px!important;gap:5px!important}
-  body:has(#precio) main [class*="heroProof"] strong{font-size:14px!important}
-  body:has(#precio) main [class*="heroProof"] span{font-size:8px!important}
+  body:has(#precio) main>section[class*="hero"]{
+    height:720px!important;min-height:720px!important;max-height:720px!important;
+  }
+  .clHeroPromo{left:12px!important;right:12px!important}
+  .clMobileHeroContent{top:158px!important;left:14px!important;right:14px!important;bottom:14px!important}
+  .clMobileHeroContent h1{font-size:33px!important;max-width:330px!important}
+  .clMobileHeroLead{font-size:13px!important}
+  .clMobileHeroActions{grid-template-columns:1fr!important;gap:7px!important;margin-top:12px!important}
+  .clMobileHeroActions a{min-height:42px!important;font-size:11.5px!important}
+  .clMobileHeroHuman{font-size:9px!important}
+  .clMobileHeroProof strong{font-size:13px!important}
+  .clMobileHeroProof span{font-size:7.5px!important}
 }
