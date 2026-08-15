@@ -22,7 +22,8 @@ import DashboardRevolutionTheme from './DashboardRevolutionTheme'
 import TransientFiscalNoticeRuntime from './TransientFiscalNoticeRuntime'
 import ReadabilityBoost from './ReadabilityBoost'
 import PosBrandExperience from './PosBrandExperience'
+import DarkExperiencePolish from './DarkExperiencePolish'
 
 export const metadata={title:'Comercio Lleno · Rediseño POS',robots:{index:false,follow:false}}
 export const dynamic='force-dynamic'
-export default function RedesignPage(){const sha=process.env.VERCEL_GIT_COMMIT_SHA||process.env.GIT_COMMIT_SHA||'local',buildVersion=sha==='local'?'local':sha.slice(0,8);return <><DashboardRevolutionTheme/><ReadabilityBoost/><PosBrandExperience/><TransientFiscalNoticeRuntime/><BranchDataScopeRuntime/><SessionFetchGuard/><HeaderRefreshBehavior/><MobileResponsiveFix/><AdaptiveViewportFix/><ViewScrollReset/><DesignRuntime/><DesignLivePreview/><ProductPermissionGuard/><MobileVersionPrompt/><AdminPauseGate/><SubscriptionGate/><TrialStatus/><FirstStepsExperience/><SimpleModeDarkStyles/><SimpleModeRuntime/><FinanceRuntime/><BranchTopbarRuntime/><BranchSettingsRuntime/><CommerceApp buildVersion={buildVersion}/></>}
+export default function RedesignPage(){const sha=process.env.VERCEL_GIT_COMMIT_SHA||process.env.GIT_COMMIT_SHA||'local',buildVersion=sha==='local'?'local':sha.slice(0,8);return <><DashboardRevolutionTheme/><ReadabilityBoost/><PosBrandExperience/><DarkExperiencePolish/><TransientFiscalNoticeRuntime/><BranchDataScopeRuntime/><SessionFetchGuard/><HeaderRefreshBehavior/><MobileResponsiveFix/><AdaptiveViewportFix/><ViewScrollReset/><DesignRuntime/><DesignLivePreview/><ProductPermissionGuard/><MobileVersionPrompt/><AdminPauseGate/><SubscriptionGate/><TrialStatus/><FirstStepsExperience/><SimpleModeDarkStyles/><SimpleModeRuntime/><FinanceRuntime/><BranchTopbarRuntime/><BranchSettingsRuntime/><CommerceApp buildVersion={buildVersion}/></>}
