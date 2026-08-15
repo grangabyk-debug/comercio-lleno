@@ -1,25 +1,30 @@
 'use client'
 
-// Preview landing: assets locales verificados 2026-08-15
 import { useEffect, useState } from 'react'
 import styles from './landing.module.css'
 
 type Scene={kind:'image';src:string;poster:string;label:string;detail:string}
 
+const hardwarePhoto='https://images.pexels.com/photos/19756443/pexels-photo-19756443/free-photo-of-man-working-at-hardware-store.jpeg?auto=compress&cs=tinysrgb&w=1600'
+const buenosAiresMarketPhoto='https://images.pexels.com/photos/33688678/pexels-photo-33688678.jpeg?auto=compress&cs=tinysrgb&w=1600'
+const cafePeoplePhoto='https://images.pexels.com/photos/1907098/pexels-photo-1907098.jpeg?auto=compress&cs=tinysrgb&w=1600'
+const cafePosPhoto='https://images.pexels.com/photos/31777068/pexels-photo-31777068/free-photo-of-barista-using-touchscreen-at-coffee-shop-counter.jpeg?auto=compress&cs=tinysrgb&w=1600'
+const supermarketCashierPhoto='https://images.pexels.com/photos/36772947/pexels-photo-36772947/free-photo-of-cashier-at-supermarket-checkout-counter.jpeg?auto=compress&cs=tinysrgb&w=1600'
+
 const scenes:Scene[]=[
-  {kind:'image',src:'/landing/ferreteria.webp',poster:'/landing/ferreteria.webp',label:'Ferreterías y casas de herramientas',detail:'Ventas, caja y productos en un mismo lugar'},
-  {kind:'image',src:'/landing/supermercado.webp',poster:'/landing/supermercado.webp',label:'Supermercados y almacenes',detail:'Stock, precios y operación diaria'},
-  {kind:'image',src:'/landing/cafeteria-sutil.webp',poster:'/landing/cafeteria-sutil.webp',label:'Cafeterías y panaderías',detail:'Cobro ágil y control del mostrador'},
-  {kind:'image',src:'/landing/queseria.webp',poster:'/landing/queseria.webp',label:'Fiambrerías y comercios de alimentos',detail:'Productos, stock y ventas sin vueltas'},
-  {kind:'image',src:'/landing/cafeteria.webp',poster:'/landing/cafeteria.webp',label:'Locales de cercanía',detail:'Todo el negocio desde una misma cuenta'},
+  {kind:'image',src:buenosAiresMarketPhoto,poster:buenosAiresMarketPhoto,label:'Comercios y almacenes',detail:'Personas reales, ventas reales y una operación simple'},
+  {kind:'image',src:hardwarePhoto,poster:hardwarePhoto,label:'Ferreterías y locales',detail:'Productos, caja y stock en el mismo sistema'},
+  {kind:'image',src:cafePeoplePhoto,poster:cafePeoplePhoto,label:'Cafeterías y panaderías',detail:'Atención rápida en momentos de mucho movimiento'},
+  {kind:'image',src:supermarketCashierPhoto,poster:supermarketCashierPhoto,label:'Supermercados',detail:'Caja y productos para el trabajo de todos los días'},
+  {kind:'image',src:cafePosPhoto,poster:cafePosPhoto,label:'Puntos de venta',detail:'Una experiencia simple para cobrar y gestionar'},
 ]
 
 const photoOverrides:Array<[string,string]>=[
-  ['13061609','/landing/cafeteria-sutil.webp'],
-  ['12326636','/landing/ferreteria.webp'],
-  ['3184465','/landing/supermercado.webp'],
-  ['5103992','/landing/queseria.webp'],
-  ['33752264','/landing/cafeteria.webp'],
+  ['13061609',cafePeoplePhoto],
+  ['12326636',hardwarePhoto],
+  ['3184465',buenosAiresMarketPhoto],
+  ['5103992',supermarketCashierPhoto],
+  ['33752264',cafePosPhoto],
 ]
 
 const promoStyle={position:'absolute' as const,zIndex:6,right:38,top:28,width:310,padding:'14px 16px',borderRadius:16,color:'#fff',background:'rgba(9,15,20,.62)',border:'1px solid rgba(255,255,255,.2)',backdropFilter:'blur(16px)',boxShadow:'0 18px 45px rgba(0,0,0,.22)'}
@@ -46,7 +51,7 @@ export default function HeroMerchantRotator(){
 
   return <div className={styles.heroMedia}>
     <div className={styles.heroMediaFrame} key={`scene-${current}`}>
-      <img className={styles.heroMediaAsset} src={scene.poster} alt="Comerciante trabajando en su local"/>
+      <img className={styles.heroMediaAsset} src={scene.poster} alt="Personas trabajando y comprando en comercios"/>
     </div>
     <div className={styles.heroMediaShade}/>
     <div className="clHeroPromo" style={promoStyle}>
