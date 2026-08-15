@@ -1,0 +1,10 @@
+.imageVeil{position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.50) 0%,rgba(255,255,255,.42) 58%,rgba(255,255,255,.18) 100%);transition:background .2s ease}
+
+.simpleAttention{border:2px solid #6d36d8!important;background:linear-gradient(180deg,#fff 0%,#f6f0ff 100%)!important;color:#3f236f!important;box-shadow:0 0 0 3px rgba(109,54,216,.08),0 8px 18px rgba(71,39,128,.10)!important;transition:transform .16s ease,box-shadow .16s ease,background .16s ease!important}
+.simpleAttention span{color:#6d36d8!important;font-weight:950}
+.simpleAttention:hover{transform:translateY(-1px);background:#f0e6ff!important;box-shadow:0 0 0 4px rgba(109,54,216,.11),0 10px 22px rgba(71,39,128,.14)!important}
+
+:global(main[class*="dark"]) .imageVeil{background:linear-gradient(180deg,rgba(14,10,17,.20) 0%,rgba(14,10,17,.16) 56%,rgba(14,10,17,.30) 100%)}
+:global(main[class*="dark"]) .simpleAttention{border-color:#9f7cf0!important;background:linear-gradient(180deg,#251d2b 0%,#1d1623 100%)!important;color:#f6efff!important;box-shadow:0 0 0 3px rgba(159,124,240,.12),0 9px 20px rgba(0,0,0,.20)!important}
+:global(main[class*="dark"]) .simpleAttention span{color:#b99cff!important}
+:global(main[class*="dark"]) .simpleAttention:hover{background:#30233a!important;box-shadow:0 0 0 4px rgba(159,124,240,.17),0 11px 24px rgba(0,0,0,.26)!important}
