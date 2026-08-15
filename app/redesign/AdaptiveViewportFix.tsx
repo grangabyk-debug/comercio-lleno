@@ -61,140 +61,140 @@ main[class*="shell"] canvas { max-width: 100%; }
   main[class*="shell"] > div:first-of-type > aside [class*="navLabel"] { padding-top: 0 !important; padding-bottom: 4px !important; }
   main[class*="shell"] > div:first-of-type > aside [class*="navButton"] { padding-top: 8px !important; padding-bottom: 8px !important; min-height: 38px !important; }
   main[class*="shell"] > div:first-of-type > aside [class*="sidebarBottom"] { padding: 7px 9px !important; }
-  main[class*="shell"] > div:first-of-type > section { padding-top: 18px !important; padding-bottom: 64px !important; }
+  main[class*="shell"] > div:first-of-type > section { padding-top: 14px !important; padding-bottom: 52px !important; }
   main[class*="shell"] [class*="pageHead"] { margin-bottom: 15px !important; }
   main[class*="shell"] [class*="productList"] { max-height: 52dvh !important; }
-  main[class*="shell"] [class*="cart"] { max-height: 31dvh !important; min-height: 150px !important; }
 }
 
 @media (min-width: 768px) and (max-height: 680px) {
   main[class*="shell"] > div:first-of-type > aside [class*="sidebarBottom"] { display: none !important; }
   main[class*="shell"] > div:first-of-type > aside [class*="navButton"] { padding-top: 6px !important; padding-bottom: 6px !important; min-height: 34px !important; }
-  main[class*="shell"] > div:first-of-type > section { padding-top: 12px !important; }
+  main[class*="shell"] > div:first-of-type > section { padding-top: 10px !important; }
   main[class*="shell"] [class*="pageHead"] { margin-bottom: 11px !important; }
   main[class*="shell"] [class*="pageHead"] h1 { margin-top: 2px !important; margin-bottom: 2px !important; }
 }
 
-/* POS en notebook: el cobro debe conservar proporciones y nunca superponer controles.
-   En pantallas bajas eliminamos el scroll interno del panel derecho y compactamos sólo
-   el espacio vertical, manteniendo texto y zonas de toque cómodas. */
-@media (min-width: 980px) and (max-width: 1500px) and (max-height: 900px) {
+/* POS en notebooks: mantiene carrito y cobro lado a lado y hace que TODO el cobro entre
+   en la altura real disponible. No estira la página hacia abajo ni pisa la barra inferior. */
+@media (min-width: 1051px) and (max-height: 840px) {
   main[class*="shell"] [class*="workspace"] {
-    height: auto !important;
-    min-height: 590px !important;
-    max-height: none !important;
-    overflow: visible !important;
+    height: calc(100dvh - 205px) !important;
+    min-height: 470px !important;
+    max-height: 590px !important;
+    overflow: hidden !important;
   }
+  main[class*="shell"] [class*="workspaceHead"] {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+  main[class*="shell"] [class*="workspaceHead"] h2 { font-size: 17px !important; }
+  main[class*="shell"] [class*="headTotal"] strong { font-size: 24px !important; }
   main[class*="shell"] [class*="body"] {
-    grid-template-columns: minmax(0, 1fr) minmax(390px, 430px) !important;
-    align-items: stretch !important;
+    min-height: 0 !important;
+    grid-template-columns: minmax(0,1fr) minmax(370px,420px) !important;
+    overflow: hidden !important;
   }
   main[class*="shell"] [class*="cartPanel"] {
-    min-height: 560px !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
   }
   main[class*="shell"] [class*="cart"] {
-    max-height: none !important;
     min-height: 0 !important;
+    max-height: none !important;
+    overflow: auto !important;
   }
   main[class*="shell"] [class*="controls"] {
-    overflow: visible !important;
-    padding: 12px 13px 14px !important;
-    gap: 9px !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    padding: 9px 11px 10px !important;
+    gap: 6px !important;
     align-content: start !important;
   }
   main[class*="shell"] [class*="statusBanner"] {
-    padding: 8px 10px !important;
-    font-size: 11.5px !important;
-    line-height: 1.35 !important;
+    padding: 7px 9px !important;
+    border-radius: 10px !important;
+    font-size: 10.5px !important;
+    line-height: 1.25 !important;
   }
-  main[class*="shell"] [class*="tools"] { gap: 7px !important; }
+  main[class*="shell"] [class*="tools"] { gap: 6px !important; }
   main[class*="shell"] [class*="tool"] {
-    min-height: 48px !important;
-    padding: 10px 10px !important;
-    border-radius: 13px !important;
-    font-size: 12.5px !important;
+    min-height: 43px !important;
+    padding: 9px 8px !important;
+    border-radius: 11px !important;
+    font-size: 12px !important;
   }
   main[class*="shell"] [class*="paymentLabel"] {
     margin-top: 0 !important;
-    font-size: 10.5px !important;
+    font-size: 10px !important;
+    line-height: 1.1 !important;
   }
-  main[class*="shell"] [class*="payments"] { gap: 6px !important; }
+  main[class*="shell"] [class*="payments"] { gap: 5px !important; }
   main[class*="shell"] [class*="payment"] {
-    min-height: 43px !important;
-    padding: 9px 5px !important;
-    border-radius: 12px !important;
-    font-size: 12px !important;
+    min-height: 39px !important;
+    padding: 8px 4px !important;
+    border-radius: 10px !important;
+    font-size: 11.5px !important;
     line-height: 1.05 !important;
   }
   main[class*="shell"] [class*="cashRow"] {
-    gap: 8px !important;
+    gap: 7px !important;
     align-items: end !important;
   }
   main[class*="shell"] [class*="cashRow"] label {
-    gap: 5px !important;
-    font-size: 12px !important;
+    gap: 3px !important;
+    font-size: 11px !important;
+    line-height: 1.15 !important;
   }
   main[class*="shell"] [class*="cashRow"] input {
-    min-height: 44px !important;
-    padding: 9px 11px !important;
-    font-size: 13px !important;
+    min-height: 39px !important;
+    padding: 8px 10px !important;
+    border-radius: 10px !important;
+    font-size: 12.5px !important;
   }
   main[class*="shell"] [class*="change"] {
-    min-width: 76px !important;
-    min-height: 44px !important;
-    padding: 7px 10px !important;
+    min-width: 72px !important;
+    min-height: 39px !important;
+    padding: 6px 9px !important;
+    border-radius: 10px !important;
   }
-  main[class*="shell"] [class*="change"] span { font-size: 9.5px !important; }
-  main[class*="shell"] [class*="change"] strong { font-size: 15.5px !important; }
+  main[class*="shell"] [class*="change"] span { font-size: 9px !important; }
+  main[class*="shell"] [class*="change"] strong { font-size: 14px !important; }
   main[class*="shell"] [class*="checkoutBox"] {
     margin-top: 0 !important;
-    padding: 11px 12px !important;
-    gap: 8px !important;
-    border-radius: 15px !important;
+    padding: 9px 10px !important;
+    gap: 5px !important;
+    border-radius: 13px !important;
   }
+  main[class*="shell"] [class*="totals"] { gap: 2px !important; }
   main[class*="shell"] [class*="summary"] {
-    font-size: 11.5px !important;
-    line-height: 1.25 !important;
-  }
-  main[class*="shell"] [class*="summary"] strong { font-size: 12.5px !important; }
-  main[class*="shell"] [class*="grand"] { margin-top: 2px !important; }
-  main[class*="shell"] [class*="grand"] span { font-size: 12.5px !important; }
-  main[class*="shell"] [class*="grand"] strong { font-size: 28px !important; }
-  main[class*="shell"] [class*="checkoutActions"] { gap: 8px !important; }
-  main[class*="shell"] [class*="checkoutActions"] button {
-    min-height: 54px !important;
-    border-radius: 14px !important;
-    font-size: 14px !important;
-  }
-  main[class*="shell"] [class*="hint"] {
-    padding-top: 0 !important;
     font-size: 10.5px !important;
-    line-height: 1.3 !important;
+    line-height: 1.15 !important;
   }
+  main[class*="shell"] [class*="summary"] strong { font-size: 11.5px !important; }
+  main[class*="shell"] [class*="grand"] { margin-top: 0 !important; }
+  main[class*="shell"] [class*="grand"] span { font-size: 11.5px !important; }
+  main[class*="shell"] [class*="grand"] strong { font-size: 25px !important; }
+  main[class*="shell"] [class*="checkoutActions"] { gap: 6px !important; }
+  main[class*="shell"] [class*="checkoutActions"] button {
+    min-height: 45px !important;
+    border-radius: 11px !important;
+    font-size: 12.5px !important;
+  }
+  main[class*="shell"] [class*="hint"] { display: none !important; }
+  main[class*="shell"] [class*="cashClosed"] { padding: 7px 9px !important; }
+  main[class*="shell"] [class*="openCashButton"] { min-height: 36px !important; }
 }
 
-/* Si además la notebook es angosta, el panel de cobro baja debajo del carrito en lugar
-   de quedar comprimido. Así funciona bien con zoom del navegador o escalado de Windows. */
-@media (min-width: 768px) and (max-width: 1180px) and (max-height: 900px) {
+/* En un ancho realmente tablet sí se apila; una notebook común no entra en este caso. */
+@media (min-width: 768px) and (max-width: 1050px) and (max-height: 840px) {
   main[class*="shell"] [class*="workspace"] {
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
-    overflow: visible !important;
   }
-  main[class*="shell"] [class*="body"] {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-  main[class*="shell"] [class*="cartPanel"] {
-    min-height: 300px !important;
-    border-right: 0 !important;
-    border-bottom: 1px solid var(--line,#e6ede9) !important;
-  }
-  main[class*="shell"] [class*="cart"] { max-height: 360px !important; }
-  main[class*="shell"] [class*="controls"] {
-    overflow: visible !important;
-    grid-template-columns: minmax(0,1fr) !important;
-  }
+  main[class*="shell"] [class*="body"] { grid-template-columns: 1fr !important; }
+  main[class*="shell"] [class*="cartPanel"] { min-height: 260px !important; }
+  main[class*="shell"] [class*="controls"] { overflow: visible !important; }
 }
 
 /* La barra inferior nunca debe tapar contenido ni salirse horizontalmente. */
