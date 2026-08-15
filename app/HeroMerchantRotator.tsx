@@ -5,26 +5,30 @@ import styles from './landing.module.css'
 
 type Scene={kind:'image';src:string;poster:string;label:string;detail:string}
 
-const hardwarePhoto='https://images.pexels.com/photos/19756443/pexels-photo-19756443/free-photo-of-man-working-at-hardware-store.jpeg?auto=compress&cs=tinysrgb&w=1600'
-const buenosAiresMarketPhoto='https://images.pexels.com/photos/33688678/pexels-photo-33688678.jpeg?auto=compress&cs=tinysrgb&w=1600'
-const cafePeoplePhoto='https://images.pexels.com/photos/1907098/pexels-photo-1907098.jpeg?auto=compress&cs=tinysrgb&w=1600'
-const cafePosPhoto='https://images.pexels.com/photos/31777068/pexels-photo-31777068/free-photo-of-barista-using-touchscreen-at-coffee-shop-counter.jpeg?auto=compress&cs=tinysrgb&w=1600'
-const supermarketCashierPhoto='https://images.pexels.com/photos/36772947/pexels-photo-36772947/free-photo-of-cashier-at-supermarket-checkout-counter.jpeg?auto=compress&cs=tinysrgb&w=1600'
+// Fotos documentales de Pexels: personas reales trabajando/atendiendo en comercios.
+// En el preview evitamos renders de IA y priorizamos escenas espontáneas, mostradores y clientes.
+const shopConversation='https://images.pexels.com/photos/6545444/pexels-photo-6545444.jpeg?auto=compress&cs=tinysrgb&w=1800'
+const retailCashier='https://images.pexels.com/photos/3735168/pexels-photo-3735168.jpeg?auto=compress&cs=tinysrgb&w=1800'
+const bakeryService='https://images.pexels.com/photos/6205541/pexels-photo-6205541.jpeg?auto=compress&cs=tinysrgb&w=1800'
+const localGrocery='https://images.pexels.com/photos/35704478/pexels-photo-35704478/free-photo-of-shopkeeper-standing-in-local-grocery-store.jpeg?auto=compress&cs=tinysrgb&w=1800'
+const cardPayment='https://images.pexels.com/photos/4921262/pexels-photo-4921262.jpeg?auto=compress&cs=tinysrgb&w=1800'
+const friendlyShop='https://images.pexels.com/photos/7772173/pexels-photo-7772173.jpeg?auto=compress&cs=tinysrgb&w=1800'
 
 const scenes:Scene[]=[
-  {kind:'image',src:buenosAiresMarketPhoto,poster:buenosAiresMarketPhoto,label:'Comercios y almacenes',detail:'Personas reales, ventas reales y una operación simple'},
-  {kind:'image',src:hardwarePhoto,poster:hardwarePhoto,label:'Ferreterías y locales',detail:'Productos, caja y stock en el mismo sistema'},
-  {kind:'image',src:cafePeoplePhoto,poster:cafePeoplePhoto,label:'Cafeterías y panaderías',detail:'Atención rápida en momentos de mucho movimiento'},
-  {kind:'image',src:supermarketCashierPhoto,poster:supermarketCashierPhoto,label:'Supermercados',detail:'Caja y productos para el trabajo de todos los días'},
-  {kind:'image',src:cafePosPhoto,poster:cafePosPhoto,label:'Puntos de venta',detail:'Una experiencia simple para cobrar y gestionar'},
+  {kind:'image',src:shopConversation,poster:shopConversation,label:'Locales de cercanía',detail:'Atención real, clientes reales y todo el negocio ordenado'},
+  {kind:'image',src:retailCashier,poster:retailCashier,label:'Comercios y mostradores',detail:'Ventas, caja y productos en una operación simple'},
+  {kind:'image',src:bakeryService,poster:bakeryService,label:'Cafeterías y panaderías',detail:'Una atención ágil cuando el local está en movimiento'},
+  {kind:'image',src:localGrocery,poster:localGrocery,label:'Almacenes y autoservicios',detail:'Stock y precios pensados para el trabajo de todos los días'},
+  {kind:'image',src:cardPayment,poster:cardPayment,label:'Cobros en el punto de venta',detail:'Una experiencia clara para quien vende y quien compra'},
 ]
 
+// También renovamos las fotos editoriales existentes de la landing sólo en este preview.
 const photoOverrides:Array<[string,string]>=[
-  ['13061609',cafePeoplePhoto],
-  ['12326636',hardwarePhoto],
-  ['3184465',buenosAiresMarketPhoto],
-  ['5103992',supermarketCashierPhoto],
-  ['33752264',cafePosPhoto],
+  ['13061609',bakeryService],
+  ['12326636',localGrocery],
+  ['3184465',shopConversation],
+  ['5103992',friendlyShop],
+  ['33752264',retailCashier],
 ]
 
 const promoStyle={position:'absolute' as const,zIndex:6,right:38,top:28,width:310,padding:'14px 16px',borderRadius:16,color:'#fff',background:'rgba(9,15,20,.62)',border:'1px solid rgba(255,255,255,.2)',backdropFilter:'blur(16px)',boxShadow:'0 18px 45px rgba(0,0,0,.22)'}
@@ -40,7 +44,11 @@ export default function HeroMerchantRotator(){
       document.querySelectorAll<HTMLImageElement>('img').forEach(img=>{
         const original=img.getAttribute('src')||''
         const match=photoOverrides.find(([needle])=>original.includes(needle))
-        if(match&&original!==match[1])img.setAttribute('src',match[1])
+        if(match&&original!==match[1]){
+          img.setAttribute('src',match[1])
+          img.setAttribute('loading','lazy')
+          img.setAttribute('decoding','async')
+        }
       })
     }
     applyPreviewPhotos()
@@ -51,7 +59,7 @@ export default function HeroMerchantRotator(){
 
   return <div className={styles.heroMedia}>
     <div className={styles.heroMediaFrame} key={`scene-${current}`}>
-      <img className={styles.heroMediaAsset} src={scene.poster} alt="Personas trabajando y comprando en comercios"/>
+      <img className={styles.heroMediaAsset} src={scene.poster} alt="Personas trabajando y comprando en un comercio" fetchPriority={current===0?'high':'auto'} decoding="async"/>
     </div>
     <div className={styles.heroMediaShade}/>
     <div className="clHeroPromo" style={promoStyle}>
