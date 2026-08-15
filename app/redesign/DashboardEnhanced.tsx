@@ -95,15 +95,8 @@ export default function DashboardEnhanced({ data, todayTotal, todayCount, lowSto
     ].map(item => ({ ...item, meta: comparisonMeta(item.current, item.previous) }))
   }, [data.sales, todayTotal])
 
-  const setupSteps = [
-    { done: data.products.length > 0, title: 'Productos cargados', text: data.products.length ? `${data.products.length} disponibles` : 'Cargá tu catálogo para empezar', action: 'products' as ViewKey },
-    { done: cashOpen, title: 'Caja preparada', text: cashOpen ? 'Lista para operar' : 'Abrí la caja antes de vender', action: 'cash' as ViewKey },
-    { done: data.sales.length > 0, title: 'Primera venta', text: data.sales.length ? 'Flujo probado correctamente' : 'Hacé una venta de prueba o real', action: 'pos' as ViewKey },
-  ]
-  const setupComplete = setupSteps.filter(step => step.done).length
-
   const quickActions: QuickAction[] = [
-    ...(canSell ? [{ key:'pos' as ViewKey, icon:'sale' as UiIconName, title:'Nueva venta', text:'Cobrar y facturar', tone:'orange' as const }] : []),
+    { key:'customers', icon:'customers', title:'Clientes', text:'Datos, cuentas y seguimiento', tone:'orange' },
     { key:'products', icon:'products', title:'Productos', text:'Precios, stock y costos' },
     { key:'cash', icon:'cash', title:'Caja diaria', text:'Apertura, movimientos y cierre' },
     { key:'assistant', icon:'sparkles', title:'Asistente IA', text:'Consultá tu operación', tone:'violet' },
@@ -139,20 +132,16 @@ export default function DashboardEnhanced({ data, todayTotal, todayCount, lowSto
         <span className={styles.launchCopy}><small>TU PANEL</small><strong>Seguimiento operativo</strong><em>Tu rol tiene acceso de consulta.</em></span>
       </div>}
 
-      <div className={styles.firstRun}>
-        <div className={styles.firstRunHead}>
-          <div><span>PRIMEROS PASOS</span><h2>Listo para trabajar</h2></div>
-          <strong>{setupComplete}/3</strong>
-        </div>
-        <div className={styles.progress}><i style={{width:`${setupComplete/3*100}%`}}/></div>
-        <div className={styles.stepList}>
-          {setupSteps.map((step,index)=><button key={step.title} className={step.done?styles.stepDone:''} onClick={()=>!step.done&&go(step.action)} disabled={step.done}>
-            <span>{step.done?<UiIcon name="check" size={15}/>:String(index+1).padStart(2,'0')}</span>
-            <div><b>{step.title}</b><small>{step.text}</small></div>
-            {!step.done&&<strong>Ir</strong>}
-          </button>)}
-        </div>
-      </div>
+      <button className={styles.simpleLaunch} onClick={()=>window.dispatchEvent(new Event('comercio:enter-simple'))}>
+        <span className={styles.simpleTexture}/>
+        <span className={styles.simpleIcon}><UiIcon name="sale" size={30}/></span>
+        <span className={styles.simpleCopy}>
+          <small>VENTA SIN DISTRACCIONES</small>
+          <strong>Modo Simple</strong>
+          <em>Una pantalla directa para buscar, cobrar y terminar.</em>
+        </span>
+        <span className={styles.simpleButton}>Abrir Modo Simple</span>
+      </button>
     </section>
 
     <section className={styles.metrics} aria-label="Indicadores del día">
@@ -194,11 +183,6 @@ export default function DashboardEnhanced({ data, todayTotal, todayCount, lowSto
           </div>)}
         </div>
       </div>
-    </section>
-
-    <section className={styles.simpleStrip}>
-      <div><span>MODO SIMPLE</span><b>Una pantalla reducida para vender sin distracciones.</b></div>
-      <button onClick={()=>window.dispatchEvent(new Event('comercio:enter-simple'))}>Abrir Modo Simple</button>
     </section>
   </div>
 }
