@@ -3,6 +3,7 @@ import Script from 'next/script'
 import LegacyScripts from './LegacyScripts'
 import FloatingWhatsApp from './FloatingWhatsApp'
 import LandingMobileInnovation from './LandingMobileInnovation'
+import MarketingScripts from './MarketingScripts'
 import './globals.css'
 import './prepaint.css'
 import './landing-final-trust.css'
@@ -63,22 +64,12 @@ const privateRouteGuard = `
   }
 })();`
 
-const googleAdsTag = `
-window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'AW-18388928228');`
-
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <Script id="private-route-guard" strategy="beforeInteractive">{privateRouteGuard}</Script>
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=AW-18388928228"
-          strategy="afterInteractive"
-        />
-        <Script id="google-ads-tag" strategy="afterInteractive">{googleAdsTag}</Script>
+        <MarketingScripts />
         {children}
         <LandingMobileInnovation />
         <FloatingWhatsApp />
