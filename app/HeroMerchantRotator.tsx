@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import styles from './landing.module.css'
 
-type Scene={kind:'video'|'image';src:string;poster:string;label:string;detail:string}
+type Scene={kind:'image';src:string;poster:string;label:string;detail:string}
 
 const scenes:Scene[]=[
   {kind:'image',src:'/landing/ferreteria.webp',poster:'/landing/ferreteria.webp',label:'Ferreterías y casas de herramientas',detail:'Ventas, caja y productos en un mismo lugar'},
@@ -13,20 +13,40 @@ const scenes:Scene[]=[
   {kind:'image',src:'/landing/cafeteria.webp',poster:'/landing/cafeteria.webp',label:'Locales de cercanía',detail:'Todo el negocio desde una misma cuenta'},
 ]
 
+const photoOverrides:Array<[string,string]>=[
+  ['13061609','/landing/cafeteria-sutil.webp'],
+  ['12326636','/landing/ferreteria.webp'],
+  ['3184465','/landing/supermercado.webp'],
+  ['5103992','/landing/queseria.webp'],
+  ['33752264','/landing/cafeteria.webp'],
+]
+
 const promoStyle={position:'absolute' as const,zIndex:6,right:38,top:28,width:310,padding:'14px 16px',borderRadius:16,color:'#fff',background:'rgba(9,15,20,.62)',border:'1px solid rgba(255,255,255,.2)',backdropFilter:'blur(16px)',boxShadow:'0 18px 45px rgba(0,0,0,.22)'}
 
 export default function HeroMerchantRotator(){
   const[current,setCurrent]=useState(0)
   const scene=scenes[current]
-  const next=useMemo(()=>scenes[(current+1)%scenes.length],[current])
 
   useEffect(()=>{const timer=window.setInterval(()=>setCurrent(value=>(value+1)%scenes.length),7200);return()=>window.clearInterval(timer)},[])
+
+  useEffect(()=>{
+    const applyPreviewPhotos=()=>{
+      document.querySelectorAll<HTMLImageElement>('img').forEach(img=>{
+        const original=img.getAttribute('src')||''
+        const match=photoOverrides.find(([needle])=>original.includes(needle))
+        if(match&&original!==match[1])img.setAttribute('src',match[1])
+      })
+    }
+    applyPreviewPhotos()
+    const observer=new MutationObserver(applyPreviewPhotos)
+    observer.observe(document.body,{childList:true,subtree:true})
+    return()=>observer.disconnect()
+  },[])
 
   return <div className={styles.heroMedia}>
     <div className={styles.heroMediaFrame} key={`scene-${current}`}>
       <img className={styles.heroMediaAsset} src={scene.poster} alt="Comerciante trabajando en su local"/>
     </div>
-    {next.kind==='image'&&<link rel="preload" as="image" href={next.src}/>} 
     <div className={styles.heroMediaShade}/>
     <div className="clHeroPromo" style={promoStyle}>
       <span style={{fontSize:8,fontWeight:900,letterSpacing:'.14em',color:'#78e2ae'}}>50% DE DESCUENTO · 3 MESES</span>
