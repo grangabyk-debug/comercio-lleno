@@ -1,0 +1,191 @@
+/* Mobile parity for the public landing only. Loaded last on purpose so older mobile rules cannot hide the desktop hero content. */
+#requisitos{display:none!important}
+
+@media(max-width:700px){
+  body:has(#precio) main>header{
+    min-height:68px!important;
+    height:68px!important;
+    padding:0 12px!important;
+    gap:7px!important;
+  }
+  body:has(#precio) main>header a[href="/redesign/access"],
+  body:has(#precio) main>header a[href="/prueba-gratis"]{
+    display:inline-flex!important;
+    visibility:visible!important;
+    opacity:1!important;
+    align-items:center!important;
+    justify-content:center!important;
+    min-height:40px!important;
+    padding:0 10px!important;
+    border-radius:999px!important;
+    font-size:11.5px!important;
+    font-weight:850!important;
+    white-space:nowrap!important;
+  }
+
+  /* First section is the public hero. Force the same desktop content to remain visible on phones. */
+  body:has(#precio) main>section:first-of-type{
+    height:930px!important;
+    min-height:930px!important;
+    position:relative!important;
+    overflow:hidden!important;
+  }
+  body:has(#precio) main>section:first-of-type [class*="heroMediaShade"]{
+    background:linear-gradient(180deg,rgba(3,8,14,.58) 0%,rgba(3,8,14,.62) 27%,rgba(3,8,14,.78) 64%,rgba(3,8,14,.95) 100%)!important;
+  }
+  body:has(#precio) main>section:first-of-type [class*="heroOverlay"]{
+    background:linear-gradient(180deg,rgba(2,7,11,.06) 0%,rgba(2,7,11,.18) 38%,rgba(2,7,11,.78) 100%)!important;
+  }
+
+  /* The heroCopy is the direct hero child containing the H1. Structural targeting avoids CSS-module naming changes. */
+  body:has(#precio) main>section:first-of-type>div:has(>h1){
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+    position:relative!important;
+    z-index:30!important;
+    max-width:none!important;
+    margin:0 18px!important;
+    padding:176px 0 0!important;
+    color:#fff!important;
+    pointer-events:auto!important;
+    transform:none!important;
+  }
+  body:has(#precio) main>section:first-of-type>div:has(>h1)>p:first-child{
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+    margin:0 0 11px!important;
+    font-size:10px!important;
+    line-height:1.35!important;
+    font-weight:900!important;
+    letter-spacing:.14em!important;
+    color:#7fe2b0!important;
+  }
+  body:has(#precio) main>section:first-of-type>div:has(>h1)>h1{
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+    margin:0!important;
+    max-width:365px!important;
+    font-size:42px!important;
+    line-height:.99!important;
+    letter-spacing:-2.1px!important;
+    color:#fff!important;
+    text-shadow:0 3px 20px rgba(0,0,0,.4)!important;
+  }
+  body:has(#precio) main>section:first-of-type>div:has(>h1)>h1 span{color:#62e4aa!important}
+  body:has(#precio) main>section:first-of-type>div:has(>h1)>h1+p{
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+    max-width:365px!important;
+    margin:17px 0 0!important;
+    font-size:15px!important;
+    line-height:1.48!important;
+    font-weight:500!important;
+    color:#e0e6e3!important;
+    text-shadow:0 2px 12px rgba(0,0,0,.34)!important;
+  }
+  body:has(#precio) main>section:first-of-type>div:has(>h1)>div{
+    display:grid!important;
+    visibility:visible!important;
+    opacity:1!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:9px!important;
+    margin-top:19px!important;
+    height:auto!important;
+  }
+  body:has(#precio) main>section:first-of-type>div:has(>h1)>div>a{
+    display:flex!important;
+    visibility:visible!important;
+    opacity:1!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:100%!important;
+    min-height:48px!important;
+    height:48px!important;
+    padding:0 10px!important;
+    border-radius:14px!important;
+    font-size:12px!important;
+    font-weight:900!important;
+    text-align:center!important;
+    pointer-events:auto!important;
+  }
+  body:has(#precio) main>section:first-of-type>div:has(>h1)>div+p{
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+    max-width:355px!important;
+    margin:13px 0 0!important;
+    font-size:10.5px!important;
+    line-height:1.42!important;
+    color:#c8d1cd!important;
+  }
+
+  /* Keep the three desktop proof points instead of leaving dead space at the bottom. */
+  body:has(#precio) main>section:first-of-type>div:last-child{
+    display:grid!important;
+    visibility:visible!important;
+    opacity:1!important;
+    position:absolute!important;
+    z-index:30!important;
+    left:18px!important;
+    right:18px!important;
+    bottom:20px!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:8px!important;
+    padding-top:13px!important;
+    border-top:1px solid rgba(255,255,255,.34)!important;
+  }
+  body:has(#precio) main>section:first-of-type>div:last-child>div{
+    display:block!important;
+    min-width:0!important;
+    padding-right:6px!important;
+  }
+  body:has(#precio) main>section:first-of-type>div:last-child strong{
+    display:block!important;
+    font-size:16px!important;
+    line-height:1.05!important;
+    color:#fff!important;
+  }
+  body:has(#precio) main>section:first-of-type>div:last-child span{
+    display:block!important;
+    margin-top:4px!important;
+    font-size:9px!important;
+    line-height:1.25!important;
+    font-weight:600!important;
+    color:#edf4f0!important;
+  }
+}
+
+@media(max-width:380px){
+  body:has(#precio) main>header a[href="/redesign/access"],
+  body:has(#precio) main>header a[href="/prueba-gratis"]{
+    min-height:38px!important;
+    padding:0 8px!important;
+    font-size:10.5px!important;
+  }
+  body:has(#precio) main>section:first-of-type{
+    height:950px!important;
+    min-height:950px!important;
+  }
+  body:has(#precio) main>section:first-of-type>div:has(>h1){
+    margin-left:15px!important;
+    margin-right:15px!important;
+    padding-top:170px!important;
+  }
+  body:has(#precio) main>section:first-of-type>div:has(>h1)>h1{
+    max-width:330px!important;
+    font-size:37px!important;
+  }
+  body:has(#precio) main>section:first-of-type>div:has(>h1)>h1+p{font-size:14px!important}
+  body:has(#precio) main>section:first-of-type>div:has(>h1)>div{grid-template-columns:1fr!important}
+  body:has(#precio) main>section:first-of-type>div:last-child{
+    left:15px!important;
+    right:15px!important;
+    gap:6px!important;
+  }
+  body:has(#precio) main>section:first-of-type>div:last-child strong{font-size:15px!important}
+  body:has(#precio) main>section:first-of-type>div:last-child span{font-size:8.5px!important}
+}
