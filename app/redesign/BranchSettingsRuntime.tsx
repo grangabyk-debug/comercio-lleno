@@ -3,7 +3,7 @@
 import { FormEvent,useEffect,useMemo,useRef,useState } from 'react'
 import { createPortal } from 'react-dom'
 import { readTenantSession } from '@/lib/comercio/session'
-import { createStaffAdmin,deactivateBranch,loadTenantAdmin,removeBranchAssignment,saveBranch,setBranchAssignment,type BranchAdmin,type BranchAssignment,type StaffRole } from '@/lib/comercio/tenant-admin-api'
+import { createStaffAdmin,loadTenantAdmin,removeBranchAssignment,saveBranch,setBranchAssignment,type BranchAdmin,type BranchAssignment,type StaffRole } from '@/lib/comercio/tenant-admin-api'
 import type { StaffProfile } from '@/lib/comercio/api'
 import type { UserPermissions } from '@/lib/comercio/types'
 import styles from './branch-settings.module.css'
@@ -65,7 +65,7 @@ function BranchManager(){
       return <article className={styles.card} key={branch.id}>
         <div className={styles.cardTop}><div><div className={styles.badges}><span className={branch.is_primary?styles.primaryBadge:styles.branchBadge}>{branch.is_primary?'Principal':`Sucursal ${index+1}`}</span><span className={index<2?styles.included:styles.extra}>{index<2?'Incluida':'Adicional'}</span></div><h4>{branch.name}</h4><p>{branch.address||'Dirección pendiente'}</p></div><span className={complete?styles.ready:styles.pending}>{complete?'Configurada':'Falta configurar'}</span></div>
         <div className={styles.people}>{assigned.length?<>{assigned.slice(0,3).map(a=>{const person=staff.find(s=>s.id===a.profile_id);return <span key={a.profile_id}><b>{person?.full_name||person?.username||'Usuario'}</b> · {roleLabels[a.role]||a.role}</span>})}{assigned.length>3&&<small>+{assigned.length-3} personas</small>}</>:<span className={styles.noPeople}>Todavía no hay una persona asignada a esta sucursal.</span>}</div>
-        <div className={styles.cardActions}>{admin?<><button className={complete?styles.secondary:styles.primaryAction} onClick={()=>setManageId(branch.id)}>{complete?'Administrar sucursal':'Terminar configuración'}</button>{!branch.is_primary&&<button className={styles.linkDanger} onClick={async()=>{if(confirm(`¿Desactivar ${branch.name}?`)){try{await deactivateBranch(session,branch.id);await reload()}catch(e){setError(e instanceof Error?e.message:String(e))}}}}>Desactivar</button>}</>:<small>Tu acceso a esta sucursal está definido por el propietario o supervisor.</small>}</div>
+        <div className={styles.cardActions}>{admin?<button className={complete?styles.secondary:styles.primaryAction} onClick={()=>setManageId(branch.id)}>{complete?'Administrar sucursal':'Terminar configuración'}</button>:<small>Tu acceso a esta sucursal está definido por el propietario o supervisor.</small>}</div>
       </article>
     })}</div>}
     {createOpen&&<CreateBranch session={session} index={active.length} close={()=>setCreateOpen(false)} saved={async()=>{setCreateOpen(false);await reload()}}/>}
