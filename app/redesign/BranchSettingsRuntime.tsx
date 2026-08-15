@@ -57,7 +57,7 @@ function BranchManager(){
   const active=[...branches].sort((a,b)=>Number(b.is_primary)-Number(a.is_primary)||String(a.created_at||'').localeCompare(String(b.created_at||'')))
   return <section className={styles.panel}>
     <div className={styles.head}><div><h3>Sucursales</h3><p>Administrá cada local, quién puede entrar y con qué rol.</p></div><div className={styles.headActions}><span>{active.length}/5 sucursales</span>{admin&&<button disabled={active.length>=5} onClick={()=>setCreateOpen(true)}>+ Agregar sucursal</button>}</div></div>
-    <div className={styles.planNote}><b>Hasta 2 sucursales incluidas.</b><span>Desde la tercera se aplica un costo adicional. El importe se definirá más adelante. Máximo 5 por comercio.</span></div>
+    <div className={styles.planNote}><b>2 sucursales sin costo extra.</b><span>Recién desde la tercera se aplica un costo adicional. Productos y carga de stock ilimitados. Máximo 5 sucursales por comercio.</span></div>
     {error&&<div className={styles.error}>{error}</div>}
     {loading?<div className={styles.empty}>Cargando sucursales…</div>:<div className={styles.cards}>{active.map((branch,index)=>{
       const assigned=assignments.filter(a=>a.branch_id===branch.id&&a.active)
