@@ -89,7 +89,7 @@ export default function LandingSystemShowcase(){
       <div className={styles.humanCard}>
         <div className={styles.humanPhoto}><img src={counterPhoto} alt="Persona usando un punto de venta en un comercio"/></div>
         <div className={styles.humanCopy}><span>EN EL MOSTRADOR</span><b>Hecho para vender con gente esperando.</b><small>Botones grandes, flujo directo y la información importante siempre visible.</small></div>
-        <div className={styles.humanMetric}><strong>38 s</strong><span>venta rápida</span></div>
+        <div className={styles.humanMetric}><strong>Ágil</strong><span>flujo de venta</span></div>
       </div>
 
       <div className={styles.bubbles} aria-hidden="true">
