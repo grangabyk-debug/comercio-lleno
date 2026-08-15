@@ -5,8 +5,10 @@ import LandingMobileInnovation from './LandingMobileInnovation'
 import LandingQuickDemo from './LandingQuickDemo'
 import styles from './LandingPremium.module.css'
 
-const heroPhoto='https://images.pexels.com/photos/33688678/pexels-photo-33688678.jpeg?auto=compress&cs=tinysrgb&w=2200'
+const heroPhoto='https://images.pexels.com/photos/32441031/pexels-photo-32441031.jpeg?auto=compress&cs=tinysrgb&w=2200'
 const arcaLogo='https://arca.gob.ar/frameworkAFIP/img/logo_arca_blanco.svg'
+const mercadoPagoIcon='https://cdn.simpleicons.org/mercadopago/009EE3'
+const whatsappIcon='https://cdn.simpleicons.org/whatsapp/25D366'
 
 const productFeatures=[
   'Ventas y caja',
@@ -68,7 +70,7 @@ export default function LandingPage(){
 
       <div className={styles.heroVisual}>
         <div className={styles.photoFrame}>
-          <img src={heroPhoto} alt="Atención en un comercio de Buenos Aires" fetchPriority="high"/>
+          <img src={heroPhoto} alt="Comercio de cercanía en Buenos Aires" fetchPriority="high"/>
         </div>
         <div className={styles.heroStamp}><b>HECHO PARA EL<br/>COMERCIO REAL</b><span>Argentina · 2026</span></div>
         <div className={`${styles.floatCard} ${styles.floatSale}`}><span>VENTAS HOY</span><strong>$428.650</strong><small>36 operaciones</small></div>
@@ -77,11 +79,11 @@ export default function LandingPage(){
     </section>
 
     <section className={styles.integrationBand} aria-label="Integraciones y compatibilidades">
-      <div className={styles.integrationIntro}><b>Tu operación, conectada.</b><span>Lo importante ya convive dentro del sistema.</span></div>
+      <div className={styles.integrationIntro}><b>Tu operación, conectada.</b><span>Marcas conocidas. Un solo flujo de trabajo.</span></div>
       <div className={styles.integrationRail}>
         <span className={styles.arca}><img src={arcaLogo} alt="ARCA"/></span>
-        <span><b>Mercado Pago</b><small>integración propia</small></span>
-        <span><b>WhatsApp + IA</b><small>automatización opcional</small></span>
+        <span><img src={mercadoPagoIcon} alt="Mercado Pago" style={{width:28,height:28,marginBottom:7}}/><b>Mercado Pago</b><small>integración de cobro</small></span>
+        <span><img src={whatsappIcon} alt="WhatsApp" style={{width:27,height:27,marginBottom:7}}/><b>WhatsApp + IA</b><small>mensajes y automatización</small></span>
         <span><b>OpenAI</b><small>modelos usados por el asistente</small></span>
         <span><b>Scanner USB</b><small>códigos de barra</small></span>
         <span><b>58 / 80 mm</b><small>impresora térmica</small></span>
@@ -118,7 +120,7 @@ export default function LandingPage(){
       <div className={styles.detailsList}>
         <details><summary>¿Puedo facturar con ARCA?<span>+</span></summary><p>Sí. Una vez configurado el certificado y el punto de venta, la facturación queda integrada al flujo de venta.</p></details>
         <details><summary>¿Funciona con Mercado Pago, scanner e impresora?<span>+</span></summary><p>El sistema contempla integración con Mercado Pago y compatibilidad con lectores de códigos USB e impresoras térmicas de 58 y 80 mm.</p></details>
-        <details><summary>¿Qué hace la inteligencia artificial?<span>+</span></summary><p>El asistente puede consultar ventas, stock y tendencias del comercio. Utiliza modelos de IA —incluidos modelos de OpenAI— a través de nuestra infraestructura de AI Gateway.</p></details>
+        <details><summary>¿Qué hace la inteligencia artificial?<span>+</span></summary><p>El asistente puede consultar ventas, stock y tendencias del comercio. Utiliza modelos de IA —incluidos modelos de OpenAI— a través de nuestra infraestructura.</p></details>
         <details><summary>¿Funciona desde el celular?<span>+</span></summary><p>Sí. La experiencia móvil está diseñada como herramienta principal: vender, consultar productos, escanear códigos y trabajar con caja y facturación.</p></details>
       </div>
     </section>

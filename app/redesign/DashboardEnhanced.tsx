@@ -8,7 +8,7 @@ import { dayKey, money, Trend } from './operationalShared'
 import UiIcon from './UiIcon'
 import styles from './DashboardRevolution.module.css'
 
-const merchantPhoto='https://images.pexels.com/photos/33688678/pexels-photo-33688678.jpeg?auto=compress&cs=tinysrgb&w=1500'
+const merchantPhoto='https://images.pexels.com/photos/33752265/pexels-photo-33752265.jpeg?auto=compress&cs=tinysrgb&w=1500'
 
 export default function DashboardEnhanced({ data, todayTotal, todayCount, lowStock, go, canSell, role }: {
   data: CommerceSnapshot
@@ -57,7 +57,7 @@ export default function DashboardEnhanced({ data, todayTotal, todayCount, lowSto
         <div className={`${styles.cashBadge} ${cashOpen?styles.cashOpen:styles.cashClosed}`}>
           <i>{cashOpen?'●':'○'}</i><div><span>CAJA</span><b>{cashOpen?'Abierta':'Cerrada'}</b></div>
         </div>
-        <div className={styles.photoCaption}><b>Tu comercio primero.</b><span>Los datos acompañan la operación.</span></div>
+        <div className={styles.photoCaption}><b>El comercio, adelante.</b><span>El sistema acompaña sin ocupar el centro.</span></div>
       </div>
     </section>
 

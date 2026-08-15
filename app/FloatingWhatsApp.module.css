@@ -21,11 +21,12 @@
 
 @media(max-width:700px){
   .button{
-    width:58px;
-    height:58px;
-    right:16px;
-    bottom:calc(16px + env(safe-area-inset-bottom));
+    width:54px;
+    height:54px;
+    right:14px;
+    bottom:calc(92px + env(safe-area-inset-bottom));
     border-width:2px;
+    z-index:9996;
   }
-  .button svg{width:32px;height:32px}
+  .button svg{width:30px;height:30px}
 }
