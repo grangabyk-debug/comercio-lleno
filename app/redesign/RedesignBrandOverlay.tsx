@@ -6,23 +6,23 @@ export default function RedesignBrandOverlay() {
     aria-hidden="true"
     style={{
       position:'fixed',
-      top:12,
-      left:17,
+      top:3,
+      left:0,
       zIndex:58,
-      width:166,
-      height:50,
-      padding:'7px 12px',
+      width:189,
+      height:61,
+      padding:'0 10px',
       boxSizing:'border-box',
-      borderRadius:13,
+      borderRadius:0,
       display:'flex',
       alignItems:'center',
-      justifyContent:'flex-start',
+      justifyContent:'center',
       background:'#fff',
-      boxShadow:'0 8px 20px rgba(35,27,76,.12)',
+      boxShadow:'none',
       pointerEvents:'none',
       overflow:'hidden',
     }}
   >
-    <BrandLogo size={30}/>
+    <BrandLogo size={24}/>
   </div>
 }
