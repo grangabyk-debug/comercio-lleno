@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import styles from './LandingMobileInnovation.module.css'
 
-const mobilePhoto='https://images.pexels.com/photos/4921262/pexels-photo-4921262.jpeg?auto=compress&cs=tinysrgb&w=1800'
+const mobilePhoto='https://images.pexels.com/photos/16837815/pexels-photo-16837815.jpeg?auto=compress&cs=tinysrgb&w=1800'
 
 function PhonePreview(){
   return <div className={styles.phone} aria-label="Vista previa de Comercio Lleno móvil">
@@ -20,8 +20,9 @@ function PhonePreview(){
 export default function LandingMobileInnovation(){
   return <section className={styles.section} id="movil" aria-labelledby="mobile-title">
     <div className={styles.visual}>
-      <img src={mobilePhoto} alt="Comerciante realizando un cobro con un dispositivo móvil"/>
+      <img src={mobilePhoto} alt="Comerciante latina trabajando en un local de cercanía"/>
       <PhonePreview/>
+      <div className={styles.locationTag}><b>Ciudad de México</b><span>comercio de cercanía</span></div>
     </div>
     <div className={styles.copy}>
       <p>COMERCIO LLENO MÓVIL</p>
