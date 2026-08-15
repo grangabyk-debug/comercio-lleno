@@ -1,4 +1,5 @@
 import TrialSignup from './TrialSignup'
+import TrialMobileFixV2 from './TrialMobileFixV2'
 import './trial-mobile-polish.css'
 
 export const metadata = {
@@ -7,5 +8,5 @@ export const metadata = {
 }
 
 export default function FreeTrialPage() {
-  return <div className="cl-trial-v2"><TrialSignup /></div>
+  return <div className="cl-trial-v2"><TrialSignup /><TrialMobileFixV2 /></div>
 }
