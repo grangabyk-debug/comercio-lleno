@@ -65,7 +65,7 @@ export default function TrialStatus(){
 
   const days=useMemo(()=>subscription?.trial_ends_at?Math.max(0,Math.ceil((new Date(subscription.trial_ends_at).getTime()-now)/86_400_000)):0,[subscription,now])
   const promoPrice=Number(subscription?.promo_price_amount || subscription?.price_amount || 14900)
-  const regularPrice=Number(subscription?.regular_price_amount || 39900)
+  const regularPrice=Number(subscription?.regular_price_amount || 29800)
   const promoCycles=Number(subscription?.promo_cycles || 3)
 
   async function activate(){
@@ -104,7 +104,7 @@ export default function TrialStatus(){
   const expired=subscription.status==='expired'||days<=0
   const warning=!expired&&days<=5
   const hasPayment=Boolean(subscription.payment_method_added_at)||subscription.provider_status==='authorized'
-  const pricingText=`${money.format(promoPrice)}/mes por ${promoCycles} meses · después ${money.format(regularPrice)}/mes`
+  const pricingText=`${money.format(promoPrice)}/mes por ${promoCycles} meses (50% OFF) · después ${money.format(regularPrice)}/mes`
   return <div className={`${styles.pill} ${expired?styles.danger:warning?styles.warning:''}`}>
     <i className={styles.dot}/>
     {expired?<><b>Prueba finalizada</b><span>Activá el plan: {pricingText}.</span><button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo Mercado Pago…':'Activar con tarjeta'}</button></>:<><b>Prueba gratis</b><span>{days} día{days===1?'':'s'} restante{days===1?'':'s'} · luego {pricingText}</span>{hasPayment?<span style={{fontWeight:900,color:'#147348'}}>✓ Tarjeta asociada</span>:<button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo…':'Asociar tarjeta'}</button>}</>}
