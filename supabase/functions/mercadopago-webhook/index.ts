@@ -9,8 +9,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 
 function adminHeaders(extra: Record<string,string> = {}) { return { apikey:SERVICE_ROLE, Authorization:`Bearer ${SERVICE_ROLE}`, 'Content-Type':'application/json', ...extra }; }
 async function adminRest(path:string, init:RequestInit={}) { return fetch(`${SUPABASE_URL}/rest/v1/${path}`, { ...init, headers:adminHeaders(init.headers as Record<string,string> || {}) }); }
-async function mp(path:string) {
-  const response=await fetch(`${MP_API}${path}`,{headers:{Authorization:`Bearer ${MP_ACCESS_TOKEN}`},cache:'no-store'});
+async function mp(path:string,init:RequestInit={}) {
+  const response=await fetch(`${MP_API}${path}`,{...init,headers:{Authorization:`Bearer ${MP_ACCESS_TOKEN}`,'Content-Type':'application/json',...(init.headers||{})},cache:'no-store'});
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data?.message||data?.error||`Mercado Pago respondió ${response.status}`);
   return data;
@@ -44,18 +44,45 @@ function localStatusFromRemote(providerStatus:string,currentStatus:string,trialE
   if(providerStatus==='authorized'||providerStatus==='pending')return'expired';
   return currentStatus||'expired';
 }
-async function currentSubscription(companyId:string){const response=await adminRest(`company_subscriptions?company_id=eq.${encodeURIComponent(companyId)}&select=status,trial_ends_at,payment_method_added_at,last_payment_at&limit=1`);const rows=await response.json().catch(()=>[]);return response.ok&&Array.isArray(rows)?rows[0]||null:null}
-async function syncPreapproval(remote:any,dataId:string,paymentStatus=''){
+async function currentSubscription(companyId:string){
+  const fields='status,trial_ends_at,payment_method_added_at,last_payment_at,promo_price_amount,regular_price_amount,promo_cycles,promo_paid_cycles,promo_completed_at,last_provider_payment_id,price_amount,currency';
+  const response=await adminRest(`company_subscriptions?company_id=eq.${encodeURIComponent(companyId)}&select=${fields}&limit=1`);
+  const rows=await response.json().catch(()=>[]);return response.ok&&Array.isArray(rows)?rows[0]||null:null
+}
+async function syncPreapproval(remote:any,dataId:string,paymentStatus='',providerPaymentId=''){
   const companyId=String(remote?.external_reference||''),providerStatus=String(remote?.status||'').toLowerCase();
   if(!UUID_RE.test(companyId))return{ignored:true};
   const current=await currentSubscription(companyId);if(!current)return{ignored:true};
   const status=localStatusFromRemote(providerStatus,String(current.status||'trialing'),current.trial_ends_at,current.last_payment_at,paymentStatus);
-  const patch:Record<string,unknown>={billing_provider:'mercadopago',provider_subscription_id:String(remote?.id||dataId),provider_status:providerStatus||null,provider_checkout_url:remote?.init_point||null,provider_last_synced_at:new Date().toISOString(),status,updated_at:new Date().toISOString()};
-  if(providerStatus==='authorized'&&!current.payment_method_added_at)patch.payment_method_added_at=new Date().toISOString();
-  if(paymentStatus==='approved'||paymentStatus==='authorized')patch.last_payment_at=new Date().toISOString();
+  const now=new Date().toISOString();
+  const patch:Record<string,unknown>={billing_provider:'mercadopago',provider_subscription_id:String(remote?.id||dataId),provider_status:providerStatus||null,provider_checkout_url:remote?.init_point||null,provider_last_synced_at:now,status,updated_at:now};
+  if(providerStatus==='authorized'&&!current.payment_method_added_at)patch.payment_method_added_at=now;
+
+  const approved=paymentStatus==='approved'||paymentStatus==='authorized';
+  if(approved){
+    patch.last_payment_at=now;
+    const isNewPayment=Boolean(providerPaymentId)&&String(current.last_provider_payment_id||'')!==providerPaymentId;
+    if(isNewPayment){
+      const promoCycles=Math.max(0,Number(current.promo_cycles??3));
+      const paidCycles=Math.max(0,Number(current.promo_paid_cycles??0));
+      const promoPrice=Number(current.promo_price_amount??14900);
+      const regularPrice=Number(current.regular_price_amount??29800);
+      const nextPaid=Math.min(promoCycles,paidCycles+1);
+      patch.last_provider_payment_id=providerPaymentId;
+      patch.promo_paid_cycles=nextPaid;
+      if(promoCycles>0&&nextPaid>=promoCycles&&!current.promo_completed_at){
+        await mp(`/preapproval/${encodeURIComponent(String(remote?.id||dataId))}`,{method:'PUT',body:JSON.stringify({auto_recurring:{transaction_amount:regularPrice,currency_id:String(current.currency||remote?.auto_recurring?.currency_id||'ARS')}})});
+        patch.price_amount=regularPrice;
+        patch.promo_completed_at=now;
+      }else if(!current.promo_completed_at){
+        patch.price_amount=promoPrice;
+      }
+    }
+  }
+
   const response=await adminRest(`company_subscriptions?company_id=eq.${encodeURIComponent(companyId)}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(patch)});
   if(!response.ok)throw new Error('No se pudo actualizar la suscripción local');
-  return{ignored:false,status};
+  return{ignored:false,status,promo_paid_cycles:patch.promo_paid_cycles??current.promo_paid_cycles,price_amount:patch.price_amount??current.price_amount};
 }
 
 Deno.serve(async(req:Request)=>{
@@ -69,12 +96,12 @@ Deno.serve(async(req:Request)=>{
   if(await alreadyProcessed(requestId))return Response.json({ok:true,duplicate:true},{status:200});
   if(!dataId)return Response.json({ok:true,ignored:true},{status:200});
   try{
-    if(type==='subscription_preapproval'||/preapproval/i.test(String(body?.action||''))){const remote=await mp(`/preapproval/${encodeURIComponent(dataId)}`);const result=await syncPreapproval(remote,dataId,'');await markProcessed(requestId,dataId,type);return Response.json({ok:true,...result},{status:200})}
+    if(type==='subscription_preapproval'||/preapproval/i.test(String(body?.action||''))){const remote=await mp(`/preapproval/${encodeURIComponent(dataId)}`);const result=await syncPreapproval(remote,dataId,'','');await markProcessed(requestId,dataId,type);return Response.json({ok:true,...result},{status:200})}
     if(type==='subscription_authorized_payment'){
       const payment=await mp(`/authorized_payments/${encodeURIComponent(dataId)}`),subscriptionId=String(payment?.preapproval_id||payment?.subscription_id||'');
       if(!subscriptionId){await markProcessed(requestId,dataId,type);return Response.json({ok:true,ignored:true},{status:200})}
       const remote=await mp(`/preapproval/${encodeURIComponent(subscriptionId)}`),paymentStatus=String(payment?.status||'').toLowerCase();
-      const result=await syncPreapproval(remote,subscriptionId,paymentStatus);await markProcessed(requestId,dataId,type);return Response.json({ok:true,...result},{status:200});
+      const result=await syncPreapproval(remote,subscriptionId,paymentStatus,dataId);await markProcessed(requestId,dataId,type);return Response.json({ok:true,...result},{status:200});
     }
     await markProcessed(requestId,dataId,type);return Response.json({ok:true,ignored:true},{status:200});
   }catch(error){console.error('mercadopago-webhook',error instanceof Error?error.message:String(error));return Response.json({ok:false,error:'No se pudo sincronizar la notificación'},{status:500})}
