@@ -3,6 +3,7 @@ import BrandLogo from './BrandLogo'
 import LandingFeatureTabs from './LandingFeatureTabs'
 import LandingMobileInnovation from './LandingMobileInnovation'
 import LandingQuickDemo from './LandingQuickDemo'
+import LandingSystemShowcase from './LandingSystemShowcase'
 import ArgentinaPride from './ArgentinaPride'
 import styles from './LandingPremium.module.css'
 
@@ -90,6 +91,8 @@ export default function LandingPage(){
         <span><b>58 / 80 mm</b><small>impresora térmica</small></span>
       </div>
     </section>
+
+    <LandingSystemShowcase/>
 
     <section className={styles.productSection} id="producto">
       <div className={styles.sectionHeading}>
