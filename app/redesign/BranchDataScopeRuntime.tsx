@@ -41,8 +41,8 @@ export default function BranchDataScopeRuntime(){
       const scoped=SCOPED_TABLES.has(resource)
       if(!scoped&&rpc!=='persist_sale_atomic'&&rpc!=='bulk_increase_product_prices')return original(input,init)
 
-      if(scoped&&!url.searchParams.has('branch_id'))url.searchParams.append('branch_id',`eq.${branchId}`)
       const method=(init?.method||(input instanceof Request?input.method:'GET')).toUpperCase()
+      if(scoped&&method!=='POST'&&!url.searchParams.has('branch_id'))url.searchParams.append('branch_id',`eq.${branchId}`)
       const nextInit={...init}
       if(method!=='GET'&&method!=='HEAD')nextInit.body=bodyWithBranch(init?.body||(input instanceof Request?undefined:null),branchId,rpc)
       return original(url.toString(),nextInit)
