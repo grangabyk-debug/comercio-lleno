@@ -78,6 +78,13 @@ export function cacheSalesSettings(companyId: string, value: SalesSettings) {
   localStorage.setItem(key(companyId), JSON.stringify(normalize(value)))
 }
 
+function publishSalesSettings(companyId: string, value: SalesSettings) {
+  const next = normalize(value)
+  cacheSalesSettings(companyId, next)
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('comercio:sales-settings', { detail: next }))
+  return next
+}
+
 export async function loadSalesSettings(session: TenantSession): Promise<SalesSettings> {
   if (!SUPABASE_URL || !PUBLISHABLE_KEY) throw new Error('Supabase no está configurado.')
   const response = await fetch(`${SUPABASE_URL}/rest/v1/companies?id=eq.${encodeURIComponent(session.companyId)}&select=sales_settings&limit=1`, {
@@ -91,9 +98,25 @@ export async function loadSalesSettings(session: TenantSession): Promise<SalesSe
   return next
 }
 
-export async function saveSalesSettings(session: TenantSession, value: SalesSettings): Promise<SalesSettings> {
-  if (!SUPABASE_URL || !PUBLISHABLE_KEY) throw new Error('Supabase no está configurado.')
-  const next = normalize(value)
+async function saveByCompanyPatch(session: TenantSession, next: SalesSettings) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/companies?id=eq.${encodeURIComponent(session.companyId)}`, {
+    method: 'PATCH',
+    headers: {
+      apikey: PUBLISHABLE_KEY,
+      Authorization: `Bearer ${session.token}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify({ sales_settings: next }),
+    cache: 'no-store',
+  })
+  const data = await response.json().catch(() => null)
+  if (!response.ok) throw Object.assign(new Error(data?.message || data?.error || 'No se pudieron guardar los ajustes de ventas.'), { status: response.status })
+  const row = Array.isArray(data) ? data[0] : data
+  return normalize(row?.sales_settings || next)
+}
+
+async function saveByRpc(session: TenantSession, next: SalesSettings) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/save_sales_settings`, {
     method: 'POST',
     headers: {
@@ -106,8 +129,22 @@ export async function saveSalesSettings(session: TenantSession, value: SalesSett
   })
   const data = await response.json().catch(() => null)
   if (!response.ok) throw new Error(data?.message || data?.error || 'No se pudieron guardar los ajustes de ventas.')
-  const saved = normalize(data || next)
-  cacheSalesSettings(session.companyId, saved)
-  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('comercio:sales-settings', { detail: saved }))
-  return saved
+  return normalize(data || next)
+}
+
+export async function saveSalesSettings(session: TenantSession, value: SalesSettings): Promise<SalesSettings> {
+  if (!SUPABASE_URL || !PUBLISHABLE_KEY) throw new Error('Supabase no está configurado.')
+  const next = normalize(value)
+  let saved: SalesSettings
+  try {
+    saved = await saveByCompanyPatch(session, next)
+  } catch (patchError) {
+    try {
+      saved = await saveByRpc(session, next)
+    } catch (rpcError) {
+      const message = rpcError instanceof Error ? rpcError.message : patchError instanceof Error ? patchError.message : 'No se pudieron guardar los ajustes de ventas.'
+      throw new Error(message)
+    }
+  }
+  return publishSalesSettings(session.companyId, saved)
 }
