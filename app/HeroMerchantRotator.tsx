@@ -37,6 +37,23 @@ export default function HeroMerchantRotator(){
       <p style={{fontSize:9,lineHeight:1.45,color:'#d4dcd8',margin:'5px 0 0'}}>Ahorrás $14.900 por mes durante tus primeros 3 meses.</p>
       <b style={{display:'block',fontSize:9,color:'#7ce3ae',marginTop:6}}>Además, empezás con 14 días gratis antes del primer cobro.</b>
     </div>
+
+    <div className="clMobileHeroContent">
+      <p className="clMobileHeroKicker">SISTEMA POS PARA COMERCIOS EN ARGENTINA</p>
+      <h1>Vendé más simple.<br/>Ordená todo desde <span>un solo lugar.</span></h1>
+      <p className="clMobileHeroLead">Cobrá, facturá, controlá stock, seguí tu caja y entendé tus números con un sistema pensado para el ritmo real del comercio.</p>
+      <div className="clMobileHeroActions">
+        <a href="/redesign/access">Ingresar</a>
+        <a href="/prueba-gratis">Probar 14 días gratis</a>
+      </div>
+      <p className="clMobileHeroHuman">Soporte humano disponible cuando una configuración necesita una persona de verdad.</p>
+      <div className="clMobileHeroProof">
+        <div><strong>150+</strong><span>comercios en Argentina</span></div>
+        <div><strong>Sin límites</strong><span>productos y stock</span></div>
+        <div><strong>2 sucursales</strong><span>incluidas</span></div>
+      </div>
+    </div>
+
     <div className="clMobileHeroQuickActions" aria-label="Accesos rápidos">
       <a href="/prueba-gratis">Probar gratis 14 días</a>
       <a href="/redesign/access">Ingresar</a>

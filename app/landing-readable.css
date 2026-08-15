@@ -1,5 +1,5 @@
 /* Landing-only readability pass. Scoped with #precio so it never affects the authenticated POS. */
-body:has(#precio) main small{font-size:12px!important;line-height:1.45!important;font-weight:700!important}
+body:has(#precio) main small{font-size:11px!important;line-height:1.45!important;font-weight:650!important}
 body:has(#precio) main [class*="integrationStrip"]>span,
 body:has(#precio) main [class*="editorialHeading"]>p,
 body:has(#precio) main [class*="argentinaCopy"]>p:first-child,
@@ -10,22 +10,22 @@ body:has(#precio) main [class*="supportSection"]>div>p:first-child,
 body:has(#precio) main [class*="securitySection"]>div>p:first-child,
 body:has(#precio) main [class*="priceCopy"]>p:first-child,
 body:has(#precio) main [class*="faqHeading"]>p,
-body:has(#precio) main [class*="finalCta"] p{font-size:12px!important;line-height:1.4!important;font-weight:950!important;letter-spacing:.14em!important}
-body:has(#precio) main [class*="integrationBrands"] small{font-size:12px!important;font-weight:750!important;color:#59656c!important}
-body:has(#precio) main [class*="heroProof"] span{font-size:13px!important;line-height:1.35!important;font-weight:720!important;color:#f0f5f2!important}
-body:has(#precio) main [class*="heroSceneCaption"] span{font-size:11px!important}
-body:has(#precio) main [class*="heroSceneCaption"] strong{font-size:14px!important}
+body:has(#precio) main [class*="finalCta"] p{font-size:11px!important;line-height:1.4!important;font-weight:900!important;letter-spacing:.13em!important}
+body:has(#precio) main [class*="integrationBrands"] small{font-size:11px!important;font-weight:700!important;color:#59656c!important}
+body:has(#precio) main [class*="heroProof"] span{font-size:11px!important;line-height:1.35!important;font-weight:680!important;color:#edf4f0!important}
+body:has(#precio) main [class*="heroSceneCaption"] span{font-size:10px!important}
+body:has(#precio) main [class*="heroSceneCaption"] strong{font-size:13px!important}
 body:has(#precio) main [class*="mediaCard"] p,
 body:has(#precio) main [class*="lightCard"] p,
-body:has(#precio) main [class*="darkFeature"] p{font-size:15px!important;line-height:1.55!important;font-weight:600!important}
+body:has(#precio) main [class*="darkFeature"] p{font-size:13px!important;line-height:1.55!important;font-weight:560!important}
 body:has(#precio) main [class*="mediaCard"] span,
 body:has(#precio) main [class*="lightCard"]>span,
 body:has(#precio) main [class*="darkFeature"]>span,
 body:has(#precio) main [class*="simpleMode"]>span,
 body:has(#precio) main [class*="aiPanel"]>span,
-body:has(#precio) main [class*="whatsappCopy"]>span{font-size:11px!important;font-weight:950!important}
-body:has(#precio) main [class*="simpleModeGrid"] small{font-size:12px!important;font-weight:750!important}
-body:has(#precio) main [class*="orderList"]>div{font-size:13px!important;font-weight:700!important}
+body:has(#precio) main [class*="whatsappCopy"]>span{font-size:10px!important;font-weight:900!important}
+body:has(#precio) main [class*="simpleModeGrid"] small{font-size:11px!important;font-weight:700!important}
+body:has(#precio) main [class*="orderList"]>div{font-size:12px!important;font-weight:650!important}
 body:has(#precio) main [class*="metricRow"] span,
 body:has(#precio) main [class*="mosaicGrid"] span,
 body:has(#precio) main [class*="aiQuestions"] span,
@@ -33,61 +33,40 @@ body:has(#precio) main [class*="textList"] span,
 body:has(#precio) main [class*="supportSection"] aside span,
 body:has(#precio) main [class*="whatsappItems"] span,
 body:has(#precio) main [class*="whatsappPanel"] p,
-body:has(#precio) main [class*="faqGrid"] p{font-size:14px!important;line-height:1.55!important;font-weight:650!important}
-body:has(#precio) main [class*="faqGrid"] h3{font-size:17px!important;line-height:1.3!important}
+body:has(#precio) main [class*="faqGrid"] p{font-size:13px!important;line-height:1.55!important;font-weight:580!important}
+body:has(#precio) main [class*="faqGrid"] h3{font-size:16px!important;line-height:1.3!important}
 body:has(#precio) main [class*="footer"] a,
-body:has(#precio) main [class*="footer"] small{font-size:12px!important;font-weight:750!important}
+body:has(#precio) main [class*="footer"] small{font-size:11px!important;font-weight:700!important}
 
-/* Requirements: more visible, colorful and easy to scan. */
-#requisitos{max-width:1180px!important;margin:42px auto 80px!important;padding:44px 32px 50px!important;border-radius:30px;background:linear-gradient(135deg,#ecfff6 0%,#f3f8ff 52%,#f8f4ff 100%);border:1px solid #cfe8da;box-shadow:0 24px 70px rgba(18,70,47,.08)}
-#requisitos>div:first-child{max-width:900px!important}
-#requisitos h2{font-size:50px!important;line-height:1.02!important;color:#101927!important;max-width:850px}
-#requisitos>div:first-child>p{color:#087c52!important;font-size:13px!important}
-#requisitos [class*="securityGrid"]{gap:14px!important;margin-top:34px!important}
-#requisitos article{position:relative;overflow:hidden;min-height:210px;padding:24px 22px!important;border:1px solid #d5e4dc!important;border-radius:22px!important;background:rgba(255,255,255,.92)!important;box-shadow:0 12px 30px rgba(20,48,35,.06)}
-#requisitos article::before{display:grid;place-items:center;width:50px;height:50px;margin-bottom:18px;border-radius:16px;font-size:27px;background:#e5f8ee;box-shadow:inset 0 0 0 1px #c8ead8}
-#requisitos article:nth-child(1)::before{content:"📶"}
-#requisitos article:nth-child(2)::before{content:"💻"}
-#requisitos article:nth-child(3)::before{content:"📱"}
-#requisitos article:nth-child(4)::before{content:"🧾"}
-#requisitos article:nth-child(2)::before{background:#eaf1ff;box-shadow:inset 0 0 0 1px #d4e1ff}
-#requisitos article:nth-child(3)::before{background:#f2edff;box-shadow:inset 0 0 0 1px #e1d7ff}
-#requisitos article:nth-child(4)::before{background:#fff4dd;box-shadow:inset 0 0 0 1px #f5dfae}
-#requisitos article b{font-size:19px!important;line-height:1.25!important;color:#111b17!important}
-#requisitos article p{font-size:15px!important;line-height:1.58!important;font-weight:620!important;color:#4b5b53!important;margin-top:10px!important}
+/* Remove the requirements block completely from the public landing. */
+#requisitos{display:none!important}
 
-/* Real system screenshot + import benefit. The image is a cropped real screenshot supplied from the live POS. */
-#producto::before{content:"VISTA REAL DE COMERCIO LLENO\A\A Importá tu listado de productos y empezá más rápido.\A Si ya tenés tu catálogo armado, podés cargar productos de forma masiva en vez de ingresarlos uno por uno.";white-space:pre-line;display:flex;align-items:center;min-height:350px;margin:0 0 54px;padding:42px 56% 42px 38px;border-radius:28px;color:#fff;font-size:18px;line-height:1.55;font-weight:760;letter-spacing:-.15px;background-color:#0d1725;background-image:linear-gradient(90deg,#0d1725 0%,#0d1725 43%,rgba(13,23,37,.94) 48%,rgba(13,23,37,.28) 69%,rgba(13,23,37,0) 100%),url('/landing-system-real.jpg');background-repeat:no-repeat;background-size:100% 100%,58% auto;background-position:center,right center;box-shadow:0 28px 70px rgba(8,18,27,.18)}
+/* Remove the real-system screenshot promo block completely. */
+#producto::before{content:none!important;display:none!important}
 
-/* Price: high contrast and sales copy that is actually readable. */
+/* Price: strong contrast without oversized copy. */
 #precio{scroll-margin-top:86px}
-#precio [class*="priceCopy"]>p:nth-of-type(2){font-size:18px!important;line-height:1.6!important;font-weight:650!important;color:#26332d!important}
-#precio [class*="priceCard"]{border:2px solid #cfdad4!important;padding:34px!important;box-shadow:0 28px 70px rgba(20,43,33,.13)!important}
-#precio [class*="priceCard"]>span{font-size:13px!important;font-weight:950!important;color:#087c52!important}
-#precio [class*="priceCard"]>del{font-size:24px!important;color:#4e5a55!important;font-weight:750!important}
-#precio [class*="priceCard"]>strong{font-size:48px!important;color:#0b1510!important;font-weight:950!important;line-height:1!important}
-#precio [class*="priceCard"]>strong small{font-size:16px!important;color:#24322b!important;font-weight:850!important}
-#precio [class*="priceCard"]>p{font-size:18px!important;line-height:1.55!important;color:#111915!important;font-weight:800!important;margin:15px 0!important}
-#precio [class*="priceCard"]>p b{font-weight:950!important;color:#07120d!important}
-#precio [class*="priceCard"]>a{font-size:16px!important;padding:16px 18px!important;font-weight:950!important}
-#precio [class*="priceCard"]>small{font-size:13px!important;color:#4e5d56!important;font-weight:750!important;margin-top:12px!important}
+#precio [class*="priceCopy"]>p:nth-of-type(2){font-size:16px!important;line-height:1.58!important;font-weight:600!important;color:#26332d!important}
+#precio [class*="priceCard"]{border:2px solid #cfdad4!important;padding:31px!important;box-shadow:0 26px 64px rgba(20,43,33,.11)!important}
+#precio [class*="priceCard"]>span{font-size:12px!important;font-weight:900!important;color:#087c52!important}
+#precio [class*="priceCard"]>del{font-size:22px!important;color:#4e5a55!important;font-weight:700!important}
+#precio [class*="priceCard"]>strong{font-size:44px!important;color:#0b1510!important;font-weight:930!important;line-height:1!important}
+#precio [class*="priceCard"]>strong small{font-size:14px!important;color:#24322b!important;font-weight:800!important}
+#precio [class*="priceCard"]>p{font-size:15px!important;line-height:1.55!important;color:#111915!important;font-weight:720!important;margin:14px 0!important}
+#precio [class*="priceCard"]>p b{font-weight:900!important;color:#07120d!important}
+#precio [class*="priceCard"]>a{font-size:14px!important;padding:15px 18px!important;font-weight:900!important}
+#precio [class*="priceCard"]>small{font-size:11px!important;color:#4e5d56!important;font-weight:700!important;margin-top:11px!important}
 
 @media(max-width:700px){
-  body:has(#precio) main small{font-size:12px!important}
-  body:has(#precio) main [class*="heroProof"] span{font-size:12px!important}
-  #requisitos{margin:24px 15px 58px!important;padding:30px 18px 34px!important;border-radius:24px}
-  #requisitos h2{font-size:37px!important;line-height:1.05!important}
-  #requisitos article{min-height:0;padding:21px!important}
-  #requisitos article b{font-size:18px!important}
-  #requisitos article p{font-size:15px!important}
-  #producto::before{min-height:540px;margin-bottom:42px;padding:30px 22px 300px;font-size:17px;line-height:1.5;background-image:linear-gradient(180deg,#0d1725 0%,#0d1725 38%,rgba(13,23,37,.96) 45%,rgba(13,23,37,.2) 65%,rgba(13,23,37,0) 100%),url('/landing-system-real.jpg');background-size:100% 100%,auto 285px;background-position:center,bottom center;border-radius:22px}
-  #precio [class*="priceCard"]{padding:25px 20px!important}
-  #precio [class*="priceCard"]>strong{font-size:42px!important}
-  #precio [class*="priceCard"]>p{font-size:17px!important}
-  #precio [class*="priceCard"]>del{font-size:22px!important}
+  body:has(#precio) main small{font-size:11px!important}
+  body:has(#precio) main [class*="heroProof"] span{font-size:11px!important}
+  #precio [class*="priceCard"]{padding:24px 19px!important}
+  #precio [class*="priceCard"]>strong{font-size:39px!important}
+  #precio [class*="priceCard"]>p{font-size:15px!important}
+  #precio [class*="priceCard"]>del{font-size:20px!important}
   body:has(#precio) main [class*="faqGrid"] p,
   body:has(#precio) main [class*="mediaCard"] p,
   body:has(#precio) main [class*="lightCard"] p,
   body:has(#precio) main [class*="darkFeature"] p,
-  body:has(#precio) main [class*="whatsappItems"] span{font-size:15px!important}
+  body:has(#precio) main [class*="whatsappItems"] span{font-size:13px!important}
 }

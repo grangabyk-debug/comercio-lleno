@@ -2,12 +2,14 @@ import type { Metadata } from 'next'
 import Script from 'next/script'
 import LegacyScripts from './LegacyScripts'
 import FloatingWhatsApp from './FloatingWhatsApp'
+import LandingMobileInnovation from './LandingMobileInnovation'
 import './globals.css'
 import './prepaint.css'
 import './landing-final-trust.css'
 import './mobile-viewport-boost.css'
 import './landing-mobile-entry.css'
 import './landing-readable.css'
+import './landing-mobile-parity.css'
 
 export const metadata: Metadata = {
   metadataBase:new URL('https://comerciolleno.com'),
@@ -78,6 +80,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         />
         <Script id="google-ads-tag" strategy="afterInteractive">{googleAdsTag}</Script>
         {children}
+        <LandingMobileInnovation />
         <FloatingWhatsApp />
         <LegacyScripts />
       </body>
