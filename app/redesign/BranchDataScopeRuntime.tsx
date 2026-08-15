@@ -55,7 +55,6 @@ function requestInitFromInput(input:RequestInfo|URL,init?:RequestInit){
   return {
     method:init?.method||input.method,
     headers,
-    body:init?.body,
     credentials:init?.credentials||input.credentials,
     cache:init?.cache||input.cache,
     mode:init?.mode||input.mode,
@@ -66,6 +65,14 @@ function requestInitFromInput(input:RequestInfo|URL,init?:RequestInit){
     keepalive:init?.keepalive??input.keepalive,
     signal:init?.signal||input.signal,
   } satisfies RequestInit
+}
+
+async function requestBodyFromInput(input:RequestInfo|URL,init?:RequestInit){
+  if(init?.body!==undefined)return init.body
+  if(!(input instanceof Request))return undefined
+  const method=(init?.method||input.method||'GET').toUpperCase()
+  if(method==='GET'||method==='HEAD'||!input.body)return undefined
+  try{return await input.clone().text()}catch{return undefined}
 }
 
 export default function BranchDataScopeRuntime(){
@@ -95,7 +102,7 @@ export default function BranchDataScopeRuntime(){
 
       const nextInit=requestInitFromInput(input,init)
       if(method!=='GET'&&method!=='HEAD'){
-        const sourceBody=init?.body
+        const sourceBody=await requestBodyFromInput(input,init)
         if(sourceBody!==undefined)nextInit.body=bodyWithBranch(sourceBody,branchId,rpc)
       }else{
         delete nextInit.body
