@@ -6,11 +6,19 @@ import styles from './landing.module.css'
 type Scene={kind:'video'|'image';src:string;poster:string;label:string;detail:string}
 
 const scenes:Scene[]=[
-  {kind:'video',src:'https://videos.pexels.com/video-files/4121754/4121754-hd_1920_1080_25fps.mp4',poster:'https://images.pexels.com/videos/4121754/barcode-buying-cashier-consumerism-4121754.jpeg?auto=compress&fit=crop&w=1800',label:'Comercios de cercanía',detail:'Cobro ágil y control diario'},
-  {kind:'video',src:'https://videos.pexels.com/video-files/5103988/5103988-hd_1920_1080_30fps.mp4',poster:'https://images.pexels.com/videos/5103988/pexels-photo-5103988.jpeg?auto=compress&fit=crop&w=1800',label:'Supermercados y almacenes',detail:'Ventas, caja y stock en un mismo lugar'},
-  {kind:'video',src:'https://videos.pexels.com/video-files/4292582/4292582-hd_1920_1080_25fps.mp4',poster:'https://images.pexels.com/videos/4292582/pexels-photo-4292582.jpeg?auto=compress&fit=crop&w=1800',label:'Stock e inventario',detail:'Control desde el salón y el celular'},
-  {kind:'image',src:'https://images.pexels.com/photos/12326636/pexels-photo-12326636.jpeg?auto=compress&cs=tinysrgb&w=1800',poster:'https://images.pexels.com/photos/12326636/pexels-photo-12326636.jpeg?auto=compress&cs=tinysrgb&w=1800',label:'Tiendas de cercanía',detail:'Ventas, productos y caja en un solo lugar'},
-  {kind:'image',src:'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1800',poster:'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1800',label:'Showrooms y locales',detail:'Productos, precios, clientes y ventas'},
+  {kind:'image',src:'/landing/ferreteria.webp',poster:'/landing/ferreteria.webp',label:'Ferreterías y locales',detail:'Cobros, productos y caja en una misma operación'},
+  {kind:'image',src:'/landing/supermercado.webp',poster:'/landing/supermercado.webp',label:'Supermercados y almacenes',detail:'Stock y precios para miles de productos'},
+  {kind:'image',src:'/landing/cafeteria-sutil.webp',poster:'/landing/cafeteria-sutil.webp',label:'Cafeterías y panaderías',detail:'Ventas ágiles en horas de mayor movimiento'},
+  {kind:'image',src:'/landing/queseria.webp',poster:'/landing/queseria.webp',label:'Fiambrerías y delicatessen',detail:'Control de productos, stock y mostrador'},
+  {kind:'image',src:'/landing/cafeteria.webp',poster:'/landing/cafeteria.webp',label:'Comercios de cercanía',detail:'Una experiencia simple para el equipo del local'},
+]
+
+const photoOverrides:Array<[string,string]>=[
+  ['13061609','/landing/cafeteria-sutil.webp'],
+  ['12326636','/landing/ferreteria.webp'],
+  ['3184465','/landing/supermercado.webp'],
+  ['5103992','/landing/queseria.webp'],
+  ['33752264','/landing/cafeteria.webp'],
 ]
 
 const promoStyle={position:'absolute' as const,zIndex:6,right:38,top:28,width:310,padding:'14px 16px',borderRadius:16,color:'#fff',background:'rgba(9,15,20,.62)',border:'1px solid rgba(255,255,255,.2)',backdropFilter:'blur(16px)',boxShadow:'0 18px 45px rgba(0,0,0,.22)'}
@@ -23,6 +31,18 @@ export default function HeroMerchantRotator(){
 
   useEffect(()=>{setVideoReady(scene.kind==='image')},[current,scene.kind])
   useEffect(()=>{const timer=window.setInterval(()=>setCurrent(value=>(value+1)%scenes.length),7200);return()=>window.clearInterval(timer)},[])
+  useEffect(()=>{
+    const applyPreviewPhotos=()=>{
+      document.querySelectorAll<HTMLImageElement>('img').forEach(img=>{
+        const original=img.getAttribute('src')||''
+        const match=photoOverrides.find(([needle])=>original.includes(needle))
+        if(match&&img.getAttribute('src')!==match[1])img.setAttribute('src',match[1])
+      })
+    }
+    applyPreviewPhotos()
+    const frame=window.requestAnimationFrame(applyPreviewPhotos)
+    return()=>window.cancelAnimationFrame(frame)
+  },[])
 
   return <div className={styles.heroMedia}>
     <div className={styles.heroMediaFrame} key={`scene-${current}`}>
