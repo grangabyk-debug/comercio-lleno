@@ -7,6 +7,8 @@ import CookieConsent from './CookieConsent'
 import './globals.css'
 import './prepaint.css'
 import './design-readability.css'
+import './requested-polish.css'
+import './dashboard-image-polish.css'
 
 export const metadata: Metadata = {
   metadataBase:new URL('https://comerciolleno.com'),

@@ -1,0 +1,10 @@
+/* Dashboard uses a different Buenos Aires commerce photo from the public landing. */
+main[class*="shell"] [class*="dashboard"] [class*="heroPhoto"]{
+  background:
+    linear-gradient(180deg,rgba(18,12,21,.02) 45%,rgba(18,12,21,.22) 100%),
+    url("https://images.pexels.com/photos/33688671/pexels-photo-33688671/free-photo-of-candid-moment-in-buenos-aires-candy-store.jpeg?auto=compress&cs=tinysrgb&w=1800") center 48%/cover no-repeat!important;
+}
+main[class*="shell"] [class*="dashboard"] [class*="heroPhoto"]>img{
+  opacity:0!important;
+  visibility:hidden!important;
+}
