@@ -5,6 +5,7 @@ const SERVICE_ROLE=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const PUBLISHABLE_KEY=Deno.env.get('SUPABASE_ANON_KEY')||Deno.env.get('SUPABASE_PUBLISHABLE_KEY')||'';
 const MP_ACCESS_TOKEN=Deno.env.get('MERCADOPAGO_ACCESS_TOKEN')||'';
 const MP_API='https://api.mercadopago.com';
+const DEFAULT_PROMO_PRICE=14900;
 
 function originAllowed(origin:string){return origin==='https://comerciolleno.com'||origin==='https://www.comerciolleno.com'||/^https:\/\/[-a-z0-9]+\.vercel\.app$/i.test(origin)}
 function allowedOrigin(req:Request){const origin=req.headers.get('origin')||'';return originAllowed(origin)?origin:'https://www.comerciolleno.com'}
@@ -61,12 +62,13 @@ Deno.serve(async(req:Request)=>{
     }
 
     const trialEnd=subscription.trial_ends_at?new Date(subscription.trial_ends_at):new Date(0),remainingMs=Math.max(0,trialEnd.getTime()-Date.now()),remainingDays=Math.max(0,Math.ceil(remainingMs/86_400_000)),originUrl=allowedOrigin(req);
-    const autoRecurring:Record<string,unknown>={frequency:1,frequency_type:'months',transaction_amount:Number(subscription.price_amount||14900),currency_id:subscription.currency||'ARS'};
+    const promoPrice=Number(subscription.promo_price_amount||DEFAULT_PROMO_PRICE),currency=subscription.currency||'ARS';
+    const autoRecurring:Record<string,unknown>={frequency:1,frequency_type:'months',transaction_amount:promoPrice,currency_id:currency};
     if(remainingDays>0)autoRecurring.free_trial={frequency:remainingDays,frequency_type:'days'};
     const created=await mp('/preapproval',{method:'POST',body:JSON.stringify({reason:'Comercio Lleno',external_reference:companyId,payer_email:String(user.email),auto_recurring:autoRecurring,back_url:`${originUrl}/redesign?billing=return`,status:'pending'})});
     if(!created?.id||!created?.init_point)throw new Error('Mercado Pago no devolvió un checkout válido.');
     const localStatus=remainingDays>0?'trialing':subscription.status==='active'?'active':'expired';
-    const update=await adminRest(`company_subscriptions?company_id=eq.${encodeURIComponent(companyId)}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({billing_provider:'mercadopago',provider_subscription_id:String(created.id),provider_status:String(created.status||'pending'),provider_checkout_url:String(created.init_point),provider_last_synced_at:new Date().toISOString(),status:localStatus,updated_at:new Date().toISOString()})});if(!update.ok)throw new Error('No se pudo guardar el checkout de Mercado Pago.');
-    return json(req,{ok:true,status:String(created.status||'pending'),active:false,payment_method_added:false,local_status:localStatus,init_point:String(created.init_point),remaining_trial_days:remainingDays});
+    const update=await adminRest(`company_subscriptions?company_id=eq.${encodeURIComponent(companyId)}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({billing_provider:'mercadopago',provider_subscription_id:String(created.id),provider_status:String(created.status||'pending'),provider_checkout_url:String(created.init_point),provider_last_synced_at:new Date().toISOString(),price_amount:promoPrice,status:localStatus,updated_at:new Date().toISOString()})});if(!update.ok)throw new Error('No se pudo guardar el checkout de Mercado Pago.');
+    return json(req,{ok:true,status:String(created.status||'pending'),active:false,payment_method_added:false,local_status:localStatus,init_point:String(created.init_point),remaining_trial_days:remainingDays,promo_price:promoPrice,promo_cycles:Number(subscription.promo_cycles||3),regular_price:Number(subscription.regular_price_amount||29800)});
   }catch(error){return json(req,{ok:false,error:error instanceof Error?error.message:String(error)},502)}
 });
