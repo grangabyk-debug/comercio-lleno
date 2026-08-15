@@ -170,7 +170,7 @@ export default function WhatsAppAiSellerPanel({ session, message }: Props) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 950, letterSpacing: '.09em', color: '#168a55' }}>S PLUS · VENDEDOR ENTRENABLE</div>
-          <h3 style={{ margin: '5px 0 6px' }}>🤖 Vendedor IA WhatsApp</h3>
+          <h3 style={{ margin: '5px 0 6px' }}>Vendedor IA WhatsApp</h3>
           <p style={{ margin: 0, opacity: .72, lineHeight: 1.5, maxWidth: 800 }}>Configurá cómo habla, probalo como si fueras un cliente y marcá cada respuesta con 👍 o 👎. Las correcciones quedan guardadas sólo para este comercio.</p>
         </div>
         <span style={{ padding: '7px 10px', borderRadius: 999, fontSize: 10, fontWeight: 950, background: entitled && enabled ? '#e8f8ee' : '#fff4df', color: entitled && enabled ? '#147244' : '#926000' }}>
@@ -189,7 +189,7 @@ export default function WhatsAppAiSellerPanel({ session, message }: Props) {
               <div><b>Entrenamiento del estilo</b><div style={{ fontSize: 11, opacity: .65, marginTop: 3 }}>Esto cambia la forma de hablar, nunca los precios, stock ni reglas de confirmación.</div></div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 10, padding: '5px 8px', borderRadius: 999, background: '#e9f8ef', color: '#157348', fontWeight: 900 }}>👍 {training.approvedCount} aprobadas</span>
-                <span style={{ fontSize: 10, padding: '5px 8px', borderRadius: 999, background: '#eef3ff', color: '#3d5a9b', fontWeight: 900 }}>✍️ {training.correctedCount} corregidas</span>
+                <span style={{ fontSize: 10, padding: '5px 8px', borderRadius: 999, background: '#eef3ff', color: '#3d5a9b', fontWeight: 900 }}>{training.correctedCount} corregidas</span>
               </div>
             </div>
 

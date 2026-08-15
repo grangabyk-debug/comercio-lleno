@@ -1,7 +1,7 @@
 .clMobileHeroQuickActions{display:none}
 
 @media(max-width:700px){
-  /* Header móvil: mantener logo legible y mostrar Ingresar + Probar gratis. */
+  /* Header móvil: mantener logo legible y las dos acciones de acceso. */
   [class*="landing-module__"][class*="__header"]{
     padding:0 12px!important;
     gap:7px!important;
@@ -32,62 +32,139 @@
     white-space:nowrap!important;
   }
 
-  /* Hero móvil: vender rápido sin esconder las acciones principales. */
+  /* Hero móvil: conservar el mismo mensaje y jerarquía del hero de escritorio. */
+  [class*="landing-module__"][class*="__hero"]{
+    height:930px!important;
+    min-height:930px!important;
+    position:relative!important;
+    overflow:hidden!important;
+  }
+  [class*="landing-module__"][class*="__heroMediaAsset"]{
+    object-position:58% center!important;
+  }
+  [class*="landing-module__"][class*="__heroMediaShade"]{
+    background:linear-gradient(180deg,rgba(3,8,14,.68) 0%,rgba(3,8,14,.62) 30%,rgba(3,8,14,.76) 68%,rgba(3,8,14,.94) 100%)!important;
+  }
+  [class*="landing-module__"][class*="__heroOverlay"]{
+    background:linear-gradient(180deg,rgba(2,7,11,.08) 0%,rgba(2,7,11,.18) 42%,rgba(2,7,11,.76) 100%)!important;
+  }
+
+  .clHeroPromo{
+    top:14px!important;
+    left:14px!important;
+    right:14px!important;
+    width:auto!important;
+    padding:13px 14px!important;
+    border-radius:16px!important;
+  }
+  .clHeroPromo>span{font-size:9px!important;letter-spacing:.12em!important}
+  .clHeroPromo del{font-size:14px!important}
+  .clHeroPromo strong{font-size:26px!important;letter-spacing:-1px!important}
+  .clHeroPromo small{font-size:9px!important}
+  .clHeroPromo p,.clHeroPromo b{font-size:10.5px!important;line-height:1.35!important}
+
   [class*="landing-module__"][class*="__heroCopy"]{
     display:block!important;
     z-index:7!important;
-    padding-top:160px!important;
-    margin-left:18px!important;
-    margin-right:18px!important;
-    pointer-events:none!important;
+    max-width:none!important;
+    margin:0 18px!important;
+    padding-top:164px!important;
+    pointer-events:auto!important;
   }
   [class*="landing-module__"][class*="__heroCopy"] [class*="__heroKicker"]{
     display:block!important;
+    font-size:10px!important;
+    line-height:1.35!important;
+    margin:0 0 11px!important;
+    letter-spacing:.14em!important;
   }
   [class*="landing-module__"][class*="__heroCopy"] h1{
     display:block!important;
-    max-width:330px!important;
-    font-size:36px!important;
-    line-height:1!important;
-    text-shadow:0 3px 18px rgba(0,0,0,.35)!important;
+    max-width:355px!important;
+    font-size:42px!important;
+    line-height:.98!important;
+    letter-spacing:-2.1px!important;
+    text-shadow:0 3px 18px rgba(0,0,0,.38)!important;
   }
-  [class*="landing-module__"][class*="__heroLead"],
-  [class*="landing-module__"][class*="__heroActions"],
+  [class*="landing-module__"][class*="__heroLead"]{
+    display:block!important;
+    max-width:360px!important;
+    margin:17px 0 0!important;
+    font-size:15px!important;
+    line-height:1.48!important;
+    color:#e0e6e3!important;
+    text-shadow:0 2px 12px rgba(0,0,0,.34)!important;
+  }
+  [class*="landing-module__"][class*="__heroActions"]{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:9px!important;
+    margin-top:19px!important;
+    height:auto!important;
+  }
+  [class*="landing-module__"][class*="__heroActions"] [class*="__primary"],
+  [class*="landing-module__"][class*="__heroActions"] [class*="__secondary"]{
+    display:flex!important;
+    width:100%!important;
+    min-height:48px!important;
+    height:48px!important;
+    padding:0 10px!important;
+    border-radius:14px!important;
+    font-size:12px!important;
+    line-height:1.15!important;
+    text-align:center!important;
+    pointer-events:auto!important;
+  }
   [class*="landing-module__"][class*="__humanLine"]{
-    display:none!important;
+    display:block!important;
+    margin:13px 0 0!important;
+    max-width:355px!important;
+    font-size:10.5px!important;
+    line-height:1.42!important;
+    color:#c5cfca!important;
   }
 
-  .clMobileHeroQuickActions{
-    display:flex!important;
-    position:absolute!important;
-    z-index:9!important;
+  /* Ya no reemplazamos el hero por accesos rápidos: usamos los botones originales. */
+  .clMobileHeroQuickActions{display:none!important}
+
+  /* Mantener también los tres datos de prueba social que se ven en escritorio. */
+  [class*="landing-module__"][class*="__heroProof"]{
     left:18px!important;
     right:18px!important;
-    top:350px!important;
-    flex-direction:column!important;
-    gap:10px!important;
+    bottom:20px!important;
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:8px!important;
+    padding-top:13px!important;
   }
-  .clMobileHeroQuickActions a{
-    min-height:56px!important;
-    border-radius:16px!important;
-    display:flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-    padding:0 18px!important;
+  [class*="landing-module__"][class*="__heroProof"]>div{
+    display:block!important;
+    padding-right:7px!important;
+    min-width:0!important;
+  }
+  [class*="landing-module__"][class*="__heroProof"]>div:nth-child(3){display:block!important}
+  [class*="landing-module__"][class*="__heroProof"] strong{
     font-size:16px!important;
-    font-weight:900!important;
-    text-decoration:none!important;
-    box-shadow:0 14px 34px rgba(0,0,0,.22)!important;
+    line-height:1.05!important;
   }
-  .clMobileHeroQuickActions a:first-child{
-    background:#67dfaa!important;
-    color:#08140f!important;
+  [class*="landing-module__"][class*="__heroProof"] span{
+    font-size:8.5px!important;
+    line-height:1.25!important;
+    margin-top:4px!important;
   }
-  .clMobileHeroQuickActions a:last-child{
-    background:rgba(8,14,20,.82)!important;
-    color:#fff!important;
-    border:1px solid rgba(255,255,255,.42)!important;
-    backdrop-filter:blur(12px)!important;
+
+  /* Conservar la referencia al rubro sin competir con el mensaje principal. */
+  [class*="landing-module__"][class*="__heroSceneCaption"]{
+    display:block!important;
+    right:18px!important;
+    bottom:132px!important;
+    min-width:205px!important;
+    padding:10px 12px!important;
+  }
+  [class*="landing-module__"][class*="__heroSceneRail"]{
+    display:flex!important;
+    right:20px!important;
+    bottom:105px!important;
   }
 }
 
@@ -101,12 +178,36 @@
     padding:0 8px!important;
     font-size:10.5px!important;
   }
-  [class*="landing-module__"][class*="__heroCopy"] h1{
-    font-size:33px!important;
+  [class*="landing-module__"][class*="__hero"]{
+    height:950px!important;
+    min-height:950px!important;
   }
-  .clMobileHeroQuickActions{
-    top:335px!important;
+  [class*="landing-module__"][class*="__heroCopy"]{
+    padding-top:158px!important;
+    margin-left:15px!important;
+    margin-right:15px!important;
+  }
+  [class*="landing-module__"][class*="__heroCopy"] h1{
+    font-size:37px!important;
+    max-width:330px!important;
+  }
+  [class*="landing-module__"][class*="__heroLead"]{
+    font-size:14px!important;
+  }
+  [class*="landing-module__"][class*="__heroActions"]{
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+  }
+  [class*="landing-module__"][class*="__heroActions"] [class*="__primary"],
+  [class*="landing-module__"][class*="__heroActions"] [class*="__secondary"]{
+    font-size:13px!important;
+  }
+  .clHeroPromo{left:12px!important;right:12px!important}
+  [class*="landing-module__"][class*="__heroProof"]{
     left:15px!important;
     right:15px!important;
+    gap:6px!important;
   }
+  [class*="landing-module__"][class*="__heroProof"] strong{font-size:15px!important}
+  [class*="landing-module__"][class*="__heroProof"] span{font-size:8px!important}
 }

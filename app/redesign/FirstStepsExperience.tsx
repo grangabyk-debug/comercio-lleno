@@ -48,11 +48,16 @@ export default function FirstStepsExperience(){
   const[targetRect,setTargetRect]=useState<TargetRect|null>(null)
   const[cardPos,setCardPos]=useState<{top:number;left:number}|null>(null)
   const[tip,setTip]=useState<Tip|null>(null)
+  const[dismissConfirmOpen,setDismissConfirmOpen]=useState(false)
+  const[dismissed,setDismissed]=useState(false)
 
   useEffect(()=>{
     const active=readTenantSession();if(!active||active.role!=='owner')return
     setSession(active)
     oldKeyCleanup(active.companyId)
+    const neverShow=localStorage.getItem(`cl_first_steps_v2_never_show_${active.companyId}`)==='1'
+    const closedThisSession=sessionStorage.getItem(`cl_first_steps_v2_closed_session_${active.companyId}`)==='1'
+    if(neverShow||closedThisSession){setDismissed(true);return}
     const seen=localStorage.getItem(`cl_first_steps_v2_intro_${active.companyId}`)==='1'
     setIntroSeen(seen)
     if(!seen)window.setTimeout(()=>setWelcomeOpen(true),700)
@@ -90,14 +95,14 @@ export default function FirstStepsExperience(){
   },[session])
 
   useEffect(()=>{
-    if(!session)return
+    if(!session||dismissed)return
     void refreshProgress()
     const refreshLater=()=>window.setTimeout(()=>void refreshProgress(),900)
     const timer=window.setInterval(()=>void refreshProgress(),30000)
     window.addEventListener('focus',refreshLater)
     window.addEventListener('comercio:navigate-view',refreshLater)
     return()=>{window.clearInterval(timer);window.removeEventListener('focus',refreshLater);window.removeEventListener('comercio:navigate-view',refreshLater)}
-  },[session,refreshProgress])
+  },[session,dismissed,refreshProgress])
 
   useEffect(()=>{
     if(tourIndex===null){setTargetRect(null);setCardPos(null);return}
@@ -123,7 +128,7 @@ export default function FirstStepsExperience(){
   },[tourIndex])
 
   useEffect(()=>{
-    if(!session||!introSeen)return
+    if(!session||!introSeen||dismissed)return
     const handle=(event:MouseEvent)=>{
       if(tourIndex!==null||welcomeOpen||tourComplete)return
       const target=(event.target as HTMLElement|null)?.closest?.('[data-tour-context]') as HTMLElement|null
@@ -137,7 +142,7 @@ export default function FirstStepsExperience(){
     }
     document.addEventListener('click',handle,true)
     return()=>document.removeEventListener('click',handle,true)
-  },[session,introSeen,tourIndex,welcomeOpen,tourComplete])
+  },[session,introSeen,dismissed,tourIndex,welcomeOpen,tourComplete])
 
   useEffect(()=>{if(!tip)return;const timer=window.setTimeout(()=>setTip(null),6500);return()=>window.clearTimeout(timer)},[tip])
 
@@ -160,8 +165,24 @@ export default function FirstStepsExperience(){
     if(key==='printer')navigate('settings','Impresora y tickets')
     if(key==='arca')navigate('settings','ARCA')
   }
+  function closeForThisSession(){
+    if(!session)return
+    sessionStorage.setItem(`cl_first_steps_v2_closed_session_${session.companyId}`,'1')
+    setDismissConfirmOpen(false)
+    setChecklistOpen(false)
+    setWelcomeOpen(false)
+    setTourIndex(null)
+    setTourComplete(false)
+    setTip(null)
+    setDismissed(true)
+  }
+  function closeForever(){
+    if(!session)return
+    localStorage.setItem(`cl_first_steps_v2_never_show_${session.companyId}`,'1')
+    closeForThisSession()
+  }
 
-  if(!session)return null
+  if(!session||dismissed)return null
   const currentStep=tourIndex===null?null:TOUR_STEPS[tourIndex]
   const highlightStyle=targetRect?{top:targetRect.top-6,left:targetRect.left-6,width:targetRect.width+12,height:targetRect.height+12}:undefined
   const tourCardStyle=cardPos?{top:cardPos.top,left:cardPos.left}:undefined
@@ -175,7 +196,7 @@ export default function FirstStepsExperience(){
 
     {tourComplete&&<div className={styles.welcomeOverlay} role="presentation"><section className={styles.completeCard} role="dialog" aria-modal="true"><div className={styles.completeIcon}>✓</div><h3>Ya conocés lo esencial.</h3><p>La mejor forma de entender Comercio Lleno ahora es usarlo. Probá cargar un producto y registrar tu primera venta; la impresora y ARCA pueden configurarse más adelante.</p><div className={styles.completeActions}><button type="button" className={styles.secondary} onClick={()=>{setTourComplete(false);setChecklistOpen(true)}}>Ver primeros pasos</button><button type="button" className={styles.primary} onClick={goToSale}>Ir a Nueva venta</button></div></section></div>}
 
-    {introSeen&&!welcomeOpen&&tourIndex===null&&!tourComplete&&(checklistOpen?<aside className={styles.checklist} aria-label="Primeros pasos de Comercio Lleno"><div className={styles.checkHead}><div className={styles.checkTitle}><div><b>Primeros pasos</b><small>{essentialDone===3?'Lo esencial ya está listo':`${essentialDone} de 3 esenciales completos`}</small></div><button type="button" onClick={()=>setChecklistOpen(false)} aria-label="Minimizar">—</button></div><div className={styles.checkBar}><i style={{width:`${essentialPercent}%`}}/></div></div><div className={styles.checkBody}>
+    {introSeen&&!welcomeOpen&&tourIndex===null&&!tourComplete&&(checklistOpen?<aside className={styles.checklist} aria-label="Primeros pasos de Comercio Lleno"><div className={styles.checkHead}><div className={styles.checkTitle}><div><b>Primeros pasos</b><small>{essentialDone===3?'Lo esencial ya está listo':`${essentialDone} de 3 esenciales completos`}</small></div><div className={styles.checkActions}><button type="button" onClick={()=>setChecklistOpen(false)} aria-label="Minimizar">—</button><button type="button" onClick={()=>setDismissConfirmOpen(true)} aria-label="Cerrar Primeros pasos">×</button></div></div><div className={styles.checkBar}><i style={{width:`${essentialPercent}%`}}/></div></div><div className={styles.checkBody}>
       <button type="button" className={`${styles.checkRow} ${progress.company?styles.checkRowDone:''}`} onClick={()=>checklistAction('company')}><span className={styles.checkMark}>{progress.company?'✓':'1'}</span><span className={styles.checkCopy}><b>Datos del comercio</b><small>{progress.company?'Listo':'Completá los datos básicos'}</small></span></button>
       <button type="button" className={`${styles.checkRow} ${progress.product?styles.checkRowDone:''}`} onClick={()=>checklistAction('product')}><span className={styles.checkMark}>{progress.product?'✓':'2'}</span><span className={styles.checkCopy}><b>Cargar primer producto</b><small>{progress.product?'Listo':'Con uno alcanza para empezar'}</small></span></button>
       <button type="button" className={`${styles.checkRow} ${progress.sale?styles.checkRowDone:''}`} onClick={()=>checklistAction('sale')}><span className={styles.checkMark}>{progress.sale?'✓':'3'}</span><span className={styles.checkCopy}><b>Hacer primera venta</b><small>{progress.sale?'Listo':'Probá el flujo completo de cobro'}</small></span></button>
@@ -183,6 +204,8 @@ export default function FirstStepsExperience(){
       <button type="button" className={`${styles.checkRow} ${progress.arca?styles.checkRowDone:''}`} onClick={()=>checklistAction('arca')}><span className={styles.checkMark}>{progress.arca?'✓':'A'}</span><span className={styles.checkCopy}><b>Conectar ARCA</b><small>{progress.arca?'Conectado':'Solo cuando quieras facturar electrónicamente'}</small></span>{!progress.arca&&<span className={styles.optional}>OPCIONAL</span>}</button>
       <div className={styles.checkFooter}><button type="button" className={styles.tourAgain} onClick={startTour}>Repetir recorrido</button><button type="button" className={styles.saleNow} onClick={goToSale}>Nueva venta</button></div>
     </div></aside>:<button type="button" className={styles.launcher} onClick={()=>setChecklistOpen(true)}><span className={styles.launcherIcon}>{essentialDone===3?'✓':'↗'}</span><span className={styles.launcherCopy}><b>Primeros pasos</b><small>{essentialDone===3?'Lo esencial está listo':'Seguí donde lo dejaste'}</small></span><span className={styles.launcherProgress}>{essentialDone}/3</span></button>)}
+
+    {dismissConfirmOpen&&<div className={styles.welcomeOverlay} role="presentation"><section className={styles.dismissCard} role="dialog" aria-modal="true" aria-labelledby="dismiss-first-steps"><span className={styles.eyebrow}>PRIMEROS PASOS</span><h3 id="dismiss-first-steps">¿Cerrar y no volver a mostrar?</h3><p>Si elegís <b>No</b>, se cierra por ahora y volverá a aparecer cuando abras Comercio Lleno en una nueva sesión. Si elegís <b>Sí</b>, no volveremos a mostrar este panel en este dispositivo.</p><div className={styles.dismissActions}><button type="button" className={styles.secondary} onClick={closeForThisSession}>No</button><button type="button" className={styles.dismissNever} onClick={closeForever}>Sí, no volver a mostrar</button></div></section></div>}
 
     {tip&&<aside className={styles.contextTip} aria-live="polite"><i>i</i><div><b>{tip.title}</b><span>{tip.text}</span></div><button type="button" onClick={()=>setTip(null)} aria-label="Cerrar">×</button></aside>}
   </>

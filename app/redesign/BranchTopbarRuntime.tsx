@@ -9,8 +9,11 @@ import styles from './branch-topbar.module.css'
 
 function findTopbarHost(){
   const buttons=Array.from(document.querySelectorAll('header button'))
-  const refresh=buttons.find(button=>(button.textContent||'').trim()==='Actualizar')
-  return refresh?.parentElement instanceof HTMLElement?refresh.parentElement:null
+  const refresh=buttons.find(button=>(button.textContent||'').includes('Actualizar'))
+  if(refresh?.parentElement instanceof HTMLElement)return refresh.parentElement
+  const header=document.querySelector('header')
+  const candidates=header?Array.from(header.querySelectorAll(':scope > div')):[]
+  return candidates.at(-1) instanceof HTMLElement?candidates.at(-1) as HTMLElement:null
 }
 
 export default function BranchTopbarRuntime(){
@@ -51,7 +54,7 @@ export default function BranchTopbarRuntime(){
   if(!host||!session||loading||!options.length)return null
   const selected=options.find(x=>x.id===current)||options[0]
   const canSwitch=options.length>1
-  const control=<div className={styles.wrap} title={canSwitch?'Cambiar sucursal operativa':'Sucursal operativa'}>
+  const control=<div className={styles.wrap} title={canSwitch?'Elegir otra sucursal':'Sucursal operativa'}>
     <span className={styles.label}>Sucursal</span>
     {canSwitch?<select aria-label="Elegir sucursal" value={selected.id} onChange={e=>{
       const next=options.find(x=>x.id===e.target.value)

@@ -20,6 +20,30 @@ main[class*="shell"] canvas { max-width: 100%; }
   main[class*="shell"] > div:first-of-type > section { padding-left: 20px !important; padding-right: 20px !important; }
 }
 
+/* Cuando el lateral pasa a modo angosto, conservar sólo los íconos: nunca comprimir o cortar los textos. */
+@media (min-width: 768px) and (max-width: 1150px) {
+  main[class*="shell"] > div:first-of-type > aside [class*="navLabel"] { display: none !important; }
+  main[class*="shell"] > div:first-of-type > aside [class*="navButton"] {
+    justify-content: center !important;
+    gap: 0 !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    font-size: 0 !important;
+    overflow: hidden !important;
+  }
+  main[class*="shell"] > div:first-of-type > aside [class*="navButton"] > span {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    flex: 0 0 32px !important;
+    font-size: 16px !important;
+    margin: 0 !important;
+  }
+  main[class*="shell"] > div:first-of-type > aside [class*="sidebarBottom"] { display: none !important; }
+}
+
 @media (min-width: 768px) and (max-width: 1100px) {
   main[class*="shell"] [class*="kpis"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   main[class*="shell"] [class*="gridTwo"] { grid-template-columns: minmax(0, 1fr) !important; }
