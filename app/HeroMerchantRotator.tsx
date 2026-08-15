@@ -43,8 +43,8 @@ export default function HeroMerchantRotator(){
       <h1>Vendé más simple.<br/>Ordená todo desde <span>un solo lugar.</span></h1>
       <p className="clMobileHeroLead">Cobrá, facturá, controlá stock, seguí tu caja y entendé tus números con un sistema pensado para el ritmo real del comercio.</p>
       <div className="clMobileHeroActions">
-        <a href="/prueba-gratis">Empezar 14 días gratis</a>
-        <a href="#producto">Conocer el sistema</a>
+        <a href="/redesign/access">Ingresar</a>
+        <a href="/prueba-gratis">Probar 14 días gratis</a>
       </div>
       <p className="clMobileHeroHuman">Soporte humano disponible cuando una configuración necesita una persona de verdad.</p>
       <div className="clMobileHeroProof">
