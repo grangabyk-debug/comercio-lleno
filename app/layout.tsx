@@ -9,6 +9,7 @@ import './prepaint.css'
 import './design-readability.css'
 import './requested-polish.css'
 import './dashboard-image-polish.css'
+import './brand-global.css'
 
 export const metadata: Metadata = {
   metadataBase:new URL('https://comerciolleno.com'),
@@ -16,9 +17,8 @@ export const metadata: Metadata = {
   description:'Sistema POS online para comercios con ventas, stock, caja, ARCA, modo offline e inteligencia artificial.',
   applicationName:'Comercio Lleno',
   icons:{
-    icon:[{url:'/icon.svg',type:'image/svg+xml',sizes:'any'}],
-    shortcut:'/icon.svg',
-    apple:'/icon.svg',
+    icon:[{url:'/brand/comercio-lleno-logo.webp',type:'image/webp'}],
+    shortcut:'/brand/comercio-lleno-logo.webp',
   },
   openGraph:{siteName:'Comercio Lleno'},
 }
