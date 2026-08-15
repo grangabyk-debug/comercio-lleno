@@ -4,6 +4,7 @@ import {useMemo,useState} from 'react'
 import Link from 'next/link'
 import styles from './LandingQuickDemo.module.css'
 import mobile from './LandingQuickDemoMobile.module.css'
+import listStyles from './LandingQuickDemoList.module.css'
 
 const products=[
   {name:'Detergente 750 ml',category:'Limpieza',price:3150},
@@ -70,13 +71,17 @@ export default function LandingQuickDemo(){
         {!paid?<>
           <div className={`${styles.posShell} ${mobile.desktopOnly}`}>
             <section className={styles.catalog}>
-              <div className={styles.sectionHead}><div><span>PASO 1</span><b>Elegí productos</b></div><small>Podés repetirlos para probar cantidades.</small></div>
-              <div className={styles.productGrid}>
-                {products.map((product,index)=><button key={product.name} type="button" className={styles.productCard} onClick={()=>add(index)}>
-                  <span className={styles.productCategory}>{product.category}</span>
-                  <b>{product.name}</b>
-                  <div><strong>{money.format(product.price)}</strong><i>Agregar</i></div>
-                </button>)}
+              <div className={styles.sectionHead}><div><span>PASO 1</span><b>Elegí productos</b></div><small>Agregalos desde una lista, como en el sistema.</small></div>
+              <div className={listStyles.desktopProductList}>
+                {products.map((product,index)=><div key={product.name} className={listStyles.desktopProductRow}>
+                  <div className={listStyles.desktopProductInfo}>
+                    <span>{product.category}</span>
+                    <b>{product.name}</b>
+                    <small>Stock disponible</small>
+                  </div>
+                  <strong>{money.format(product.price)}</strong>
+                  <button type="button" onClick={()=>add(index)} aria-label={`Agregar ${product.name}`}>+</button>
+                </div>)}
               </div>
               <div className={styles.demoHint}><b>Tip de la demo</b><span>Probá agregar varias unidades y después cambiá el medio de pago. Todo responde como una caja real.</span></div>
             </section>
@@ -102,11 +107,18 @@ export default function LandingQuickDemo(){
 
           <div className={mobile.mobileDemo}>
             <div className={mobile.mobileStep}><span>1</span><div><b>Sumá productos</b><small>Una muestra rápida del flujo de caja.</small></div>{itemCount>0&&<button type="button" onClick={()=>setCart({})}>Vaciar</button>}</div>
-            <div className={mobile.mobileProducts}>
-              {products.slice(0,4).map((product,index)=><article className={mobile.mobileProduct} key={product.name}>
-                <span>{product.category}</span><b>{product.name}</b><strong>{money.format(product.price)}</strong>
-                <div>{cart[index]>0&&<><button type="button" onClick={()=>changeQty(index,-1)}>−</button><em>{cart[index]}</em></>}<button type="button" className={mobile.mobileAdd} onClick={()=>add(index)}>+</button></div>
-              </article>)}
+            <div className={listStyles.mobileProductList}>
+              {products.slice(0,4).map((product,index)=><div className={listStyles.mobileProductRow} key={product.name}>
+                <div className={listStyles.mobileProductInfo}>
+                  <span>{product.category}</span>
+                  <b>{product.name}</b>
+                </div>
+                <strong>{money.format(product.price)}</strong>
+                <div className={listStyles.mobileProductControls}>
+                  {cart[index]>0&&<><button type="button" onClick={()=>changeQty(index,-1)}>−</button><em>{cart[index]}</em></>}
+                  <button type="button" className={listStyles.mobileAdd} onClick={()=>add(index)}>+</button>
+                </div>
+              </div>)}
             </div>
             <div className={mobile.mobileSale}>
               <div><span>VENTA DEMO</span><b>{itemCount?`${itemCount} artículo${itemCount===1?'':'s'}`:'Elegí un producto'}</b></div><strong>{money.format(total)}</strong>
