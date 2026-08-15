@@ -22,12 +22,22 @@ export default function WholesalePricingSettingsPanel({
 
   useEffect(() => {
     void loadSalesSettings(session).then(setValue).catch(() => {})
+    const sync = (event: Event) => {
+      const next = (event as CustomEvent<SalesSettings>).detail
+      if (next) setValue(next)
+    }
+    window.addEventListener('comercio:sales-settings', sync)
+    return () => window.removeEventListener('comercio:sales-settings', sync)
   }, [session.companyId, session.token])
 
   async function save() {
     setBusy(true)
     try {
-      const next = await saveSalesSettings(session, value)
+      const current = readCachedSalesSettings(session.companyId)
+      const next = await saveSalesSettings(session, {
+        ...current,
+        wholesalePricingEnabled: value.wholesalePricingEnabled,
+      })
       setValue(next)
       message(next.wholesalePricingEnabled
         ? 'Precio mayorista automático activado desde 3 unidades del mismo producto.'
