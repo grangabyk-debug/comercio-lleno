@@ -1,0 +1,104 @@
+.showcase{padding:96px 112px 160px!important}
+.frame{border-radius:32px!important;box-shadow:0 48px 120px rgba(42,26,51,.22),0 10px 28px rgba(42,26,51,.08)!important}
+.app{border-radius:21px!important}
+.fakeTopbar{height:66px!important;padding:0 20px!important}
+.appBody{grid-template-columns:184px minmax(0,1fr)!important;min-height:640px!important}
+.work{padding:16px!important}
+.saleHead{padding:15px 16px!important}
+.saleHead small{font-size:8.5px!important}
+.saleHead b{font-size:18px!important}
+.saleHead strong{font-size:34px!important}
+.row{min-height:66px!important;padding:11px 15px!important;grid-template-columns:minmax(0,1fr) 94px 92px!important}
+.row>div>b{font-size:13.5px!important;line-height:1.18!important;font-weight:950!important}
+.row small{font-size:9.5px!important;margin-top:4px!important;font-weight:700!important}
+.row>span{gap:7px!important}
+.row>span i{width:28px!important;height:28px!important;border-radius:9px!important;font-size:11px!important}
+.row>span b{font-size:12.5px!important}
+.row>strong{font-size:13.5px!important;font-weight:950!important}
+.payPanel{padding:15px!important}
+.payPanel label{font-size:9px!important}
+.tools button,.payments button{font-size:10px!important;min-height:43px!important;font-weight:950!important}
+.received span{font-size:10px!important}
+.received div{height:44px!important;font-size:11px!important}
+.change{padding:10px 12px!important}
+.change span{font-size:9px!important}
+.change strong{font-size:14px!important}
+.totalLine span{font-size:10px!important}
+.totalLine strong{font-size:32px!important}
+.actions button{min-height:52px!important;font-size:11px!important}
+
+.bubble{width:292px!important;padding:22px 23px 21px!important;border-radius:29px!important;box-shadow:0 30px 72px rgba(35,21,44,.22),inset 0 1px 0 rgba(255,255,255,.94)!important;background:linear-gradient(145deg,rgba(255,255,255,.88),rgba(255,255,255,.60))!important}
+.bubble span{font-size:9px!important;letter-spacing:.14em!important}
+.bubble b{font-size:21px!important;line-height:1.02!important;margin-top:8px!important;letter-spacing:-.04em!important}
+.bubble small{font-size:13px!important;line-height:1.34!important;margin-top:9px!important;font-weight:750!important}
+.bubbleTop{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important}
+.providerLogo{display:block;width:auto;height:24px;max-width:82px;object-fit:contain}
+.arcaBadge{display:grid;place-items:center;min-width:70px;height:34px;padding:0 10px;border-radius:10px;background:#2d1760;box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+.arcaBadge img{width:58px;height:22px;object-fit:contain}
+.mpBadge{display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:11px;background:#fff;border:1px solid rgba(0,158,227,.2);box-shadow:0 8px 20px rgba(0,158,227,.08)}
+.mpBadge img{width:25px;height:25px}
+.mpBadge strong{font-size:10px;color:#0879a8;white-space:nowrap}
+.bubble1{right:-22px!important;top:96px!important}
+.bubble2{left:-30px!important;top:196px!important}
+.bubble3{left:-35px!important;bottom:208px!important}
+.bubble4{right:-35px!important;bottom:208px!important}
+.bubble5{right:74px!important;bottom:26px!important}
+.bubble6{left:86px!important;top:16px!important}
+
+.humanCard{left:34px!important;bottom:20px!important;width:430px!important;grid-template-columns:112px 1fr auto!important;gap:16px!important;padding:15px 16px!important;border-radius:27px!important;box-shadow:0 34px 80px rgba(28,17,35,.34)!important}
+.humanPhoto{width:112px!important;height:92px!important;border-radius:20px!important}
+.humanCopy span{font-size:8.5px!important}
+.humanCopy b{font-size:16.5px!important;line-height:1.12!important;margin-top:5px!important}
+.humanCopy small{font-size:11px!important;line-height:1.38!important;margin-top:6px!important}
+.humanMetric strong{font-size:26px!important}
+.humanMetric span{font-size:9px!important}
+
+.supportCard{position:absolute;right:38px;top:20px;z-index:7;width:270px;display:grid;grid-template-columns:58px 1fr;gap:12px;align-items:center;padding:12px 14px;border-radius:22px;background:linear-gradient(145deg,rgba(255,255,255,.9),rgba(255,255,255,.65));border:1px solid rgba(255,255,255,.82);backdrop-filter:blur(22px) saturate(1.16);box-shadow:0 24px 60px rgba(44,28,54,.18)}
+.supportAvatar{width:58px;height:58px;border-radius:17px;overflow:hidden;box-shadow:0 8px 22px rgba(38,23,47,.14)}
+.supportAvatar img{width:100%;height:100%;display:block;object-fit:cover;object-position:center 35%}
+.supportCopy span{display:block;font-size:8px;letter-spacing:.13em;font-weight:950;color:#ff641d}
+.supportCopy b{display:block;font-size:15px;line-height:1.08;margin-top:4px;color:#211925}
+.supportCopy small{display:block;font-size:10px;line-height:1.35;margin-top:5px;color:#6a606e;font-weight:700}
+
+@media(max-width:1220px){
+  .showcase{padding:76px 62px 150px!important}
+  .appBody{grid-template-columns:150px minmax(0,1fr)!important}
+  .bubble{width:250px!important;padding:19px 20px!important}
+  .bubble b{font-size:18px!important}
+  .bubble small{font-size:11.5px!important}
+  .humanCard{width:390px!important;left:22px!important}
+  .supportCard{right:24px!important;width:245px!important}
+}
+
+@media(max-width:960px){
+  .showcase{padding:32px 0 0!important}
+  .appBody{grid-template-columns:120px minmax(0,1fr)!important;min-height:560px!important}
+  .row{grid-template-columns:minmax(0,1fr) 76px 78px!important;min-height:60px!important}
+  .row>div>b{font-size:12.5px!important}
+  .bubbles{position:static!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;margin-top:18px!important}
+  .bubble{position:relative!important;inset:auto!important;width:auto!important;transform:none!important;min-height:150px!important}
+  .supportCard{position:static;width:auto;margin-top:14px;grid-template-columns:64px 1fr}
+  .humanCard{position:static!important;width:auto!important;margin-top:14px!important;grid-template-columns:96px 1fr auto!important}
+}
+
+@media(max-width:700px){
+  .showcase{padding-top:20px!important}
+  .fakeTopbar{height:58px!important;padding:0 13px!important}
+  .appBody{display:block!important;min-height:0!important}
+  .work{padding:9px!important}
+  .saleHead strong{font-size:28px!important}
+  .row{min-height:62px!important;padding:10px 9px!important;grid-template-columns:minmax(0,1fr) 70px 74px!important;gap:7px!important}
+  .row>div>b{font-size:12px!important;white-space:normal!important}
+  .row small{font-size:8.8px!important}
+  .row>strong{font-size:12px!important}
+  .bubbles{grid-template-columns:1fr!important}
+  .bubble{min-height:0!important;padding:18px 19px!important}
+  .bubble b{font-size:19px!important}
+  .bubble small{font-size:12px!important}
+  .humanCard{grid-template-columns:82px 1fr!important;padding:13px!important}
+  .humanPhoto{width:82px!important;height:78px!important}
+  .humanMetric{display:none!important}
+  .humanCopy b{font-size:15px!important}
+  .humanCopy small{font-size:10.5px!important}
+  .supportCard{grid-template-columns:56px 1fr;padding:11px 12px}
+}

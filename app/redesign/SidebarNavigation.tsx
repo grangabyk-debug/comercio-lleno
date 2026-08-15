@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { TenantSession, ViewKey } from '@/lib/comercio/types'
+import UiIcon, { type UiIconName } from './UiIcon'
 import styles from './page.module.css'
 import parity from './parity.module.css'
 import enh from './enhancements.module.css'
@@ -18,9 +19,16 @@ type Props = {
 
 type ManagementItem = {
   key: ViewKey | 'finances'
-  icon: string
+  icon: UiIconName
   label: string
   allowed: boolean
+}
+
+type MainItem = {
+  key: ViewKey
+  icon: UiIconName
+  label: string
+  special?: 'sale'|'assistant'
 }
 
 const EXACT_VIEWS: ViewKey[] = ['dashboard','pos','products','cash','settings','assistant','sales','reports','customers','profitability','accounts','returns','promotions','purchases','suppliers'] as ViewKey[]
@@ -37,26 +45,26 @@ export default function SidebarNavigation({ tenant, view, buildVersion, canView,
   const [managementOpen, setManagementOpen] = useState(false)
   const managementRef = useRef<HTMLDivElement | null>(null)
 
-  const mainNav: Array<[ViewKey, string, string, string?]> = [
-    ['dashboard', '⌂', 'Inicio'],
-    ['pos', '🪙', 'Nueva venta', 'sale'],
-    ['products', '▦', 'Productos'],
-    ['cash', '◷', 'Caja diaria'],
-    ['settings', '⚙', 'Configuración'],
-    ['assistant', '✦', 'Asistente IA', 'assistant'],
+  const mainNav: MainItem[] = [
+    {key:'dashboard',icon:'home',label:'Inicio'},
+    {key:'pos',icon:'sale',label:'Nueva venta',special:'sale'},
+    {key:'products',icon:'products',label:'Productos'},
+    {key:'cash',icon:'cash',label:'Caja diaria'},
+    {key:'settings',icon:'settings',label:'Configuración'},
+    {key:'assistant',icon:'sparkles',label:'Asistente IA',special:'assistant'},
   ]
 
   const management: ManagementItem[] = [
-    { key: 'sales', icon: '▤', label: 'Ventas', allowed: canView('sales') },
-    { key: 'reports', icon: '◔', label: 'Reportes', allowed: canView('reports') },
-    { key: 'customers', icon: '♙', label: 'Clientes', allowed: canView('customers') },
-    { key: 'profitability', icon: '↗', label: 'Rentabilidad', allowed: canView('profitability') },
-    { key: 'accounts', icon: '¤', label: 'Cuentas corrientes', allowed: canView('accounts') },
-    { key: 'returns', icon: '↩', label: 'Devoluciones', allowed: canView('returns') },
-    { key: 'promotions', icon: '%', label: 'Promociones', allowed: canView('promotions') },
-    { key: 'purchases', icon: '▦', label: 'Compras', allowed: canView('purchases') },
-    { key: 'suppliers', icon: '♜', label: 'Proveedores', allowed: canView('suppliers') },
-    { key: 'finances', icon: '$', label: 'Finanzas', allowed: tenant.role === 'owner' || tenant.permissions?.can_manage_finances === true },
+    { key: 'sales', icon: 'sales', label: 'Ventas', allowed: canView('sales') },
+    { key: 'reports', icon: 'reports', label: 'Reportes', allowed: canView('reports') },
+    { key: 'customers', icon: 'customers', label: 'Clientes', allowed: canView('customers') },
+    { key: 'profitability', icon: 'profit', label: 'Rentabilidad', allowed: canView('profitability') },
+    { key: 'accounts', icon: 'accounts', label: 'Cuentas corrientes', allowed: canView('accounts') },
+    { key: 'returns', icon: 'returns', label: 'Devoluciones', allowed: canView('returns') },
+    { key: 'promotions', icon: 'promotions', label: 'Promociones', allowed: canView('promotions') },
+    { key: 'purchases', icon: 'purchases', label: 'Compras', allowed: canView('purchases') },
+    { key: 'suppliers', icon: 'suppliers', label: 'Proveedores', allowed: canView('suppliers') },
+    { key: 'finances', icon: 'banknote', label: 'Finanzas', allowed: tenant.role === 'owner' || tenant.permissions?.can_manage_finances === true },
   ]
 
   const closeFinances = () => window.dispatchEvent(new Event('comercio:close-finance'))
@@ -103,13 +111,13 @@ export default function SidebarNavigation({ tenant, view, buildVersion, canView,
 
   return <aside className={`${styles.sidebar} ${layout.sidebar}`}>
     <div className={styles.navLabel}>OPERACIÓN</div>
-    {mainNav.map(([key, icon, label, special]) => canView(key) && <button
-      key={key}
-      data-tour={tourKey(key)}
-      data-tour-context={tourKey(key)}
-      className={`${styles.navButton} ${view === key ? styles.navActive : ''} ${special === 'assistant' ? parity.supportAssistant : ''} ${special === 'sale' ? enh.saleNav : ''}`}
-      onClick={() => { closeFinances(); setManagementOpen(false); onNavigate(key) }}
-    ><span>{icon}</span>{label}</button>)}
+    {mainNav.map(item => canView(item.key) && <button
+      key={item.key}
+      data-tour={tourKey(item.key)}
+      data-tour-context={tourKey(item.key)}
+      className={`${styles.navButton} ${view === item.key ? styles.navActive : ''} ${item.special === 'assistant' ? parity.supportAssistant : ''} ${item.special === 'sale' ? enh.saleNav : ''}`}
+      onClick={() => { closeFinances(); setManagementOpen(false); onNavigate(item.key) }}
+    ><span className={`${nav.mainIcon} ${item.key==='pos'?nav.saleIconClean:''}`}>{item.key==='pos'?null:<UiIcon name={item.icon} size={17}/>}</span><b className={nav.mainLabel}>{item.label}</b></button>)}
 
     <div className={nav.managementGroup} ref={managementRef}>
       <button
@@ -119,9 +127,8 @@ export default function SidebarNavigation({ tenant, view, buildVersion, canView,
         aria-haspopup="menu"
         onClick={() => { closeFinances(); setManagementOpen(open => !open) }}
       >
-        <span className={nav.managementIcon}>▦</span>
+        <span className={nav.managementIcon}><UiIcon name="management" size={17}/></span>
         <span className={nav.managementLabel}>Gestión</span>
-        <span className={nav.managementChevron}>{managementOpen ? '⌃' : '⌄'}</span>
       </button>
 
       {managementOpen && <div className={nav.flyout} role="menu" aria-label="Gestión">
@@ -133,15 +140,15 @@ export default function SidebarNavigation({ tenant, view, buildVersion, canView,
           className={`${nav.managementItem} ${item.key !== 'finances' && view === item.key ? nav.managementItemActive : ''}`}
           onClick={() => openManagementItem(item)}
         >
-          <span>{item.icon}</span>{item.label}
+          <span><UiIcon name={item.icon} size={17}/></span>{item.label}
         </button>)}
       </div>}
     </div>
 
     <div className={styles.sidebarBottom}>
       <b>Comercio Lleno</b>
-      <span>Rediseño V2 · {buildVersion}</span>
-      <small>Tenant {tenant.companyId.slice(0, 8)} · {tenant.role === 'owner' ? 'Propietario' : tenant.role}</small>
+      <span>Vista operativa · {buildVersion}</span>
+      <small>{tenant.role === 'owner' ? 'Propietario' : tenant.role}</small>
     </div>
   </aside>
 }

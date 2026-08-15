@@ -1,7 +1,7 @@
 import type { TenantSession } from './types'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
-const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? ''
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcubkbtcsqkzc.supabase.co'
+const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
 
 export type CashMode = 'ask' | 'manual' | 'automatic'
 
@@ -15,7 +15,8 @@ export type SalesSettings = {
 }
 
 export const DEFAULT_SALES_SETTINGS: SalesSettings = {
-  allowNegativeStock: false,
+  // Comercio Lleno prioriza vender: el control estricto de stock es opt-in.
+  allowNegativeStock: true,
   timeFormat: '24',
   maxDiscount: 100,
   wholesalePricingEnabled: true,
@@ -31,7 +32,7 @@ function normalize(value: Partial<SalesSettings> | null | undefined): SalesSetti
   const rawCashMode = value?.cashMode
   const cashMode: CashMode = rawCashMode === 'manual' || rawCashMode === 'automatic' ? rawCashMode : 'ask'
   return {
-    allowNegativeStock: value?.allowNegativeStock === true,
+    allowNegativeStock: value?.allowNegativeStock !== false,
     timeFormat: value?.timeFormat === '12' ? '12' : '24',
     maxDiscount: Math.max(0, Math.min(100, Number(value?.maxDiscount ?? 100) || 0)),
     wholesalePricingEnabled: value?.wholesalePricingEnabled !== false,
@@ -47,7 +48,7 @@ function legacySettings(): Partial<SalesSettings> | null {
     const sales = all?.sales
     if (!sales || typeof sales !== 'object') return null
     return {
-      allowNegativeStock: Boolean(sales.allowNegative),
+      allowNegativeStock: sales.allowNegative === undefined ? true : Boolean(sales.allowNegative),
       timeFormat: sales.timeFormat === false ? '12' : '24',
       maxDiscount: Number(sales.maxDiscount ?? 100),
       wholesalePricingEnabled: sales.wholesalePricingEnabled !== false,
@@ -78,8 +79,14 @@ export function cacheSalesSettings(companyId: string, value: SalesSettings) {
   localStorage.setItem(key(companyId), JSON.stringify(normalize(value)))
 }
 
+function publishSalesSettings(companyId: string, value: SalesSettings) {
+  const next = normalize(value)
+  cacheSalesSettings(companyId, next)
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('comercio:sales-settings', { detail: next }))
+  return next
+}
+
 export async function loadSalesSettings(session: TenantSession): Promise<SalesSettings> {
-  if (!SUPABASE_URL || !PUBLISHABLE_KEY) throw new Error('Supabase no está configurado.')
   const response = await fetch(`${SUPABASE_URL}/rest/v1/companies?id=eq.${encodeURIComponent(session.companyId)}&select=sales_settings&limit=1`, {
     headers: { apikey: PUBLISHABLE_KEY, Authorization: `Bearer ${session.token}` },
     cache: 'no-store',
@@ -91,9 +98,25 @@ export async function loadSalesSettings(session: TenantSession): Promise<SalesSe
   return next
 }
 
-export async function saveSalesSettings(session: TenantSession, value: SalesSettings): Promise<SalesSettings> {
-  if (!SUPABASE_URL || !PUBLISHABLE_KEY) throw new Error('Supabase no está configurado.')
-  const next = normalize(value)
+async function saveByCompanyPatch(session: TenantSession, next: SalesSettings) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/companies?id=eq.${encodeURIComponent(session.companyId)}`, {
+    method: 'PATCH',
+    headers: {
+      apikey: PUBLISHABLE_KEY,
+      Authorization: `Bearer ${session.token}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify({ sales_settings: next }),
+    cache: 'no-store',
+  })
+  const data = await response.json().catch(() => null)
+  if (!response.ok) throw Object.assign(new Error(data?.message || data?.error || 'No se pudieron guardar los ajustes de ventas.'), { status: response.status })
+  const row = Array.isArray(data) ? data[0] : data
+  return normalize(row?.sales_settings || next)
+}
+
+async function saveByRpc(session: TenantSession, next: SalesSettings) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/save_sales_settings`, {
     method: 'POST',
     headers: {
@@ -106,8 +129,33 @@ export async function saveSalesSettings(session: TenantSession, value: SalesSett
   })
   const data = await response.json().catch(() => null)
   if (!response.ok) throw new Error(data?.message || data?.error || 'No se pudieron guardar los ajustes de ventas.')
-  const saved = normalize(data || next)
-  cacheSalesSettings(session.companyId, saved)
-  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('comercio:sales-settings', { detail: saved }))
-  return saved
+  return normalize(data || next)
+}
+
+async function persistSettings(session: TenantSession, next: SalesSettings) {
+  try {
+    return await saveByCompanyPatch(session, next)
+  } catch (patchError) {
+    try {
+      return await saveByRpc(session, next)
+    } catch (rpcError) {
+      const message = rpcError instanceof Error ? rpcError.message : patchError instanceof Error ? patchError.message : 'No se pudieron guardar los ajustes de ventas.'
+      throw new Error(message)
+    }
+  }
+}
+
+export async function saveSalesSettings(session: TenantSession, value: SalesSettings): Promise<SalesSettings> {
+  // Los formularios secundarios no deben volver a pisar el modo de stock con un estado viejo.
+  const cached = readCachedSalesSettings(session.companyId)
+  const next = normalize({ ...value, allowNegativeStock: cached.allowNegativeStock })
+  const saved = await persistSettings(session, next)
+  return publishSalesSettings(session.companyId, saved)
+}
+
+export async function saveStockControlSetting(session: TenantSession, controlStock: boolean): Promise<SalesSettings> {
+  const current = await loadSalesSettings(session).catch(() => readCachedSalesSettings(session.companyId))
+  const next = normalize({ ...current, allowNegativeStock: !controlStock })
+  const saved = await persistSettings(session, next)
+  return publishSalesSettings(session.companyId, saved)
 }
