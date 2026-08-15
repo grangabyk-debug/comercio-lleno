@@ -12,6 +12,7 @@ import DesignLivePreview from './DesignLivePreview'
 import ProductPermissionGuard from './ProductPermissionGuard'
 import MobileVersionPrompt from './MobileVersionPrompt'
 import SessionFetchGuard from './SessionFetchGuard'
+import SalesSettingsLiveRuntime from './SalesSettingsLiveRuntime'
 import SimpleModeRuntime from './SimpleModeRuntime'
 import SimpleModeDarkStyles from './SimpleModeDarkStyles'
 import FinanceRuntime from './FinanceRuntime'
@@ -22,4 +23,4 @@ import DashboardRevolutionTheme from './DashboardRevolutionTheme'
 
 export const metadata={title:'Comercio Lleno · Rediseño POS',robots:{index:false,follow:false}}
 export const dynamic='force-dynamic'
-export default function RedesignPage(){const sha=process.env.VERCEL_GIT_COMMIT_SHA||process.env.GIT_COMMIT_SHA||'local',buildVersion=sha==='local'?'local':sha.slice(0,8);return <><DashboardRevolutionTheme/><BranchDataScopeRuntime/><SessionFetchGuard/><HeaderRefreshBehavior/><MobileResponsiveFix/><AdaptiveViewportFix/><ViewScrollReset/><DesignRuntime/><DesignLivePreview/><ProductPermissionGuard/><MobileVersionPrompt/><AdminPauseGate/><SubscriptionGate/><TrialStatus/><FirstStepsExperience/><SimpleModeDarkStyles/><SimpleModeRuntime/><FinanceRuntime/><BranchTopbarRuntime/><BranchSettingsRuntime/><CommerceApp buildVersion={buildVersion}/></>}
+export default function RedesignPage(){const sha=process.env.VERCEL_GIT_COMMIT_SHA||process.env.GIT_COMMIT_SHA||'local',buildVersion=sha==='local'?'local':sha.slice(0,8);return <><DashboardRevolutionTheme/><BranchDataScopeRuntime/><SessionFetchGuard/><SalesSettingsLiveRuntime/><HeaderRefreshBehavior/><MobileResponsiveFix/><AdaptiveViewportFix/><ViewScrollReset/><DesignRuntime/><DesignLivePreview/><ProductPermissionGuard/><MobileVersionPrompt/><AdminPauseGate/><SubscriptionGate/><TrialStatus/><FirstStepsExperience/><SimpleModeDarkStyles/><SimpleModeRuntime/><FinanceRuntime/><BranchTopbarRuntime/><BranchSettingsRuntime/><CommerceApp buildVersion={buildVersion}/></>}
