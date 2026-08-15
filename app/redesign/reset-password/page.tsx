@@ -47,15 +47,15 @@ export default function ResetPasswordPage(){
 
   return <main style={{minHeight:'100vh',display:'grid',placeItems:'center',padding:20,background:'#eef4f1',fontFamily:'Inter,system-ui,sans-serif',color:'#17231d'}}>
     <section style={{width:'min(480px,100%)',background:'#fff',border:'1px solid #dfe8e3',borderRadius:20,padding:26,boxShadow:'0 24px 70px rgba(15,45,30,.12)'}}>
-      <div style={{marginBottom:18}}><BrandLogo size={42}/></div>
-      <div style={{fontSize:12,fontWeight:900,color:'#5d28ff'}}>COMERCIO LLENO · SEGURIDAD</div>
+      <div style={{marginBottom:16}}><BrandLogo size={42}/></div>
+      <div style={{fontSize:12,fontWeight:900,color:'#6d36d8'}}>COMERCIO LLENO · SEGURIDAD</div>
       <h1 style={{fontSize:27,lineHeight:1.15,margin:'12px 0 8px'}}>Elegí una contraseña nueva</h1>
-      {!ready&&!done?<><p style={{color:'#5f7068',lineHeight:1.5}}>Estamos validando el enlace de recuperación.</p><p style={{fontSize:12,color:'#78877f'}}>Si el enlace venció o ya fue utilizado, pedí uno nuevo desde la pantalla de acceso.</p></>:done?<div style={{padding:14,borderRadius:12,background:'#f1edff',color:'#4f2ab5',fontWeight:800}}>Contraseña actualizada. Volviendo al acceso…</div>:<form onSubmit={submit} style={{display:'grid',gap:14,marginTop:18}}>
+      {!ready&&!done?<><p style={{color:'#5f7068',lineHeight:1.5}}>Estamos validando el enlace de recuperación.</p><p style={{fontSize:12,color:'#78877f'}}>Si el enlace venció o ya fue utilizado, pedí uno nuevo desde la pantalla de acceso.</p></>:done?<div style={{padding:14,borderRadius:12,background:'#f2ebff',color:'#5524ad',fontWeight:800}}>Contraseña actualizada. Volviendo al acceso…</div>:<form onSubmit={submit} style={{display:'grid',gap:14,marginTop:18}}>
         <label style={{display:'grid',gap:6,fontSize:13,fontWeight:800}}>Nueva contraseña<input type="password" autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)} style={{height:44,border:'1px solid #ccd9d2',borderRadius:10,padding:'0 12px',fontSize:15}}/></label>
         <label style={{display:'grid',gap:6,fontSize:13,fontWeight:800}}>Repetir contraseña<input type="password" autoComplete="new-password" value={repeat} onChange={e=>setRepeat(e.target.value)} style={{height:44,border:'1px solid #ccd9d2',borderRadius:10,padding:'0 12px',fontSize:15}}/></label>
         <div style={{fontSize:11,color:'#708077',lineHeight:1.45}}>Mínimo 8 caracteres, con una mayúscula, un número y un signo especial.</div>
         {error&&<div style={{padding:10,borderRadius:10,background:'#fff0f0',color:'#9b3434',fontSize:12,fontWeight:750}}>{error}</div>}
-        <button disabled={busy||!password||!repeat} style={{border:0,borderRadius:11,padding:'13px 15px',background:'#5d28ff',color:'#fff',fontWeight:900,cursor:'pointer'}}>{busy?'Guardando…':'Guardar nueva contraseña'}</button>
+        <button disabled={busy||!password||!repeat} style={{border:0,borderRadius:11,padding:'13px 15px',background:'#6d36d8',color:'#fff',fontWeight:900,cursor:'pointer'}}>{busy?'Guardando…':'Guardar nueva contraseña'}</button>
       </form>}
       <button onClick={()=>location.replace('/redesign/access')} style={{marginTop:14,border:0,background:'transparent',padding:0,color:'#536a5f',fontWeight:800,cursor:'pointer'}}>Volver al acceso</button>
     </section>

@@ -17,8 +17,9 @@ export const metadata: Metadata = {
   description:'Sistema POS online para comercios con ventas, stock, caja, ARCA, modo offline e inteligencia artificial.',
   applicationName:'Comercio Lleno',
   icons:{
-    icon:[{url:'/brand/comercio-lleno-logo.webp',type:'image/webp'}],
-    shortcut:'/brand/comercio-lleno-logo.webp',
+    icon:[{url:'/icon.svg',type:'image/svg+xml',sizes:'any'}],
+    shortcut:'/icon.svg',
+    apple:'/icon.svg',
   },
   openGraph:{siteName:'Comercio Lleno'},
 }
