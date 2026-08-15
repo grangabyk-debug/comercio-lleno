@@ -3,6 +3,7 @@ import type { DeviceSettings, TenantSession, UserPermissions } from './types'
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcubkbtcsqkzc.supabase.co'
 const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
 const REFRESH_MARGIN_MS = 10 * 60 * 1000
+const DEVELOPER_CREDIT = 'Sistema desarrollado por ComercioLleno.com'
 
 let activeSession: TenantSession | null = null
 let refreshTimer: number | null = null
@@ -18,7 +19,7 @@ const DEFAULT_DEVICE: DeviceSettings = {
   receiptAddress: '',
   receiptPhone: '',
   receiptHeader: '',
-  receiptFooter: 'Gracias por su compra',
+  receiptFooter: `Gracias por su compra · ${DEVELOPER_CREDIT}`,
   showBusinessName: true,
   showTaxId: true,
   showPaymentMethod: true,
@@ -27,6 +28,15 @@ const DEFAULT_DEVICE: DeviceSettings = {
   showBarcode: false,
   showFiscalData: true,
   compactTicket: false,
+}
+
+function withDeveloperCredit(settings: DeviceSettings): DeviceSettings {
+  const footer = String(settings.receiptFooter || '').trim()
+  if (/Sistema desarrollado por ComercioLleno\.com/i.test(footer)) return settings
+  return {
+    ...settings,
+    receiptFooter: footer ? `${footer} · ${DEVELOPER_CREDIT}` : DEVELOPER_CREDIT,
+  }
 }
 
 function parsePermissions(value: string | null): UserPermissions {
@@ -278,7 +288,7 @@ export function readDeviceSettings(companyId: string): DeviceSettings {
   if (typeof window === 'undefined') return DEFAULT_DEVICE
   try {
     const parsed = JSON.parse(localStorage.getItem(deviceKey(companyId)) || 'null')
-    return { ...DEFAULT_DEVICE, ...(parsed || {}) }
+    return withDeveloperCredit({ ...DEFAULT_DEVICE, ...(parsed || {}) })
   } catch {
     return DEFAULT_DEVICE
   }
@@ -286,7 +296,7 @@ export function readDeviceSettings(companyId: string): DeviceSettings {
 
 export function writeDeviceSettings(companyId: string, settings: DeviceSettings) {
   if (typeof window === 'undefined') return
-  localStorage.setItem(deviceKey(companyId), JSON.stringify(settings))
+  localStorage.setItem(deviceKey(companyId), JSON.stringify(withDeveloperCredit(settings)))
 }
 
 export function cacheSnapshot(companyId: string, key: string, value: unknown) {
