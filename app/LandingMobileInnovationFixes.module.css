@@ -1,0 +1,25 @@
+.badgeAi{
+  top:315px!important;
+  left:-28px!important;
+}
+
+.badgeArca{
+  top:420px!important;
+  right:-24px!important;
+}
+
+@media(max-width:700px){
+  .badgeAi{
+    top:285px!important;
+    left:0!important;
+  }
+  .badgeArca{
+    top:395px!important;
+    right:0!important;
+  }
+}
+
+@media(max-width:390px){
+  .badgeAi{left:3px!important}
+  .badgeArca{right:3px!important}
+}
