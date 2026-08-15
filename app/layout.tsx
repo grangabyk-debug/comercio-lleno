@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Script from 'next/script'
 import LegacyScripts from './LegacyScripts'
 import FloatingWhatsApp from './FloatingWhatsApp'
-import LandingMobileInnovation from './LandingMobileInnovation'
 import MarketingScripts from './MarketingScripts'
 import './globals.css'
 import './prepaint.css'
@@ -71,7 +70,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Script id="private-route-guard" strategy="beforeInteractive">{privateRouteGuard}</Script>
         <MarketingScripts />
         {children}
-        <LandingMobileInnovation />
         <FloatingWhatsApp />
         <LegacyScripts />
       </body>
