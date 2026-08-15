@@ -50,6 +50,7 @@ import { ContingencyModal, Customers, ReceiptModal } from './CoreViews'
 import { CashEnhanced, DashboardEnhanced, dayKey, money, PosEnhanced, ReportsEnhanced, SalesEnhanced } from './OperationalViews'
 import SidebarNavigation from './SidebarNavigation'
 import UnifiedAssistant from './UnifiedAssistant'
+import BrandLogo from '../BrandLogo'
 
 function createId() { return typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}` }
 
@@ -362,7 +363,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
 
   return <main className={`${styles.shell} ${enh.readable} ${dark?styles.dark:''} ${dark?parity.dark:''} ${dark?enh.dark:''}`}>
     <header className={styles.topbar}>
-      <div className={styles.brandWrap}><div className={styles.brandMark}>CL</div><div><div className={styles.brand}>Comercio <span>Lleno</span></div><div className={styles.tenant}>{data?.company.name||tenant.companyName} · {roleLabel(tenant.role)}</div></div></div>
+      <div className={styles.brandWrap}><BrandLogo size={30}/></div>
       <div className={styles.headerRight}><button className={`${styles.status} ${networkClass}`} onClick={()=>online&&syncOfflineSales(tenant)}>● {networkLabel}</button><button className={`${styles.status} ${arcaClass}`} onClick={()=>refreshArca(tenant)}>● {arcaLabel}</button><span className={styles.versionPill}>Rediseño V2 · {buildVersion}</span><button className={styles.headerButton} onClick={()=>refresh(tenant)}>↻ Actualizar</button><button className={styles.headerButton} onClick={()=>setDark(x=>!x)}>{dark?'☀ Claro':'☾ Oscuro'}</button><button className={parity.logout} onClick={logout}>Salir</button></div>
     </header>
     <div className={`${styles.layout} ${shellLayout.layout}`}>
