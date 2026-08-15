@@ -1,16 +1,11 @@
 'use client'
 
 import { useMemo } from 'react'
-import BrandLogo from '../BrandLogo'
 import type { CommerceSnapshot, ViewKey } from '@/lib/comercio/types'
 import { receiptNumber } from '@/lib/comercio/receipt'
 import { money } from './operationalShared'
-import UiIcon from './UiIcon'
+import UiIcon, { type UiIconName } from './UiIcon'
 import styles from './DashboardRevolution.module.css'
-import compare from './DashboardComparisons.module.css'
-import display from './DashboardDisplayFix.module.css'
-
-const merchantPhoto='https://images.pexels.com/photos/33752265/pexels-photo-33752265.jpeg?auto=compress&cs=tinysrgb&w=1500'
 
 function startOfLocalDay(value: Date) {
   const d = new Date(value)
@@ -41,17 +36,15 @@ function sumRange(sales: CommerceSnapshot['sales'], from: Date, to: Date) {
 }
 
 function comparisonMeta(current: number, previous: number) {
-  if (previous <= 0) {
-    return current > 0
-      ? { direction: 'up' as const, text: '100% más' }
-      : { direction: 'flat' as const, text: 'Sin referencia' }
-  }
+  if (previous <= 0) return current > 0 ? { direction: 'up' as const, text: 'Sin base anterior' } : { direction: 'flat' as const, text: 'Sin movimientos' }
   const raw = ((current - previous) / previous) * 100
   const rounded = Math.round(Math.abs(raw))
-  if (raw > .01) return { direction: 'up' as const, text: `${rounded}% más` }
-  if (raw < -.01) return { direction: 'down' as const, text: `${rounded}% menos` }
-  return { direction: 'flat' as const, text: 'Sin cambio' }
+  if (raw > .01) return { direction: 'up' as const, text: `${rounded}% arriba` }
+  if (raw < -.01) return { direction: 'down' as const, text: `${rounded}% abajo` }
+  return { direction: 'flat' as const, text: 'Sin cambios' }
 }
+
+type QuickAction = { key: ViewKey; icon: UiIconName; title: string; text: string; tone?: 'orange'|'violet' }
 
 export default function DashboardEnhanced({ data, todayTotal, todayCount, lowStock, go, canSell, role }: {
   data: CommerceSnapshot
@@ -62,7 +55,7 @@ export default function DashboardEnhanced({ data, todayTotal, todayCount, lowSto
   canSell: boolean
   role: string
 }) {
-  const recent = data.sales.slice(0, 6)
+  const recent = data.sales.slice(0, 7)
   const cashOpen = data.cashRegister?.status === 'open'
   const todayAvg = todayCount ? todayTotal / todayCount : 0
 
@@ -95,79 +88,117 @@ export default function DashboardEnhanced({ data, todayTotal, todayCount, lowSto
     const previous7 = sumRange(data.sales, previous7Start, last7Start)
 
     return [
-      { title: 'Hoy vs ayer', current: todayTotal, previous: yesterday, detail: `Ayer a esta hora ${money.format(yesterday)}` },
-      { title: 'Semana vs anterior', current: thisWeek, previous: previousWeek, detail: `Mismo tramo ${money.format(previousWeek)}` },
-      { title: 'Mes vs anterior', current: thisMonth, previous: previousMonth, detail: `Mismo tramo ${money.format(previousMonth)}` },
-      { title: 'Últimos 7 días', current: last7, previous: previous7, detail: `7 anteriores ${money.format(previous7)}` },
+      { title: 'Hoy vs. ayer', current: todayTotal, previous: yesterday, detail: `Ayer a esta hora ${money.format(yesterday)}` },
+      { title: 'Esta semana', current: thisWeek, previous: previousWeek, detail: `Semana anterior ${money.format(previousWeek)}` },
+      { title: 'Este mes', current: thisMonth, previous: previousMonth, detail: `Mes anterior ${money.format(previousMonth)}` },
+      { title: 'Últimos 7 días', current: last7, previous: previous7, detail: `7 días anteriores ${money.format(previous7)}` },
     ].map(item => ({ ...item, meta: comparisonMeta(item.current, item.previous) }))
   }, [data.sales, todayTotal])
 
+  const setupSteps = [
+    { done: data.products.length > 0, title: 'Productos cargados', text: data.products.length ? `${data.products.length} disponibles` : 'Cargá tu catálogo para empezar', action: 'products' as ViewKey },
+    { done: cashOpen, title: 'Caja preparada', text: cashOpen ? 'Lista para operar' : 'Abrí la caja antes de vender', action: 'cash' as ViewKey },
+    { done: data.sales.length > 0, title: 'Primera venta', text: data.sales.length ? 'Flujo probado correctamente' : 'Hacé una venta de prueba o real', action: 'pos' as ViewKey },
+  ]
+  const setupComplete = setupSteps.filter(step => step.done).length
+
+  const quickActions: QuickAction[] = [
+    ...(canSell ? [{ key:'pos' as ViewKey, icon:'sale' as UiIconName, title:'Nueva venta', text:'Cobrar y facturar', tone:'orange' as const }] : []),
+    { key:'products', icon:'products', title:'Productos', text:'Precios, stock y costos' },
+    { key:'cash', icon:'cash', title:'Caja diaria', text:'Apertura, movimientos y cierre' },
+    { key:'assistant', icon:'sparkles', title:'Asistente IA', text:'Consultá tu operación', tone:'violet' },
+  ]
+
   return <div className={styles.dashboard}>
-    {role === 'supervisor' && <div className={styles.supervisor}>Panel de supervisión · indicadores visibles según tus permisos.</div>}
+    {role === 'supervisor' && <div className={styles.supervisor}>Panel de supervisión · los indicadores se muestran según tus permisos.</div>}
 
-    <section className={styles.hero}>
-      <div className={styles.heroCopy}>
-        <div className={styles.eyebrow}><span>HOY</span>{data.company.name}</div>
-        <h1>El pulso del negocio,<br/><em>de un vistazo.</em></h1>
-        <div className={styles.totalBlock}>
-          <span>VENTAS DEL DÍA</span>
-          <strong>{money.format(todayTotal)}</strong>
-          <small>{todayCount} operación{todayCount===1?'':'es'} registrada{todayCount===1?'':'s'}</small>
-        </div>
-
-        <div className={compare.panel} aria-label="Comparaciones de ventas">
-          {comparisons.map(item => <div key={item.title} className={`${compare.card} ${item.meta.direction==='up'?compare.up:item.meta.direction==='down'?compare.down:compare.flat}`}>
-            <div className={compare.top}><span>{item.title}</span><i>{item.meta.direction==='up'?'↗':item.meta.direction==='down'?'↘':'→'}</i></div>
-            <strong>{item.meta.text}</strong>
-            <small>{item.detail}</small>
-          </div>)}
-        </div>
-
-        <div className={styles.heroActions}>
-          {canSell&&<button className={styles.sell} onClick={()=>go('pos')}><span>+</span>Nueva venta</button>}
-          <button className={`${styles.simple} ${display.simpleAttention}`} onClick={()=>window.dispatchEvent(new Event('comercio:enter-simple'))}>Modo Simple <span>→</span></button>
-        </div>
+    <section className={styles.welcome}>
+      <div>
+        <span className={styles.kicker}>PANEL PRINCIPAL</span>
+        <h1>{data.company.name}</h1>
+        <p>Lo importante del comercio, ordenado para que puedas actuar sin buscar dónde está cada cosa.</p>
       </div>
+      <div className={styles.welcomeStatus}>
+        <span className={cashOpen ? styles.live : styles.paused}>{cashOpen ? 'Caja abierta' : 'Caja cerrada'}</span>
+        <small>{new Date().toLocaleDateString('es-AR',{weekday:'long',day:'2-digit',month:'long'})}</small>
+      </div>
+    </section>
 
-      <div className={styles.heroPhoto}>
-        <img src={merchantPhoto} alt="Comercio de cercanía en Buenos Aires"/>
-        <div aria-hidden="true" className={display.imageVeil}/>
-        <div className={styles.photoBrand}><BrandLogo size={29}/></div>
-        <div className={`${styles.cashBadge} ${cashOpen?styles.cashOpen:styles.cashClosed}`}>
-          <i>{cashOpen?'●':'○'}</i><div><span>CAJA</span><b>{cashOpen?'Abierta':'Cerrada'}</b></div>
+    <section className={styles.controlGrid}>
+      {canSell ? <button className={styles.saleLaunch} onClick={()=>go('pos')}>
+        <span className={styles.launchTexture}/>
+        <span className={styles.launchIcon}><UiIcon name="sale" size={30}/></span>
+        <span className={styles.launchCopy}>
+          <small>ACCIÓN PRINCIPAL</small>
+          <strong>Nueva venta</strong>
+          <em>Buscá un producto, cobrá y seguí.</em>
+        </span>
+        <span className={styles.launchButton}>Empezar venta</span>
+      </button> : <div className={styles.saleLaunchDisabled}>
+        <span className={styles.launchIcon}><UiIcon name="reports" size={30}/></span>
+        <span className={styles.launchCopy}><small>TU PANEL</small><strong>Seguimiento operativo</strong><em>Tu rol tiene acceso de consulta.</em></span>
+      </div>}
+
+      <div className={styles.firstRun}>
+        <div className={styles.firstRunHead}>
+          <div><span>PRIMEROS PASOS</span><h2>Listo para trabajar</h2></div>
+          <strong>{setupComplete}/3</strong>
         </div>
-        <div className={styles.photoCaption}><b>El comercio, adelante.</b><span>El sistema acompaña sin ocupar el centro.</span></div>
+        <div className={styles.progress}><i style={{width:`${setupComplete/3*100}%`}}/></div>
+        <div className={styles.stepList}>
+          {setupSteps.map((step,index)=><button key={step.title} className={step.done?styles.stepDone:''} onClick={()=>!step.done&&go(step.action)} disabled={step.done}>
+            <span>{step.done?<UiIcon name="check" size={15}/>:String(index+1).padStart(2,'0')}</span>
+            <div><b>{step.title}</b><small>{step.text}</small></div>
+            {!step.done&&<strong>Ir</strong>}
+          </button>)}
+        </div>
       </div>
     </section>
 
     <section className={styles.metrics} aria-label="Indicadores del día">
-      <button onClick={()=>go('sales')}><span>01 · TICKET PROMEDIO</span><strong>{money.format(todayAvg)}</strong><small>Promedio de las ventas de hoy</small></button>
-      <button onClick={()=>go('products')} className={lowStock>0?styles.metricAlert:''}><span>02 · STOCK PARA MIRAR</span><strong>{lowStock}</strong><small>{lowStock===1?'producto bajo':'productos bajos'}</small></button>
-      <button onClick={()=>go('cash')}><span>03 · CAJA</span><strong>{cashOpen?'ABIERTA':'CERRADA'}</strong><small>{data.cashRegister?.opened_at?`Desde ${new Date(data.cashRegister.opened_at).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}`:'Sin apertura activa'}</small></button>
-      <button onClick={()=>go('assistant')} className={styles.metricAi}><span>04 · ASISTENTE IA</span><strong>Preguntale</strong><small>ventas, stock y tendencias →</small></button>
+      <button onClick={()=>go('sales')}><span>VENTAS HOY</span><strong>{money.format(todayTotal)}</strong><small>{todayCount} operación{todayCount===1?'':'es'}</small></button>
+      <button onClick={()=>go('sales')}><span>TICKET PROMEDIO</span><strong>{money.format(todayAvg)}</strong><small>Promedio por operación</small></button>
+      <button onClick={()=>go('products')} className={lowStock>0?styles.metricAlert:''}><span>STOCK PARA MIRAR</span><strong>{lowStock}</strong><small>{lowStock===1?'producto requiere atención':'productos requieren atención'}</small></button>
+      <button onClick={()=>go('cash')}><span>ESTADO DE CAJA</span><strong>{cashOpen?'ABIERTA':'CERRADA'}</strong><small>{data.cashRegister?.opened_at?`Desde ${new Date(data.cashRegister.opened_at).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}`:'Sin apertura activa'}</small></button>
+    </section>
+
+    <section className={styles.quickSection}>
+      <div className={styles.sectionHead}><div><span>ACCESOS DIRECTOS</span><h2>Entrá a lo que necesitás.</h2></div><p>Las tareas más usadas quedan siempre a mano.</p></div>
+      <div className={styles.quickGrid}>
+        {quickActions.map(action=><button key={action.key} className={`${styles.quickCard} ${action.tone==='orange'?styles.quickOrange:action.tone==='violet'?styles.quickViolet:''}`} onClick={()=>go(action.key)}>
+          <span className={styles.quickIcon}><UiIcon name={action.icon} size={21}/></span>
+          <span><b>{action.title}</b><small>{action.text}</small></span>
+          <i>ABRIR</i>
+        </button>)}
+      </div>
     </section>
 
     <section className={styles.lowerGrid}>
       <div className={styles.activity}>
-        <div className={styles.sectionTitle}><div><span>ACTIVIDAD</span><h2>Últimas ventas</h2></div><button onClick={()=>go('sales')}>Ver todas →</button></div>
+        <div className={styles.sectionTitle}><div><span>ACTIVIDAD RECIENTE</span><h2>Últimas ventas</h2></div><button onClick={()=>go('sales')}>Ver ventas</button></div>
         <div className={styles.saleList}>
           {recent.length?recent.map(s=><button className={styles.saleRow} key={s.id} onClick={()=>go('sales')}>
-            <span className={styles.saleIcon}>{s.cae?<UiIcon name="check" size={17}/>:<UiIcon name="alert" size={17}/>}</span>
+            <span className={styles.saleIcon}>{s.cae?<UiIcon name="check" size={17}/>:<UiIcon name="receipt" size={17}/>}</span>
             <span className={styles.saleInfo}><b>{s.receiptNumber?`Factura C ${receiptNumber(s)}`:`Venta #${s.id.slice(0,8)}`}</b><small>{new Date(s.date).toLocaleString('es-AR')} · {s.payment}</small></span>
             <strong>{money.format(s.total)}</strong>
-          </button>):<div className={styles.empty}>Todavía no hay ventas. La primera puede empezar acá.</div>}
+          </button>):<div className={styles.empty}>Todavía no hay ventas. Cuando registres la primera, va a aparecer acá.</div>}
         </div>
       </div>
 
-      <div className={styles.actionsPanel}>
-        <div className={styles.sectionTitle}><div><span>ATAJOS</span><h2>Hacé, no busques.</h2></div></div>
-        <div className={styles.actionList}>
-          {canSell&&<button onClick={()=>go('pos')}><i>01</i><span><b>Vender</b><small>Abrir caja de venta</small></span><strong>↗</strong></button>}
-          <button onClick={()=>go('products')}><i>02</i><span><b>Productos</b><small>Precio, stock y costos</small></span><strong>↗</strong></button>
-          <button onClick={()=>go('cash')}><i>03</i><span><b>Caja diaria</b><small>Movimientos y cierre</small></span><strong>↗</strong></button>
-          <button onClick={()=>go('assistant')} className={styles.aiAction}><i>✦</i><span><b>Asistente IA</b><small>Preguntale al negocio</small></span><strong>↗</strong></button>
+      <div className={styles.comparisonPanel}>
+        <div className={styles.sectionTitle}><div><span>CONTEXTO</span><h2>Cómo viene el negocio</h2></div></div>
+        <div className={styles.comparisonList}>
+          {comparisons.map(item=><div key={item.title} className={`${styles.comparisonCard} ${item.meta.direction==='up'?styles.comparisonUp:item.meta.direction==='down'?styles.comparisonDown:styles.comparisonFlat}`}>
+            <div><span>{item.title}</span><b>{item.meta.text}</b></div>
+            <small>{item.detail}</small>
+          </div>)}
         </div>
       </div>
+    </section>
+
+    <section className={styles.simpleStrip}>
+      <div><span>MODO SIMPLE</span><b>Una pantalla reducida para vender sin distracciones.</b></div>
+      <button onClick={()=>window.dispatchEvent(new Event('comercio:enter-simple'))}>Abrir Modo Simple</button>
     </section>
   </div>
 }
