@@ -1,12 +1,14 @@
 'use client'
 
 import { useMemo } from 'react'
-import core from './page.module.css'
-import polish from './design-polish.module.css'
+import BrandLogo from '../BrandLogo'
 import type { CommerceSnapshot, ViewKey } from '@/lib/comercio/types'
 import { receiptNumber } from '@/lib/comercio/receipt'
-import { dayKey, Head, money, Trend } from './operationalShared'
+import { dayKey, money, Trend } from './operationalShared'
 import UiIcon from './UiIcon'
+import styles from './DashboardRevolution.module.css'
+
+const merchantPhoto='https://images.pexels.com/photos/33688678/pexels-photo-33688678.jpeg?auto=compress&cs=tinysrgb&w=1500'
 
 export default function DashboardEnhanced({ data, todayTotal, todayCount, lowStock, go, canSell, role }: {
   data: CommerceSnapshot
@@ -28,39 +30,65 @@ export default function DashboardEnhanced({ data, todayTotal, todayCount, lowSto
   const previousAvg = previousSales.length ? previousTotal / previousSales.length : 0
   const todayAvg = todayCount ? todayTotal / todayCount : 0
   const previousLabel = previousKey ? new Date(`${previousKey}T12:00:00`).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) : 'el último día'
+  const cashOpen = data.cashRegister?.status === 'open'
 
-  return <>
-    <Head eyebrow={data.company.name} title="Inicio" subtitle="Resumen del comercio y accesos de operación.">
-      <button
-        style={{
-          border:'1px solid rgba(255,255,255,.4)',
-          background:'linear-gradient(135deg,#1769e8 0%,#3187ff 58%,#5aa7ff 100%)',
-          color:'#fff',
-          borderRadius:999,
-          padding:'15px 28px',
-          minWidth:190,
-          fontSize:15,
-          fontWeight:950,
-          letterSpacing:'-.2px',
-          cursor:'pointer',
-          boxShadow:'0 10px 28px rgba(34,119,238,.30), inset 0 1px 0 rgba(255,255,255,.35)',
-          transition:'transform .18s ease, box-shadow .18s ease',
-        }}
-        onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-1px)';e.currentTarget.style.boxShadow='0 14px 34px rgba(34,119,238,.38), inset 0 1px 0 rgba(255,255,255,.4)'}}
-        onMouseLeave={e=>{e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.boxShadow='0 10px 28px rgba(34,119,238,.30), inset 0 1px 0 rgba(255,255,255,.35)'}}
-        onClick={()=>window.dispatchEvent(new Event('comercio:enter-simple'))}
-      >Modo Simple</button>
-    </Head>
-    {role === 'supervisor' && <div className={core.notice}><span>Panel de supervisión · indicadores visibles según tus permisos.</span></div>}
-    <div className={core.kpis}>
-      <div className={`${core.kpi} ${core.kpiAccent} ${polish.kpiFeatured}`}><span>Ventas de hoy</span><strong>{money.format(todayTotal)}</strong><small>{todayCount} operaciones</small><Trend current={todayTotal} previous={previousTotal} label={previousLabel} /></div>
-      <div className={`${core.kpi} ${polish.kpiFeatured}`}><span>Ticket promedio</span><strong>{money.format(todayAvg)}</strong><small>Promedio del día</small><Trend current={todayAvg} previous={previousAvg} label={previousLabel} /></div>
-      <div className={core.kpi}><span>Stock bajo</span><strong>{lowStock}</strong><small>Productos para revisar</small></div>
-      <div className={core.kpi}><span>Caja</span><strong>{data.cashRegister?.status === 'open' ? 'Abierta' : 'Cerrada'}</strong><small>{data.cashRegister?.opened_at ? `Desde ${new Date(data.cashRegister.opened_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}` : 'Sin apertura activa'}</small></div>
-    </div>
-    <div className={core.gridTwo}>
-      <div className={core.panel}><div className={core.panelTitle}><div><b>Últimas ventas</b><small>Actividad más reciente</small></div><button className={core.linkButton} onClick={() => go('sales')}>Ver todas →</button></div>{recent.length ? recent.map(s => <div className={core.recentRow} key={s.id}><span className={`${core.roundIcon} ${polish.metalIcon}`}>{s.cae ? <UiIcon name="check" size={17}/> : <UiIcon name="alert" size={17}/>}</span><div><b>{s.receiptNumber ? `Factura C ${receiptNumber(s)}` : `Venta #${s.id.slice(0, 8)}`}</b><small>{new Date(s.date).toLocaleString('es-AR')} · {s.payment}</small></div><strong>{money.format(s.total)}</strong></div>) : <div className={core.empty}>Todavía no hay ventas.</div>}</div>
-      <div className={core.panel}><div className={core.panelTitle}><div><b>Accesos rápidos</b><small>Funciones frecuentes</small></div></div><div className={core.shortcutGrid}>{canSell && <button className={core.shortcut} onClick={() => go('pos')}><span className={polish.metalIcon}><UiIcon name="sale" size={19}/></span><div><b>Nueva venta</b><small>Scanner, carrito y cobro</small></div></button>}<button className={core.shortcut} onClick={() => go('products')}><span className={polish.metalIcon}><UiIcon name="products" size={19}/></span><div><b>Productos</b><small>Editar precios, stock y costos</small></div></button><button className={core.shortcut} onClick={() => go('cash')}><span className={polish.metalIcon}><UiIcon name="cash" size={19}/></span><div><b>Caja diaria</b><small>Cierre y contador de billetes</small></div></button></div></div>
-    </div>
-  </>
+  return <div className={styles.dashboard}>
+    {role === 'supervisor' && <div className={styles.supervisor}>Panel de supervisión · indicadores visibles según tus permisos.</div>}
+
+    <section className={styles.hero}>
+      <div className={styles.heroCopy}>
+        <div className={styles.eyebrow}><span>HOY</span>{data.company.name}</div>
+        <h1>El pulso del negocio,<br/><em>de un vistazo.</em></h1>
+        <div className={styles.totalBlock}>
+          <span>VENTAS DEL DÍA</span>
+          <strong>{money.format(todayTotal)}</strong>
+          <small>{todayCount} operación{todayCount===1?'':'es'} registrada{todayCount===1?'':'s'}</small>
+        </div>
+        <div className={styles.trendWrap}><Trend current={todayTotal} previous={previousTotal} label={previousLabel}/></div>
+        <div className={styles.heroActions}>
+          {canSell&&<button className={styles.sell} onClick={()=>go('pos')}><span>+</span>Nueva venta</button>}
+          <button className={styles.simple} onClick={()=>window.dispatchEvent(new Event('comercio:enter-simple'))}>Modo Simple <span>→</span></button>
+        </div>
+      </div>
+
+      <div className={styles.heroPhoto}>
+        <img src={merchantPhoto} alt="Comercio de cercanía en Buenos Aires"/>
+        <div className={styles.photoBrand}><BrandLogo size={29}/></div>
+        <div className={`${styles.cashBadge} ${cashOpen?styles.cashOpen:styles.cashClosed}`}>
+          <i>{cashOpen?'●':'○'}</i><div><span>CAJA</span><b>{cashOpen?'Abierta':'Cerrada'}</b></div>
+        </div>
+        <div className={styles.photoCaption}><b>Tu comercio primero.</b><span>Los datos acompañan la operación.</span></div>
+      </div>
+    </section>
+
+    <section className={styles.metrics} aria-label="Indicadores del día">
+      <button onClick={()=>go('sales')}><span>01 · TICKET PROMEDIO</span><strong>{money.format(todayAvg)}</strong><small>{previousAvg>0?'Compará con el último día':'Se calcula con tus ventas'}</small></button>
+      <button onClick={()=>go('products')} className={lowStock>0?styles.metricAlert:''}><span>02 · STOCK PARA MIRAR</span><strong>{lowStock}</strong><small>{lowStock===1?'producto bajo':'productos bajos'}</small></button>
+      <button onClick={()=>go('cash')}><span>03 · CAJA</span><strong>{cashOpen?'ABIERTA':'CERRADA'}</strong><small>{data.cashRegister?.opened_at?`Desde ${new Date(data.cashRegister.opened_at).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}`:'Sin apertura activa'}</small></button>
+      <button onClick={()=>go('assistant')} className={styles.metricAi}><span>04 · ASISTENTE IA</span><strong>Preguntale</strong><small>ventas, stock y tendencias →</small></button>
+    </section>
+
+    <section className={styles.lowerGrid}>
+      <div className={styles.activity}>
+        <div className={styles.sectionTitle}><div><span>ACTIVIDAD</span><h2>Últimas ventas</h2></div><button onClick={()=>go('sales')}>Ver todas →</button></div>
+        <div className={styles.saleList}>
+          {recent.length?recent.map(s=><button className={styles.saleRow} key={s.id} onClick={()=>go('sales')}>
+            <span className={styles.saleIcon}>{s.cae?<UiIcon name="check" size={17}/>:<UiIcon name="alert" size={17}/>}</span>
+            <span className={styles.saleInfo}><b>{s.receiptNumber?`Factura C ${receiptNumber(s)}`:`Venta #${s.id.slice(0,8)}`}</b><small>{new Date(s.date).toLocaleString('es-AR')} · {s.payment}</small></span>
+            <strong>{money.format(s.total)}</strong>
+          </button>):<div className={styles.empty}>Todavía no hay ventas. La primera puede empezar acá.</div>}
+        </div>
+      </div>
+
+      <div className={styles.actionsPanel}>
+        <div className={styles.sectionTitle}><div><span>ATAJOS</span><h2>Hacé, no busques.</h2></div></div>
+        <div className={styles.actionList}>
+          {canSell&&<button onClick={()=>go('pos')}><i>01</i><span><b>Vender</b><small>Abrir caja de venta</small></span><strong>↗</strong></button>}
+          <button onClick={()=>go('products')}><i>02</i><span><b>Productos</b><small>Precio, stock y costos</small></span><strong>↗</strong></button>
+          <button onClick={()=>go('cash')}><i>03</i><span><b>Caja diaria</b><small>Movimientos y cierre</small></span><strong>↗</strong></button>
+          <button onClick={()=>go('assistant')} className={styles.aiAction}><i>✦</i><span><b>Asistente IA</b><small>Preguntale al negocio</small></span><strong>↗</strong></button>
+        </div>
+      </div>
+    </section>
+  </div>
 }

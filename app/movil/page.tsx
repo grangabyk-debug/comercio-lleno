@@ -6,10 +6,11 @@ import MobilePcNotice from './MobilePcNotice'
 import MobileCashModeController from './MobileCashModeController'
 import MobileSettingsOverlay from './MobileSettingsOverlay'
 import MobileLegalLinks from './MobileLegalLinks'
+import MobileRevolutionTheme from './MobileRevolutionTheme'
 import SaleSearchGuard from './SaleSearchGuard'
 import SessionFetchGuard from '../redesign/SessionFetchGuard'
 import SubscriptionGate from '../redesign/SubscriptionGate'
 
 export const metadata: Metadata={title:'Comercio Lleno · Móvil',description:'Experiencia simple de Comercio Lleno para vender y consultar productos desde el celular',robots:{index:false,follow:false}}
 export const dynamic='force-dynamic'
-export default function MobilePage(){return <><SessionFetchGuard/><SaleSearchGuard/><SubscriptionGate/><MobileSimpleApp/><MobileCashModeController/><MobileScanner/><MobileAiAssistant/><MobilePcNotice/><MobileSettingsOverlay/><MobileLegalLinks/></>}
+export default function MobilePage(){return <><MobileRevolutionTheme/><SessionFetchGuard/><SaleSearchGuard/><SubscriptionGate/><MobileSimpleApp/><MobileCashModeController/><MobileScanner/><MobileAiAssistant/><MobilePcNotice/><MobileSettingsOverlay/><MobileLegalLinks/></>}
