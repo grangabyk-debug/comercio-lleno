@@ -8,6 +8,7 @@ import { money } from './operationalShared'
 import UiIcon from './UiIcon'
 import styles from './DashboardRevolution.module.css'
 import compare from './DashboardComparisons.module.css'
+import display from './DashboardDisplayFix.module.css'
 
 const merchantPhoto='https://images.pexels.com/photos/33752265/pexels-photo-33752265.jpeg?auto=compress&cs=tinysrgb&w=1500'
 
@@ -124,13 +125,13 @@ export default function DashboardEnhanced({ data, todayTotal, todayCount, lowSto
 
         <div className={styles.heroActions}>
           {canSell&&<button className={styles.sell} onClick={()=>go('pos')}><span>+</span>Nueva venta</button>}
-          <button className={styles.simple} onClick={()=>window.dispatchEvent(new Event('comercio:enter-simple'))}>Modo Simple <span>→</span></button>
+          <button className={`${styles.simple} ${display.simpleAttention}`} onClick={()=>window.dispatchEvent(new Event('comercio:enter-simple'))}>Modo Simple <span>→</span></button>
         </div>
       </div>
 
       <div className={styles.heroPhoto}>
         <img src={merchantPhoto} alt="Comercio de cercanía en Buenos Aires"/>
-        <div aria-hidden="true" style={{position:'absolute',inset:0,zIndex:2,pointerEvents:'none',background:'linear-gradient(180deg,rgba(255,255,255,.58) 0%,rgba(255,255,255,.50) 58%,rgba(255,255,255,.28) 100%)'}}/>
+        <div aria-hidden="true" className={display.imageVeil}/>
         <div className={styles.photoBrand}><BrandLogo size={29}/></div>
         <div className={`${styles.cashBadge} ${cashOpen?styles.cashOpen:styles.cashClosed}`}>
           <i>{cashOpen?'●':'○'}</i><div><span>CAJA</span><b>{cashOpen?'Abierta':'Cerrada'}</b></div>
