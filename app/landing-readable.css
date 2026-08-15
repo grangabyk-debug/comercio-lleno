@@ -38,23 +38,11 @@ body:has(#precio) main [class*="faqGrid"] h3{font-size:16px!important;line-heigh
 body:has(#precio) main [class*="footer"] a,
 body:has(#precio) main [class*="footer"] small{font-size:11px!important;font-weight:700!important}
 
-/* Requirements: visible, polished and photo-led. No emoji icons. */
-#requisitos{max-width:1180px!important;margin:42px auto 80px!important;padding:40px 30px 46px!important;border-radius:28px;background:linear-gradient(135deg,#effbf5 0%,#f4f8ff 52%,#f8f5ff 100%);border:1px solid #d4e5dc;box-shadow:0 22px 60px rgba(18,70,47,.07)}
-#requisitos>div:first-child{max-width:850px!important}
-#requisitos h2{font-size:42px!important;line-height:1.05!important;color:#101927!important;max-width:820px}
-#requisitos>div:first-child>p{color:#087c52!important;font-size:12px!important}
-#requisitos [class*="securityGrid"]{gap:14px!important;margin-top:30px!important}
-#requisitos article{position:relative;overflow:hidden;min-height:250px;padding:0 20px 20px!important;border:1px solid #d7e2dc!important;border-radius:20px!important;background:#fff!important;box-shadow:0 10px 26px rgba(20,48,35,.055)}
-#requisitos article::before{content:"";display:block;height:108px;margin:0 -20px 18px;background-position:center;background-size:cover;background-repeat:no-repeat;border-bottom:1px solid #e2e8e4}
-#requisitos article:nth-child(1)::before{background-image:linear-gradient(rgba(6,24,17,.08),rgba(6,24,17,.08)),url('https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=700&q=82')}
-#requisitos article:nth-child(2)::before{background-image:linear-gradient(rgba(6,24,17,.05),rgba(6,24,17,.05)),url('https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=700&q=82')}
-#requisitos article:nth-child(3)::before{background-image:linear-gradient(rgba(6,24,17,.05),rgba(6,24,17,.05)),url('https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=700&q=82')}
-#requisitos article:nth-child(4)::before{background-image:linear-gradient(rgba(6,24,17,.06),rgba(6,24,17,.06)),url('https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?auto=format&fit=crop&w=700&q=82')}
-#requisitos article b{font-size:17px!important;line-height:1.25!important;color:#111b17!important}
-#requisitos article p{font-size:13px!important;line-height:1.55!important;font-weight:570!important;color:#4b5b53!important;margin-top:9px!important}
+/* Remove the requirements block completely from the public landing. */
+#requisitos{display:none!important}
 
-/* Real system screenshot + import benefit. The image is a cropped real screenshot supplied from the live POS. */
-#producto::before{content:"VISTA REAL DE COMERCIO LLENO\A\A Importá tu listado de productos y empezá más rápido.\A Si ya tenés tu catálogo armado, podés cargar productos de forma masiva en vez de ingresarlos uno por uno.";white-space:pre-line;display:flex;align-items:center;min-height:350px;margin:0 0 54px;padding:42px 56% 42px 38px;border-radius:28px;color:#fff;font-size:16px;line-height:1.55;font-weight:700;letter-spacing:-.1px;background-color:#0d1725;background-image:linear-gradient(90deg,#0d1725 0%,#0d1725 43%,rgba(13,23,37,.94) 48%,rgba(13,23,37,.28) 69%,rgba(13,23,37,0) 100%),url('/landing-system-real.jpg');background-repeat:no-repeat;background-size:100% 100%,58% auto;background-position:center,right center;box-shadow:0 26px 64px rgba(8,18,27,.16)}
+/* Remove the real-system screenshot promo block completely. */
+#producto::before{content:none!important;display:none!important}
 
 /* Price: strong contrast without oversized copy. */
 #precio{scroll-margin-top:86px}
@@ -72,13 +60,6 @@ body:has(#precio) main [class*="footer"] small{font-size:11px!important;font-wei
 @media(max-width:700px){
   body:has(#precio) main small{font-size:11px!important}
   body:has(#precio) main [class*="heroProof"] span{font-size:11px!important}
-  #requisitos{margin:24px 15px 58px!important;padding:27px 16px 31px!important;border-radius:23px}
-  #requisitos h2{font-size:32px!important;line-height:1.06!important}
-  #requisitos article{min-height:0;padding:0 18px 19px!important}
-  #requisitos article::before{height:118px;margin:0 -18px 17px}
-  #requisitos article b{font-size:16px!important}
-  #requisitos article p{font-size:13px!important}
-  #producto::before{min-height:520px;margin-bottom:42px;padding:28px 21px 292px;font-size:15px;line-height:1.5;background-image:linear-gradient(180deg,#0d1725 0%,#0d1725 38%,rgba(13,23,37,.96) 45%,rgba(13,23,37,.2) 65%,rgba(13,23,37,0) 100%),url('/landing-system-real.jpg');background-size:100% 100%,auto 278px;background-position:center,bottom center;border-radius:22px}
   #precio [class*="priceCard"]{padding:24px 19px!important}
   #precio [class*="priceCard"]>strong{font-size:39px!important}
   #precio [class*="priceCard"]>p{font-size:15px!important}
