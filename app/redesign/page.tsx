@@ -25,6 +25,50 @@ import PosBrandExperience from './PosBrandExperience'
 import DarkExperiencePolish from './DarkExperiencePolish'
 import AccessibilityScale from './AccessibilityScale'
 
+const notebookWorkspaceHeadGuard = `
+@media (min-width: 1051px) and (max-height: 840px) {
+  main[class*="shell"] section[class*="workspace"] > [class*="workspaceHead"] {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+`
+
 export const metadata={title:'Comercio Lleno · Rediseño POS',robots:{index:false,follow:false}}
 export const dynamic='force-dynamic'
-export default function RedesignPage(){const sha=process.env.VERCEL_GIT_COMMIT_SHA||process.env.GIT_COMMIT_SHA||'local',buildVersion=sha==='local'?'local':sha.slice(0,8);return <><DashboardRevolutionTheme/><ReadabilityBoost/><PosBrandExperience/><DarkExperiencePolish/><AccessibilityScale/><TransientFiscalNoticeRuntime/><BranchDataScopeRuntime/><SessionFetchGuard/><HeaderRefreshBehavior/><MobileResponsiveFix/><AdaptiveViewportFix/><ViewScrollReset/><DesignRuntime/><DesignLivePreview/><ProductPermissionGuard/><MobileVersionPrompt/><AdminPauseGate/><SubscriptionGate/><TrialStatus/><FirstStepsExperience/><SimpleModeDarkStyles/><SimpleModeRuntime/><FinanceRuntime/><BranchTopbarRuntime/><BranchSettingsRuntime/><CommerceApp buildVersion={buildVersion}/></>}
+
+export default function RedesignPage(){
+  const sha=process.env.VERCEL_GIT_COMMIT_SHA||process.env.GIT_COMMIT_SHA||'local'
+  const buildVersion=sha==='local'?'local':sha.slice(0,8)
+  return <>
+    <DashboardRevolutionTheme/>
+    <ReadabilityBoost/>
+    <PosBrandExperience/>
+    <DarkExperiencePolish/>
+    <AccessibilityScale/>
+    <TransientFiscalNoticeRuntime/>
+    <BranchDataScopeRuntime/>
+    <SessionFetchGuard/>
+    <HeaderRefreshBehavior/>
+    <MobileResponsiveFix/>
+    <AdaptiveViewportFix/>
+    <style id="cl-notebook-workspace-head-guard">{notebookWorkspaceHeadGuard}</style>
+    <ViewScrollReset/>
+    <DesignRuntime/>
+    <DesignLivePreview/>
+    <ProductPermissionGuard/>
+    <MobileVersionPrompt/>
+    <AdminPauseGate/>
+    <SubscriptionGate/>
+    <TrialStatus/>
+    <FirstStepsExperience/>
+    <SimpleModeDarkStyles/>
+    <SimpleModeRuntime/>
+    <FinanceRuntime/>
+    <BranchTopbarRuntime/>
+    <BranchSettingsRuntime/>
+    <CommerceApp buildVersion={buildVersion}/>
+  </>
+}
