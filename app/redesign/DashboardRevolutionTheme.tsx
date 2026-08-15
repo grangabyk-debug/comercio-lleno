@@ -2,10 +2,6 @@ const css=`
 main[class*="shell"]{--bg:#f6f3f7;--surface:#fff;--surface2:#faf8fb;--line:#e7e1e9;--text:#201923;--muted:#7c7480;--green:#6d36d8;--green2:#ff641d;--navy:#17121c;--shadow:0 8px 28px rgba(36,23,43,.055);background:#f6f3f7!important;font-family:"Avenir Next","Segoe UI Variable",Inter,ui-sans-serif,system-ui,sans-serif!important}
 main[class*="shell"]>header[class*="topbar"]{height:66px!important;background:rgba(255,255,255,.97)!important;border-bottom:1px solid #e8e2ea!important;color:#211a24!important;box-shadow:none!important;backdrop-filter:blur(18px)!important;position:sticky!important;top:0!important}
 main[class*="shell"]>header[class*="topbar"]:before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,#ff641d 0 33%,#ffb229 33% 52%,#6d36d8 52% 100%)}
-main[class*="shell"]>header[class*="topbar"] [class*="brandMark"]{background:#ff641d!important;border-radius:9px!important;box-shadow:none!important}
-main[class*="shell"]>header[class*="topbar"] [class*="brand"]{color:#211a24!important;font-size:18px!important;letter-spacing:-.7px!important}
-main[class*="shell"]>header[class*="topbar"] [class*="brand"] span{color:#6d36d8!important}
-main[class*="shell"]>header[class*="topbar"] [class*="tenant"]{color:#8a828e!important}
 main[class*="shell"]>header[class*="topbar"] [class*="headerButton"]{background:#fff!important;border-color:#e3dce6!important;color:#4d4552!important;border-radius:8px!important;box-shadow:none!important}
 main[class*="shell"]>header[class*="topbar"] [class*="headerButton"]:hover{background:#f7f3f8!important;color:#6d36d8!important}
 main[class*="shell"]>header[class*="topbar"] [class*="versionPill"]{background:#f3eef6!important;border-color:#e6ddeb!important;color:#756c7a!important;border-radius:999px!important}
@@ -40,7 +36,6 @@ main[class*="shell"] [class*="paymentSelected"]{background:#f2ebff!important;bor
 main[class*="shell"] [class*="roundIcon"],main[class*="shell"] [class*="shortcut"]>span{background:#f2ebff!important;color:#6d36d8!important}
 main[class*="shell"][class*="dark"]{--bg:#120e15;--surface:#1c161f;--surface2:#241c28;--line:#3b303f;--text:#f7f1f8;--muted:#aaa0ad;background:#120e15!important}
 main[class*="shell"][class*="dark"]>header[class*="topbar"]{background:#1a141e!important;border-bottom-color:#342b38!important;color:#fff!important}
-main[class*="shell"][class*="dark"]>header[class*="topbar"] [class*="brand"]{color:#fff!important}
 main[class*="shell"][class*="dark"]>div[class*="layout"]>aside[class*="sidebar"]{background:#19131d!important;border-right-color:#342b38!important}
 main[class*="shell"][class*="dark"]>div[class*="layout"]>aside[class*="sidebar"] [class*="navButton"],main[class*="shell"][class*="dark"]>div[class*="layout"]>aside[class*="sidebar"] [class*="managementButton"]{color:#b9afbd!important}
 main[class*="shell"][class*="dark"]>div[class*="layout"]>section[class*="content"]{background:#120e15!important}
