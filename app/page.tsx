@@ -5,7 +5,8 @@ import BrandLogo from './BrandLogo'
 import HeroMerchantRotator from './HeroMerchantRotator'
 import ArgentinaStory from './ArgentinaStory'
 import ArcaDashboardVisual from './ArcaDashboardVisual'
-import {AiSignature,HumanSupportVisual,WhatsAppPhoneVisual,SecuritySeals,GooglePresence} from './LandingEnhancements'
+import LandingSecurityShowcase from './LandingSecurityShowcase'
+import {AiSignature,HumanSupportVisual,WhatsAppPhoneVisual,GooglePresence} from './LandingEnhancements'
 
 const arcaLogo='https://arca.gob.ar/frameworkAFIP/img/logo_arca_blanco.svg'
 const bakeryPhoto='https://images.pexels.com/videos/13061609/buying-cashier-check-out-chocolate-store-13061609.jpeg?auto=compress&fit=crop&w=1600'
@@ -42,7 +43,7 @@ export const metadata={
   description:'Sistema POS online con ventas, stock, caja, facturación electrónica ARCA, modo offline, lector de códigos, impresora térmica, scanner móvil e inteligencia artificial.',
   keywords:['sistema pos argentina','punto de venta','software para comercios','sistema de ventas','facturación ARCA','control de stock','caja diaria','lector código de barras','impresora térmica','POS online','software de gestión comercial'],
   alternates:{canonical:'https://comerciolleno.com'},
-  openGraph:{title:'Comercio Lleno | Tu negocio bajo control desde hoy',description:'POS online para vender, facturar, controlar stock y entender el negocio con inteligencia artificial.',url:'https://comerciolleno.com',siteName:'Comercio Lleno',locale:'es_AR',type:'website'},
+  openGraph:{title:'Comercio Lleno | Tu negocio bajo control desde hoy',description:'POS online para vender, facturá con ARCA, controlá stock y caja y entendé tu negocio con inteligencia artificial.',url:'https://comerciolleno.com',siteName:'Comercio Lleno',locale:'es_AR',type:'website'},
   robots:{index:true,follow:true},
 }
 
@@ -86,7 +87,7 @@ export default function LandingPage(){
 
     <section className={styles.whatsappSection} id="whatsapp"><div className={styles.whatsappCopy}><span>MÓDULO ADICIONAL</span><h2>WhatsApp + inteligencia artificial para atender y vender mientras tu equipo trabaja.</h2><p>El módulo opcional puede responder consultas, tomar pedidos, acompañar ventas y ayudar a crear campañas para recuperar clientes. Se contrata por separado del plan base.</p><div className={styles.whatsappItems}><span>Respuestas automáticas con contexto del negocio</span><span>Pedidos y consultas por WhatsApp</span><span>Campañas y recuperación de clientes</span><span>Derivación a atención humana cuando haga falta</span></div></div><WhatsAppPhoneVisual/></section>
 
-    <section className={styles.securitySection}><div><p>SEGURIDAD Y CONTINUIDAD</p><h2>Tu operación tiene que seguir funcionando y tus datos tienen que estar separados.</h2></div><div className={styles.securityGrid}><article><b>Acceso autenticado</b><p>Cada usuario entra con sus propias credenciales y permisos.</p></article><article><b>Datos por comercio</b><p>La información se organiza dentro del espacio correspondiente a cada cuenta.</p></article><article><b>HTTPS</b><p>La conexión pública del sistema se sirve de forma cifrada.</p></article><article><b>Modo offline</b><p>La continuidad de venta no depende de que cada segundo haya Internet.</p></article></div><SecuritySeals/></section>
+    <LandingSecurityShowcase/>
 
     <GooglePresence/>
 
