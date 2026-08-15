@@ -48,6 +48,26 @@ async function waitForBranch(){
   })
 }
 
+function requestInitFromInput(input:RequestInfo|URL,init?:RequestInit){
+  if(!(input instanceof Request))return {...init}
+  const headers=new Headers(input.headers)
+  if(init?.headers)new Headers(init.headers).forEach((value,key)=>headers.set(key,value))
+  return {
+    method:init?.method||input.method,
+    headers,
+    body:init?.body,
+    credentials:init?.credentials||input.credentials,
+    cache:init?.cache||input.cache,
+    mode:init?.mode||input.mode,
+    redirect:init?.redirect||input.redirect,
+    referrer:init?.referrer||input.referrer,
+    referrerPolicy:init?.referrerPolicy||input.referrerPolicy,
+    integrity:init?.integrity||input.integrity,
+    keepalive:init?.keepalive??input.keepalive,
+    signal:init?.signal||input.signal,
+  } satisfies RequestInit
+}
+
 export default function BranchDataScopeRuntime(){
   useLayoutEffect(()=>{
     const original=window.fetch.bind(window)
@@ -72,8 +92,14 @@ export default function BranchDataScopeRuntime(){
 
       const method=(init?.method||(input instanceof Request?input.method:'GET')).toUpperCase()
       if(scoped&&method!=='POST'&&!url.searchParams.has('branch_id'))url.searchParams.append('branch_id',`eq.${branchId}`)
-      const nextInit={...init}
-      if(method!=='GET'&&method!=='HEAD')nextInit.body=bodyWithBranch(init?.body||(input instanceof Request?undefined:null),branchId,rpc)
+
+      const nextInit=requestInitFromInput(input,init)
+      if(method!=='GET'&&method!=='HEAD'){
+        const sourceBody=init?.body
+        if(sourceBody!==undefined)nextInit.body=bodyWithBranch(sourceBody,branchId,rpc)
+      }else{
+        delete nextInit.body
+      }
       return original(url.toString(),nextInit)
     }) as typeof window.fetch
     return()=>{window.fetch=original as typeof window.fetch}
