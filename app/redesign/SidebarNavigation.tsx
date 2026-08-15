@@ -117,7 +117,7 @@ export default function SidebarNavigation({ tenant, view, buildVersion, canView,
       data-tour-context={tourKey(item.key)}
       className={`${styles.navButton} ${view === item.key ? styles.navActive : ''} ${item.special === 'assistant' ? parity.supportAssistant : ''} ${item.special === 'sale' ? enh.saleNav : ''}`}
       onClick={() => { closeFinances(); setManagementOpen(false); onNavigate(item.key) }}
-    ><span className={nav.mainIcon}><UiIcon name={item.icon} size={17}/></span><b className={nav.mainLabel}>{item.label}</b></button>)}
+    ><span className={nav.mainIcon}>{item.key==='pos'?<b className={nav.saleSymbol}>$</b>:<UiIcon name={item.icon} size={17}/>}</span><b className={nav.mainLabel}>{item.label}</b></button>)}
 
     <div className={nav.managementGroup} ref={managementRef}>
       <button
@@ -129,7 +129,6 @@ export default function SidebarNavigation({ tenant, view, buildVersion, canView,
       >
         <span className={nav.managementIcon}><UiIcon name="management" size={17}/></span>
         <span className={nav.managementLabel}>Gestión</span>
-        <span className={nav.managementChevron}>{managementOpen ? '−' : '+'}</span>
       </button>
 
       {managementOpen && <div className={nav.flyout} role="menu" aria-label="Gestión">
