@@ -122,3 +122,5 @@ export async function POST(req: NextRequest) {
     clearTimeout(timeout)
   }
 }
+
+// Redeploy intencional después de la prueba de rollback del 16/08/2026.
