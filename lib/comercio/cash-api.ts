@@ -11,3 +11,14 @@ export async function openCashSecure(session:TenantSession,amount:number){return
 export async function closeCashSecure(session:TenantSession,id:string,counted:number|null){const result=await request<CashRegister&{close_summary:CashSummary;history_id?:string;whatsapp?:unknown}>(session,'rpc/close_cash_register_authorized',{method:'POST',body:JSON.stringify({p_register_id:id,p_closing_amount:counted})});if(result.history_id)result.whatsapp=await notifyCashClose(session,result.history_id);return result}
 export async function loadCashHistory(session:TenantSession,from?:string,to?:string){let p=`cash_register_history?select=id,cash_register_id,opened_at,closed_at,opening_amount,closing_amount,summary&company_id=eq.${encodeURIComponent(session.companyId)}&order=closed_at.desc&limit=500`;if(from)p+=`&closed_at=gte.${encodeURIComponent(`${from}T00:00:00`)}`;if(to)p+=`&closed_at=lte.${encodeURIComponent(`${to}T23:59:59`)}`;const rows=await request<any[]>(session,p);return (rows||[]).map(r=>({...r,opening_amount:Number(r.opening_amount||0),closing_amount:Number(r.closing_amount||0),summary:{...(r.summary||{}),sales_total:Number(r.summary?.sales_total||0),sales_count:Number(r.summary?.sales_count||0),cash_sales:Number(r.summary?.cash_sales||0),income:Number(r.summary?.income||0),expenses:Number(r.summary?.expenses||0),egress:Number(r.summary?.egress||0),expected_cash:Number(r.summary?.expected_cash||0),counted_cash:Number(r.summary?.counted_cash??r.closing_amount??0),difference:Number(r.summary?.difference||0),payments:r.summary?.payments||{}}})) as CashHistory[]}
 export async function loadOwnerContact(session:TenantSession){const rows=await request<Array<{owner_phone?:string|null;name:string}>>(session,`companies?select=name,owner_phone&id=eq.${encodeURIComponent(session.companyId)}&limit=1`);return rows?.[0]||{name:session.companyName,owner_phone:null}}
+export async function deleteCashHistorySecure(session:TenantSession,historyId:string,password:string){
+  const response=await fetch(`${URL}/functions/v1/delete-cash-history`,{
+    method:'POST',
+    headers:{apikey:KEY,Authorization:`Bearer ${session.token}`,'Content-Type':'application/json'},
+    body:JSON.stringify({history_id:historyId,password}),
+    cache:'no-store',
+  })
+  const data=await response.json().catch(()=>null)
+  if(!response.ok||!data?.ok)throw new Error(data?.error||`No se pudo eliminar la caja (${response.status})`)
+  return data as {ok:true;deleted_id:string;cash_register_id?:string|null}
+}
