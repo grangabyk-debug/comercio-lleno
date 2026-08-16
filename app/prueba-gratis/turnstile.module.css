@@ -1,0 +1,1 @@
+.box{display:flex;align-items:center;justify-content:center;min-height:72px;padding:10px;border:1px solid #e8e1eb;border-radius:14px;background:#faf8fb;overflow:hidden}.inner{display:flex;justify-content:center;max-width:100%}@media(max-width:390px){.box{padding:8px 4px}}
