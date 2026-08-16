@@ -1,4 +1,5 @@
 import QRCode from 'qrcode'
+import { paymentPartsForSale } from './payments'
 import type { CompanyProfile, DeviceSettings, Sale } from './types'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcubkbtcsqkzc.supabase.co'
@@ -19,6 +20,18 @@ function detailNumber(sale: Sale, key: string) { const value=Number(detailValue(
 function promotionSavings(sale:Sale){return Number(sale.details?.promotion_savings||0)}
 function manualSavings(sale:Sale){return Number(sale.details?.discount_amount||0)}
 function totalSavings(sale:Sale){return Math.max(0,promotionSavings(sale)+manualSavings(sale))}
+
+function paymentHtml(sale:Sale){
+  const parts=paymentPartsForSale(sale)
+  if(parts.length<=1)return `<div><b>Medio de pago:</b> ${esc(parts[0]?.method||sale.payment)}</div>`
+  return `<div><b>Medios de pago:</b></div>${parts.map(part=>`<div>${esc(part.method)}: <b>${money(part.amount)}</b></div>`).join('')}`
+}
+
+function paymentPdfLines(sale:Sale){
+  const parts=paymentPartsForSale(sale)
+  if(parts.length<=1)return [`Medio de pago: ${parts[0]?.method||sale.payment}`]
+  return ['Medios de pago:',...parts.map(part=>`${part.method}: ${money(part.amount)}`)]
+}
 
 function pointOfSale(sale:Sale){return Math.max(0,Math.trunc(detailNumber(sale,'fiscal_point_of_sale')||detailNumber(sale,'point_of_sale')||0))}
 function receiptTypeCode(sale:Sale){
@@ -143,7 +156,7 @@ export function buildReceiptHtml(sale: Sale, company: CompanyProfile, paper: '80
   const footer=rawFooter.replace(/\s*[·|—-]?\s*Sistema desarrollado por ComercioLleno\.com/ig,'').trim()
   const developerBrand='<div class="devBrand"><span>Sistema desarrollado por</span><b>ComercioLleno.com</b></div>'
   const identity=[settings?.showBusinessName!==false?`<b class="business">${esc(company.name)}</b>`:'',settings?.showTaxId!==false&&company.tax_id?`<div>CUIT ${esc(company.tax_id)}</div>`:'',address?`<div>${esc(address)}</div>`:'',phone?`<div>${esc(phone)}</div>`:'',header?`<div class="headerText">${esc(header)}</div>`:''].filter(Boolean).join('')
-  const extra=[settings?.showPaymentMethod!==false?`<div><b>Medio de pago:</b> ${esc(sale.payment)}</div>`:'',customer?`<div><b>Cliente:</b> ${esc(customer)}</div>`:'',seller?`<div><b>Vendedor:</b> ${esc(seller)}</div>`:''].filter(Boolean).join('')
+  const extra=[settings?.showPaymentMethod!==false?paymentHtml(sale):'',customer?`<div><b>Cliente:</b> ${esc(customer)}</div>`:'',seller?`<div><b>Vendedor:</b> ${esc(seller)}</div>`:''].filter(Boolean).join('')
   const savingBlock=savings>0?`<div class="savings"><span>AHORRASTE</span><b>${money(savings)}</b>${promo>0?`<small>Ofertas en productos: ${money(promo)}</small>`:''}${manual>0?`<small>Descuento adicional: ${money(manual)}</small>`:''}</div>`:''
   const manualBlock=manual>0?`<div class="discountSummary"><span>Descuento adicional</span><b>− ${money(manual)}</b></div>`:''
 
@@ -212,7 +225,9 @@ function buildSimplePdf(lines:Array<{text:string;size?:number;bold?:boolean}>,qr
 
 function receiptPdfBytes(sale:Sale,company:CompanyProfile){
   const fiscal=isFiscal(sale),items=sale.details?.items||[],qrUrl=fiscalQrUrl(sale,company)
-  const lines:Array<{text:string;size?:number;bold?:boolean}>=[{text:fiscal?'FACTURA C':'COMPROBANTE INTERNO - PENDIENTE DE ARCA',size:fiscal?20:15,bold:true},{text:company.name,size:13,bold:true},{text:company.tax_id?`CUIT ${company.tax_id}`:'CUIT no informado'},{text:fiscal?`Comprobante: ${receiptNumber(sale)}`:`Operacion local: ${sale.id.slice(0,12)}`},{text:`Fecha: ${new Date(sale.date).toLocaleString('es-AR')}`},{text:`Medio de pago: ${sale.payment}`},{text:' '}]
+  const lines:Array<{text:string;size?:number;bold?:boolean}>=[{text:fiscal?'FACTURA C':'COMPROBANTE INTERNO - PENDIENTE DE ARCA',size:fiscal?20:15,bold:true},{text:company.name,size:13,bold:true},{text:company.tax_id?`CUIT ${company.tax_id}`:'CUIT no informado'},{text:fiscal?`Comprobante: ${receiptNumber(sale)}`:`Operacion local: ${sale.id.slice(0,12)}`},{text:`Fecha: ${new Date(sale.date).toLocaleString('es-AR')}`}]
+  paymentPdfLines(sale).forEach(text=>lines.push({text}))
+  lines.push({text:' '})
   items.slice(0,24).forEach(item=>{if(item.original_unit_price&&item.original_unit_price>item.unit_price)lines.push({text:`OFERTA ${item.promotion_discount_percent||''}% - ${item.name}: antes ${money(item.original_unit_price)}, pagaste ${money(item.unit_price)}`,bold:true});else lines.push({text:`${item.qty} x ${item.name.slice(0,42)} - ${money(item.line_total)}`})})
   lines.push({text:' '},{text:`TOTAL ${money(sale.total)}`,size:14,bold:true})
   if(totalSavings(sale)>0)lines.push({text:`AHORRASTE ${money(totalSavings(sale))}`,size:13,bold:true})
