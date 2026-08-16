@@ -27,6 +27,7 @@ import {
   removeOfflineSale,
   saveOfflineSnapshot,
 } from '@/lib/comercio/offline'
+import { normalizePaymentParts, paymentAmountForSale } from '@/lib/comercio/payments'
 import { printReceipt, receiptNumber } from '@/lib/comercio/receipt'
 import { readDeviceSettings, readTenantSession } from '@/lib/comercio/session'
 import {
@@ -35,7 +36,7 @@ import {
   readCachedSalesSettings,
   type SalesSettings,
 } from '@/lib/comercio/sales-settings'
-import type { CartLine, CommerceSnapshot, DeviceSettings, Sale, TenantSession, ViewKey } from '@/lib/comercio/types'
+import type { CartLine, CommerceSnapshot, DeviceSettings, PaymentPart, Sale, TenantSession, ViewKey } from '@/lib/comercio/types'
 import {
   AccountsV2,
   ProductsV2,
@@ -103,6 +104,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
   const [query, setQuery] = useState('')
   const [cart, setCart] = useState<CartLine[]>([])
   const [payment, setPayment] = useState('Efectivo')
+  const [paymentParts, setPaymentParts] = useState<PaymentPart[]>([])
   const [customerId, setCustomerId] = useState('')
   const [discountKind, setDiscountKind] = useState<'percent' | 'amount'>('percent')
   const [discountValue, setDiscountValue] = useState(0)
@@ -304,7 +306,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
   const openedAt=data?.cashRegister?.opened_at?new Date(data.cashRegister.opened_at).getTime():0
   const sessionSales=useMemo(()=>data?.sales.filter(s=>!openedAt||new Date(s.date).getTime()>=openedAt)||[],[data,openedAt])
   const sessionMovements=useMemo(()=>data?.cashMovements.filter(m=>!openedAt||new Date(m.occurred_at).getTime()>=openedAt)||[],[data,openedAt])
-  const cashSales=sessionSales.filter(s=>/efect/i.test(s.payment)).reduce((a,s)=>a+s.total,0)
+  const cashSales=sessionSales.reduce((sum,sale)=>sum+paymentAmountForSale(sale,/efect/i),0)
   const expenses=sessionMovements.filter(m=>m.kind==='expense'||m.kind==='egress').reduce((a,m)=>a+m.amount,0)
   const incomes=sessionMovements.filter(m=>m.kind==='income').reduce((a,m)=>a+m.amount,0)
   const cashEstimated=Number(data?.cashRegister?.opening_amount||0)+cashSales+incomes-expenses
@@ -314,7 +316,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
   const tenant=session
 
   function go(next:ViewKey){if(canView(tenant,next))setView(next);else setNotice('Tu rol no tiene permiso para abrir esa sección.')}
-  function resetSaleForm(){setCart([]);setCustomerId('');setDiscountValue(0);setDiscountKind('percent');setPayment('Efectivo')}
+  function resetSaleForm(){setCart([]);setCustomerId('');setDiscountValue(0);setDiscountKind('percent');setPayment('Efectivo');setPaymentParts([])}
   function addProduct(id:string){const p=data?.products.find(x=>x.id===id);if(!p)return;if(!salesSettings.allowNegativeStock&&p.stock<=0){setNotice('Ese producto está sin stock. Activá “Permitir vender sin stock” en Configuración > Ventas y caja si necesitás venderlo igual.');return}setCart(rows=>{const f=rows.find(x=>x.id===id);return f?rows.map(x=>x.id===id?{...x,qty:salesSettings.allowNegativeStock?x.qty+1:Math.min(x.qty+1,p.stock)}:x):[...rows,{...p,qty:1}]});setQuery('')}
   function changeQty(id:string,delta:number){setCart(rows=>rows.map(x=>x.id===id?{...x,qty:Math.max(1,salesSettings.allowNegativeStock?x.qty+delta:Math.min(x.stock,x.qty+delta))}:x))}
   function removeProduct(id:string){setCart(rows=>rows.filter(x=>x.id!==id))}
@@ -334,9 +336,14 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
     if(!canView(tenant,'pos')){setNotice('Tu usuario no tiene permiso para vender.');return}
     if(data.cashRegister?.status!=='open'){setNotice('Primero tenés que abrir la caja.');return}
     if(total<=0){setNotice('El total de la venta debe ser mayor a cero.');return}
+    const parts=paymentParts.length===2?normalizePaymentParts(paymentParts,total):[{method:payment,amount:total}]
+    if(paymentParts.length===2&&(parts.length!==2||parts[0].method===parts[1].method)){
+      setNotice('Para dividir el pago necesitás dos medios distintos y ambos importes deben ser mayores a cero.')
+      return
+    }
     setCheckoutBusy(true);setError('')
     const id=createId(),items=cart.map(i=>({product_id:i.id,name:i.name,barcode:i.barcode||null,qty:i.qty,unit_price:i.price,line_total:i.price*i.qty}))
-    const base:Sale={id,date:new Date().toISOString(),total,payment,items:items.reduce((a,i)=>a+i.qty,0),customer_id:customerId||null,receipt_type:mode==='fiscal'?'factura_c':'ticket',fiscal_status:'pending',details:{items,subtotal_before_discount:subtotal,discount_amount:discountAmount,discount:discountAmount>0?{kind:discountKind,value:discountValue}:null,captured_at:new Date().toISOString(),fiscal_intent:mode==='fiscal'?'invoice_now':'manual_pending'}}
+    const base:Sale={id,date:new Date().toISOString(),total,payment:parts.length>1?'Pago dividido':payment,items:items.reduce((a,i)=>a+i.qty,0),customer_id:customerId||null,receipt_type:mode==='fiscal'?'factura_c':'ticket',fiscal_status:'pending',details:{items,subtotal_before_discount:subtotal,discount_amount:discountAmount,discount:discountAmount>0?{kind:discountKind,value:discountValue}:null,payment_parts:parts,captured_at:new Date().toISOString(),fiscal_intent:mode==='fiscal'?'invoice_now':'manual_pending'}}
     const stock=cart.map(i=>({id:i.id,stock:Math.max(0,i.stock-i.qty)}))
     try{
       if(mode==='internal'){
@@ -373,7 +380,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
         {error&&<div className={styles.error}><span>{error}</span><button onClick={()=>setError('')}>×</button></div>}
         {notice&&<div className={styles.notice}><span>{notice}</span><button onClick={()=>setNotice('')}>×</button></div>}
         {data&&view==='dashboard'&&<DashboardEnhanced data={data} todayTotal={todayTotal} todayCount={todaySales.length} lowStock={lowStock} go={go} canSell={canView(tenant,'pos')} role={tenant.role}/>} 
-        {data&&view==='pos'&&<PosEnhanced data={data} query={query} setQuery={setQuery} filtered={filteredProducts} cart={cart} addProduct={addProduct} changeQty={changeQty} removeProduct={removeProduct} subtotal={subtotal} discountKind={discountKind} setDiscountKind={setDiscountKind} discountValue={discountValue} setDiscountValue={setDiscountValue} discountAmount={discountAmount} total={total} customerId={customerId} setCustomerId={setCustomerId} payment={payment} setPayment={setPayment} checkout={checkout} busy={checkoutBusy} arca={arca} offline={!online||offlineMode} pendingOffline={offlinePending}/>} 
+        {data&&view==='pos'&&<PosEnhanced data={data} query={query} setQuery={setQuery} filtered={filteredProducts} cart={cart} addProduct={addProduct} changeQty={changeQty} removeProduct={removeProduct} subtotal={subtotal} discountKind={discountKind} setDiscountKind={setDiscountKind} discountValue={discountValue} setDiscountValue={setDiscountValue} discountAmount={discountAmount} total={total} customerId={customerId} setCustomerId={setCustomerId} payment={payment} setPayment={setPayment} paymentParts={paymentParts} setPaymentParts={setPaymentParts} checkout={checkout} busy={checkoutBusy} arca={arca} offline={!online||offlineMode} pendingOffline={offlinePending}/>} 
         {data&&view==='products'&&<ProductsV2 data={data} session={tenant} refresh={()=>refresh(tenant)} message={setNotice}/>} 
         {data&&view==='cash'&&<CashEnhanced data={data} session={tenant} sessionSales={sessionSales} movements={sessionMovements} cashEstimated={cashEstimated} openCash={openCash} closeCash={closeCash} refresh={()=>refresh(tenant)} message={setNotice}/>} 
         {data&&view==='settings'&&<SettingsV2 data={data} session={tenant} device={device} setDevice={setDevice} arca={arca} buildVersion={buildVersion} refresh={()=>refresh(tenant)} message={setNotice}/>} 
