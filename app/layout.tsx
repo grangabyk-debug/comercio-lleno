@@ -27,6 +27,9 @@ export const metadata: Metadata = {
     apple:faviconUrl,
   },
   openGraph:{siteName:'Comercio Lleno'},
+  other:{
+    'facebook-domain-verification':'q5v3fcz0ukr2pub2khpoyipx28fmtc',
+  },
 }
 
 const privateRouteGuard = `
