@@ -88,7 +88,7 @@ export default function MobileGoogleAccess(){
 
   if(!host)return null
   return createPortal(<div style={{margin:'0 0 16px'}}>
-    <button type="button" onClick={()=>void startGoogle()} disabled={busy} style={{width:'100%',height:48,border:'1px solid #d9e1dc',borderRadius:13,background:'#fff',color:'#202623',fontSize:13,fontWeight:800,display:'flex',alignItems:'center',justifyContent:'center',gap:10,cursor:busy?'default':'pointer',opacity:busy?.72:1}}><GoogleMark/><span>{busy?'Conectando con Google…':'Continuar con Google'}</span></button>
+    <button type="button" onClick={()=>void startGoogle()} disabled={busy} style={{width:'100%',height:48,border:'1px solid #d9e1dc',borderRadius:13,background:'#fff',color:'#202623',fontSize:13,fontWeight:800,display:'flex',alignItems:'center',justifyContent:'center',gap:10,cursor:busy?'default':'pointer',opacity:busy?0.72:1}}><GoogleMark/><span>{busy?'Conectando con Google…':'Continuar con Google'}</span></button>
     {error&&<div style={{marginTop:9,padding:'8px 10px',borderRadius:9,background:'#fff0f0',color:'#aa3d3d',fontSize:9}}>{error}</div>}
     <div style={{display:'flex',alignItems:'center',gap:9,margin:'14px 0 2px',color:'#8a958e',fontSize:9,fontWeight:800}}><span style={{height:1,background:'#e4e9e6',flex:1}}/><span>o ingresá con contraseña</span><span style={{height:1,background:'#e4e9e6',flex:1}}/></div>
   </div>,host)
