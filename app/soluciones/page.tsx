@@ -43,22 +43,31 @@ export default function SolutionsPage() {
 
     <section className={styles.hubHero}>
       <p className={styles.eyebrow}>COMERCIO LLENO · SOLUCIONES</p>
-      <h1>Un sistema comercial.<br/>Distintas formas de encontrarlo.</h1>
-      <p>Ventas, stock, caja, facturación ARCA y acceso móvil adaptados al lenguaje y las necesidades de distintos tipos de comercio.</p>
+      <h1>Tu comercio no es genérico.<br/>La página tampoco debería serlo.</h1>
+      <p>Explorá Comercio Lleno desde el contexto de tu negocio o desde el problema que querés resolver: vender, controlar stock, ordenar caja y seguir todo desde el celular.</p>
+    </section>
+
+    <section className={styles.hubIntroBand} aria-label="Qué vas a encontrar">
+      <div><b>Por rubro</b><span>Kioscos, almacenes, ferreterías, ropa, dietéticas, pet shops y perfumerías.</span></div>
+      <div><b>Por necesidad</b><span>Punto de venta, stock y caja para quien busca resolver un problema puntual.</span></div>
+      <div><b>Siempre el mismo producto</b><span>No son versiones distintas: es Comercio Lleno explicado con el contexto correcto.</span></div>
     </section>
 
     <section className={styles.hubGrid} aria-label="Soluciones disponibles">
       {solutions.map((solution) => <Link href={`/soluciones/${solution.slug}`} className={styles.hubCard} key={solution.slug}>
-        <small>{solution.eyebrow}</small>
-        <h2>{solution.accent.replace(/\.$/, '')}</h2>
-        <p>{solution.description}</p>
-        <span>Ver solución</span>
+        <div className={styles.hubCardImage}><img src={solution.heroImage} alt={solution.heroAlt} loading="lazy" /></div>
+        <div className={styles.hubCardBody}>
+          <small>{solution.eyebrow}</small>
+          <h2>{solution.accent.replace(/\.$/, '')}</h2>
+          <p>{solution.description}</p>
+          <span>Ver solución</span>
+        </div>
       </Link>)}
     </section>
 
     <section className={styles.band}>
       <div className={styles.bandInner}>
-        <div><h2>¿Tu rubro no aparece?</h2><p>Comercio Lleno no está limitado a estas categorías. Son páginas específicas para que cada comercio encuentre más rápido la propuesta que necesita.</p></div>
+        <div><h2>¿Tu rubro no aparece?</h2><p>Comercio Lleno no está limitado a estas categorías. Podés probar el sistema completo y ver cómo encaja con tu operación real.</p></div>
         <Link href="/prueba-gratis">Probar Comercio Lleno</Link>
       </div>
     </section>
