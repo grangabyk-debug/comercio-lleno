@@ -1,163 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcubkbtcsqkzc.supabase.co'
-const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-const EVOLUTION_URL = (process.env.EVOLUTION_API_URL || '').replace(/\/+$/, '')
-const EVOLUTION_KEY = process.env.EVOLUTION_API_KEY || ''
-const CENTRAL_ENTITLEMENTS = 'https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/commerce-entitlements'
-
-type Auth = { token: string; companyId: string; companyName: string }
-
-function decodeSub(token: string) {
-  try {
-    const p = token.split('.')[1]
-    if (!p) return ''
-    return String(JSON.parse(Buffer.from(p, 'base64url').toString('utf8'))?.sub || '')
-  } catch { return '' }
+function disabled() {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: 'Las automatizaciones de la integración legacy de WhatsApp por QR están deshabilitadas. La nueva implementación será exclusivamente con la API oficial de Meta.',
+      code: 'LEGACY_WHATSAPP_DISABLED',
+    },
+    { status: 410, headers: { 'Cache-Control': 'no-store' } },
+  )
 }
 
-function instanceName(companyId: string) {
-  return `cl-${companyId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 40).toLowerCase()}`
+export async function GET() {
+  return disabled()
 }
 
-function normalizePhone(value: unknown) {
-  let d = String(value || '').replace(/\D/g, '')
-  if (d.startsWith('0')) d = d.slice(1)
-  if (d.length === 10 && !d.startsWith('54')) d = `549${d}`
-  return d.slice(0, 18)
-}
-
-function money(value: unknown) {
-  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 2 }).format(Number(value || 0) || 0)
-}
-
-async function authorize(req: NextRequest): Promise<Auth> {
-  const authorization = req.headers.get('authorization') || ''
-  if (!authorization.toLowerCase().startsWith('bearer ')) throw new Error('UNAUTHORIZED')
-  const token = authorization.slice(7).trim()
-  const userId = decodeSub(token)
-  if (!userId) throw new Error('UNAUTHORIZED')
-  const h = { apikey: PUBLISHABLE_KEY, Authorization: `Bearer ${token}` }
-  const pr = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=company_id,role,active&limit=1`, { headers: h, cache: 'no-store' })
-  const profiles = await pr.json().catch(() => [])
-  const profile = Array.isArray(profiles) ? profiles[0] : null
-  if (!pr.ok || !profile?.company_id || profile.active === false) throw new Error('UNAUTHORIZED')
-  const cr = await fetch(`${SUPABASE_URL}/rest/v1/companies?id=eq.${encodeURIComponent(profile.company_id)}&select=id,name&limit=1`, { headers: h, cache: 'no-store' })
-  const companies = await cr.json().catch(() => [])
-  const company = Array.isArray(companies) ? companies[0] : null
-  if (!cr.ok || !company?.id) throw new Error('UNAUTHORIZED')
-  return { token, companyId: String(company.id), companyName: String(company.name || 'Mi comercio') }
-}
-
-async function rest(auth: Auth, path: string) {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers: { apikey: PUBLISHABLE_KEY, Authorization: `Bearer ${auth.token}` }, cache: 'no-store' })
-  const data = await r.json().catch(() => [])
-  if (!r.ok) throw new Error(`Supabase ${r.status}`)
-  return data
-}
-
-async function servicePatch(path: string, body: Record<string, unknown>) {
-  if (!SERVICE_KEY) throw new Error('Servicio interno no disponible.')
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    method: 'PATCH',
-    headers: { apikey: PUBLISHABLE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
-    body: JSON.stringify(body),
-    cache: 'no-store',
-  })
-  const data = await r.json().catch(() => [])
-  if (!r.ok) throw new Error(`Supabase ${r.status}`)
-  return data
-}
-
-async function central(auth: Auth) {
-  const r = await fetch(CENTRAL_ENTITLEMENTS, { method: 'POST', headers: { Authorization: `Bearer ${auth.token}`, 'Content-Type': 'application/json' }, body: '{}', cache: 'no-store' })
-  const d = await r.json().catch(() => ({}))
-  if (!r.ok) throw new Error('No se pudo consultar Central Llena.')
-  return d
-}
-
-async function evo(path: string, init: RequestInit = {}) {
-  const c = new AbortController()
-  const t = setTimeout(() => c.abort(), 12_000)
-  try {
-    const r = await fetch(`${EVOLUTION_URL}${path}`, { ...init, headers: { apikey: EVOLUTION_KEY, 'Content-Type': 'application/json', ...(init.headers || {}) }, cache: 'no-store', signal: c.signal })
-    const text = await r.text()
-    let data: any = null
-    try { data = text ? JSON.parse(text) : null } catch { data = text }
-    return { r, data }
-  } finally { clearTimeout(t) }
-}
-
-async function connected(instance: string) {
-  const x = await evo(`/instance/connectionState/${encodeURIComponent(instance)}`)
-  const state = String(x.data?.instance?.state || x.data?.state || x.data?.connectionStatus || '').toLowerCase()
-  return x.r.ok && (state === 'open' || state === 'connected')
-}
-
-async function send(instance: string, number: string, text: string) {
-  const x = await evo(`/message/sendText/${encodeURIComponent(instance)}`, { method: 'POST', body: JSON.stringify({ number, text, delay: 600 }) })
-  if (x.r.ok) return
-  throw new Error(`Evolution ${x.r.status}`)
-}
-
-function cashText(company: string, summary: any) {
-  const payments = Object.entries(summary?.payments || {}).map(([k, v]) => `${k}: ${money(v)}`).join('\n')
-  return `📊 *Cierre de caja · ${company}*\nVentas: ${Number(summary?.sales_count || 0)}\nTotal vendido: ${money(summary?.sales_total)}${payments ? `\n\nMedios de pago:\n${payments}` : ''}\n\nEfectivo esperado: ${money(summary?.expected_cash)}\nEfectivo contado: ${money(summary?.counted_cash ?? summary?.closing_amount)}\nDiferencia: ${money(summary?.difference)}\nGastos: ${money(summary?.expenses)}\nRetiros: ${money(summary?.egress)}\n\nCierre: ${new Date(summary?.closed_at || Date.now()).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}`
-}
-
-export async function POST(req: NextRequest) {
-  let auth: Auth
-  try { auth = await authorize(req) } catch { return NextResponse.json({ ok: false, error: 'Sesión no disponible.' }, { status: 401 }) }
-  if (!EVOLUTION_URL || !EVOLUTION_KEY || !SERVICE_KEY) return NextResponse.json({ ok: false, error: 'WhatsApp no está configurado en este entorno.' }, { status: 503 })
-
-  const body = await req.json().catch(() => ({}))
-  const action = String(body?.action || '')
-  try {
-    const [companyRows, ent] = await Promise.all([
-      rest(auth, `companies?id=eq.${encodeURIComponent(auth.companyId)}&select=name,owner_phone,sales_settings&limit=1`),
-      central(auth),
-    ])
-    const company = companyRows?.[0]
-    if (ent?.accessPaused === true) return NextResponse.json({ ok: true, skipped: true, reason: 'Cuenta pausada desde Central Llena.' })
-    if (ent?.features?.whatsapp_automations !== true) return NextResponse.json({ ok: true, skipped: true, reason: 'Automatizaciones WhatsApp no están contratadas.' })
-    if (action !== 'cash_close') return NextResponse.json({ ok: false, error: 'Automatización inválida.' }, { status: 400 })
-    if (company?.sales_settings?.whatsappCashCloseOwnerEnabled !== true) return NextResponse.json({ ok: true, skipped: true, reason: 'Envío automático de cierre desactivado.' })
-
-    const historyId = String(body?.historyId || '')
-    if (!/^[0-9a-f-]{36}$/i.test(historyId)) return NextResponse.json({ ok: false, error: 'Cierre de caja inválido.' }, { status: 400 })
-    const rows = await rest(auth, `cash_register_history?id=eq.${encodeURIComponent(historyId)}&company_id=eq.${encodeURIComponent(auth.companyId)}&select=id,summary,closing_amount,closed_at,whatsapp_owner_sent_at&limit=1`)
-    const row = rows?.[0]
-    if (!row) return NextResponse.json({ ok: false, error: 'No encontré ese cierre de caja.' }, { status: 404 })
-    if (row.whatsapp_owner_sent_at) return NextResponse.json({ ok: true, skipped: true, reason: 'El resumen de este cierre ya fue enviado.' })
-
-    const target = normalizePhone(company?.owner_phone)
-    if (target.length < 10) return NextResponse.json({ ok: true, skipped: true, reason: 'Falta cargar el WhatsApp del propietario.' })
-    const instance = instanceName(auth.companyId)
-    if (!(await connected(instance))) return NextResponse.json({ ok: true, skipped: true, reason: 'WhatsApp no está conectado.' })
-
-    const claimedAt = new Date().toISOString()
-    const claimed = await servicePatch(
-      `cash_register_history?id=eq.${encodeURIComponent(historyId)}&company_id=eq.${encodeURIComponent(auth.companyId)}&whatsapp_owner_sent_at=is.null`,
-      { whatsapp_owner_sent_at: claimedAt },
-    )
-    if (!Array.isArray(claimed) || !claimed.length) return NextResponse.json({ ok: true, skipped: true, reason: 'El resumen de este cierre ya fue procesado.' })
-
-    const summary = { ...(row.summary || {}), closing_amount: row.closing_amount, closed_at: row.closed_at }
-    try {
-      await send(instance, target, cashText(auth.companyName, summary))
-    } catch (error) {
-      if (!(error instanceof Error && error.name === 'AbortError')) {
-        try { await servicePatch(`cash_register_history?id=eq.${encodeURIComponent(historyId)}&company_id=eq.${encodeURIComponent(auth.companyId)}&whatsapp_owner_sent_at=eq.${encodeURIComponent(claimedAt)}`, { whatsapp_owner_sent_at: null }) } catch {}
-      }
-      throw error
-    }
-    return NextResponse.json({ ok: true, sent: true, action })
-  } catch (error) {
-    console.error('WhatsApp cash-close automation failed', error instanceof Error ? error.message : 'unknown_error')
-    return NextResponse.json({ ok: false, error: 'No se pudo completar el envío de WhatsApp.' }, { status: 502 })
-  }
+export async function POST() {
+  return disabled()
 }
