@@ -23,6 +23,10 @@ function persistTenant(session:any,data:any){
   localStorage.setItem('cl_user_permissions',JSON.stringify(data.permissions||{}))
 }
 
+function hasTenantSession(){
+  return Boolean(localStorage.getItem('cl_access_token')&&localStorage.getItem('cl_company_id'))
+}
+
 export default function MobileGoogleAccess(){
   const [host,setHost]=useState<HTMLElement|null>(null)
   const [busy,setBusy]=useState(false)
@@ -31,10 +35,22 @@ export default function MobileGoogleAccess(){
   useEffect(()=>{
     let active=true
     let observer:MutationObserver|null=null
+    let sessionWatch:number|undefined
+
+    function removeAccessSlot(){
+      document.querySelectorAll('.cl-mobile-google-slot').forEach(node=>node.remove())
+      if(active)setHost(null)
+    }
 
     async function resolveReturn(){
       const params=new URLSearchParams(window.location.search)
-      if(params.get('google')!=='1')return false
+      if(params.get('google')!=='1'){
+        if(hasTenantSession()){
+          removeAccessSlot()
+          return true
+        }
+        return false
+      }
       setBusy(true)
       try{
         const {data,error}=await supabase.auth.getSession()
@@ -45,9 +61,11 @@ export default function MobileGoogleAccess(){
         const result=await response.json().catch(()=>({}))
         if(response.ok&&result?.ok&&result?.existing){
           persistTenant(auth,result)
+          removeAccessSlot()
           window.location.replace('/movil')
           return true
         }
+        removeAccessSlot()
         window.location.replace('/prueba-gratis?google=1')
         return true
       }catch(e){
@@ -58,6 +76,10 @@ export default function MobileGoogleAccess(){
     }
 
     function attach(){
+      if(hasTenantSession()){
+        removeAccessSlot()
+        return true
+      }
       const form=document.querySelector('main[class*="loginScreen"] div[class*="loginCard"] form')
       if(!form||form.previousElementSibling?.classList.contains('cl-mobile-google-slot'))return Boolean(form)
       const slot=document.createElement('div')
@@ -67,14 +89,33 @@ export default function MobileGoogleAccess(){
       return true
     }
 
-    void resolveReturn().then(redirecting=>{
-      if(redirecting||!active)return
+    sessionWatch=window.setInterval(()=>{
+      if(!active||!hasTenantSession())return
+      removeAccessSlot()
+      observer?.disconnect()
+      if(sessionWatch!==undefined){window.clearInterval(sessionWatch);sessionWatch=undefined}
+    },250)
+
+    void resolveReturn().then(handled=>{
+      if(handled||!active)return
       if(attach())return
-      observer=new MutationObserver(()=>{if(attach())observer?.disconnect()})
+      observer=new MutationObserver(()=>{
+        if(hasTenantSession()){
+          removeAccessSlot()
+          observer?.disconnect()
+          return
+        }
+        if(attach())observer?.disconnect()
+      })
       observer.observe(document.body,{childList:true,subtree:true})
     })
 
-    return()=>{active=false;observer?.disconnect()}
+    return()=>{
+      active=false
+      observer?.disconnect()
+      if(sessionWatch!==undefined)window.clearInterval(sessionWatch)
+      document.querySelectorAll('.cl-mobile-google-slot').forEach(node=>node.remove())
+    }
   },[])
 
   async function startGoogle(){
