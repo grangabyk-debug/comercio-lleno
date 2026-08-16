@@ -3,6 +3,7 @@ import styles from './LandingSystemShowcase.module.css'
 import boost from './LandingSystemShowcaseBoost.module.css'
 
 const counterPhoto='https://images.pexels.com/photos/12935045/pexels-photo-12935045.jpeg?auto=compress&cs=tinysrgb&w=900'
+const supportPhoto='https://images.pexels.com/photos/16837409/pexels-photo-16837409.jpeg?auto=compress&cs=tinysrgb&w=900'
 const arcaLogo='https://arca.gob.ar/frameworkAFIP/img/logo_arca_blanco.svg'
 const mercadoPagoIcon='https://cdn.simpleicons.org/mercadopago/009EE3'
 
@@ -96,7 +97,7 @@ export default function LandingSystemShowcase(){
       </div>
 
       <div className={boost.supportCard}>
-        <div className={boost.supportAvatar}><img src={counterPhoto} alt="Atención humana para el comercio"/></div>
+        <div className={boost.supportAvatar}><img src={supportPhoto} alt="Atención humana para el comercio"/></div>
         <div className={boost.supportCopy}><span>ACOMPAÑAMIENTO</span><b>Soporte humano cuando lo necesitás.</b><small>Una plataforma simple, con ayuda real detrás.</small></div>
       </div>
 

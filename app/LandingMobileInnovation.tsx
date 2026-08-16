@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import styles from './LandingMobileInnovation.module.css'
 
 const mobilePhoto='https://images.pexels.com/photos/28153646/pexels-photo-28153646.jpeg?auto=compress&cs=tinysrgb&w=1900'
@@ -24,15 +23,14 @@ export default function LandingMobileInnovation(){
       <span className={styles.posterTag}>ANDROID · CÁMARA · ARCA</span>
     </div>
     <div className={styles.copy}>
-      <p>COMERCIO LLENO EN EL CELULAR</p>
-      <h2 id="mobile-title">La caja se mueve<br/><em>con vos.</em></h2>
-      <p className={styles.lead}>No achicamos la versión de PC. Pensamos un recorrido distinto para una mano, un mostrador y un negocio en movimiento.</p>
+      <p>TODO TU COMERCIO EN EL CELULAR</p>
+      <h2 id="mobile-title">Manejá el negocio<br/><em>desde donde estés.</em></h2>
+      <p className={styles.lead}>Comercio Lleno no es una versión de PC achicada. La experiencia móvil está pensada para que puedas vender, controlar y seguir tu comercio de manera simple desde el celular.</p>
       <div className={styles.lines}>
-        <div><span>01</span><b>Escaneá con la cámara</b><small>Leé códigos sin hardware extra.</small></div>
-        <div><span>02</span><b>Stock mientras caminás</b><small>Consultá y corregí donde está la mercadería.</small></div>
-        <div><span>03</span><b>Vendé y facturá</b><small>La operación sigue conectada con ARCA.</small></div>
+        <div><span>01</span><b>Vendé y cobrá</b><small>Nueva venta, medios de pago y facturación desde la pantalla del teléfono.</small></div>
+        <div><span>02</span><b>Controlá productos y stock</b><small>Buscá, escaneá con la cámara y revisá existencias mientras te movés por el local.</small></div>
+        <div><span>03</span><b>Seguí caja y negocio</b><small>Consultá caja, actividad e información importante sin depender de una computadora.</small></div>
       </div>
-      <Link href="/movil" className={styles.link}>Ver la experiencia móvil <span>→</span></Link>
     </div>
   </section>
 }
