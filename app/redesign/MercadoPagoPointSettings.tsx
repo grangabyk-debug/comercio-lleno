@@ -4,13 +4,15 @@ import { useEffect,useMemo,useState } from 'react'
 import type { TenantSession } from '@/lib/comercio/types'
 import styles from './mercadopago-point-settings.module.css'
 
-const SUPABASE_URL=process.env.NEXT_PUBLIC_SUPABASE_URL||'https://wtcntclzcubkbtcsqkzc.supabase.co'
+const configuredUrl=process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_URL=!configuredUrl||configuredUrl.includes('wtcntclzcubkbtcsqkzc.supabase.co')?'https://comerciolleno.supabase.co':configuredUrl
+const PUBLISHABLE_KEY=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY??'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
 const FUNCTION_URL=`${SUPABASE_URL.replace(/\/$/,'')}/functions/v1/mercadopago-point`
 
 type Terminal={id:string;pos_id?:string|null;store_id?:string|null;external_pos_id?:string|null;operating_mode?:string|null}
 type Status={app_configured:boolean;connected:boolean;ready:boolean;terminal?:{id?:string|null;operating_mode?:string|null;store_id?:string|null;pos_id?:string|null};last_error?:string|null}
 
-function authHeaders(session:TenantSession){return{apikey:process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY||'',Authorization:`Bearer ${session.accessToken}`,'Content-Type':'application/json'}}
+function authHeaders(session:TenantSession){return{apikey:PUBLISHABLE_KEY,Authorization:`Bearer ${session.token}`,'Content-Type':'application/json'}}
 
 async function callPoint(session:TenantSession,body:Record<string,unknown>){
   const response=await fetch(FUNCTION_URL,{method:'POST',headers:authHeaders(session),body:JSON.stringify(body),cache:'no-store'})
