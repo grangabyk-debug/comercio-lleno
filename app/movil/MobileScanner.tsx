@@ -9,15 +9,38 @@ import styles from './mobile-scanner.module.css'
 
 const money=new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0})
 type ScannerControls={stop:()=>void}
+type AudioWindow=Window & typeof globalThis & {webkitAudioContext?:typeof AudioContext}
 
 export default function MobileScanner(){
   const[open,setOpen]=useState(false),[error,setError]=useState(''),[code,setCode]=useState(''),[product,setProduct]=useState<Product|null>(null),[notFound,setNotFound]=useState(false),[busy,setBusy]=useState(false),[manual,setManual]=useState('')
   const[enabled,setEnabled]=useState(false),[appReady,setAppReady]=useState(false),[editPrice,setEditPrice]=useState(''),[editStock,setEditStock]=useState(''),[saving,setSaving]=useState(false)
   const[addOpen,setAddOpen]=useState(false),[newName,setNewName]=useState(''),[newPrice,setNewPrice]=useState(''),[newStock,setNewStock]=useState('')
-  const videoRef=useRef<HTMLVideoElement|null>(null),controlsRef=useRef<ScannerControls|null>(null),productsRef=useRef<Product[]>([]),lastRef=useRef(''),sessionRef=useRef<TenantSession|null>(null)
+  const videoRef=useRef<HTMLVideoElement|null>(null),controlsRef=useRef<ScannerControls|null>(null),productsRef=useRef<Product[]>([]),lastRef=useRef(''),sessionRef=useRef<TenantSession|null>(null),audioRef=useRef<AudioContext|null>(null)
 
   function canEdit(session:TenantSession|null){return Boolean(session&&(session.role==='owner'||session.permissions?.can_edit_products===true||(session.permissions?.can_edit_products==null&&session.permissions?.can_manage_stock!==false)))}
   function stop(){try{controlsRef.current?.stop()}catch{}controlsRef.current=null;if(videoRef.current){const stream=videoRef.current.srcObject as MediaStream|null;stream?.getTracks().forEach(track=>track.stop());videoRef.current.srcObject=null}}
+  function getAudioContext(){
+    try{
+      if(audioRef.current)return audioRef.current
+      const AudioContextClass=window.AudioContext||(window as AudioWindow).webkitAudioContext
+      if(!AudioContextClass)return null
+      audioRef.current=new AudioContextClass()
+      return audioRef.current
+    }catch{return null}
+  }
+  function primeAudio(){const audio=getAudioContext();if(audio?.state==='suspended')void audio.resume().catch(()=>{})}
+  function playSuccessBeep(){
+    const audio=getAudioContext();if(!audio)return
+    const play=()=>{
+      try{
+        const now=audio.currentTime,oscillator=audio.createOscillator(),gain=audio.createGain()
+        oscillator.type='sine';oscillator.frequency.setValueAtTime(1050,now)
+        gain.gain.setValueAtTime(0.0001,now);gain.gain.exponentialRampToValueAtTime(0.09,now+0.005);gain.gain.exponentialRampToValueAtTime(0.0001,now+0.08)
+        oscillator.connect(gain);gain.connect(audio.destination);oscillator.start(now);oscillator.stop(now+0.085)
+      }catch{}
+    }
+    if(audio.state==='suspended')void audio.resume().then(play).catch(()=>{});else play()
+  }
 
   async function syncEnabled(){
     const session=readTenantSession();sessionRef.current=session
@@ -67,7 +90,7 @@ export default function MobileScanner(){
     lastRef.current=value;setCode(value);stop()
     const hit=productsRef.current.find(p=>String(p.barcode||'').trim()===value)
     setProduct(hit||null);setNotFound(!hit);setAddOpen(false);setError('')
-    if(hit){setEditPrice(String(hit.price??''));setEditStock(String(hit.stock??''))}
+    if(hit){setEditPrice(String(hit.price??''));setEditStock(String(hit.stock??''));playSuccessBeep()}
     else{setNewName('');setNewPrice('');setNewStock('')}
     navigator.vibrate?.(80)
   }
@@ -89,7 +112,7 @@ export default function MobileScanner(){
   }
 
   async function openScanner(){
-    await syncEnabled()
+    primeAudio();await syncEnabled()
     const session=readTenantSession()
     if(!session)return
     const mobile=await loadMobileSettings(session).catch(()=>readCachedMobileSettings(session.companyId));if(!mobile.scannerEnabled){setEnabled(false);window.alert('El escáner está desactivado para este comercio. Podés activarlo desde Configuración.');return}
@@ -121,7 +144,7 @@ export default function MobileScanner(){
     }catch(e){setError(e instanceof Error?e.message:String(e))}finally{setSaving(false)}
   }
 
-  useEffect(()=>()=>stop(),[])
+  useEffect(()=>()=>{stop();const audio=audioRef.current;audioRef.current=null;if(audio)void audio.close().catch(()=>{})},[])
   const editable=canEdit(sessionRef.current||readTenantSession())
 
   return <>
