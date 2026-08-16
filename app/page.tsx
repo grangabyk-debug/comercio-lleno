@@ -5,6 +5,7 @@ import LandingMobileInnovation from './LandingMobileInnovation'
 import LandingQuickDemo from './LandingQuickDemo'
 import LandingSystemShowcase from './LandingSystemShowcase'
 import LandingSolutionsTeaser from './LandingSolutionsTeaser'
+import LandingHeroPromo from './LandingHeroPromo'
 import ArgentinaPride from './ArgentinaPride'
 import styles from './LandingPremium.module.css'
 import mobileFix from './LandingMobileHeaderFooterFix.module.css'
@@ -76,6 +77,7 @@ export default function LandingPage(){
       </div>
 
       <div className={styles.heroVisual}>
+        <LandingHeroPromo/>
         <div className={styles.photoFrame}>
           <img src={heroPhoto} alt="Cajera operando un sistema POS moderno en un comercio" fetchPriority="high"/>
         </div>
