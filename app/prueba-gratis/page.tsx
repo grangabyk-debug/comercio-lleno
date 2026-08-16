@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import GoogleExistingAccountGate from './GoogleExistingAccountGate'
 import TrialConversionTracker from './TrialConversionTracker'
+import TrialClarityTracker from './TrialClarityTracker'
 
 export const metadata = {
   title: 'Probá Comercio Lleno gratis por 14 días',
@@ -41,6 +42,7 @@ export default async function FreeTrialPage({ searchParams }: { searchParams: Pr
 
   return <>
     <TrialConversionTracker />
+    <TrialClarityTracker />
     <GoogleExistingAccountGate />
   </>
 }
