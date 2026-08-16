@@ -4,9 +4,10 @@ import { useMemo } from 'react'
 import core from './page.module.css'
 import enh from './enhancements.module.css'
 import type { CommerceSnapshot, Sale } from '@/lib/comercio/types'
+import { PAYMENT_METHODS, paymentTotalsByMethod } from '@/lib/comercio/payments'
 import { dayKey, Head, money, startOfDay, Trend } from './operationalShared'
 
-const payments = ['Efectivo', 'Débito', 'Crédito', 'Transferencia', 'Mercado Pago', 'Billetera Virtual']
+const payments = [...PAYMENT_METHODS]
 
 export default function ReportsEnhanced({ data }: { data: CommerceSnapshot }) {
   const now = new Date()
@@ -22,6 +23,7 @@ export default function ReportsEnhanced({ data }: { data: CommerceSnapshot }) {
     return t >= prevSevenStart && t < sevenStart
   })
   const last30 = data.sales.filter(s => new Date(s.date).getTime() >= thirtyStart)
+  const paymentTotals = useMemo(() => paymentTotalsByMethod(last30), [last30])
   const current7Total = sum(current7)
   const prev7Total = sum(prev7)
   const currentAvg = current7.length ? current7Total / current7.length : 0
@@ -102,13 +104,13 @@ export default function ReportsEnhanced({ data }: { data: CommerceSnapshot }) {
     </div>
 
     <div className={core.panel} style={{ marginTop: 14 }}>
-      <div className={core.panelTitle}><div><b>Medios de pago · últimos 30 días</b><small>Distribución de ventas</small></div></div>
+      <div className={core.panelTitle}><div><b>Medios de pago · últimos 30 días</b><small>Las ventas divididas se reparten entre cada medio por su importe real.</small></div></div>
       {payments.map(payment => {
-        const rows = last30.filter(s => s.payment === payment)
+        const totals = paymentTotals.get(payment) || { amount: 0, operations: 0 }
         return <div className={core.recentRow} key={payment}>
           <span className={core.roundIcon}>%</span>
-          <div><b>{payment}</b><small>{rows.length} operaciones</small></div>
-          <strong>{money.format(sum(rows))}</strong>
+          <div><b>{payment}</b><small>{totals.operations} operaciones</small></div>
+          <strong>{money.format(totals.amount)}</strong>
         </div>
       })}
     </div>

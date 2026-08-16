@@ -4,6 +4,7 @@ import { useState } from 'react'
 import core from './page.module.css'
 import enh from './enhancements.module.css'
 import { deleteSaleAndRestoreStock, updateSaleNote } from '@/lib/comercio/operations'
+import { paymentLabelForSale, paymentPartsForSale } from '@/lib/comercio/payments'
 import { downloadReceiptPdf, emailReceipt, printReceipt, receiptNumber } from '@/lib/comercio/receipt'
 import type { CommerceSnapshot, DeviceSettings, Sale, TenantSession } from '@/lib/comercio/types'
 import { Head, money } from './operationalShared'
@@ -24,7 +25,7 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState('')
   const q = search.trim().toLowerCase()
-  const filtered = data.sales.filter(s => `${s.id} ${s.receiptNumber || ''} ${s.payment} ${s.cae || ''} ${s.fiscal_status || ''} ${s.details?.note || ''}`.toLowerCase().includes(q))
+  const filtered = data.sales.filter(s => `${s.id} ${s.receiptNumber || ''} ${paymentLabelForSale(s)} ${paymentPartsForSale(s).map(part=>`${part.method} ${part.amount}`).join(' ')} ${s.cae || ''} ${s.fiscal_status || ''} ${s.details?.note || ''}`.toLowerCase().includes(q))
   const size = 20
   const pages = Math.max(1, Math.ceil(filtered.length / size))
   const current = Math.min(page, pages - 1)
@@ -81,6 +82,8 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
     }
   }
 
+  const selectedPayments = selected ? paymentPartsForSale(selected) : []
+
   return <>
     <Head eyebrow="GESTIÓN" title="Ventas" subtitle="Tocá cualquier venta para abrir su detalle, notas y reimpresión." />
 
@@ -93,7 +96,7 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
       {rows.map(s => <div className={`${core.tableRow} ${enh.clickRow}`} key={s.id} onClick={() => open(s)}>
         <span><b>{new Date(s.date).toLocaleDateString('es-AR')}</b><small>{new Date(s.date).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}</small></span>
         <span>{s.receiptNumber ? <><b>Factura C</b><small>{receiptNumber(s)}</small></> : <><b>Venta #{s.id.slice(0, 8)}</b><small>Sin comprobante fiscal</small></>}</span>
-        <span>{s.payment}</span>
+        <span><b>{paymentLabelForSale(s)}</b>{paymentPartsForSale(s).length>1&&<small>{paymentPartsForSale(s).map(part=>`${part.method} ${money.format(part.amount)}`).join(' · ')}</small>}</span>
         <span><b>{money.format(s.total)}</b></span>
         <span>{s.cae ? <span className={`${core.badge} ${core.badgeGreen}`}>Autorizada</span> : <span className={`${core.badge} ${core.badgeAmber}`}>Pendiente ARCA</span>}</span>
         <span style={{display:'flex',gap:8,flexWrap:'wrap'}}>
@@ -122,7 +125,7 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
 
         <div className={enh.saleInfoGrid}>
           <div><span>Total</span><b>{money.format(selected.total)}</b></div>
-          <div><span>Pago</span><b>{selected.payment}</b></div>
+          <div><span>Pago</span><b>{paymentLabelForSale(selected)}</b>{selectedPayments.length>1&&<small style={{display:'block',marginTop:4}}>{selectedPayments.map(part=>`${part.method}: ${money.format(part.amount)}`).join(' · ')}</small>}</div>
           <div><span>Cliente</span><b>{data.customers.find(c => c.id === selected.customer_id)?.name || 'Consumidor final'}</b></div>
           <div><span>Estado fiscal</span><b>{selected.cae ? 'Autorizada' : 'Pendiente ARCA'}</b></div>
           <div><span>CAE</span><b>{selected.cae || '—'}</b></div>
@@ -130,6 +133,10 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
           <div><span>Subtotal</span><b>{money.format(Number(selected.details?.subtotal_before_discount ?? selected.total))}</b></div>
           <div><span>Ahorro / descuentos</span><b>{money.format(Number(selected.details?.discount_amount || 0) + Number(selected.details?.promotion_savings || 0))}</b></div>
         </div>
+
+        {selectedPayments.length>1&&<div className={enh.itemList}>
+          {selectedPayments.map((part,index)=><div className={enh.itemRow} key={`${part.method}-${index}`}><span><b>{part.method}</b><small>Parte del pago</small></span><span></span><b>{money.format(part.amount)}</b></div>)}
+        </div>}
 
         <div className={enh.itemList}>
           {(selected.details?.items || []).length ? (selected.details?.items || []).map((i, idx) => <div className={enh.itemRow} key={`${i.product_id}-${idx}`}>
