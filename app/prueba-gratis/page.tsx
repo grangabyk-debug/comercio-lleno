@@ -1,4 +1,5 @@
 import GoogleExistingAccountGate from './GoogleExistingAccountGate'
+import TrialConversionTracker from './TrialConversionTracker'
 
 export const metadata = {
   title: 'Probá Comercio Lleno gratis por 14 días',
@@ -6,5 +7,8 @@ export const metadata = {
 }
 
 export default function FreeTrialPage() {
-  return <GoogleExistingAccountGate />
+  return <>
+    <TrialConversionTracker />
+    <GoogleExistingAccountGate />
+  </>
 }
