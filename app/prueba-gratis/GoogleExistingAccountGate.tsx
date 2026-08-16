@@ -9,7 +9,7 @@ import TrialSignup from './TrialSignup'
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcubkbtcsqkzc.supabase.co'
 const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
 const RESOLVE_FUNCTION = `${SUPABASE_URL}/functions/v1/resolve-google-tenant`
-const TRIAL_FUNCTION = `${SUPABASE_URL}/functions/v1/start-trial-simple`
+const TRIAL_FUNCTION = `${SUPABASE_URL}/functions/v1/start-trial-google`
 const SESSION_KEYS = ['cl_access_token','cl_refresh_token','cl_company_id','cl_company_name','cl_user_role','cl_user_permissions']
 
 type GoogleSession = {
