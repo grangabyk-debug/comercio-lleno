@@ -4,10 +4,11 @@
   .header{padding-left:12px!important;padding-right:10px!important;gap:10px!important;justify-content:space-between!important;overflow:visible!important}
   .brand{width:auto!important;min-width:0!important;max-width:none!important;flex:1 1 auto!important;transform:none!important;margin:0!important;position:relative!important;left:0!important;overflow:visible!important;white-space:nowrap!important}
   .brand>span{transform:none!important;transform-origin:initial!important;overflow:visible!important;white-space:nowrap!important;justify-content:flex-start!important}
-  .brand>span>span{font-size:20px!important;line-height:1!important;letter-spacing:-.075em!important;white-space:nowrap!important;overflow:visible!important}
+  .brand>span>span{font-size:25px!important;line-height:1!important;letter-spacing:-.075em!important;white-space:nowrap!important;overflow:visible!important}
   .headerActions{min-width:0!important;flex:0 0 auto!important;margin-left:auto!important;gap:0!important}
   .login{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:40px!important;padding:0 12px!important;border-radius:10px!important;background:#17121c!important;color:#fff!important;font-size:11px!important;font-weight:900!important;box-shadow:0 8px 20px rgba(23,18,28,.14)!important;white-space:nowrap!important}
   .tryButton{display:none!important}
+  :global(div[class*="heroStamp"]){z-index:20!important}
 
   .footer{gap:16px!important}
   .footerBrand{display:grid!important;grid-template-columns:1fr!important;align-items:start!important;justify-items:start!important;gap:8px!important;min-width:0!important}
@@ -16,7 +17,7 @@
 }
 
 @media(max-width:380px){
-  .brand>span>span{font-size:18px!important}
+  .brand>span>span{font-size:23px!important}
   .login{min-height:38px!important;padding:0 10px!important;font-size:10.5px!important}
   .footerBrand>span{transform:scale(.76);margin-right:-55px!important}
 }
