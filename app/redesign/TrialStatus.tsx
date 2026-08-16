@@ -28,6 +28,7 @@ export default function TrialStatus(){
   const [busy,setBusy]=useState(false)
   const [error,setError]=useState('')
   const [now,setNow]=useState(Date.now())
+  const [visible,setVisible]=useState(false)
 
   useEffect(()=>{
     const session=readTenantSession()
@@ -67,10 +68,36 @@ export default function TrialStatus(){
   const promoPrice=Number(subscription?.promo_price_amount || subscription?.price_amount || 14900)
   const regularPrice=Number(subscription?.regular_price_amount || 29800)
   const promoCycles=Number(subscription?.promo_cycles || 3)
+  const isTrialNotice=Boolean(subscription&&(subscription.status==='trialing'||subscription.status==='expired'))
+  const expired=Boolean(subscription&&(subscription.status==='expired'||days<=0))
+
+  useEffect(()=>{
+    if(!loaded||!isTrialNotice){setVisible(false);return}
+
+    let hideTimer:number|undefined
+    let repeatTimer:number|undefined
+    const displayMs=expired?4200:days<=1?3900:days===2?3600:3300
+    const repeatMs=expired?25_000:days<=1?35_000:days===2?60_000:days===3?90_000:0
+
+    const showNotice=()=>{
+      if(hideTimer)window.clearTimeout(hideTimer)
+      setVisible(true)
+      hideTimer=window.setTimeout(()=>setVisible(false),displayMs)
+    }
+
+    showNotice()
+    if(repeatMs>0)repeatTimer=window.setInterval(showNotice,repeatMs)
+
+    return()=>{
+      if(hideTimer)window.clearTimeout(hideTimer)
+      if(repeatTimer)window.clearInterval(repeatTimer)
+    }
+  },[loaded,isTrialNotice,expired,days])
 
   async function activate(){
     const session=readTenantSession()
     if(!session||busy)return
+    setVisible(true)
     setBusy(true);setError('')
     try{
       const response=await fetch(`${SUPABASE_URL}/functions/v1/mercadopago-subscription`,{
@@ -100,14 +127,18 @@ export default function TrialStatus(){
   if(!loaded||!subscription)return null
   if(subscription.status==='active')return null
   if(subscription.status!=='trialing'&&subscription.status!=='expired')return null
+  if(!visible&&!busy&&!error)return null
 
-  const expired=subscription.status==='expired'||days<=0
-  const warning=!expired&&days<=5
+  const warning=!expired&&days===3
+  const urgent=!expired&&days===2
+  const critical=expired||days<=1
   const hasPayment=Boolean(subscription.payment_method_added_at)||subscription.provider_status==='authorized'
   const pricingText=`${money.format(promoPrice)}/mes por ${promoCycles} meses (50% OFF) · después ${money.format(regularPrice)}/mes`
-  return <div className={`${styles.pill} ${expired?styles.danger:warning?styles.warning:''}`}>
+  const urgencyClass=critical?styles.danger:urgent?styles.urgent:warning?styles.warning:''
+
+  return <div className={`${styles.pill} ${urgencyClass} ${styles.attention}`} role="status" aria-live="polite">
     <i className={styles.dot}/>
-    {expired?<><b>Prueba finalizada</b><span>Activá el plan: {pricingText}.</span><button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo Mercado Pago…':'Activar con tarjeta'}</button></>:<><b>Prueba gratis</b><span>{days} día{days===1?'':'s'} restante{days===1?'':'s'} · luego {pricingText}</span>{hasPayment?<span style={{fontWeight:900,color:'#147348'}}>✓ Tarjeta asociada</span>:<button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo…':'Asociar tarjeta'}</button>}</>}
-    {error&&<span title={error}> · {error}</span>}
+    {expired?<><b>Prueba finalizada</b><span>Activá el plan: {pricingText}.</span><button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo Mercado Pago…':'Activar con tarjeta'}</button></>:<><b>Prueba gratis</b><span>{days} día{days===1?'':'s'} restante{days===1?'':'s'} · luego {pricingText}</span>{hasPayment?<span className={styles.cardReady}>Tarjeta asociada</span>:<button className={styles.button} disabled={busy} onClick={activate}>{busy?'Abriendo…':'Asociar tarjeta'}</button>}</>}
+    {error&&<span className={styles.error} title={error}>{error}</span>}
   </div>
 }
