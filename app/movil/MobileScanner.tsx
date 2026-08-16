@@ -12,7 +12,7 @@ type ScannerControls={stop:()=>void}
 
 export default function MobileScanner(){
   const[open,setOpen]=useState(false),[error,setError]=useState(''),[code,setCode]=useState(''),[product,setProduct]=useState<Product|null>(null),[notFound,setNotFound]=useState(false),[busy,setBusy]=useState(false),[manual,setManual]=useState('')
-  const[enabled,setEnabled]=useState(false),[editPrice,setEditPrice]=useState(''),[editStock,setEditStock]=useState(''),[saving,setSaving]=useState(false)
+  const[enabled,setEnabled]=useState(false),[appReady,setAppReady]=useState(false),[editPrice,setEditPrice]=useState(''),[editStock,setEditStock]=useState(''),[saving,setSaving]=useState(false)
   const[addOpen,setAddOpen]=useState(false),[newName,setNewName]=useState(''),[newPrice,setNewPrice]=useState(''),[newStock,setNewStock]=useState('')
   const videoRef=useRef<HTMLVideoElement|null>(null),controlsRef=useRef<ScannerControls|null>(null),productsRef=useRef<Product[]>([]),lastRef=useRef(''),sessionRef=useRef<TenantSession|null>(null)
 
@@ -39,6 +39,27 @@ export default function MobileScanner(){
       if(!previous||previous.companyId!==current.companyId)void syncEnabled()
     },800)
     return()=>{window.removeEventListener('comercio:mobile-settings',onSettings);window.clearInterval(timer)}
+  },[])
+
+  useEffect(()=>{
+    let timer:number|undefined
+    let shown=false
+    const sync=()=>{
+      const ready=Boolean(document.querySelector('main[class*="app"]'))
+      if(!ready){
+        if(timer!==undefined)window.clearTimeout(timer)
+        timer=undefined
+        shown=false
+        setAppReady(false)
+        return
+      }
+      if(shown||timer!==undefined)return
+      timer=window.setTimeout(()=>{shown=true;timer=undefined;setAppReady(true)},320)
+    }
+    sync()
+    const observer=new MutationObserver(sync)
+    observer.observe(document.body,{childList:true,subtree:true})
+    return()=>{observer.disconnect();if(timer!==undefined)window.clearTimeout(timer)}
   },[])
 
   function resolve(raw:string){
@@ -104,8 +125,8 @@ export default function MobileScanner(){
   const editable=canEdit(sessionRef.current||readTenantSession())
 
   return <>
-    {enabled&&Boolean(readTenantSession())&&<button className={styles.fab} onClick={()=>void openScanner()} aria-label="Escanear producto"><span>▣</span><b>Escáner</b></button>}
-    {open&&Boolean(readTenantSession())&&<div className={styles.backdrop}><div className={styles.sheet}>
+    {appReady&&enabled&&Boolean(readTenantSession())&&<button className={styles.fab} onClick={()=>void openScanner()} aria-label="Escanear producto"><span>▣</span><b>Escáner</b></button>}
+    {open&&appReady&&Boolean(readTenantSession())&&<div className={styles.backdrop}><div className={styles.sheet}>
       <div className={styles.head}><div><span>CONSULTA Y EDICIÓN</span><h2>Escáner de productos</h2></div><button onClick={close}>×</button></div>
       <div className={styles.camera}><video ref={videoRef} playsInline muted/><div className={styles.frame}/><div className={styles.hint}>{busy?'Preparando cámara…':product||notFound?'Código leído':'Apuntá al código de barras'}</div></div>
       {error&&<div className={styles.warning}>{error}</div>}
