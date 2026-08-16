@@ -91,7 +91,7 @@ export default function MercadoPagoPointSettings({session,message}:{session:Tena
 
     {!connected?<div className={styles.connectCard}>
       <div className={styles.connectText}><span>PASO 1</span><h3>Conectá tu cuenta</h3><p>No necesitás copiar Access Tokens, IDs ni claves. Vas a Mercado Pago, autorizás Comercio Lleno y volvés automáticamente.</p></div>
-      <div className={styles.connectAction}><button className={styles.primary} disabled={busy||!status?.app_configured} onClick={()=>void connect()}>{busy?'Abriendo Mercado Pago…':'Conectar Mercado Pago'}</button>{!status?.app_configured&&<small>La aplicación de Point todavía requiere completar la configuración del proveedor.</small>}</div>
+      <div className={styles.connectAction}><button className={styles.primary} disabled={busy} onClick={()=>void connect()}>{busy?'Abriendo Mercado Pago…':'Conectar Mercado Pago'}</button>{!status?.app_configured&&<small>La aplicación de Point todavía requiere completar la configuración del proveedor. Podés tocar el botón para ver exactamente qué falta.</small>}</div>
     </div>:<>
       <div className={styles.steps}>
         <div className={styles.done}><b>1</b><span><strong>Cuenta Mercado Pago</strong><small>Autorizada correctamente</small></span></div>
