@@ -4,6 +4,7 @@ import LegacyScripts from './LegacyScripts'
 import FloatingWhatsApp from './FloatingWhatsApp'
 import MarketingScripts from './MarketingScripts'
 import CookieConsent from './CookieConsent'
+import LegalServiceActions from './LegalServiceActions'
 import './globals.css'
 import './prepaint.css'
 import './design-readability.css'
@@ -73,6 +74,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Script id="private-route-guard" strategy="beforeInteractive">{privateRouteGuard}</Script>
         <MarketingScripts />
         {children}
+        <LegalServiceActions />
         <CookieConsent />
         <FloatingWhatsApp />
         <LegacyScripts />
