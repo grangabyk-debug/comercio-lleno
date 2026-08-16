@@ -37,7 +37,7 @@ export default function SolutionsPage() {
     <div className={styles.topLine} />
     <header className={styles.header}>
       <Link href="/" className={styles.brand} aria-label="Comercio Lleno"><BrandLogo size={40} /></Link>
-      <nav className={styles.nav} aria-label="Navegación principal"><Link href="/">Producto</Link><Link href="/soluciones">Soluciones</Link><Link href="/prueba-gratis">Prueba gratis</Link></nav>
+      <nav className={styles.nav} aria-label="Navegación de soluciones"><Link href="/">Producto</Link><Link href="/soluciones">Soluciones</Link><Link href="/prueba-gratis">Prueba gratis</Link></nav>
       <div className={styles.actions}><Link href="/redesign/access" className={styles.login}>Ingresar</Link><Link href="/prueba-gratis" className={styles.try}>Probar 14 días</Link></div>
     </header>
 
