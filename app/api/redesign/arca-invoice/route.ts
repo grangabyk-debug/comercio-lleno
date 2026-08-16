@@ -17,8 +17,21 @@ function errorText(data: unknown, raw: string) {
   return raw
 }
 
+function invoiceErrorText(data: unknown) {
+  if (!data || typeof data !== 'object' || !('invoice' in data)) return ''
+  const invoice = (data as { invoice?: { errors?: Array<{ code?: unknown; msg?: unknown }> } }).invoice
+  if (!Array.isArray(invoice?.errors)) return ''
+  return invoice.errors.map(error => `${String(error?.code ?? '')}: ${String(error?.msg ?? '')}`).join(' | ')
+}
+
 function isPendingResponse(status: number, data: unknown) {
   return status === 409 && Boolean(data && typeof data === 'object' && 'pending' in data && (data as { pending?: unknown }).pending)
+}
+
+function isTransientArcaFailure(status: number, data: unknown, raw: string) {
+  const message = `${errorText(data, raw)} ${invoiceErrorText(data)}`
+  if (isPendingResponse(status, data)) return true
+  return /(^|\D)(500|501)(\D|$)|error interno de aplicaci[oó]n|error interno de base de datos|FECAESolicitar|FECompUltimoAutorizado|connection request timed out|temporar|timeout|service unavailable/i.test(message)
 }
 
 function isRetryableArcaError(status: number, data: unknown, raw: string) {
@@ -26,6 +39,20 @@ function isRetryableArcaError(status: number, data: unknown, raw: string) {
   if (status < 500) return false
   const message = errorText(data, raw)
   return /(^|\D)501(\D|$)|error interno de base de datos|FECompUltimoAutorizado|temporar|timeout|service unavailable/i.test(message)
+}
+
+function transientResponse(data: unknown) {
+  const detail = invoiceErrorText(data) || (data && typeof data === 'object' && 'error' in data ? String((data as { error?: unknown }).error ?? '') : '')
+  const payload = data && typeof data === 'object' ? data as Record<string, unknown> : {}
+  return {
+    ...payload,
+    ok: false,
+    unavailable: true,
+    transient: true,
+    error: detail
+      ? `ARCA está temporalmente inestable. La venta puede guardarse como Pendiente ARCA. ${detail}`
+      : 'ARCA está temporalmente inestable. La venta puede guardarse como Pendiente ARCA.',
+  }
 }
 
 async function wait(ms: number) {
@@ -66,7 +93,14 @@ export async function POST(req: NextRequest) {
       lastTimeout = false
 
       const retry = attempt < MAX_ARCA_ATTEMPTS - 1 && isRetryableArcaError(response.status, data, text)
-      if (!retry) return NextResponse.json(data, { status: response.status })
+      if (retry) {
+        // Reintentamos sólo fallos previos a la emisión (por ejemplo FECompUltimoAutorizado).
+        // Un error de FECAESolicitar se deriva a contingencia para evitar una posible doble emisión.
+      } else if (isTransientArcaFailure(response.status, data, text)) {
+        return NextResponse.json(transientResponse(data), { status: 503 })
+      } else {
+        return NextResponse.json(data, { status: response.status })
+      }
     } catch (error) {
       const aborted = error instanceof Error && error.name === 'AbortError'
       lastTimeout = aborted
@@ -83,7 +117,12 @@ export async function POST(req: NextRequest) {
     await wait(RETRY_DELAY_MS)
   }
 
-  if (lastResponse) return NextResponse.json(lastResponse.data, { status: lastResponse.status })
+  if (lastResponse) {
+    if (isTransientArcaFailure(lastResponse.status, lastResponse.data, JSON.stringify(lastResponse.data))) {
+      return NextResponse.json(transientResponse(lastResponse.data), { status: 503 })
+    }
+    return NextResponse.json(lastResponse.data, { status: lastResponse.status })
+  }
   return NextResponse.json({
     ok: false,
     unavailable: true,
