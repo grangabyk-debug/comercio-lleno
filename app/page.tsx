@@ -13,6 +13,8 @@ const heroPhoto='https://images.pexels.com/photos/12935045/pexels-photo-12935045
 const arcaLogo='https://arca.gob.ar/frameworkAFIP/img/logo_arca_blanco.svg'
 const mercadoPagoIcon='https://cdn.simpleicons.org/mercadopago/009EE3'
 const whatsappIcon='https://cdn.simpleicons.org/whatsapp/25D366'
+const dataFiscalHref='http://qr.afip.gob.ar/?qr=ruCuZIwbDAsxcH_2p0YsXg,,'
+const dataFiscalImage='https://www.afip.gob.ar/images/f960/DATAWEB.jpg'
 
 const productFeatures=[
   'Ventas y caja',
@@ -136,7 +138,13 @@ export default function LandingPage(){
     </section>
 
     <footer className={`${styles.footer} ${mobileFix.footer}`}>
-      <div className={`${styles.footerBrand} ${mobileFix.footerBrand}`}><BrandLogo size={38}/><p>Software de gestión comercial de Llena Group.</p></div>
+      <div className={`${styles.footerBrand} ${mobileFix.footerBrand}`}>
+        <BrandLogo size={38}/>
+        <p>Software de gestión comercial de Llena Group.</p>
+        <a href={dataFiscalHref} target="_F960AFIPInfo" rel="noopener noreferrer" aria-label="Ver Data Fiscal de ARCA" style={{display:'inline-flex',marginTop:12,borderRadius:8,overflow:'hidden'}}>
+          <img src={dataFiscalImage} alt="Formulario 960/D - Data Fiscal" width="76" height="105" style={{display:'block',width:76,height:'auto'}}/>
+        </a>
+      </div>
       <div className={styles.footerLinks}><Link href="/soluciones">Soluciones</Link><Link href="/politica-de-privacidad">Privacidad</Link><Link href="/politica-de-cookies">Cookies</Link><button type="button" data-cookie-settings>Configurar cookies</button><Link href="/eliminar-cuenta">Eliminar cuenta</Link></div>
       <div className={styles.footerCta}><span>¿Querés verlo con tus datos?</span><Link href="/prueba-gratis">Empezar gratis →</Link></div>
     </footer>
