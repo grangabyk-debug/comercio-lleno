@@ -1,9 +1,10 @@
 .header{}.brand{}.headerActions{}.login{}.tryButton{}.footer{}.footerBrand{}
 
 @media(max-width:760px){
-  .header{padding-left:10px!important;padding-right:10px!important;gap:8px!important;justify-content:space-between!important}
-  .brand{width:176px!important;min-width:176px!important;flex:0 0 176px!important;transform:none!important;margin-right:0!important;position:relative;left:0!important;overflow:visible!important}
-  .brand>span{transform:scale(.72);transform-origin:left center;white-space:nowrap}
+  .header{padding-left:12px!important;padding-right:10px!important;gap:10px!important;justify-content:space-between!important;overflow:visible!important}
+  .brand{width:auto!important;min-width:0!important;max-width:none!important;flex:1 1 auto!important;transform:none!important;margin:0!important;position:relative!important;left:0!important;overflow:visible!important;white-space:nowrap!important}
+  .brand>span{transform:none!important;transform-origin:initial!important;overflow:visible!important;white-space:nowrap!important;justify-content:flex-start!important}
+  .brand>span>span{font-size:20px!important;line-height:1!important;letter-spacing:-.075em!important;white-space:nowrap!important;overflow:visible!important}
   .headerActions{min-width:0!important;flex:0 0 auto!important;margin-left:auto!important;gap:0!important}
   .login{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:40px!important;padding:0 12px!important;border-radius:10px!important;background:#17121c!important;color:#fff!important;font-size:11px!important;font-weight:900!important;box-shadow:0 8px 20px rgba(23,18,28,.14)!important;white-space:nowrap!important}
   .tryButton{display:none!important}
@@ -15,8 +16,7 @@
 }
 
 @media(max-width:380px){
-  .brand{width:154px!important;min-width:154px!important;flex-basis:154px!important}
-  .brand>span{transform:scale(.64)}
+  .brand>span>span{font-size:18px!important}
   .login{min-height:38px!important;padding:0 10px!important;font-size:10.5px!important}
   .footerBrand>span{transform:scale(.76);margin-right:-55px!important}
 }
