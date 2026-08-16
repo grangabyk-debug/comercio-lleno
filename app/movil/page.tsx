@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import MobileSimpleApp from './MobileSimpleAppV2'
 import MobileScanner from './MobileScanner'
 import MobileAiAssistant from './MobileAiAssistant'
+import MobileSupportChat from './MobileSupportChat'
 import MobilePcNotice from './MobilePcNotice'
 import MobileCashModeController from './MobileCashModeController'
 import MobileSettingsOverlay from './MobileSettingsOverlay'
@@ -19,4 +20,4 @@ import './mobile-modern-v4.css'
 
 export const metadata: Metadata={title:'Comercio Lleno · Móvil',description:'Experiencia simple de Comercio Lleno para vender y consultar productos desde el celular',robots:{index:false,follow:false}}
 export const dynamic='force-dynamic'
-export default function MobilePage(){return <><MobileRevolutionTheme/><MobileDarkTheme/><SessionFetchGuard/><SaleSearchGuard/><SubscriptionGate/><MobileSimpleApp/><MobileArcaStatus/><MobileGoogleAccess/><MobileBrandHeaderOverride/><MobileCashModeController/><MobileScanner/><MobileAiAssistant/><MobilePcNotice/><MobileSettingsOverlay/><MobileLegalLinks/><MobilePermissionsGate/></>}
+export default function MobilePage(){return <><MobileRevolutionTheme/><MobileDarkTheme/><SessionFetchGuard/><SaleSearchGuard/><SubscriptionGate/><MobileSimpleApp/><MobileArcaStatus/><MobileGoogleAccess/><MobileBrandHeaderOverride/><MobileCashModeController/><MobileScanner/><MobileAiAssistant/><MobileSupportChat/><MobilePcNotice/><MobileSettingsOverlay/><MobileLegalLinks/><MobilePermissionsGate/></>}
