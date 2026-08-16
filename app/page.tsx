@@ -117,10 +117,11 @@ export default function LandingPage(){
     <section className={styles.priceSection} id="precio">
       <div className={styles.priceMain}>
         <p>PROBALO CON TU NEGOCIO</p>
-        <h2>14 días.<br/><span>Sin compromiso.</span></h2>
+        <h2>14 días gratis.<br/><span>Sin compromiso.</span></h2>
         <p>Cargá productos, vendé y recorré el flujo completo. La mejor demo es usarlo en el mostrador.</p>
       </div>
       <div className={styles.priceOffer}>
+        <div className="landingTrialSpotlight"><strong>14 DÍAS GRATIS</strong><span>SIN TARJETA</span></div>
         <span className={styles.offerBadge}>50% OFF · PRIMEROS 3 MESES</span>
         <div className={styles.priceLine}><strong>$14.900</strong><small>/ mes</small></div>
         <p>Luego $29.800/mes. Incluye hasta 2 sucursales.</p>
