@@ -4,7 +4,7 @@ import Script from 'next/script'
 import { useCallback, useEffect, useRef } from 'react'
 import styles from './turnstile.module.css'
 
-const TURNSTILE_SITE_KEY = '0x4AAAAAAAER59hccA-oG9-Fr'
+const TURNSTILE_SITE_KEY = '0x4AAAAAAER59hccA-oG9-Fr'
 
 type Props = {
   onToken: (token: string) => void
