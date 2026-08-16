@@ -4,6 +4,7 @@ import LandingFeatureTabs from './LandingFeatureTabs'
 import LandingMobileInnovation from './LandingMobileInnovation'
 import LandingQuickDemo from './LandingQuickDemo'
 import LandingSystemShowcase from './LandingSystemShowcase'
+import LandingSolutionsTeaser from './LandingSolutionsTeaser'
 import ArgentinaPride from './ArgentinaPride'
 import styles from './LandingPremium.module.css'
 import mobileFix from './LandingMobileHeaderFooterFix.module.css'
@@ -47,6 +48,7 @@ export default function LandingPage(){
       <Link href="/" className={`${styles.brand} ${mobileFix.brand}`} aria-label="Comercio Lleno"><BrandLogo size={42}/></Link>
       <nav className={styles.nav} aria-label="Navegación principal">
         <a href="#producto">Producto</a>
+        <Link href="/soluciones">Soluciones</Link>
         <a href="#movil">Móvil</a>
         <a href="#precio">Precio</a>
         <a href="#preguntas">Preguntas</a>
@@ -94,6 +96,7 @@ export default function LandingPage(){
     </section>
 
     <LandingSystemShowcase/>
+    <LandingSolutionsTeaser/>
 
     <section className={styles.productSection} id="producto">
       <div className={styles.sectionHeading}>
@@ -134,7 +137,7 @@ export default function LandingPage(){
 
     <footer className={`${styles.footer} ${mobileFix.footer}`}>
       <div className={`${styles.footerBrand} ${mobileFix.footerBrand}`}><BrandLogo size={38}/><p>Software de gestión comercial de Llena Group.</p></div>
-      <div className={styles.footerLinks}><Link href="/politica-de-privacidad">Privacidad</Link><Link href="/politica-de-cookies">Cookies</Link><button type="button" data-cookie-settings>Configurar cookies</button><Link href="/eliminar-cuenta">Eliminar cuenta</Link></div>
+      <div className={styles.footerLinks}><Link href="/soluciones">Soluciones</Link><Link href="/politica-de-privacidad">Privacidad</Link><Link href="/politica-de-cookies">Cookies</Link><button type="button" data-cookie-settings>Configurar cookies</button><Link href="/eliminar-cuenta">Eliminar cuenta</Link></div>
       <div className={styles.footerCta}><span>¿Querés verlo con tus datos?</span><Link href="/prueba-gratis">Empezar gratis →</Link></div>
     </footer>
 
