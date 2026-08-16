@@ -1,1 +1,1 @@
-export default function WhatsappPreviewShortcut(){return <div style={{position:'fixed',right:18,bottom:18,zIndex:99999}}><a href="/whatsapp-preview" style={{display:'inline-flex',alignItems:'center',gap:8,textDecoration:'none',background:'#137a58',color:'#fff',fontWeight:900,padding:'12px 16px',borderRadius:14,boxShadow:'0 10px 28px rgba(19,122,88,.28)',fontFamily:'Arial, Helvetica, sans-serif'}}>WhatsApp QR · PRUEBA</a></div>}
+export default function WhatsappPreviewShortcut(){return null}
