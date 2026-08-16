@@ -2,9 +2,9 @@
 .specialLegacy>section{display:none!important}
 .specialLegacy>div:nth-child(n+3){display:none!important}
 .specialPanel{margin-top:0}
-.mobileTab{white-space:nowrap}
-.mobileTabActive{background:#6d36d8!important;color:#fff!important;border-color:#6d36d8!important}
 .salesLegacy section label:first-of-type{display:none!important}
+.settingsNav{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;margin:0 0 20px;padding:14px;border:1px solid #e3e5e8;border-radius:22px;background:#fff;box-shadow:0 10px 30px rgba(20,24,31,.04)}
+.groupNav{display:grid;gap:5px;border-right:1px solid #eceef1;padding-right:13px}.groupNav button{border:0;background:transparent;text-align:left;color:#626973}.groupNav button:hover{background:#f5f6f8}.groupNav .groupActive{background:#171717!important;color:#fff!important}.subNav{display:flex;align-content:flex-start;align-items:flex-start;gap:8px;flex-wrap:wrap;padding:3px}.subNav button{border:1px solid #e0e3e7;background:#f7f8fa;color:#666d77}.subNav button:hover{border-color:#c9cdd3;background:#fff}.subNav .subActive{background:#f0e8f7!important;border-color:#d7c0e7!important;color:#633b79!important}
 
 /* Configuración: escala amplia para usuarios mayores, aplicada también a paneles especiales. */
 .host h1{font-size:36px!important;line-height:1.05!important;letter-spacing:-.04em!important}
@@ -40,6 +40,7 @@
 .host :global([class*="permissions"]) small{font-size:13px!important}
 .host :global([class*="pending"]),.host :global([class*="error"]),.host :global([class*="version"]){font-size:13.5px!important}
 
+@media(max-width:900px){.settingsNav{grid-template-columns:1fr}.groupNav{display:flex;overflow:auto;border-right:0;border-bottom:1px solid #eceef1;padding:0 0 12px}.groupNav button{white-space:nowrap}.subNav{overflow:auto;flex-wrap:nowrap}.subNav button{white-space:nowrap}}
 @media(max-width:760px){
   .host h1{font-size:31px!important}
   .host h2{font-size:25px!important}
@@ -50,4 +51,5 @@
   .host input,.host select,.host textarea{font-size:15px!important;min-height:48px!important}
   .host button,.host :global([class*="tabs"]) button{font-size:14.5px!important;min-height:47px!important}
   .host :global([class*="panel"]){padding:19px!important}
+  .settingsNav{padding:10px;border-radius:17px;margin-bottom:14px}.groupNav button,.subNav button{font-size:13px!important;min-height:42px!important;padding:10px 12px!important}
 }
