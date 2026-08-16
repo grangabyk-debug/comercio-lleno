@@ -2,6 +2,7 @@
 
 import Script from 'next/script'
 import { useCallback, useEffect, useRef } from 'react'
+import styles from './turnstile.module.css'
 
 const TURNSTILE_SITE_KEY = '0x4AAAAAAER59hccA-oG9-Fr'
 
@@ -48,13 +49,13 @@ export default function TurnstileWidget({ onToken, resetSignal }: Props) {
     }
   }, [])
 
-  return <>
+  return <div className={styles.box}>
     <Script
       src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
       strategy="afterInteractive"
       onReady={renderWidget}
       onLoad={renderWidget}
     />
-    <div ref={containerRef} aria-label="Verificación de seguridad" />
-  </>
+    <div className={styles.inner} ref={containerRef} aria-label="Verificación de seguridad" />
+  </div>
 }
