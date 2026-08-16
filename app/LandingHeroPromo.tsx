@@ -3,9 +3,12 @@ import styles from './LandingHeroPromo.module.css'
 
 export default function LandingHeroPromo(){
   return <aside className={styles.card} aria-label="Promoción Comercio Lleno">
+    <div className={styles.trialBanner}>
+      <strong>14 DÍAS GRATIS</strong>
+      <span>Probalo sin tarjeta</span>
+    </div>
     <div className={styles.topRow}>
       <span className={styles.badge}>50% OFF · PRIMEROS 3 MESES</span>
-      <span className={styles.trial}>14 días gratis</span>
     </div>
     <div className={styles.priceRow}>
       <strong>$14.900</strong>
