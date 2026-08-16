@@ -12,7 +12,7 @@ type ScannerControls={stop:()=>void}
 
 export default function MobileScanner(){
   const[open,setOpen]=useState(false),[error,setError]=useState(''),[code,setCode]=useState(''),[product,setProduct]=useState<Product|null>(null),[notFound,setNotFound]=useState(false),[busy,setBusy]=useState(false),[manual,setManual]=useState('')
-  const[enabled,setEnabled]=useState(true),[editPrice,setEditPrice]=useState(''),[editStock,setEditStock]=useState(''),[saving,setSaving]=useState(false)
+  const[enabled,setEnabled]=useState(false),[editPrice,setEditPrice]=useState(''),[editStock,setEditStock]=useState(''),[saving,setSaving]=useState(false)
   const[addOpen,setAddOpen]=useState(false),[newName,setNewName]=useState(''),[newPrice,setNewPrice]=useState(''),[newStock,setNewStock]=useState('')
   const videoRef=useRef<HTMLVideoElement|null>(null),controlsRef=useRef<ScannerControls|null>(null),productsRef=useRef<Product[]>([]),lastRef=useRef(''),sessionRef=useRef<TenantSession|null>(null)
 
@@ -21,11 +21,25 @@ export default function MobileScanner(){
 
   async function syncEnabled(){
     const session=readTenantSession();sessionRef.current=session
-    if(!session){setEnabled(true);return}
+    if(!session){setEnabled(false);setOpen(false);stop();return}
     setEnabled(readCachedMobileSettings(session.companyId).scannerEnabled)
     try{const remote=await loadMobileSettings(session);setEnabled(remote.scannerEnabled)}catch{}
   }
-  useEffect(()=>{void syncEnabled();const onSettings=(e:Event)=>{const detail=(e as CustomEvent<{scannerEnabled?:boolean}>).detail;if(detail)setEnabled(detail.scannerEnabled!==false)};window.addEventListener('comercio:mobile-settings',onSettings);return()=>window.removeEventListener('comercio:mobile-settings',onSettings)},[])
+  useEffect(()=>{
+    void syncEnabled()
+    const onSettings=(e:Event)=>{const detail=(e as CustomEvent<{scannerEnabled?:boolean}>).detail;if(detail)setEnabled(Boolean(readTenantSession())&&detail.scannerEnabled!==false)}
+    window.addEventListener('comercio:mobile-settings',onSettings)
+    const timer=window.setInterval(()=>{
+      const current=readTenantSession()
+      const previous=sessionRef.current
+      if(!current){
+        if(previous){sessionRef.current=null;setEnabled(false);setOpen(false);stop()}
+        return
+      }
+      if(!previous||previous.companyId!==current.companyId)void syncEnabled()
+    },800)
+    return()=>{window.removeEventListener('comercio:mobile-settings',onSettings);window.clearInterval(timer)}
+  },[])
 
   function resolve(raw:string){
     const value=raw.trim();if(!value||value===lastRef.current)return
@@ -56,7 +70,8 @@ export default function MobileScanner(){
   async function openScanner(){
     await syncEnabled()
     const session=readTenantSession()
-    if(session){const mobile=await loadMobileSettings(session).catch(()=>readCachedMobileSettings(session.companyId));if(!mobile.scannerEnabled){setEnabled(false);window.alert('El escáner está desactivado para este comercio. Podés activarlo desde Configuración.');return}}
+    if(!session)return
+    const mobile=await loadMobileSettings(session).catch(()=>readCachedMobileSettings(session.companyId));if(!mobile.scannerEnabled){setEnabled(false);window.alert('El escáner está desactivado para este comercio. Podés activarlo desde Configuración.');return}
     setOpen(true);window.setTimeout(()=>void start(),90)
   }
   function close(){stop();setOpen(false);setError('');setManual('');setAddOpen(false)}
@@ -89,8 +104,8 @@ export default function MobileScanner(){
   const editable=canEdit(sessionRef.current||readTenantSession())
 
   return <>
-    {enabled&&<button className={styles.fab} onClick={()=>void openScanner()} aria-label="Escanear producto"><span>▣</span><b>Escáner</b></button>}
-    {open&&<div className={styles.backdrop}><div className={styles.sheet}>
+    {enabled&&Boolean(readTenantSession())&&<button className={styles.fab} onClick={()=>void openScanner()} aria-label="Escanear producto"><span>▣</span><b>Escáner</b></button>}
+    {open&&Boolean(readTenantSession())&&<div className={styles.backdrop}><div className={styles.sheet}>
       <div className={styles.head}><div><span>CONSULTA Y EDICIÓN</span><h2>Escáner de productos</h2></div><button onClick={close}>×</button></div>
       <div className={styles.camera}><video ref={videoRef} playsInline muted/><div className={styles.frame}/><div className={styles.hint}>{busy?'Preparando cámara…':product||notFound?'Código leído':'Apuntá al código de barras'}</div></div>
       {error&&<div className={styles.warning}>{error}</div>}
