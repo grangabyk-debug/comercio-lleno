@@ -12,8 +12,7 @@ export default function LandingHeroPromo(){
       <span>/ mes</span>
     </div>
     <p>Después $29.800/mes. Incluye hasta 2 sucursales.</p>
-    <div className={styles.bottomRow}>
-      <span>Precio lanzamiento</span>
+    <div className={styles.bottomRow} style={{justifyContent:'flex-end'}}>
       <Link href="/prueba-gratis">Empezar ahora →</Link>
     </div>
   </aside>
