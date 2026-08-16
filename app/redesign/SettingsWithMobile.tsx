@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect,useRef,useState } from 'react'
-import { createPortal } from 'react-dom'
 import SettingsTenant from './SettingsTenantNext'
 import MobileSettingsPanel from './MobileSettingsPanel'
 import ArcaSetupPanel from './ArcaSetupPanel'
@@ -11,30 +10,76 @@ import StockControlSettingsPanel from './StockControlSettingsPanel'
 import WhatsAppSettingsPanel from './WhatsAppSettingsPanel'
 import WhatsAppAdvancedSettings from './WhatsAppAdvancedSettings'
 import WhatsAppAiSellerPanel from './WhatsAppAiSellerPanel'
+import MercadoPagoPointSettings from './MercadoPagoPointSettings'
 import HumanSupportChat from './HumanSupportChat'
 import wrap from './settings-with-mobile.module.css'
 import type { ArcaHealth } from '@/lib/comercio/api'
 import type { CommerceSnapshot, DeviceSettings, TenantSession } from '@/lib/comercio/types'
 
 type Props={data:CommerceSnapshot;session:TenantSession;device:DeviceSettings;setDevice:(d:DeviceSettings)=>void;arca:ArcaHealth|null;buildVersion:string;refresh:()=>Promise<void>;message:(m:string)=>void}
-type Special='none'|'mobile'|'arca'|'design'|'whatsapp'
+type Special='none'|'mobile'|'arca'|'design'|'whatsapp'|'mercadopago'
+type Group='commerce'|'sales'|'integrations'|'devices'|'access'|'system'
 const SETTINGS_TABS=new Set(['Comercio','Ventas y caja','Diseño','ARCA','Impresora y tickets','Stock','Usuarios','Actualizaciones','Mantenimiento'])
+const GROUPS:Array<{key:Group;label:string;owner?:boolean;items:Array<{key:string;label:string;special?:Special;legacy?:string}>}>=[
+  {key:'commerce',label:'Comercio',items:[{key:'commerce',label:'Datos y sucursales',legacy:'Comercio'}]},
+  {key:'sales',label:'Ventas y facturación',items:[{key:'sales',label:'Ventas y caja',legacy:'Ventas y caja'},{key:'arca',label:'ARCA',special:'arca'},{key:'stock',label:'Stock',legacy:'Stock'}]},
+  {key:'integrations',label:'Integraciones',owner:true,items:[{key:'mercadopago',label:'Mercado Pago',special:'mercadopago'},{key:'whatsapp',label:'WhatsApp',special:'whatsapp'}]},
+  {key:'devices',label:'Equipos y dispositivos',items:[{key:'printer',label:'Impresora y tickets',legacy:'Impresora y tickets'},{key:'mobile',label:'Móvil',special:'mobile'}]},
+  {key:'access',label:'Usuarios y permisos',owner:true,items:[{key:'users',label:'Usuarios',legacy:'Usuarios'}]},
+  {key:'system',label:'Sistema',owner:true,items:[{key:'design',label:'Diseño',special:'design'},{key:'updates',label:'Actualizaciones',legacy:'Actualizaciones'},{key:'maintenance',label:'Mantenimiento',legacy:'Mantenimiento'}]},
+]
 
 export default function SettingsWithMobile(props:Props){
-  const[special,setSpecial]=useState<Special>('none'),[tabHost,setTabHost]=useState<HTMLElement|null>(null),[legacyTab,setLegacyTab]=useState('Comercio')
+  const[special,setSpecial]=useState<Special>('none'),[legacyTab,setLegacyTab]=useState('Comercio'),[group,setGroup]=useState<Group>('commerce'),[tabsReady,setTabsReady]=useState(false)
   const root=useRef<HTMLDivElement|null>(null),owner=props.session.role==='owner'
-  useEffect(()=>{const find=()=>{const buttons=Array.from(root.current?.querySelectorAll('button')||[]);const arca=buttons.find(b=>(b.textContent||'').trim()==='ARCA');if(arca?.parentElement)setTabHost(arca.parentElement)};find();const t=window.setTimeout(find,40);return()=>window.clearTimeout(t)},[owner])
-  function capture(e:React.MouseEvent<HTMLDivElement>){const button=(e.target as HTMLElement).closest('button');if(!button)return;const text=(button.textContent||'').trim();if(!SETTINGS_TABS.has(text))return;setLegacyTab(text);if(text==='ARCA'&&owner)setSpecial('arca');else if(text==='Diseño'&&owner)setSpecial('design');else setSpecial('none')}
+
+  useEffect(()=>{
+    const find=()=>{
+      const buttons=Array.from(root.current?.querySelectorAll('button')||[])
+      const tabButtons=buttons.filter(b=>SETTINGS_TABS.has((b.textContent||'').trim()))
+      if(!tabButtons.length)return
+      const host=tabButtons[0]?.parentElement
+      if(host){host.style.display='none';host.setAttribute('aria-hidden','true');setTabsReady(true)}
+    }
+    find();const timer=window.setTimeout(find,60);return()=>window.clearTimeout(timer)
+  },[owner])
+
+  function capture(e:React.MouseEvent<HTMLDivElement>){
+    const button=(e.target as HTMLElement).closest('button');if(!button)return
+    const text=(button.textContent||'').trim();if(!SETTINGS_TABS.has(text))return
+    setLegacyTab(text);if(text==='ARCA'&&owner)setSpecial('arca');else if(text==='Diseño'&&owner)setSpecial('design');else setSpecial('none')
+  }
+
+  function openLegacy(label:string){
+    const button=Array.from(root.current?.querySelectorAll('button')||[]).find(b=>(b.textContent||'').trim()===label)
+    if(button instanceof HTMLButtonElement){button.click();setLegacyTab(label);setSpecial('none')}
+  }
+
+  function openItem(item:{special?:Special;legacy?:string}){if(item.special)setSpecial(item.special);else if(item.legacy)openLegacy(item.legacy)}
+  function selectGroup(next:Group){setGroup(next);const definition=GROUPS.find(x=>x.key===next);const first=definition?.items.find(item=>owner||!['arca','mobile'].includes(item.key))||definition?.items[0];if(first)openItem(first)}
+
+  const visibleGroups=GROUPS.filter(x=>owner||!x.owner)
+  const currentGroup=visibleGroups.find(x=>x.key===group)||visibleGroups[0]
   const showSpecial=special!=='none'
   const salesActive=special==='none'&&legacyTab==='Ventas y caja'
+  const activeKey=special!=='none'?special:legacyTab
+
   return <div className={wrap.host} ref={root} onClickCapture={capture}>
     <div style={{display:'none'}} aria-hidden="true"><HumanSupportChat/></div>
+    {tabsReady&&<div className={wrap.settingsNav}>
+      <div className={wrap.groupNav}>{visibleGroups.map(item=><button type="button" key={item.key} className={currentGroup?.key===item.key?wrap.groupActive:''} onClick={()=>selectGroup(item.key)}>{item.label}</button>)}</div>
+      <div className={wrap.subNav}>{currentGroup?.items.filter(item=>owner||!['arca','mobile'].includes(item.key)).map(item=>{
+        const active=item.special?activeKey===item.special:activeKey===item.legacy
+        return <button type="button" key={item.key} className={active?wrap.subActive:''} onClick={()=>openItem(item)}>{item.label}</button>
+      })}</div>
+    </div>}
+
     <div className={`${showSpecial?wrap.specialLegacy:''} ${salesActive?wrap.salesLegacy:''}`}><SettingsTenant {...props}/></div>
     {salesActive&&<StockControlSettingsPanel session={props.session} message={props.message}/>} 
     {salesActive&&<WholesalePricingSettingsPanel session={props.session} message={props.message}/>} 
-    {owner&&tabHost&&createPortal(<><button type="button" className={`${wrap.mobileTab} ${special==='mobile'?wrap.mobileTabActive:''}`} onClick={()=>setSpecial('mobile')}>Móvil</button><button type="button" className={`${wrap.mobileTab} ${special==='whatsapp'?wrap.mobileTabActive:''}`} onClick={()=>setSpecial('whatsapp')}>WhatsApp</button></>,tabHost)}
     {owner&&special==='mobile'&&<div className={wrap.specialPanel}><MobileSettingsPanel session={props.session} message={props.message}/></div>}
     {owner&&special==='whatsapp'&&<div className={wrap.specialPanel} style={{display:'grid',gap:14}}><WhatsAppSettingsPanel session={props.session} message={props.message}/><WhatsAppAdvancedSettings session={props.session} message={props.message}/><WhatsAppAiSellerPanel session={props.session} message={props.message}/></div>}
+    {owner&&special==='mercadopago'&&<div className={wrap.specialPanel}><MercadoPagoPointSettings session={props.session} message={props.message}/></div>}
     {owner&&special==='design'&&<div className={wrap.specialPanel}><DesignSettingsPanel session={props.session} message={props.message}/></div>}
     {owner&&special==='arca'&&<div className={wrap.specialPanel}><ArcaSetupPanel session={props.session} companyName={props.data.company.name} companyTaxId={props.data.company.tax_id} message={props.message}/></div>}
   </div>
