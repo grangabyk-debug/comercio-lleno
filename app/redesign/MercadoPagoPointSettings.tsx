@@ -10,7 +10,7 @@ const PUBLISHABLE_KEY=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY??'sb_publ
 const FUNCTION_URL=`${SUPABASE_URL.replace(/\/$/,'')}/functions/v1/mercadopago-point`
 
 type Terminal={id:string;pos_id?:string|null;store_id?:string|null;external_pos_id?:string|null;operating_mode?:string|null}
-type Status={app_configured:boolean;connected:boolean;ready:boolean;terminal?:{id?:string|null;operating_mode?:string|null;store_id?:string|null;pos_id?:string|null};last_error?:string|null}
+type Status={app_configured:boolean;connected:boolean;ready:boolean;connection_mode?:'own'|'oauth';terminal?:{id?:string|null;operating_mode?:string|null;store_id?:string|null;pos_id?:string|null};last_error?:string|null}
 
 function authHeaders(session:TenantSession){return{apikey:PUBLISHABLE_KEY,Authorization:`Bearer ${session.token}`,'Content-Type':'application/json'}}
 
@@ -34,14 +34,16 @@ export default function MercadoPagoPointSettings({session,message}:{session:Tena
     setLoading(true);setError('')
     try{
       const next=await callPoint(session,{action:'status'}) as Status&{ok:boolean}
-      setStatus(next)
       if(next.connected){
         const list=await callPoint(session,{action:'terminals'})
         const rows:Array<Terminal>=list.terminals||[]
         setTerminals(rows)
         const current=String(next.terminal?.id||'')
-        setSelected(current&&rows.some(x=>x.id===current)?current:(rows[0]?.id||''))
-      }else{setTerminals([]);setSelected('')}
+        const chosen=current&&rows.some(x=>x.id===current)?current:(rows[0]?.id||'')
+        setSelected(chosen)
+        const remote=rows.find(x=>x.id===current)||null
+        setStatus({...next,ready:Boolean(current&&remote?.operating_mode==='PDV'),terminal:{...(next.terminal||{}),operating_mode:remote?.operating_mode||next.terminal?.operating_mode||null,store_id:remote?.store_id||next.terminal?.store_id||null,pos_id:remote?.pos_id||next.terminal?.pos_id||null}})
+      }else{setStatus(next);setTerminals([]);setSelected('')}
     }catch(e){setError(e instanceof Error?e.message:String(e))}
     finally{setLoading(false)}
   }
@@ -52,17 +54,19 @@ export default function MercadoPagoPointSettings({session,message}:{session:Tena
     setBusy(true);setError('')
     try{
       const data=await callPoint(session,{action:'start_oauth',return_url:window.location.href})
+      if(data.own_connected){message('Mercado Pago Point conectado con las credenciales productivas del comercio.');await refresh();return}
       if(!data.auth_url)throw new Error('Mercado Pago no devolvió la pantalla de autorización.')
       window.location.assign(data.auth_url)
-    }catch(e){setError(e instanceof Error?e.message:String(e));setBusy(false)}
+    }catch(e){setError(e instanceof Error?e.message:String(e))}
+    finally{setBusy(false)}
   }
 
   async function useTerminal(){
     if(!selected)return
     setBusy(true);setError('')
     try{
-      await callPoint(session,{action:'setup_terminal',terminal_id:selected})
-      message('Point vinculado correctamente. Si Mercado Pago lo solicita, reiniciá la terminal una vez.')
+      const result=await callPoint(session,{action:'setup_terminal',terminal_id:selected})
+      message(result.needs_restart?'Point vinculado. Reiniciá la terminal una vez para que Mercado Pago aplique el modo PDV.':'Point vinculado y confirmado en modo PDV.')
       await refresh()
     }catch(e){setError(e instanceof Error?e.message:String(e))}
     finally{setBusy(false)}
@@ -80,6 +84,7 @@ export default function MercadoPagoPointSettings({session,message}:{session:Tena
 
   const ready=Boolean(status?.ready)
   const connected=Boolean(status?.connected)
+  const own=status?.connection_mode==='own'
   return <section className={styles.shell}>
     <div className={styles.header}>
       <div><span className={styles.eyebrow}>INTEGRACIONES</span><h2>Mercado Pago Point</h2><p>Conectá una cuenta de Mercado Pago y elegí el Point que va a recibir los importes desde la caja.</p></div>
@@ -90,13 +95,13 @@ export default function MercadoPagoPointSettings({session,message}:{session:Tena
     {status?.last_error&&<div className={styles.warning}>{status.last_error}</div>}
 
     {!connected?<div className={styles.connectCard}>
-      <div className={styles.connectText}><span>PASO 1</span><h3>Conectá tu cuenta</h3><p>No necesitás copiar Access Tokens, IDs ni claves. Vas a Mercado Pago, autorizás Comercio Lleno y volvés automáticamente.</p></div>
-      <div className={styles.connectAction}><button className={styles.primary} disabled={busy} onClick={()=>void connect()}>{busy?'Abriendo Mercado Pago…':'Conectar Mercado Pago'}</button>{!status?.app_configured&&<small>La aplicación de Point todavía requiere completar la configuración del proveedor. Podés tocar el botón para ver exactamente qué falta.</small>}</div>
+      <div className={styles.connectText}><span>PASO 1</span><h3>Conectá tu cuenta</h3><p>{own?'Esta es una integración propia: Comercio Lleno usa de forma segura las credenciales productivas que ya configuraste.':'No necesitás copiar Access Tokens, IDs ni claves. Vas a Mercado Pago, autorizás Comercio Lleno y volvés automáticamente.'}</p></div>
+      <div className={styles.connectAction}><button className={styles.primary} disabled={busy} onClick={()=>void connect()}>{busy?'Conectando…':'Conectar Mercado Pago'}</button>{!status?.app_configured&&<small>La aplicación de Point todavía requiere completar la configuración del proveedor. Podés tocar el botón para ver exactamente qué falta.</small>}</div>
     </div>:<>
       <div className={styles.steps}>
-        <div className={styles.done}><b>1</b><span><strong>Cuenta Mercado Pago</strong><small>Autorizada correctamente</small></span></div>
+        <div className={styles.done}><b>1</b><span><strong>Cuenta Mercado Pago</strong><small>{own?'Credenciales productivas activas':'Autorizada correctamente'}</small></span></div>
         <div className={selected?styles.done:styles.current}><b>2</b><span><strong>Elegir Point</strong><small>{terminals.length?`${terminals.length} dispositivo${terminals.length===1?'':'s'} encontrado${terminals.length===1?'':'s'}`:'Buscando dispositivos'}</small></span></div>
-        <div className={ready?styles.done:styles.current}><b>3</b><span><strong>Activar en la caja</strong><small>{ready?'Listo para recibir cobros':'Seleccioná el dispositivo'}</small></span></div>
+        <div className={ready?styles.done:styles.current}><b>3</b><span><strong>Activar en la caja</strong><small>{ready?'Modo PDV confirmado por Mercado Pago':'Falta confirmar modo PDV'}</small></span></div>
       </div>
 
       <div className={styles.grid}>
@@ -110,11 +115,11 @@ export default function MercadoPagoPointSettings({session,message}:{session:Tena
 
         <article className={styles.card}>
           <div className={styles.cardHead}><div><span>FUNCIONAMIENTO</span><h3>Qué va a pasar al cobrar</h3></div></div>
-          <div className={styles.flow}><div><b>1</b><p><strong>Elegís Mercado Pago</strong><span>en el cobro de Comercio Lleno.</span></p></div><div><b>2</b><p><strong>El importe aparece solo</strong><span>en este Point físico.</span></p></div><div><b>3</b><p><strong>El cliente paga</strong><span>con tarjeta o medio disponible.</span></p></div><div><b>4</b><p><strong>Comercio Lleno confirma</strong><span>y recién entonces cierra la venta.</span></p></div></div>
+          <div className={styles.flow}><div><b>1</b><p><strong>Elegís Mercado Pago</strong><span>en el cobro de Comercio Lleno.</span></p></div><div><b>2</b><p><strong>El importe aparece solo</strong><span>en este Point físico.</span></p></div><div><b>3</b><p><strong>El cliente paga</strong><span>con tarjeta o medio disponible.</span></p></div><div><b>4</b><p><strong>Comercio Lleno confirma</strong><span>y recién entonces cierra y factura la venta.</span></p></div></div>
         </article>
       </div>
 
-      {ready&&<div className={styles.readyCard}><div><span>LISTO PARA USAR</span><h3>Este comercio ya tiene un Point vinculado</h3><p>Terminal {String(status?.terminal?.id||'').slice(0,8)}… · modo PDV. El próximo paso es activar el envío automático desde el botón Mercado Pago del POS.</p></div><div className={styles.readyDot}/></div>}
+      {ready&&<div className={styles.readyCard}><div><span>LISTO PARA USAR</span><h3>Este comercio ya tiene un Point vinculado</h3><p>Terminal {String(status?.terminal?.id||'').slice(0,8)}… · modo PDV confirmado. El POS ya está preparado para enviar automáticamente al Point el importe completo o solamente la parte Mercado Pago de un pago dividido.</p></div><div className={styles.readyDot}/></div>}
       <div className={styles.footer}><button className={styles.danger} disabled={busy} onClick={()=>void disconnect()}>Desconectar Mercado Pago</button><span>Las credenciales se guardan cifradas y nunca se muestran al cajero.</span></div>
     </>}
   </section>
