@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect,useRef,useState } from 'react'
+import { useRef,useState } from 'react'
 import SettingsTenant from './SettingsTenantNext'
 import MobileSettingsPanel from './MobileSettingsPanel'
 import ArcaSetupPanel from './ArcaSetupPanel'
@@ -30,19 +30,8 @@ const GROUPS:Array<{key:Group;label:string;owner?:boolean;items:Array<{key:strin
 ]
 
 export default function SettingsWithMobile(props:Props){
-  const[special,setSpecial]=useState<Special>('none'),[legacyTab,setLegacyTab]=useState('Comercio'),[group,setGroup]=useState<Group>('commerce'),[tabsReady,setTabsReady]=useState(false)
+  const[special,setSpecial]=useState<Special>('none'),[legacyTab,setLegacyTab]=useState('Comercio'),[group,setGroup]=useState<Group>('commerce')
   const root=useRef<HTMLDivElement|null>(null),owner=props.session.role==='owner'
-
-  useEffect(()=>{
-    const find=()=>{
-      const buttons=Array.from(root.current?.querySelectorAll('button')||[])
-      const tabButtons=buttons.filter(b=>SETTINGS_TABS.has((b.textContent||'').trim()))
-      if(!tabButtons.length)return
-      const host=tabButtons[0]?.parentElement
-      if(host){host.style.display='none';host.setAttribute('aria-hidden','true');setTabsReady(true)}
-    }
-    find();const timer=window.setTimeout(find,60);return()=>window.clearTimeout(timer)
-  },[owner])
 
   function capture(e:React.MouseEvent<HTMLDivElement>){
     const button=(e.target as HTMLElement).closest('button');if(!button)return
@@ -51,7 +40,7 @@ export default function SettingsWithMobile(props:Props){
   }
 
   function openLegacy(label:string){
-    const button=Array.from(root.current?.querySelectorAll('button')||[]).find(b=>(b.textContent||'').trim()===label)
+    const button=Array.from(root.current?.querySelectorAll('button')||[]).find(b=>(b.textContent||'').trim()===label && b.closest(`.${wrap.legacyWrap}`))
     if(button instanceof HTMLButtonElement){button.click();setLegacyTab(label);setSpecial('none')}
   }
 
@@ -66,15 +55,16 @@ export default function SettingsWithMobile(props:Props){
 
   return <div className={wrap.host} ref={root} onClickCapture={capture}>
     <div style={{display:'none'}} aria-hidden="true"><HumanSupportChat/></div>
-    {tabsReady&&<div className={wrap.settingsNav}>
+
+    <div className={wrap.settingsNav}>
       <div className={wrap.groupNav}>{visibleGroups.map(item=><button type="button" key={item.key} className={currentGroup?.key===item.key?wrap.groupActive:''} onClick={()=>selectGroup(item.key)}>{item.label}</button>)}</div>
       <div className={wrap.subNav}>{currentGroup?.items.filter(item=>owner||!['arca','mobile'].includes(item.key)).map(item=>{
         const active=item.special?activeKey===item.special:activeKey===item.legacy
         return <button type="button" key={item.key} className={active?wrap.subActive:''} onClick={()=>openItem(item)}>{item.label}</button>
       })}</div>
-    </div>}
+    </div>
 
-    <div className={`${showSpecial?wrap.specialLegacy:''} ${salesActive?wrap.salesLegacy:''}`}><SettingsTenant {...props}/></div>
+    <div className={`${wrap.legacyWrap} ${showSpecial?wrap.specialLegacy:''} ${salesActive?wrap.salesLegacy:''}`}><SettingsTenant {...props}/></div>
     {salesActive&&<StockControlSettingsPanel session={props.session} message={props.message}/>} 
     {salesActive&&<WholesalePricingSettingsPanel session={props.session} message={props.message}/>} 
     {owner&&special==='mobile'&&<div className={wrap.specialPanel}><MobileSettingsPanel session={props.session} message={props.message}/></div>}
