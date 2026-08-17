@@ -2,8 +2,13 @@
 
 import { useEffect } from 'react'
 
-const GOOGLE_ADS_SEND_TO = 'AW-18388928228/Ng3DCJTAsOIcEOSNw8BE'
-const TRIAL_ENDPOINT_MARKER = '/functions/v1/start-trial-simple'
+const GOOGLE_ADS_SEND_TO = 'AW-18388928228/75vtCNf_9oIcEOSNw8BE'
+const TRIAL_ENDPOINT_MARKERS = [
+  '/functions/v1/start-trial-turnstile',
+  '/functions/v1/start-trial-google',
+  '/functions/v1/start-trial-simple',
+  '/functions/v1/start-trial',
+]
 const CONSENT_STORAGE_KEY = 'cl_cookie_consent_v1'
 
 type GoogleAdsWindow = Window & {
@@ -42,6 +47,10 @@ function requestUrl(input: RequestInfo | URL) {
   return input.url
 }
 
+function isTrialCreationRequest(url: string) {
+  return TRIAL_ENDPOINT_MARKERS.some((marker) => url.includes(marker))
+}
+
 export default function TrialConversionTracker() {
   useEffect(() => {
     const originalFetch = window.fetch.bind(window)
@@ -51,7 +60,7 @@ export default function TrialConversionTracker() {
 
       try {
         const url = requestUrl(args[0])
-        if (response.ok && url.includes(TRIAL_ENDPOINT_MARKER)) {
+        if (response.ok && isTrialCreationRequest(url)) {
           const data = await response.clone().json().catch(() => null)
           if (data?.ok === true && data?.company_id && data?.existing !== true) {
             fireRegistrationConversion(String(data.company_id))
