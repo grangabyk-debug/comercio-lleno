@@ -4,7 +4,8 @@ import { useLayoutEffect } from 'react'
 import { readActiveBranchId } from '@/lib/comercio/branch-context'
 
 const SUPABASE_HOST='wtcntclzcubkbtcsqkzc.supabase.co'
-const SCOPED_TABLES=new Set(['products','sales','cash_registers','cash_movements','purchases','returns','stock_movements','suspended_sales','promotions','finance_expenses'])
+const SCOPED_TABLES=new Set(['products','sales','cash_registers','cash_register_history','cash_movements','purchases','returns','stock_movements','suspended_sales','promotions','finance_expenses'])
+const SCOPED_RPCS=new Set(['persist_sale_atomic','bulk_increase_product_prices','open_cash_register_authorized'])
 
 function bodyWithBranch(body:BodyInit|null|undefined,branchId:string,rpc:string){
   if(typeof body!=='string')return body
@@ -12,6 +13,7 @@ function bodyWithBranch(body:BodyInit|null|undefined,branchId:string,rpc:string)
     const data=JSON.parse(body)
     if(rpc==='persist_sale_atomic'&&data?.p_sale&&typeof data.p_sale==='object')return JSON.stringify({...data,p_sale:{...data.p_sale,branch_id:branchId}})
     if(rpc==='bulk_increase_product_prices')return JSON.stringify({...data,p_branch_id:branchId})
+    if(rpc==='open_cash_register_authorized')return JSON.stringify({...data,p_branch_id:branchId})
     if(Array.isArray(data))return JSON.stringify(data.map(x=>x&&typeof x==='object'?{...x,branch_id:branchId}:x))
     if(data&&typeof data==='object')return JSON.stringify({...data,branch_id:branchId})
   }catch{}
@@ -27,7 +29,7 @@ function isScopedCandidate(raw:string){
     if(SCOPED_TABLES.has(resource))return true
     if(resource!=='rpc')return false
     const rpc=url.pathname.slice('/rest/v1/rpc/'.length).split('/')[0]
-    return rpc==='persist_sale_atomic'||rpc==='bulk_increase_product_prices'
+    return SCOPED_RPCS.has(rpc)
   }catch{return false}
 }
 
