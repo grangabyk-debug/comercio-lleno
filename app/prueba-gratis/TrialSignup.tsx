@@ -11,10 +11,8 @@ import styles from './trial.module.css'
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcubkbtcsqkzc.supabase.co'
 const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
 const TRIAL_FUNCTION = `${SUPABASE_URL}/functions/v1/start-trial-turnstile`
-const PROMO_PRICE = 14900
-const REGULAR_PRICE = 29800
-const promoPrice = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(PROMO_PRICE)
-const regularPrice = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(REGULAR_PRICE)
+const MONTHLY_PRICE = 14900
+const monthlyPrice = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(MONTHLY_PRICE)
 const SESSION_KEYS=['cl_access_token','cl_refresh_token','cl_company_id','cl_company_name','cl_user_role','cl_user_permissions']
 const strong=(value:string)=>value.length>=8&&/[A-Z]/.test(value)&&/\d/.test(value)&&/[^A-Za-z0-9]/.test(value)
 
@@ -52,7 +50,7 @@ export default function TrialSignup(){
       if(error)throw error
     }catch(e){
       const message=e instanceof Error?e.message:String(e)
-      setError(/provider|unsupported|not enabled/i.test(message)?'El flujo de Google ya está programado, pero el proveedor todavía no está habilitado en Supabase con las credenciales de Google.':message)
+      setError(/provider|unsupported|not enabled/i.test(message)?'El acceso con Google todavía no está disponible. Podés registrarte con email.':message)
       setGoogleBusy(false)
     }
   }
@@ -74,7 +72,7 @@ export default function TrialSignup(){
       const response=await fetch(TRIAL_FUNCTION,{method:'POST',headers:{apikey:PUBLISHABLE_KEY,'Content-Type':'application/json'},body:JSON.stringify({full_name:fullName.trim(),company_name:companyName.trim(),email:email.trim().toLowerCase(),password,website:'',turnstile_token:turnstileToken,accepted_terms:true,accepted_privacy:true})})
       const data=await response.json().catch(()=>({}))
       if(!response.ok||!data?.ok)throw new Error(data?.error||'No se pudo crear la prueba gratuita.')
-      setSuccess('Listo. Tu comercio ya está creado. Entrando al sistema…');clearPreviousTenantSession()
+      setSuccess('Listo. Tus 90 días gratis ya están activos. Entrando al sistema…');clearPreviousTenantSession()
       try{await signInTenant(email,password);location.replace('/redesign?setup=pending')}catch{setTimeout(()=>location.replace('/redesign/access'),700)}
     }catch(e){
       setError(e instanceof Error?e.message:String(e))
@@ -91,20 +89,20 @@ export default function TrialSignup(){
 
     <section className={styles.layout}>
       <div className={styles.copy}>
-        <div className={styles.eyebrow}>14 DÍAS GRATIS · SIN TARJETA</div>
+        <div className={styles.eyebrow}>PLAN IMPULSO · 3 MESES GRATIS · SIN TARJETA</div>
         <h1>Tu comercio listo<br/><span>en menos de un minuto.</span></h1>
-        <p className={styles.lead}>No te hacemos configurar todo antes de entrar. Creás la cuenta, abrimos automáticamente tu comercio y la sucursal principal, y empezás a usarlo.</p>
+        <p className={styles.lead}>Creá tu cuenta y usá Comercio Lleno completo durante 90 días por $0. Después, seguí por {monthlyPrice} por mes.</p>
         <div className={styles.simpleSteps}>
           <div><b>01</b><span><strong>Creá tu acceso</strong><small>Google o email. Sin formularios eternos.</small></span></div>
           <div><b>02</b><span><strong>Decinos cómo se llama tu comercio</strong><small>Nosotros preparamos el resto para arrancar.</small></span></div>
-          <div><b>03</b><span><strong>Entrá y usalo</strong><small>ARCA, empleados, dirección y datos fiscales se completan después.</small></span></div>
+          <div><b>03</b><span><strong>Usalo 90 días gratis</strong><small>ARCA, empleados, dirección y datos fiscales se completan después.</small></span></div>
         </div>
         <div className={styles.mobilePromise}><span>DESDE CUALQUIER LUGAR</span><strong>También podés manejar tu comercio desde el celular.</strong><small>Ventas, productos, stock, caja y seguimiento del negocio con una experiencia pensada para pantalla chica.</small></div>
-        <div className={styles.price}><div><del>{regularPrice}</del><b>{promoPrice}</b><span>/ mes</span></div><p>50% de descuento durante los primeros 3 meses. Antes, probalo 14 días gratis.</p></div>
+        <div className={styles.price}><div><b>$0</b><span>/ 90 días</span></div><p>Después {monthlyPrice} por mes. Cancelás cuando quieras.</p></div>
       </div>
 
       <div className={styles.card}>
-        <div className={styles.cardTop}><div><span>REGISTRO SIMPLE</span><h2>Empezá ahora</h2><p>Lo demás lo configurás cuando quieras.</p></div><div className={styles.timeBadge}>1 PASO</div></div>
+        <div className={styles.cardTop}><div><span>REGISTRO SIMPLE</span><h2>Activá tus 3 meses gratis</h2><p>Lo demás lo configurás cuando quieras.</p></div><div className={styles.timeBadge}>1 PASO</div></div>
 
         <button type="button" className={styles.googleButton} onClick={()=>void startGoogle()} disabled={googleBusy||busy}><GoogleMark/><span>{googleBusy?'Abriendo Google…':'Continuar con Google'}</span></button>
         <p className={styles.googleHint}>Google completa tu nombre y email. Después sólo elegís el nombre del comercio.</p>
@@ -117,7 +115,7 @@ export default function TrialSignup(){
           <TurnstileWidget onToken={setTurnstileToken} resetSignal={turnstileReset}/>
           <label className={styles.terms}><input type="checkbox" checked={accepted} onChange={e=>setAccepted(e.target.checked)}/><span>Acepto los <Link href="/terminos" target="_blank">Términos y Condiciones</Link> y la <Link href="/politica-de-privacidad" target="_blank">Política de Privacidad</Link>.</span></label>
           {error&&<div className={styles.error}>{error}</div>}{success&&<div className={styles.success}>{success}</div>}
-          <button className={styles.button} disabled={busy||googleBusy}>{busy?'Creando tu comercio…':'Crear mi comercio'}</button>
+          <button className={styles.button} disabled={busy||googleBusy}>{busy?'Creando tu comercio…':'Activar 3 meses gratis'}</button>
           <p className={styles.afterNote}>Después podés completar CUIT, dirección, facturación ARCA, empleados y sucursales desde Configuración.</p>
         </form>
       </div>
