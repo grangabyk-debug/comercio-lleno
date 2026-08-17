@@ -8,19 +8,21 @@ import DesignSettingsPanel from './DesignSettingsPanel'
 import WholesalePricingSettingsPanel from './WholesalePricingSettingsPanel'
 import StockControlSettingsPanel from './StockControlSettingsPanel'
 import MercadoPagoPointSettings from './MercadoPagoPointSettings'
+import WhatsAppCloudOfficialPanel from './WhatsAppCloudOfficialPanel'
 import HumanSupportChat from './HumanSupportChat'
 import wrap from './settings-with-mobile.module.css'
 import type { ArcaHealth } from '@/lib/comercio/api'
 import type { CommerceSnapshot, DeviceSettings, TenantSession } from '@/lib/comercio/types'
 
 type Props={data:CommerceSnapshot;session:TenantSession;device:DeviceSettings;setDevice:(d:DeviceSettings)=>void;arca:ArcaHealth|null;buildVersion:string;refresh:()=>Promise<void>;message:(m:string)=>void}
-type Special='none'|'mobile'|'arca'|'design'|'mercadopago'
+type Special='none'|'mobile'|'arca'|'design'|'mercadopago'|'whatsappofficial'
 type Group='commerce'|'sales'|'integrations'|'devices'|'access'|'system'
 const SETTINGS_TABS=new Set(['Comercio','Ventas y caja','Diseño','ARCA','Impresora y tickets','Stock','Usuarios','Actualizaciones','Mantenimiento'])
+const OFFICIAL_WHATSAPP_ENABLED=process.env.NEXT_PUBLIC_META_WHATSAPP_OFFICIAL_ENABLED==='1'
 const GROUPS:Array<{key:Group;label:string;owner?:boolean;items:Array<{key:string;label:string;special?:Special;legacy?:string}>}>=[
   {key:'commerce',label:'Comercio',items:[{key:'commerce',label:'Datos y sucursales',legacy:'Comercio'}]},
   {key:'sales',label:'Ventas y facturación',items:[{key:'sales',label:'Ventas y caja',legacy:'Ventas y caja'},{key:'arca',label:'ARCA',special:'arca'},{key:'stock',label:'Stock',legacy:'Stock'}]},
-  {key:'integrations',label:'Integraciones',owner:true,items:[{key:'mercadopago',label:'Mercado Pago',special:'mercadopago'}]},
+  {key:'integrations',label:'Integraciones',owner:true,items:[{key:'mercadopago',label:'Mercado Pago',special:'mercadopago'},...(OFFICIAL_WHATSAPP_ENABLED?[{key:'whatsappofficial',label:'WhatsApp oficial',special:'whatsappofficial' as Special}]:[])]},
   {key:'devices',label:'Equipos y dispositivos',items:[{key:'printer',label:'Impresora y tickets',legacy:'Impresora y tickets'},{key:'mobile',label:'Móvil',special:'mobile'}]},
   {key:'access',label:'Usuarios y permisos',owner:true,items:[{key:'users',label:'Usuarios',legacy:'Usuarios'}]},
   {key:'system',label:'Sistema',owner:true,items:[{key:'design',label:'Diseño',special:'design'},{key:'updates',label:'Actualizaciones',legacy:'Actualizaciones'},{key:'maintenance',label:'Mantenimiento',legacy:'Mantenimiento'}]},
@@ -66,6 +68,7 @@ export default function SettingsWithMobile(props:Props){
     {salesActive&&<WholesalePricingSettingsPanel session={props.session} message={props.message}/>} 
     {owner&&special==='mobile'&&<div className={wrap.specialPanel}><MobileSettingsPanel session={props.session} message={props.message}/></div>}
     {owner&&special==='mercadopago'&&<div className={wrap.specialPanel}><MercadoPagoPointSettings session={props.session} message={props.message}/></div>}
+    {owner&&special==='whatsappofficial'&&OFFICIAL_WHATSAPP_ENABLED&&<div className={wrap.specialPanel}><WhatsAppCloudOfficialPanel session={props.session} message={props.message}/></div>}
     {owner&&special==='design'&&<div className={wrap.specialPanel}><DesignSettingsPanel session={props.session} message={props.message}/></div>}
     {owner&&special==='arca'&&<div className={wrap.specialPanel}><ArcaSetupPanel session={props.session} companyName={props.data.company.name} companyTaxId={props.data.company.tax_id} message={props.message}/></div>}
   </div>
