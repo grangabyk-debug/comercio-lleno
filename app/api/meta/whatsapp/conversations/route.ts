@@ -1,4 +1,4 @@
-import { apiError, requireMetaTenantSession, supabaseAdminRest, supabaseUserRest } from '@/lib/meta-whatsapp-server'
+import { apiError, metaGraphRequest, requireMetaTenantSession, supabaseAdminRest, supabaseUserRest } from '@/lib/meta-whatsapp-server'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -54,6 +54,40 @@ export async function PATCH(request: Request) {
     if (!conversationId || String(body?.action || '') !== 'mark_read') {
       return Response.json({ ok: false, error: 'Solicitud inválida.' }, { status: 400 })
     }
+
+    const conversationResponse = await supabaseUserRest(
+      session,
+      `whatsapp_cloud_conversations?id=eq.${encodeURIComponent(conversationId)}&company_id=eq.${encodeURIComponent(session.companyId)}&select=id&limit=1`,
+    )
+    const conversations = await conversationResponse.json().catch(() => [])
+    if (!conversationResponse.ok) throw new Error(conversations?.message || 'No se pudo validar la conversación.')
+    if (!Array.isArray(conversations) || !conversations[0]?.id) {
+      return Response.json({ ok: false, error: 'Conversación no encontrada.' }, { status: 404 })
+    }
+
+    const [accountResponse, messageResponse] = await Promise.all([
+      supabaseUserRest(
+        session,
+        `whatsapp_cloud_accounts?company_id=eq.${encodeURIComponent(session.companyId)}&select=phone_number_id,status,registered&limit=1`,
+      ),
+      supabaseUserRest(
+        session,
+        `whatsapp_cloud_messages?conversation_id=eq.${encodeURIComponent(conversationId)}&company_id=eq.${encodeURIComponent(session.companyId)}&direction=eq.inbound&external_message_id=not.is.null&select=external_message_id&order=created_at.desc&limit=1`,
+      ),
+    ])
+    const accounts = await accountResponse.json().catch(() => [])
+    const messages = await messageResponse.json().catch(() => [])
+    if (!accountResponse.ok || !messageResponse.ok) throw new Error('No se pudo sincronizar la lectura de la conversación.')
+
+    const account = Array.isArray(accounts) ? accounts[0] : null
+    const latestInboundId = Array.isArray(messages) ? String(messages[0]?.external_message_id || '') : ''
+    if (account?.phone_number_id && account?.status === 'connected' && account?.registered && latestInboundId) {
+      await metaGraphRequest(`${account.phone_number_id}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ messaging_product: 'whatsapp', status: 'read', message_id: latestInboundId }),
+      })
+    }
+
     const response = await supabaseAdminRest(
       `whatsapp_cloud_conversations?id=eq.${encodeURIComponent(conversationId)}&company_id=eq.${encodeURIComponent(session.companyId)}`,
       {
@@ -63,7 +97,7 @@ export async function PATCH(request: Request) {
       },
     )
     if (!response.ok) throw new Error('No se pudo marcar la conversación como leída.')
-    return Response.json({ ok: true })
+    return Response.json({ ok: true, syncedWithMeta: Boolean(latestInboundId && account?.phone_number_id) })
   } catch (error) {
     return apiError(error)
   }
