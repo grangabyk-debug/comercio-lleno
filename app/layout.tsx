@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
 import LegacyScripts from './LegacyScripts'
-import TemporaryWhatsAppHide from './TemporaryWhatsAppHide'
-import MetaWhatsAppSdk from './MetaWhatsAppSdk'
 import MarketingScripts from './MarketingScripts'
 import CookieConsent from './CookieConsent'
 import LegalServiceActions from './LegalServiceActions'
+import FloatingWhatsApp from './FloatingWhatsApp'
 import './globals.css'
 import './prepaint.css'
 import './design-readability.css'
@@ -77,10 +76,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="es" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <Script id="private-route-guard" strategy="beforeInteractive">{privateRouteGuard}</Script>
-        <MetaWhatsAppSdk />
-        <TemporaryWhatsAppHide />
         <MarketingScripts />
         {children}
+        <FloatingWhatsApp />
         <LegalServiceActions />
         <CookieConsent />
         <LegacyScripts />
