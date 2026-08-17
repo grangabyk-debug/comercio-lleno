@@ -1,0 +1,5 @@
+/* Contraste de etiquetas en Configuración > Datos y sucursales */
+[data-branch-settings-runtime="true"] article > div:first-child > div:first-child > span:first-child {
+  color: #ffffff !important;
+  text-shadow: 0 1px 1px rgba(0,0,0,.18) !important;
+}
