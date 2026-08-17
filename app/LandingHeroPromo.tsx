@@ -14,7 +14,8 @@ export default function LandingHeroPromo(){
       <strong>$0</strong>
       <span>/ 90 días</span>
     </div>
-    <p>Después $14.900/mes. Cancelás cuando quieras.</p>
+    <p>Después, 3 meses a $14.900/mes. Luego $29.800/mes.</p>
+    <div className={styles.limits}>Incluye 1 sucursal · hasta 1.000 productos · 500 comprobantes ARCA. <Link href="/terminos">Ver condiciones</Link></div>
     <div className={styles.bottomRow} style={{justifyContent:'flex-end'}}>
       <Link href="/prueba-gratis">Activar 3 meses gratis →</Link>
     </div>
