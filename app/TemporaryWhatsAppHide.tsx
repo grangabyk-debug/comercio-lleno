@@ -11,7 +11,12 @@ function findControl(target:EventTarget|null){
   return control instanceof HTMLElement?control:null
 }
 
+function isOfficialControl(control:HTMLElement){
+  return Boolean(control.closest('[data-whatsapp-official="true"]'))
+}
+
 function isWhatsAppControl(control:HTMLElement){
+  if(isOfficialControl(control))return false
   const href=control.getAttribute('href')||''
   const label=[control.textContent||'',control.getAttribute('aria-label')||'',control.getAttribute('title')||''].join(' ')
   return WHATSAPP_HREF.test(href)||WHATSAPP_LABEL.test(label)
