@@ -1,4 +1,12 @@
-import { apiError, metaGraphRequest, requireMetaTenantSession, supabaseUserRest } from '@/lib/meta-whatsapp-server'
+import {
+  apiError,
+  metaAdminSystemUserToken,
+  metaGraphRequest,
+  metaProviderBusinessId,
+  metaProviderSystemUserId,
+  requireMetaTenantSession,
+  supabaseUserRest,
+} from '@/lib/meta-whatsapp-server'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -37,6 +45,30 @@ async function readAccount(session: Awaited<ReturnType<typeof requireMetaTenantS
   return (Array.isArray(data) ? data[0] : null) as CloudAccount | null
 }
 
+async function ensureSystemUserAssigned(wabaId: string) {
+  const businessId = metaProviderBusinessId()
+  const systemUserId = metaProviderSystemUserId()
+  const adminToken = metaAdminSystemUserToken()
+  if (!businessId || !systemUserId || !adminToken) {
+    throw new Error('Falta completar en el servidor el Business ID, System User ID o token administrativo de Meta.')
+  }
+
+  const assigned = await metaGraphRequest(
+    `${wabaId}/assigned_users?business=${encodeURIComponent(businessId)}`,
+    {},
+    adminToken,
+  )
+  const users = Array.isArray(assigned?.data) ? assigned.data : []
+  if (users.some((item: any) => String(item?.id || '') === systemUserId)) return true
+
+  await metaGraphRequest(
+    `${wabaId}/assigned_users?user=${encodeURIComponent(systemUserId)}&tasks=${encodeURIComponent(JSON.stringify(['MANAGE']))}`,
+    { method: 'POST' },
+    adminToken,
+  )
+  return true
+}
+
 export async function GET(request: Request) {
   try {
     const session = await requireMetaTenantSession(request)
@@ -70,7 +102,9 @@ export async function POST(request: Request) {
     }
 
     const existing = await readAccount(session)
-    const phoneList = await metaGraphRequest(`${wabaId}/phone_numbers`)
+    await ensureSystemUserAssigned(wabaId)
+
+    const phoneList = await metaGraphRequest(`${wabaId}/phone_numbers?fields=id,display_phone_number,verified_name,quality_rating,name_status`)
     const phones = Array.isArray(phoneList?.data) ? phoneList.data : []
     const phone = requestedPhoneId
       ? phones.find((item: any) => String(item?.id || '') === requestedPhoneId)
@@ -87,6 +121,7 @@ export async function POST(request: Request) {
           displayPhoneNumber: String(item?.display_phone_number || ''),
           verifiedName: String(item?.verified_name || ''),
           qualityRating: String(item?.quality_rating || ''),
+          nameStatus: String(item?.name_status || ''),
         })),
       }, { status: 409 })
     }
@@ -117,12 +152,13 @@ export async function POST(request: Request) {
       display_phone_number: phone?.display_phone_number ? String(phone.display_phone_number) : null,
       verified_name: phone?.verified_name ? String(phone.verified_name) : null,
       quality_rating: phone?.quality_rating ? String(phone.quality_rating) : null,
+      name_status: phone?.name_status ? String(phone.name_status) : null,
       status: registered ? 'connected' : 'pending',
       subscribed: true,
       registered,
       connected_at: registered ? (existing?.connected_at || now) : null,
-      last_error: registered ? null : 'Falta completar el registro del número con el PIN de verificación en dos pasos.',
-      metadata: { source: 'meta_embedded_signup', graphVersion: 'v26.0' },
+      last_error: registered ? null : 'La cuenta y el número ya fueron detectados. Falta registrar el número con un PIN de 6 dígitos.',
+      metadata: { source: 'meta_embedded_signup', graphVersion: 'v26.0', systemUserAssigned: true },
       updated_at: now,
     }
 
@@ -142,6 +178,33 @@ export async function POST(request: Request) {
       needsRegistration: !registered,
       account: Array.isArray(saved) ? saved[0] || payload : payload,
     })
+  } catch (error) {
+    return apiError(error)
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const session = await requireMetaTenantSession(request, true)
+    const account = await readAccount(session)
+    if (!account) return Response.json({ ok: true, disconnected: true })
+
+    if (account.waba_id && account.subscribed) {
+      await metaGraphRequest(`${account.waba_id}/subscribed_apps`, { method: 'DELETE' })
+    }
+
+    const now = new Date().toISOString()
+    const patch = await supabaseUserRest(
+      session,
+      `whatsapp_cloud_accounts?company_id=eq.${encodeURIComponent(session.companyId)}`,
+      {
+        method: 'PATCH',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({ status: 'disconnected', subscribed: false, registered: false, last_error: null, updated_at: now }),
+      },
+    )
+    if (!patch.ok) throw new Error('No se pudo actualizar el estado de la conexión.')
+    return Response.json({ ok: true, disconnected: true })
   } catch (error) {
     return apiError(error)
   }
