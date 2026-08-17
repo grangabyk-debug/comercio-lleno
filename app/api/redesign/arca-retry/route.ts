@@ -48,10 +48,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(invoice, { status: invoiceRes.status || 502 })
   }
 
-  const details = { ...(sale.details || {}) }
+  const details = {
+    ...(sale.details || {}),
+    cae: String(invoice.cae || ''),
+    receipt_number: Number(invoice.receipt_number),
+    cae_expiration: invoice.cae_expiration || null,
+    fiscal_retried_at: new Date().toISOString(),
+  }
   delete details.fiscal_pending_reason
   delete details.fiscal_pending_since
-  details.fiscal_retried_at = new Date().toISOString()
 
   const patchRes = await rest(authorization, `sales?id=eq.${encodeURIComponent(sale.id)}`, {
     method: 'PATCH',
@@ -59,9 +64,8 @@ export async function POST(req: NextRequest) {
     body: JSON.stringify({
       receipt_type: 'factura_c',
       fiscal_status: 'authorized',
-      receipt_number: Number(invoice.receipt_number),
+      receipt_number: String(invoice.receipt_number),
       cae: String(invoice.cae || ''),
-      cae_expiration: invoice.cae_expiration || null,
       details,
     }),
   })
