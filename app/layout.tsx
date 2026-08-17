@@ -14,6 +14,7 @@ import './dashboard-image-polish.css'
 import './brand-global.css'
 import './mobile-targeted-fixes.css'
 import './landing-price-offer-boost.css'
+import './redesign/branch-contrast-fix.css'
 
 const faviconUrl='/comercio-lleno-favicon-v3.svg?v=20260815'
 
