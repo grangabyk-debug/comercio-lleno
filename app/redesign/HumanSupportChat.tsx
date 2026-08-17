@@ -125,7 +125,7 @@ export default function HumanSupportChat(){
         const type=recorder.mimeType||mime||'audio/webm';const blob=new Blob(chunksRef.current,{type});chunksRef.current=[]
         if(!blob.size){setError('No se grabó audio. Probá nuevamente.');return}
         setSending(true)
-        try{const file=new File([blob],`mensaje-voz.${extensionFor(type)}`,{type});setState(await sendSupportMedia(file,'audio',{durationMs:duration}));setError('')}
+        try{const uploadType=type.split(';')[0]||'audio/webm';const file=new File([blob],`mensaje-voz.${extensionFor(uploadType)}`,{type:uploadType});setState(await sendSupportMedia(file,'audio',{durationMs:duration}));setError('')}
         catch(value){setError(value instanceof Error?value.message:'No se pudo enviar el audio.')}
         finally{setSending(false)}
       }
