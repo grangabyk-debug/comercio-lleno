@@ -49,8 +49,48 @@ type StoredEvent = {
   received_at: string
 }
 
-function extractEvents(payload: any, rawBody: string): Array<Omit<StoredEvent, 'company_id' | 'received_at'>> {
-  const result: Array<Omit<StoredEvent, 'company_id' | 'received_at'>> = []
+type ExtractedEvent = Omit<StoredEvent, 'company_id' | 'received_at'> & {
+  contactPhone?: string
+  contactName?: string
+  message?: any
+  status?: any
+}
+
+function cleanPhone(value: unknown) {
+  return String(value || '').replace(/\D/g, '').slice(0, 20)
+}
+
+function messageBody(message: any) {
+  const type = String(message?.type || 'unknown')
+  if (type === 'text') return String(message?.text?.body || '')
+  if (type === 'button') return String(message?.button?.text || message?.button?.payload || '')
+  if (type === 'interactive') {
+    return String(
+      message?.interactive?.button_reply?.title ||
+      message?.interactive?.list_reply?.title ||
+      message?.interactive?.nfm_reply?.body ||
+      '[Respuesta interactiva]',
+    )
+  }
+  if (type === 'image') return String(message?.image?.caption || '[Imagen]')
+  if (type === 'document') return String(message?.document?.caption || message?.document?.filename || '[Documento]')
+  if (type === 'audio') return '[Audio]'
+  if (type === 'video') return String(message?.video?.caption || '[Video]')
+  if (type === 'sticker') return '[Sticker]'
+  if (type === 'location') return '[Ubicación]'
+  if (type === 'contacts') return '[Contacto]'
+  if (type === 'reaction') return String(message?.reaction?.emoji || '[Reacción]')
+  return `[${type}]`
+}
+
+function metaTimestamp(value: unknown, fallback: string) {
+  const seconds = Number(value)
+  if (!Number.isFinite(seconds) || seconds <= 0) return fallback
+  return new Date(seconds * 1000).toISOString()
+}
+
+function extractEvents(payload: any, rawBody: string): ExtractedEvent[] {
+  const result: ExtractedEvent[] = []
   const entries = Array.isArray(payload?.entry) ? payload.entry : []
 
   entries.forEach((entry: any, entryIndex: number) => {
@@ -60,18 +100,28 @@ function extractEvents(payload: any, rawBody: string): Array<Omit<StoredEvent, '
       const field = String(change?.field || 'unknown')
       const value = change?.value && typeof change.value === 'object' ? change.value : {}
       const phoneNumberId = value?.metadata?.phone_number_id ? String(value.metadata.phone_number_id) : ''
+      const contacts = Array.isArray(value?.contacts) ? value.contacts : []
+      const contactMap = new Map<string, string>()
+      contacts.forEach((contact: any) => {
+        const waId = cleanPhone(contact?.wa_id)
+        if (waId) contactMap.set(waId, String(contact?.profile?.name || '').trim())
+      })
       const messages = Array.isArray(value?.messages) ? value.messages : []
       const statuses = Array.isArray(value?.statuses) ? value.statuses : []
 
       if (messages.length) {
         messages.forEach((message: any, itemIndex: number) => {
+          const contactPhone = cleanPhone(message?.from)
           result.push({
             event_key: eventKey(rawBody, `${entryIndex}:${changeIndex}:message:${itemIndex}`),
             waba_id: wabaId || null,
             phone_number_id: phoneNumberId || null,
             event_type: `${field}:message`,
             external_message_id: message?.id ? String(message.id) : null,
-            payload: { object: payload?.object || null, entryId: wabaId || null, field, metadata: value?.metadata || null, contacts: value?.contacts || null, message },
+            payload: { object: payload?.object || null, entryId: wabaId || null, field, metadata: value?.metadata || null, contacts, message },
+            contactPhone,
+            contactName: contactMap.get(contactPhone) || '',
+            message,
           })
         })
       }
@@ -85,6 +135,8 @@ function extractEvents(payload: any, rawBody: string): Array<Omit<StoredEvent, '
             event_type: `${field}:status`,
             external_message_id: status?.id ? String(status.id) : null,
             payload: { object: payload?.object || null, entryId: wabaId || null, field, metadata: value?.metadata || null, status },
+            contactPhone: cleanPhone(status?.recipient_id),
+            status,
           })
         })
       }
@@ -113,6 +165,81 @@ function extractEvents(payload: any, rawBody: string): Array<Omit<StoredEvent, '
     })
   }
   return result
+}
+
+async function conversationFor(companyId: string, phone: string, name: string, preview: string, inboundAt: string) {
+  const query = `whatsapp_cloud_conversations?company_id=eq.${encodeURIComponent(companyId)}&customer_phone=eq.${encodeURIComponent(phone)}&select=id,unread_count&limit=1`
+  const currentResponse = await adminRest(query)
+  const currentRows = await currentResponse?.json().catch(() => [])
+  const current = Array.isArray(currentRows) ? currentRows[0] : null
+  const patch = {
+    customer_name: name || null,
+    status: 'open',
+    unread_count: Number(current?.unread_count || 0) + 1,
+    last_message_preview: preview.slice(0, 280),
+    last_message_at: inboundAt,
+    last_inbound_at: inboundAt,
+    updated_at: new Date().toISOString(),
+  }
+  if (current?.id) {
+    await adminRest(`whatsapp_cloud_conversations?id=eq.${encodeURIComponent(String(current.id))}`, {
+      method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(patch),
+    })
+    return String(current.id)
+  }
+  const insert = await adminRest('whatsapp_cloud_conversations', {
+    method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ company_id: companyId, customer_phone: phone, ...patch }),
+  })
+  const rows = await insert?.json().catch(() => [])
+  return Array.isArray(rows) && rows[0]?.id ? String(rows[0].id) : ''
+}
+
+async function persistInbound(companyId: string, item: ExtractedEvent, receivedAt: string) {
+  const phone = cleanPhone(item.contactPhone)
+  const message = item.message
+  const externalId = String(item.external_message_id || '')
+  if (!phone || !message || !externalId) return
+
+  const existing = await adminRest(`whatsapp_cloud_messages?external_message_id=eq.${encodeURIComponent(externalId)}&select=id&limit=1`)
+  const existingRows = await existing?.json().catch(() => [])
+  if (Array.isArray(existingRows) && existingRows[0]?.id) return
+
+  const body = messageBody(message)
+  const createdAt = metaTimestamp(message?.timestamp, receivedAt)
+  const conversationId = await conversationFor(companyId, phone, String(item.contactName || ''), body, createdAt)
+  if (!conversationId) return
+
+  await adminRest('whatsapp_cloud_messages', {
+    method: 'POST',
+    headers: { Prefer: 'return=minimal' },
+    body: JSON.stringify({
+      company_id: companyId,
+      conversation_id: conversationId,
+      external_message_id: externalId,
+      direction: 'inbound',
+      message_type: String(message?.type || 'unknown'),
+      body,
+      status: 'received',
+      payload: message,
+      created_at: createdAt,
+    }),
+  })
+}
+
+async function persistStatus(companyId: string, item: ExtractedEvent, receivedAt: string) {
+  const status = item.status
+  const externalId = String(item.external_message_id || '')
+  if (!status || !externalId) return
+  const value = String(status?.status || 'unknown').toLowerCase()
+  const timestamp = metaTimestamp(status?.timestamp, receivedAt)
+  const patch: Record<string, unknown> = { status: value, payload: status }
+  if (value === 'sent') patch.sent_at = timestamp
+  if (value === 'delivered') patch.delivered_at = timestamp
+  if (value === 'read') patch.read_at = timestamp
+  await adminRest(
+    `whatsapp_cloud_messages?company_id=eq.${encodeURIComponent(companyId)}&external_message_id=eq.${encodeURIComponent(externalId)}`,
+    { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(patch) },
+  )
 }
 
 export async function GET(request: Request) {
@@ -157,6 +284,7 @@ export async function POST(request: Request) {
   const extracted = extractEvents(payload, rawBody)
   const companyCache = new Map<string, string | null>()
   const rows: StoredEvent[] = []
+  const resolved: Array<{ companyId: string | null; item: ExtractedEvent }> = []
 
   for (const item of extracted) {
     const cacheKey = `${item.phone_number_id || ''}|${item.waba_id || ''}`
@@ -165,7 +293,17 @@ export async function POST(request: Request) {
       companyId = await resolveCompany(item.waba_id || '', item.phone_number_id || '')
       companyCache.set(cacheKey, companyId)
     }
-    rows.push({ ...item, company_id: companyId, received_at: receivedAt })
+    rows.push({
+      event_key: item.event_key,
+      company_id: companyId,
+      waba_id: item.waba_id,
+      phone_number_id: item.phone_number_id,
+      event_type: item.event_type,
+      external_message_id: item.external_message_id,
+      payload: item.payload,
+      received_at: receivedAt,
+    })
+    resolved.push({ companyId, item })
   }
 
   const insert = await adminRest('whatsapp_cloud_events?on_conflict=event_key', {
@@ -177,6 +315,16 @@ export async function POST(request: Request) {
     const detail = await insert?.text().catch(() => '')
     console.error('[meta-whatsapp-webhook] no se pudieron persistir eventos', detail)
     return Response.json({ received: true, processed: false }, { status: 200 })
+  }
+
+  for (const { companyId, item } of resolved) {
+    if (!companyId) continue
+    try {
+      if (item.message) await persistInbound(companyId, item, receivedAt)
+      if (item.status) await persistStatus(companyId, item, receivedAt)
+    } catch (error) {
+      console.error('[meta-whatsapp-webhook] error normalizando conversación', error instanceof Error ? error.message : String(error))
+    }
   }
 
   const touchedCompanies = [...new Set(rows.map(row => row.company_id).filter(Boolean))] as string[]
