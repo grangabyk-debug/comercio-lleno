@@ -13,7 +13,6 @@ import mobileFix from './LandingMobileHeaderFooterFix.module.css'
 const heroPhoto='https://images.pexels.com/photos/12935045/pexels-photo-12935045.jpeg?auto=compress&cs=tinysrgb&w=2200'
 const arcaLogo='https://arca.gob.ar/frameworkAFIP/img/logo_arca_blanco.svg'
 const mercadoPagoIcon='https://cdn.simpleicons.org/mercadopago/009EE3'
-const whatsappIcon='https://cdn.simpleicons.org/whatsapp/25D366'
 const dataFiscalHref='http://qr.afip.gob.ar/?qr=ruCuZIwbDAsxcH_2p0YsXg,,'
 const dataFiscalImage='https://www.afip.gob.ar/images/f960/DATAWEB.jpg'
 
@@ -26,20 +25,19 @@ const productFeatures=[
   'Inteligencia artificial',
   'Lectores USB e impresoras térmicas',
   'Integración con Mercado Pago',
-  'WhatsApp + IA',
 ]
 
 export const metadata={
   title:'Comercio Lleno | Sistema POS online para comercios en Argentina',
-  description:'Sistema POS online para vender, controlar stock y caja, facturar con ARCA y gestionar el comercio desde computadora o celular.',
+  description:'Sistema POS online para vender, controlar stock y caja, facturar con ARCA y gestionar el comercio desde computadora o celular. Probalo gratis durante 3 meses.',
   keywords:['sistema pos argentina','punto de venta','software para comercios','facturación ARCA','control de stock','caja diaria','POS online'],
   alternates:{canonical:'https://comerciolleno.com'},
-  openGraph:{title:'Comercio Lleno | Un sistema para todo tu comercio',description:'Ventas, stock, caja y facturación ARCA en una experiencia simple y moderna.',url:'https://comerciolleno.com',siteName:'Comercio Lleno',locale:'es_AR',type:'website'},
+  openGraph:{title:'Comercio Lleno | Un sistema para todo tu comercio',description:'Ventas, stock, caja y facturación ARCA. Plan Impulso: 3 meses gratis y después $14.900 por mes.',url:'https://comerciolleno.com',siteName:'Comercio Lleno',locale:'es_AR',type:'website'},
   robots:{index:true,follow:true},
 }
 
 export default function LandingPage(){
-  const softwareLd={'@context':'https://schema.org','@type':'SoftwareApplication',name:'Comercio Lleno',applicationCategory:'BusinessApplication',operatingSystem:'Web, Android',url:'https://comerciolleno.com',description:'Sistema POS online para comercios con ventas, stock, caja, facturación ARCA y versión móvil.',offers:{'@type':'Offer',price:'14900',priceCurrency:'ARS',description:'14 días gratis; luego $14.900 por mes durante los primeros 3 meses. Desde el cuarto mes, $29.800 por mes.'},featureList:productFeatures}
+  const softwareLd={'@context':'https://schema.org','@type':'SoftwareApplication',name:'Comercio Lleno',applicationCategory:'BusinessApplication',operatingSystem:'Web, Android',url:'https://comerciolleno.com',description:'Sistema POS online para comercios con ventas, stock, caja, facturación ARCA y versión móvil.',offers:{'@type':'Offer',price:'0',priceCurrency:'ARS',description:'Plan Impulso: 90 días gratis. Después $14.900 por mes. Cancelación disponible cuando quieras.'},featureList:productFeatures}
   const organizationLd={'@context':'https://schema.org','@type':'Organization',name:'Llena Group',brand:{'@type':'Brand',name:'Comercio Lleno'},url:'https://comerciolleno.com'}
 
   return <main className={styles.page}>
@@ -58,21 +56,21 @@ export default function LandingPage(){
       </nav>
       <div className={`${styles.headerActions} ${mobileFix.headerActions}`}>
         <Link href="/redesign/access" className={`${styles.login} ${mobileFix.login}`}>Ingresar</Link>
-        <Link href="/prueba-gratis" className={`${styles.tryButton} ${mobileFix.tryButton}`}>Probar gratis</Link>
+        <Link href="/prueba-gratis" className={`${styles.tryButton} ${mobileFix.tryButton}`}>3 meses gratis</Link>
       </div>
     </header>
 
     <section className={styles.hero}>
       <div className={styles.heroCopy}>
-        <p className={styles.kicker}><span>●</span> POS ONLINE PARA COMERCIOS ARGENTINOS</p>
+        <p className={styles.kicker}><span>●</span> PLAN IMPULSO · POR TIEMPO LIMITADO</p>
         <h1>El sistema que<br/><span className={styles.violet}>trabaja con vos.</span></h1>
-        <p className={styles.heroLead}>Vendé, facturá con ARCA, controlá stock y caja, y seguí el negocio desde el celular. Potente por dentro. Simple en el mostrador.</p>
+        <p className={styles.heroLead}>Vendé, facturá con ARCA, controlá stock y caja, y seguí el negocio desde el celular. Usalo completo durante 3 meses sin pagar.</p>
         <div className={styles.heroActions}>
-          <Link href="/prueba-gratis" className={styles.primary}>Empezar 14 días gratis <span>→</span></Link>
+          <Link href="/prueba-gratis" className={styles.primary}>Activar 3 meses gratis <span>→</span></Link>
           <LandingQuickDemo/>
         </div>
         <div className={styles.heroFacts}>
-          <span>Sin tarjeta</span><span>Configuración guiada</span><span>Web + Android</span>
+          <span>$0 por 90 días</span><span>Sin tarjeta</span><span>Después $14.900/mes</span>
         </div>
       </div>
 
@@ -92,7 +90,6 @@ export default function LandingPage(){
       <div className={styles.integrationRail}>
         <span className={styles.arca}><img src={arcaLogo} alt="ARCA"/></span>
         <span><img src={mercadoPagoIcon} alt="Mercado Pago" style={{width:28,height:28,marginBottom:7}}/><b>Mercado Pago</b><small>integración de cobro</small></span>
-        <span><img src={whatsappIcon} alt="WhatsApp" style={{width:27,height:27,marginBottom:7}}/><b>WhatsApp + IA</b><small>mensajes y automatización</small></span>
         <span><b>OpenAI</b><small>modelos usados por el asistente</small></span>
         <span><b>Scanner USB</b><small>códigos de barra</small></span>
         <span><b>58 / 80 mm</b><small>impresora térmica</small></span>
@@ -116,23 +113,24 @@ export default function LandingPage(){
 
     <section className={styles.priceSection} id="precio">
       <div className={styles.priceMain}>
-        <p>PROBALO CON TU NEGOCIO</p>
-        <h2>14 días gratis.<br/><span>Sin compromiso.</span></h2>
-        <p>Cargá productos, vendé y recorré el flujo completo. La mejor demo es usarlo en el mostrador.</p>
+        <p>PLAN IMPULSO</p>
+        <h2>3 meses gratis.<br/><span>Después, $14.900 por mes.</span></h2>
+        <p>Usá Comercio Lleno de verdad durante 90 días: cargá productos, vendé, controlá caja, stock y recorré todo el sistema sin pagar.</p>
       </div>
       <div className={styles.priceOffer}>
-        <div className="landingTrialSpotlight"><strong>14 DÍAS GRATIS</strong><span>SIN TARJETA</span></div>
-        <span className={styles.offerBadge}>50% OFF · PRIMEROS 3 MESES</span>
-        <div className={styles.priceLine}><strong>$14.900</strong><small>/ mes</small></div>
-        <p>Luego $29.800/mes. Incluye hasta 2 sucursales.</p>
-        <Link href="/prueba-gratis">Crear mi cuenta <span>→</span></Link>
-        <small className={styles.supportNote}>Soporte humano para configuración y puesta en marcha.</small>
+        <div className="landingTrialSpotlight"><strong>90 DÍAS · $0</strong><span>SIN TARJETA</span></div>
+        <span className={styles.offerBadge}>PLAN IMPULSO · TIEMPO LIMITADO</span>
+        <div className={styles.priceLine}><strong>$0</strong><small>/ primeros 3 meses</small></div>
+        <p>Después $14.900/mes. Cancelás cuando quieras.</p>
+        <Link href="/prueba-gratis">Activar mis 3 meses gratis <span>→</span></Link>
+        <small className={styles.supportNote}>Acceso completo y soporte humano para configuración y puesta en marcha.</small>
       </div>
     </section>
 
     <section className={styles.moreInfo} id="preguntas" aria-label="Más información">
       <div><p>LO QUE SUELE IMPORTAR</p><h2>Respuestas cortas.<br/>Como debe ser.</h2></div>
       <div className={styles.detailsList}>
+        <details><summary>¿Cuánto cuesta el Plan Impulso?<span>+</span></summary><p>Los primeros 90 días son gratis. Después, el abono base es de $14.900 por mes y podés cancelar cuando quieras.</p></details>
         <details><summary>¿Puedo facturar con ARCA?<span>+</span></summary><p>Sí. Una vez configurado el certificado y el punto de venta, la facturación queda integrada al flujo de venta.</p></details>
         <details><summary>¿Funciona con Mercado Pago, scanner e impresora?<span>+</span></summary><p>El sistema contempla integración con Mercado Pago y compatibilidad con lectores de códigos USB e impresoras térmicas de 58 y 80 mm.</p></details>
         <details><summary>¿Qué hace la inteligencia artificial?<span>+</span></summary><p>El asistente puede consultar ventas, stock y tendencias del comercio. Utiliza modelos de IA —incluidos modelos de OpenAI— a través de nuestra infraestructura.</p></details>
@@ -149,9 +147,9 @@ export default function LandingPage(){
         </a>
       </div>
       <div className={styles.footerLinks}><Link href="/soluciones">Soluciones</Link><Link href="/politica-de-privacidad">Privacidad</Link><Link href="/politica-de-cookies">Cookies</Link><button type="button" data-cookie-settings>Configurar cookies</button><Link href="/eliminar-cuenta">Eliminar cuenta</Link></div>
-      <div className={styles.footerCta}><span>¿Querés verlo con tus datos?</span><Link href="/prueba-gratis">Empezar gratis →</Link></div>
+      <div className={styles.footerCta}><span>¿Querés probarlo con tu comercio?</span><Link href="/prueba-gratis">Activar 3 meses gratis →</Link></div>
     </footer>
 
-    <div className={styles.mobileSticky}><div><b>14 días gratis</b><span>Sin tarjeta</span></div><Link href="/prueba-gratis">Probar ahora</Link></div>
+    <div className={styles.mobileSticky}><div><b>3 meses gratis</b><span>Después $14.900/mes</span></div><Link href="/prueba-gratis">Activar ahora</Link></div>
   </main>
 }
