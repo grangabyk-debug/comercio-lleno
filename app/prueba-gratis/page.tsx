@@ -4,8 +4,8 @@ import TrialConversionTracker from './TrialConversionTracker'
 import TrialClarityTracker from './TrialClarityTracker'
 
 export const metadata = {
-  title: 'Probá Comercio Lleno gratis por 14 días',
-  description: 'Creá tu comercio en un solo paso y empezá una prueba gratuita de 14 días de Comercio Lleno.',
+  title: 'Probá Comercio Lleno gratis por 3 meses',
+  description: 'Creá tu comercio en un solo paso y usá Comercio Lleno gratis durante 90 días. Después, $14.900 por mes.',
 }
 
 type SearchParams = Record<string, string | string[] | undefined>
