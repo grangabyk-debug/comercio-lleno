@@ -27,6 +27,7 @@ import AccessibilityScale from './AccessibilityScale'
 import PreviewVisualFixes from './PreviewVisualFixes'
 import PettyCashRuntimeStable from './PettyCashRuntimeStable'
 import DisplayFitControl from './DisplayFitControl'
+import PromoLimitsRuntime from './PromoLimitsRuntime'
 
 const posLayoutGuard = `
 /*
@@ -151,6 +152,7 @@ export default function RedesignPage(){
     <FinanceRuntime/>
     <BranchTopbarRuntime/>
     <BranchSettingsRuntime/>
+    <PromoLimitsRuntime/>
     <style id="cl-pos-layout-guard">{posLayoutGuard}</style>
     <CommerceApp buildVersion={buildVersion}/>
     <PreviewVisualFixes/>
