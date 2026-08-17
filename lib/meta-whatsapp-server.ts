@@ -58,8 +58,34 @@ export async function supabaseUserRest(session: MetaTenantSession, path: string,
   return fetch(`${SUPABASE_URL}/rest/v1/${path.replace(/^\/+/, '')}`, { ...init, headers, cache: 'no-store' })
 }
 
+export function supabaseServiceRoleKey() {
+  return (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim()
+}
+
+export async function supabaseAdminRest(path: string, init: RequestInit = {}) {
+  const serviceRole = supabaseServiceRoleKey()
+  if (!serviceRole) throw new MetaWhatsAppError('Falta configurar la credencial segura del servidor para persistir WhatsApp.', 503)
+  const headers = new Headers(init.headers)
+  headers.set('apikey', serviceRole)
+  headers.set('Authorization', `Bearer ${serviceRole}`)
+  if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
+  return fetch(`${SUPABASE_URL}/rest/v1/${path.replace(/^\/+/, '')}`, { ...init, headers, cache: 'no-store' })
+}
+
 export function metaSystemUserToken() {
   return (process.env.META_WHATSAPP_SYSTEM_USER_ACCESS_TOKEN || '').trim()
+}
+
+export function metaAdminSystemUserToken() {
+  return (process.env.META_WHATSAPP_ADMIN_SYSTEM_USER_ACCESS_TOKEN || metaSystemUserToken()).trim()
+}
+
+export function metaProviderBusinessId() {
+  return (process.env.META_WHATSAPP_BUSINESS_ID || '').trim()
+}
+
+export function metaProviderSystemUserId() {
+  return (process.env.META_WHATSAPP_SYSTEM_USER_ID || '').trim()
 }
 
 export function requireMetaSystemUserToken() {
