@@ -4,7 +4,7 @@ import { useEffect,useRef,useState,type ComponentProps,CSSProperties } from 'rea
 import PosWholesale from './PosWholesale'
 import { readCachedSalesSettings,type SalesSettings } from '@/lib/comercio/sales-settings'
 import { readTenantSession } from '@/lib/comercio/session'
-import { createQrOrder,qrAmount,waitForQrApproval,type QrOrder } from '@/lib/comercio/mercadopago-qr'
+import { cancelQrOrder,createQrOrder,qrAmount,waitForQrApproval,type QrOrder } from '@/lib/comercio/mercadopago-qr'
 
 type Props=ComponentProps<typeof PosWholesale>
 const box:CSSProperties={position:'fixed',inset:0,zIndex:10100,background:'rgba(18,15,25,.62)',display:'grid',placeItems:'center',padding:18}
@@ -17,6 +17,7 @@ export default function PosPaymentsEnhanced(props:Props){
   const[qrMessage,setQrMessage]=useState('')
   const[qrOrder,setQrOrder]=useState<QrOrder|null>(null)
   const autoApplied=useRef(false)
+  const cancelRequested=useRef(false)
 
   useEffect(()=>{
     const onSettings=(e:Event)=>{const next=(e as CustomEvent<SalesSettings>).detail;if(next)setSettings(next)}
@@ -35,27 +36,48 @@ export default function PosPaymentsEnhanced(props:Props){
     props.setPaymentParts(parts)
   }
 
+  async function cancelCurrentQr(){
+    if(!qrOrder?.id)return
+    const session=readTenantSession()
+    if(!session){setQrError('La sesión venció. Volvé a ingresar para cancelar el cobro.');return}
+    cancelRequested.current=true
+    setQrMessage('Cancelando el cobro en el Point…')
+    try{
+      const canceled=await cancelQrOrder(session,qrOrder.id)
+      setQrOrder(canceled.order)
+      setQrBusy(false)
+      setQrError('Cobro cancelado. Ya podés volver a intentar.')
+    }catch(e){
+      cancelRequested.current=false
+      setQrError(e instanceof Error?e.message:String(e))
+    }
+  }
+
   async function checkout(mode:'fiscal'|'internal'){
     const amount=qrAmount(props.paymentParts,props.payment,props.total)
     if(amount<=0){props.checkout(mode);return}
     const session=readTenantSession()
     if(!session){setQrError('La sesión venció. Volvé a ingresar antes de cobrar con QR.');return}
     if(typeof navigator!=='undefined'&&!navigator.onLine){setQrError('Mercado Pago QR necesita conexión a Internet.');return}
-    setQrBusy(true);setQrError('');setQrOrder(null);setQrMessage('Enviando el cobro QR al Point de Mercado Pago…')
+    cancelRequested.current=false
+    setQrBusy(true);setQrError('');setQrOrder(null);setQrMessage('Enviando el cobro al Point de Mercado Pago…')
     try{
       const id=typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():`qr-${Date.now()}`
       const created=await createQrOrder(session,id,amount)
       setQrOrder(created.order)
-      setQrMessage('Cobro enviado al Point. El cliente debe escanear el QR que aparece en la terminal de Mercado Pago.')
-      const approved=await waitForQrApproval(session,created.order,o=>{setQrOrder(o);setQrMessage(o.approved?'Pago QR aprobado. Cerrando la venta…':`Esperando el pago en el Point · ${o.status_detail||o.status}`)})
+      setQrMessage('Cobro enviado al Point. En la terminal de Mercado Pago elegí QR para mostrárselo al cliente.')
+      const approved=await waitForQrApproval(session,created.order,o=>{setQrOrder(o);setQrMessage(o.approved?'Pago aprobado. Cerrando la venta…':`Esperando el pago en el Point · ${o.status_detail||o.status}`)})
+      if(cancelRequested.current)return
       if(!approved.approved&&approved.status!=='processed')throw new Error('Mercado Pago no confirmó el pago QR.')
       props.checkout(mode)
-    }catch(e){setQrError(e instanceof Error?e.message:String(e))}
-    finally{setQrBusy(false)}
+    }catch(e){
+      if(cancelRequested.current)setQrError('Cobro cancelado. Ya podés volver a intentar.')
+      else setQrError(e instanceof Error?e.message:String(e))
+    }finally{setQrBusy(false)}
   }
 
   return <>
     <PosWholesale {...props} setPayment={setPayment} setPaymentParts={setPaymentParts} checkout={checkout} busy={props.busy||qrBusy}/>
-    {(qrBusy||qrError)&&<div style={box}><section style={card}><div style={{fontSize:10,fontWeight:950,letterSpacing:1.4,color:'#6b3d83'}}>MERCADO PAGO QR</div><h2 style={{margin:'7px 0 10px',fontSize:22}}>{qrError?'No se pudo completar el QR':'Cobro QR enviado al Point'}</h2>{qrError?<p style={{color:'#a33832',fontWeight:750,lineHeight:1.5}}>{qrError}</p>:<><p style={{lineHeight:1.55,color:'#4f5d56'}}>{qrMessage}</p>{qrOrder&&<div style={{padding:12,borderRadius:12,background:'#f6f2f8',fontSize:11}}><b>Estado:</b> {qrOrder.status_detail||qrOrder.status}</div>}<p style={{fontSize:11,color:'#6a756f'}}>No cierres esta ventana ni vuelvas a cobrar hasta que Mercado Pago confirme el pago.</p></>}{qrError&&<button type="button" onClick={()=>setQrError('')} style={{height:42,padding:'0 18px',border:0,borderRadius:11,background:'#6b3d83',color:'#fff',fontWeight:850,cursor:'pointer'}}>Cerrar</button>}</section></div>}
+    {(qrBusy||qrError)&&<div style={box}><section style={card}><div style={{fontSize:10,fontWeight:950,letterSpacing:1.4,color:'#6b3d83'}}>MERCADO PAGO QR</div><h2 style={{margin:'7px 0 10px',fontSize:22}}>{qrError?'Cobro detenido':'Cobro enviado al Point'}</h2>{qrError?<p style={{color:'#a33832',fontWeight:750,lineHeight:1.5}}>{qrError}</p>:<><p style={{lineHeight:1.55,color:'#4f5d56'}}>{qrMessage}</p>{qrOrder&&<div style={{padding:12,borderRadius:12,background:'#f6f2f8',fontSize:11}}><b>Estado:</b> {qrOrder.status_detail||qrOrder.status}</div>}<p style={{fontSize:11,color:'#6a756f'}}>Elegí QR en el Point. No vuelvas a cobrar hasta que Mercado Pago confirme el pago o canceles esta operación.</p>{qrOrder?.id&&<button type="button" onClick={cancelCurrentQr} style={{height:42,padding:'0 18px',border:'1px solid #d8ccd8',borderRadius:11,background:'#fff',color:'#5e3b67',fontWeight:850,cursor:'pointer'}}>Cancelar cobro</button>}</>}{qrError&&<button type="button" onClick={()=>{setQrError('');cancelRequested.current=false}} style={{height:42,padding:'0 18px',border:0,borderRadius:11,background:'#6b3d83',color:'#fff',fontWeight:850,cursor:'pointer'}}>Cerrar</button>}</section></div>}
   </>
 }
