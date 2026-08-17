@@ -55,6 +55,32 @@ function transientResponse(data: unknown) {
   }
 }
 
+async function promoFiscalGate(authorization: string) {
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_promo_usage_limits`, {
+      method: 'POST',
+      headers: {
+        apikey: PUBLISHABLE_KEY,
+        Authorization: authorization,
+        'Content-Type': 'application/json',
+      },
+      body: '{}',
+      cache: 'no-store',
+    })
+    if (!response.ok) return null
+    return await response.json() as {
+      managed?: boolean
+      fiscal_count?: number
+      fiscal_limit?: number
+      fiscal_extended?: boolean
+      fiscal_extended_limit?: number
+      upgrade_price?: number
+    }
+  } catch {
+    return null
+  }
+}
+
 async function wait(ms: number) {
   await new Promise(resolve => setTimeout(resolve, ms))
 }
@@ -67,6 +93,27 @@ export async function POST(req: NextRequest) {
 
   let body: any = {}
   try { body = await req.json() } catch {}
+
+  const limits = await promoFiscalGate(authorization)
+  if (limits?.managed) {
+    const used = Number(limits.fiscal_count || 0)
+    const limit = Number(limits.fiscal_limit || 0)
+    if (limit > 0 && used >= limit) {
+      const canUpgrade = !Boolean(limits.fiscal_extended)
+      return NextResponse.json({
+        ok: false,
+        code: 'FISCAL_LIMIT_REACHED',
+        used,
+        limit,
+        upgrade_available: canUpgrade,
+        upgrade_price: canUpgrade ? Number(limits.upgrade_price || 4900) : null,
+        feature: canUpgrade ? 'fiscal_2500' : null,
+        error: canUpgrade
+          ? `Alcanzaste el límite de ${limit.toLocaleString('es-AR')} facturas ARCA del Plan Impulso. Podés ampliar hasta 2.500 por $4.900.`
+          : 'Alcanzaste el límite de 2.500 facturas ARCA de esta ampliación.',
+      }, { status: 402 })
+    }
+  }
 
   let lastResponse: { status: number; data: unknown } | null = null
   let lastTimeout = false
@@ -94,8 +141,7 @@ export async function POST(req: NextRequest) {
 
       const retry = attempt < MAX_ARCA_ATTEMPTS - 1 && isRetryableArcaError(response.status, data, text)
       if (retry) {
-        // Reintentamos sólo fallos previos a la emisión (por ejemplo FECompUltimoAutorizado).
-        // Un error de FECAESolicitar se deriva a contingencia para evitar una posible doble emisión.
+        // Reintentamos sólo fallos transitorios. El request_id mantiene la operación ligada a la venta.
       } else if (isTransientArcaFailure(response.status, data, text)) {
         return NextResponse.json(transientResponse(data), { status: 503 })
       } else {
