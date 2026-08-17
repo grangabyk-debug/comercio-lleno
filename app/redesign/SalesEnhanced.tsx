@@ -24,6 +24,7 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState('')
+  const [retryingId, setRetryingId] = useState('')
   const q = search.trim().toLowerCase()
   const filtered = data.sales.filter(s => `${s.id} ${s.receiptNumber || ''} ${paymentLabelForSale(s)} ${paymentPartsForSale(s).map(part=>`${part.method} ${part.amount}`).join(' ')} ${s.cae || ''} ${s.fiscal_status || ''} ${s.details?.note || ''}`.toLowerCase().includes(q))
   const size = 20
@@ -48,6 +49,33 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
     if (!email) email = window.prompt('Email del cliente', '') || ''
     const result = await emailReceipt(sale, data.company, email)
     if (result === 'mailto') onMessage('Abrimos tu correo y descargamos el PDF para adjuntar.')
+  }
+
+  async function retryArca(sale: Sale) {
+    if (sale.cae || retryingId) return
+    if (!navigator.onLine) { onMessage('Necesitás conexión a Internet para reintentar la facturación ARCA.'); return }
+    setRetryingId(sale.id)
+    try {
+      const response = await fetch('/api/redesign/arca-retry', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sale_id: sale.id }),
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok || !result?.ok) {
+        if (result?.code === 'FISCAL_LIMIT_REACHED' && result?.upgrade_available) {
+          window.dispatchEvent(new CustomEvent('comercio:feature-paywall', { detail: { feature: 'fiscal_2500' } }))
+        }
+        throw new Error(result?.error || 'ARCA todavía no pudo autorizar esta venta.')
+      }
+      await refresh()
+      setSelected(null)
+      onMessage(`Factura autorizada por ARCA. Comprobante ${String(result.receipt_number || '').padStart(8, '0')}.`)
+    } catch (e) {
+      onMessage(e instanceof Error ? e.message : String(e))
+    } finally {
+      setRetryingId('')
+    }
   }
 
   async function saveNote() {
@@ -101,6 +129,7 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
         <span>{s.cae ? <span className={`${core.badge} ${core.badgeGreen}`}>Autorizada</span> : <span className={`${core.badge} ${core.badgeAmber}`}>Pendiente ARCA</span>}</span>
         <span style={{display:'flex',gap:8,flexWrap:'wrap'}}>
           <button className={core.secondary} onClick={e => { e.stopPropagation(); open(s) }}>Ver venta</button>
+          {!s.cae && <button className={core.secondary} disabled={retryingId === s.id} onClick={e => { e.stopPropagation(); void retryArca(s) }}>{retryingId === s.id ? 'Reintentando…' : 'Reintentar ARCA'}</button>}
           {canDeleteSales && <button className={core.ghostDanger} disabled={deletingId === s.id} onClick={e => { e.stopPropagation(); void removeSale(s) }}>{deletingId === s.id ? 'Eliminando…' : 'Eliminar'}</button>}
         </span>
       </div>)}
@@ -134,6 +163,12 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
           <div><span>Ahorro / descuentos</span><b>{money.format(Number(selected.details?.discount_amount || 0) + Number(selected.details?.promotion_savings || 0))}</b></div>
         </div>
 
+        {!selected.cae && <div style={{margin:'14px 0',padding:14,border:'1px solid #f2c66d',borderRadius:14,background:'rgba(255,193,7,.08)'}}>
+          <b>Esta venta está pendiente de ARCA.</b>
+          <p style={{margin:'6px 0 10px'}}>Podés volver a intentar la autorización sin volver a registrar la venta.</p>
+          <button className={core.primary} disabled={retryingId === selected.id} onClick={() => void retryArca(selected)}>{retryingId === selected.id ? 'Consultando ARCA…' : 'Reintentar facturación ARCA'}</button>
+        </div>}
+
         {selectedPayments.length>1&&<div className={enh.itemList}>
           {selectedPayments.map((part,index)=><div className={enh.itemRow} key={`${part.method}-${index}`}><span><b>{part.method}</b><small>Parte del pago</small></span><span></span><b>{money.format(part.amount)}</b></div>)}
         </div>}
@@ -152,9 +187,9 @@ export default function SalesEnhanced({ data, session, search, setSearch, page, 
         </div>
 
         <div className={enh.modalButtons}>
-          <button onClick={() => doPrint(selected)}>▣ Reimprimir ticket</button>
-          {selected.cae && <button onClick={() => downloadReceiptPdf(selected, data.company)}>↓ PDF</button>}
-          {selected.cae && <button onClick={() => sendMail(selected)}>✉ Email</button>}
+          <button onClick={() => doPrint(selected)}>Reimprimir ticket</button>
+          {selected.cae && <button onClick={() => downloadReceiptPdf(selected, data.company)}>PDF</button>}
+          {selected.cae && <button onClick={() => sendMail(selected)}>Email</button>}
           <button className={enh.saveNote} disabled={saving} onClick={saveNote}>{saving ? 'Guardando…' : 'Guardar nota'}</button>
           {canDeleteSales && <button className={core.ghostDanger} disabled={Boolean(deletingId)} onClick={() => void removeSale(selected)}>{deletingId === selected.id ? 'Eliminando…' : 'Eliminar venta'}</button>}
         </div>
