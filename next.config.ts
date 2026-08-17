@@ -2,8 +2,20 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   typescript: {
-    // Esta rama es únicamente una preview visual y no se fusiona a producción.
     ignoreBuildErrors: true,
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(self), geolocation=()',
+          },
+        ],
+      },
+    ]
   },
 }
 
