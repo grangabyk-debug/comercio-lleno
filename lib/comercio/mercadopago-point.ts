@@ -1,106 +1,16 @@
 import type { TenantSession } from './types'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcubkbtcsqkzc.supabase.co'
-const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
-const FUNCTION_URL = `${SUPABASE_URL.replace(/\/$/,'')}/functions/v1/mercadopago-point`
-
-export type PointOrder = {
-  id: string
-  status: string
-  status_detail?: string
-  external_reference?: string
-  terminal_id?: string
-  payment_id?: string
-  payment_status?: string
-  amount?: number
-  final?: boolean
-  approved?: boolean
-}
-
-export type PointStatus = {
-  ok: boolean
-  connected: boolean
-  ready: boolean
-  connection_mode?: 'own'|'oauth'
-  terminal?: { id?: string|null; operating_mode?: string|null; store_id?: string|null; pos_id?: string|null }
-  last_error?: string|null
-}
-
-async function callPoint<T>(session: TenantSession, body: Record<string, unknown>): Promise<T> {
-  const response = await fetch(FUNCTION_URL, {
-    method: 'POST',
-    headers: {
-      apikey: PUBLISHABLE_KEY,
-      Authorization: `Bearer ${session.token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-    cache: 'no-store',
-  })
-  const data = await response.json().catch(() => ({})) as { ok?: boolean; error?: string } & T
-  if (!response.ok || data?.ok === false) {
-    const error = new Error(data?.error || 'No se pudo comunicar con Mercado Pago Point.') as Error & { status?: number }
-    error.status = response.status
-    throw error
-  }
-  return data
-}
-
-export async function getPointStatus(session: TenantSession) {
-  return callPoint<PointStatus>(session, { action: 'status' })
-}
-
-export async function createPointOrder(session: TenantSession, saleId: string, amount: number) {
-  return callPoint<{ ok: true; reused?: boolean; order: PointOrder }>(session, { action: 'create_order', sale_id: saleId, amount })
-}
-
-export async function getPointOrder(session: TenantSession, saleId: string, orderId?: string) {
-  return callPoint<{ ok: true; order: PointOrder }>(session, { action: 'get_order', sale_id: saleId, order_id: orderId || '' })
-}
-
-export async function cancelPointOrder(session: TenantSession, saleId: string, orderId?: string) {
-  return callPoint<{ ok: true; order: PointOrder }>(session, { action: 'cancel_order', sale_id: saleId, order_id: orderId || '' })
-}
-
-export function pointAmount(parts: Array<{method:string;amount:number}>, singleMethod: string, total: number) {
-  if (parts.length === 2) return Math.round(parts.reduce((sum, part) => /mercado\s*pago/i.test(part.method) ? sum + Number(part.amount || 0) : sum, 0) * 100) / 100
-  return /mercado\s*pago/i.test(singleMethod) ? Math.round(total * 100) / 100 : 0
-}
-
-export function pointStatusMessage(order: PointOrder) {
-  if (order.status === 'created') return 'Enviando el cobro al Point…'
-  if (order.status === 'at_terminal') return 'Cobro recibido en el Point. Esperando el pago del cliente…'
-  if (order.status === 'processed') return 'Pago aprobado. Cerrando la venta…'
-  if (order.status === 'action_required') return 'Revisá el Point para confirmar el estado del pago.'
-  if (order.status === 'failed') return 'El pago fue rechazado o falló en el Point.'
-  if (order.status === 'canceled') return 'El cobro fue cancelado.'
-  if (order.status === 'expired') return 'El cobro venció antes de completarse.'
-  return 'Esperando respuesta del Point…'
-}
-
-export async function waitForPointApproval(
-  session: TenantSession,
-  saleId: string,
-  initialOrder: PointOrder,
-  onStatus?: (order: PointOrder) => void,
-  timeoutMs = 5 * 60_000,
-) {
-  let order = initialOrder
-  onStatus?.(order)
-  const started = Date.now()
-  while (Date.now() - started < timeoutMs) {
-    if (order.approved || order.status === 'processed') return order
-    if (order.final || ['failed','canceled','expired','refunded','action_required'].includes(order.status)) {
-      const error = new Error(pointStatusMessage(order)) as Error & { order?: PointOrder }
-      error.order = order
-      throw error
-    }
-    await new Promise(resolve => setTimeout(resolve, 1300))
-    const next = await getPointOrder(session, saleId, order.id)
-    order = next.order
-    onStatus?.(order)
-  }
-  const error = new Error('El Point no confirmó el pago dentro de los 5 minutos. Revisá la terminal antes de volver a cobrar.') as Error & { order?: PointOrder }
-  error.order = order
-  throw error
-}
+const SUPABASE_URL=process.env.NEXT_PUBLIC_SUPABASE_URL??'https://wtcntclzcubkbtcsqkzc.supabase.co'
+const PUBLISHABLE_KEY=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY??'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
+const FUNCTION_URL=`${SUPABASE_URL.replace(/\/$/,'')}/functions/v1/mercadopago-point`
+export type PointOrder={id:string;status:string;status_detail?:string;external_reference?:string;terminal_id?:string;payment_id?:string;payment_status?:string;amount?:number;final?:boolean;approved?:boolean}
+export type PointStatus={ok:boolean;connected:boolean;ready:boolean;connection_mode?:'own'|'oauth';terminal?:{id?:string|null;operating_mode?:string|null;store_id?:string|null;pos_id?:string|null};last_error?:string|null}
+async function callPoint<T>(session:TenantSession,body:Record<string,unknown>):Promise<T>{const response=await fetch(FUNCTION_URL,{method:'POST',headers:{apikey:PUBLISHABLE_KEY,Authorization:`Bearer ${session.token}`,'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store'});const data=await response.json().catch(()=>({})) as {ok?:boolean;error?:string}&T;if(!response.ok||data?.ok===false){const error=new Error(data?.error||'No se pudo comunicar con Mercado Pago Point.') as Error&{status?:number};error.status=response.status;throw error}return data}
+export async function getPointStatus(session:TenantSession){return callPoint<PointStatus>(session,{action:'status'})}
+export async function createPointOrder(session:TenantSession,saleId:string,amount:number){return callPoint<{ok:true;reused?:boolean;order:PointOrder}>(session,{action:'create_order',sale_id:saleId,amount})}
+export async function getPointOrder(session:TenantSession,saleId:string,orderId?:string){return callPoint<{ok:true;order:PointOrder}>(session,{action:'get_order',sale_id:saleId,order_id:orderId||''})}
+export async function cancelPointOrder(session:TenantSession,saleId:string,orderId?:string){return callPoint<{ok:true;order:PointOrder}>(session,{action:'cancel_order',sale_id:saleId,order_id:orderId||''})}
+function isPointMethod(method:string){return /^mercado\s*pago(?:\s*point)?$/i.test(String(method||'').trim())}
+export function pointAmount(parts:Array<{method:string;amount:number}>,singleMethod:string,total:number){if(parts.length===2)return Math.round(parts.reduce((sum,part)=>isPointMethod(part.method)?sum+Number(part.amount||0):sum,0)*100)/100;return isPointMethod(singleMethod)?Math.round(total*100)/100:0}
+export function pointStatusMessage(order:PointOrder){if(order.status==='created')return'Enviando el cobro al Point…';if(order.status==='at_terminal')return'Cobro recibido en el Point. Esperando el pago del cliente…';if(order.status==='processed')return'Pago aprobado. Cerrando la venta…';if(order.status==='action_required')return'Revisá el Point para confirmar el estado del pago.';if(order.status==='failed')return'El pago fue rechazado o falló en el Point.';if(order.status==='canceled')return'El cobro fue cancelado.';if(order.status==='expired')return'El cobro venció antes de completarse.';return'Esperando respuesta del Point…'}
+export async function waitForPointApproval(session:TenantSession,saleId:string,initialOrder:PointOrder,onStatus?:(order:PointOrder)=>void,timeoutMs=5*60_000){let order=initialOrder;onStatus?.(order);const started=Date.now();while(Date.now()-started<timeoutMs){if(order.approved||order.status==='processed')return order;if(order.final||['failed','canceled','expired','refunded','action_required'].includes(order.status)){const error=new Error(pointStatusMessage(order)) as Error&{order?:PointOrder};error.order=order;throw error}await new Promise(resolve=>setTimeout(resolve,1300));const next=await getPointOrder(session,saleId,order.id);order=next.order;onStatus?.(order)}const error=new Error('El Point no confirmó el pago dentro de los 5 minutos. Revisá la terminal antes de volver a cobrar.') as Error&{order?:PointOrder};error.order=order;throw error}
