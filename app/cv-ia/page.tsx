@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import CvIaExperience from './CvIaExperience'
+import OwnerTestBridge from './OwnerTestBridge'
 import './postula-mejor-polish.css'
 
 export const metadata: Metadata = {
@@ -38,6 +39,7 @@ export default function CvIaPage() {
         </a>
       </div>
       <CvIaExperience />
+      <OwnerTestBridge />
     </div>
   )
 }
