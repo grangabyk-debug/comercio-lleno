@@ -2,11 +2,11 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const TRIAL_DAYS = 14;
+const TRIAL_DAYS = 90;
 const MONTHLY_PRICE = 14900;
 const HOURLY_LIMIT = 8;
 const DAILY_LIMIT = 20;
-const TERMS_VERSION = '2026-08-13';
+const TERMS_VERSION = '2026-08-17';
 const PRIVACY_VERSION = '2026-08-13';
 
 function originAllowed(origin:string){
@@ -85,7 +85,7 @@ Deno.serve(async(req:Request)=>{
   let attemptId='';try{attemptId=await consumeAttempt(req,email,challengeToken)}catch(e){return json(req,{ok:false,error:e instanceof Error?e.message:String(e)},Number((e as any)?.status)||500)}
   let userId='';
   try{
-    const userResponse=await fetch(`${SUPABASE_URL}/auth/v1/admin/users`,{method:'POST',headers:headers(),body:JSON.stringify({email,password,email_confirm:true,user_metadata:{full_name:fullName,company_name:companyName,signup_source:'simple_14_day_trial'}})});const user=await userResponse.json().catch(()=>({}));
+    const userResponse=await fetch(`${SUPABASE_URL}/auth/v1/admin/users`,{method:'POST',headers:headers(),body:JSON.stringify({email,password,email_confirm:true,user_metadata:{full_name:fullName,company_name:companyName,signup_source:'simple_90_day_trial'}})});const user=await userResponse.json().catch(()=>({}));
     if(!userResponse.ok||!user?.id){const msg=String(user?.msg||user?.message||user?.error||'No se pudo crear la cuenta.');if(/already|registered|exists/i.test(msg))return json(req,{ok:false,error:'Ya existe una cuenta con ese email.'},409);throw new Error(msg)}
     userId=String(user.id);const created=await createTenant(userId,fullName,email,companyName,'email');await markSuccess(attemptId);return json(req,{ok:true,company_id:created.companyId,company_name:companyName,role:'owner',permissions:OWNER_PERMISSIONS,trial_started_at:created.subscription.trial_started_at,trial_ends_at:created.subscription.trial_ends_at});
   }catch(e){if(userId)await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`,{method:'DELETE',headers:headers()}).catch(()=>{});return json(req,{ok:false,error:e instanceof Error?e.message:String(e)},500)}
