@@ -3,7 +3,7 @@ import CvIaExperience from './CvIaExperience'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://postulamejor.com'),
-  title: 'Postulá Mejor | Mejorá tu CV y prepará cada postulación con IA',
+  title: { absolute: 'Postulá Mejor | Mejorá tu CV y prepará cada postulación con IA' },
   description: 'Analizá tu CV gratis, comparalo con una búsqueda laboral y prepará una candidatura específica con Triple Filtro IA, control factual y herramientas para entrevistas.',
   applicationName: 'Postulá Mejor',
   alternates: { canonical: 'https://postulamejor.com' },
