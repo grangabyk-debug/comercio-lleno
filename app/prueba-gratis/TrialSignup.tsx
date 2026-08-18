@@ -12,7 +12,9 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://wtcntclzcu
 const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_02U2KDLDTR42KxdcFHtfYw_IDM00Deb'
 const TRIAL_FUNCTION = `${SUPABASE_URL}/functions/v1/start-trial-turnstile`
 const MONTHLY_PRICE = 14900
+const REGULAR_PRICE = 29800
 const monthlyPrice = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(MONTHLY_PRICE)
+const regularPrice = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(REGULAR_PRICE)
 const SESSION_KEYS=['cl_access_token','cl_refresh_token','cl_company_id','cl_company_name','cl_user_role','cl_user_permissions']
 const strong=(value:string)=>value.length>=8&&/[A-Z]/.test(value)&&/\d/.test(value)&&/[^A-Za-z0-9]/.test(value)
 
@@ -91,14 +93,14 @@ export default function TrialSignup(){
       <div className={styles.copy}>
         <div className={styles.eyebrow}>PLAN IMPULSO · 3 MESES GRATIS · SIN TARJETA</div>
         <h1>Tu comercio listo<br/><span>en menos de un minuto.</span></h1>
-        <p className={styles.lead}>Creá tu cuenta y usá Comercio Lleno completo durante 90 días por $0. Después, seguí por {monthlyPrice} por mes.</p>
+        <p className={styles.lead}>Creá tu cuenta y usá Comercio Lleno completo durante 90 días por $0. Después, 3 meses a {monthlyPrice} por mes y luego {regularPrice} por mes.</p>
         <div className={styles.simpleSteps}>
           <div><b>01</b><span><strong>Creá tu acceso</strong><small>Google o email. Sin formularios eternos.</small></span></div>
           <div><b>02</b><span><strong>Decinos cómo se llama tu comercio</strong><small>Nosotros preparamos el resto para arrancar.</small></span></div>
           <div><b>03</b><span><strong>Usalo 90 días gratis</strong><small>ARCA, empleados, dirección y datos fiscales se completan después.</small></span></div>
         </div>
         <div className={styles.mobilePromise}><span>DESDE CUALQUIER LUGAR</span><strong>También podés manejar tu comercio desde el celular.</strong><small>Ventas, productos, stock, caja y seguimiento del negocio con una experiencia pensada para pantalla chica.</small></div>
-        <div className={styles.price}><div><b>$0</b><span>/ 90 días</span></div><p>Después {monthlyPrice} por mes. Cancelás cuando quieras.</p></div>
+        <div className={styles.price}><div><b>$0</b><span>/ 90 días</span></div><p>Después, 3 meses a {monthlyPrice}/mes. Luego {regularPrice}/mes. Cancelás cuando quieras.</p></div>
       </div>
 
       <div className={styles.card}>
@@ -113,6 +115,7 @@ export default function TrialSignup(){
           <label className={styles.label}>Nombre del comercio<input className={styles.input} required value={companyName} onChange={e=>setCompanyName(e.target.value)} placeholder="Ej: Almacén San Martín"/></label>
           <label className={styles.label}>Contraseña<div className={styles.passwordWrap}><input className={styles.input} autoComplete="new-password" required type={showPassword?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Ej: Comercio#2026"/><button type="button" className={styles.eye} onClick={()=>setShowPassword(value=>!value)} aria-label={showPassword?'Ocultar contraseña':'Mostrar contraseña'}><EyeIcon open={showPassword}/></button></div><small className={strong(password)?styles.goodHint:styles.hint}>8+ caracteres, mayúscula, número y signo.</small></label>
           <TurnstileWidget onToken={setTurnstileToken} resetSignal={turnstileReset}/>
+          <p className={styles.afterNote}>Plan Impulso: 1 sucursal, hasta 1.000 productos y 500 comprobantes ARCA incluidos. Ampliaciones opcionales desde $4.900. <Link href="/terminos" target="_blank">Ver condiciones.</Link></p>
           <label className={styles.terms}><input type="checkbox" checked={accepted} onChange={e=>setAccepted(e.target.checked)}/><span>Acepto los <Link href="/terminos" target="_blank">Términos y Condiciones</Link> y la <Link href="/politica-de-privacidad" target="_blank">Política de Privacidad</Link>.</span></label>
           {error&&<div className={styles.error}>{error}</div>}{success&&<div className={styles.success}>{success}</div>}
           <button className={styles.button} disabled={busy||googleBusy}>{busy?'Creando tu comercio…':'Activar 3 meses gratis'}</button>
