@@ -43,6 +43,7 @@ export default function LandingMobileInnovation(){
         <span>Lector código de barras</span>
         <span>Caja automática</span>
         <span>Soporte humano</span>
+        <span>Asistente IA</span>
       </div>
       <PhonePreview/>
     </div>
