@@ -4,4 +4,73 @@ import styles from '../legal.module.css'
 
 export const metadata={title:'Términos y Condiciones | Comercio Lleno'}
 
-export default function TermsPage(){return <main className={styles.page}><div className={styles.shell}><div className={styles.top}><Link href="/" aria-label="Comercio Lleno"><BrandLogo size={46}/></Link><Link className={styles.back} href="/prueba-gratis">← Volver al registro</Link></div><article className={styles.card}><span className={styles.eyebrow}>COMERCIO LLENO</span><h1>Términos y Condiciones de Uso</h1><div className={styles.updated}>Versión vigente desde el 13 de agosto de 2026.</div><p className={styles.notice}>Estos términos regulan el uso de Comercio Lleno, una plataforma de gestión comercial en modalidad software como servicio. Al crear una cuenta, la persona que se registra declara tener facultades para operar el comercio informado y acepta estas condiciones.</p><h2>1. Servicio</h2><p>Comercio Lleno ofrece herramientas para administrar productos, stock, ventas, caja, clientes, reportes, integraciones y otras funciones que se habiliten para cada plan. Algunas funciones dependen de servicios de terceros, entre ellos proveedores de infraestructura, mensajería y organismos públicos.</p><h2>2. Prueba gratuita y suscripción</h2><p>La prueba gratuita dura 14 días desde el alta. Al momento de esta versión, el valor de referencia del plan informado en el registro es de $14.900 ARS por mes luego de la prueba. Antes de cualquier cobro se aplicarán el precio, impuestos, condiciones y medio de pago que se muestren en la contratación vigente.</p><h2>3. Cuenta y seguridad</h2><ul><li>El propietario es responsable de mantener seguras sus credenciales y las de sus empleados.</li><li>Cada usuario debe utilizar permisos acordes a su función.</li><li>No se permite intentar acceder a datos de otros comercios, alterar controles de seguridad, automatizar abuso del servicio ni utilizar la plataforma para actividades ilícitas.</li></ul><h2>4. Datos del comercio y facturación</h2><p>El comercio es responsable de que CUIT, condición fiscal, puntos de venta, datos de clientes, precios y demás información cargada sean correctos. Comercio Lleno facilita la conexión técnica con ARCA, pero la habilitación fiscal, las autorizaciones, el encuadre tributario y la correcta emisión de comprobantes continúan siendo responsabilidad del contribuyente y de sus asesores.</p><h2>5. Disponibilidad e integraciones</h2><p>Trabajamos para mantener el servicio disponible y proteger la continuidad operativa, pero pueden existir interrupciones por mantenimiento, conectividad, cambios de terceros o indisponibilidad de servicios externos. Las funciones que dependen de ARCA, WhatsApp u otros proveedores pueden verse afectadas por cambios o caídas ajenas a Comercio Lleno.</p><h2>6. Actualizaciones</h2><p>La plataforma puede recibir mejoras, correcciones de seguridad y cambios funcionales. Las actualizaciones críticas pueden aplicarse automáticamente cuando sean necesarias para mantener la seguridad, compatibilidad o integridad del servicio.</p><h2>7. Cancelación</h2><p>El cliente puede dejar de utilizar el servicio y gestionar la cancelación de su suscripción según las opciones disponibles en su cuenta o mediante soporte. Las obligaciones ya devengadas antes de la cancelación no se extinguen por ese hecho.</p><h2>8. Privacidad</h2><p>El tratamiento de datos personales y operativos se describe en la <Link href="/privacidad">Política de Privacidad</Link>, que forma parte de estas condiciones.</p><h2>9. Soporte</h2><p>Las consultas técnicas o administrativas pueden realizarse desde los canales de ayuda disponibles dentro de Comercio Lleno. Cuando se utiliza el chat de ayuda humana, la conversación se deriva a la bandeja de soporte de Central Llena.</p><h2>10. Cambios en estos términos</h2><p>Podemos actualizar estos términos cuando cambie el producto, la normativa o la forma de prestación. Si el cambio es relevante, se informará dentro del servicio o mediante un canal de contacto registrado.</p><h2>11. Ley aplicable</h2><p>Estos términos se interpretan conforme a la normativa aplicable en la República Argentina, respetando las disposiciones imperativas que correspondan según el tipo de cliente y su jurisdicción.</p><div className={styles.footer}>También podés consultar la <Link href="/privacidad">Política de Privacidad</Link>.</div></article></div></main>}
+export default function TermsPage(){
+  return <main className={styles.page}>
+    <div className={styles.shell}>
+      <div className={styles.top}>
+        <Link href="/" aria-label="Comercio Lleno"><BrandLogo size={46}/></Link>
+        <Link className={styles.back} href="/prueba-gratis">← Volver al registro</Link>
+      </div>
+      <article className={styles.card}>
+        <span className={styles.eyebrow}>COMERCIO LLENO</span>
+        <h1>Términos y Condiciones de Uso</h1>
+        <div className={styles.updated}>Versión vigente desde el 17 de agosto de 2026.</div>
+        <p className={styles.notice}>Estos términos regulan el uso de Comercio Lleno, una plataforma de gestión comercial en modalidad software como servicio. Al crear una cuenta, la persona que se registra declara tener facultades para operar el comercio informado y acepta estas condiciones.</p>
+
+        <h2>1. Servicio</h2>
+        <p>Comercio Lleno ofrece herramientas para administrar productos, stock, ventas, caja, clientes, reportes, facturación electrónica, integraciones y otras funciones que se habiliten para cada plan. Algunas funciones dependen de servicios de terceros, entre ellos proveedores de infraestructura, medios de pago y organismos públicos.</p>
+
+        <h2>2. Plan Impulso: prueba gratuita y suscripción</h2>
+        <p>El Plan Impulso ofrece una prueba gratuita de 90 días corridos desde el alta del comercio. Para iniciar la prueba no se solicita tarjeta ni medio de pago y el mero vencimiento de los 90 días no genera por sí solo un cobro automático.</p>
+        <p>Una vez finalizada la prueba, para continuar utilizando las funciones operativas deberá activarse la suscripción. Al momento de esta versión, los primeros 3 ciclos mensuales pagos tienen un valor promocional de $14.900 ARS por mes. Finalizados esos 3 ciclos, el precio regular es de $29.800 ARS por mes. Si el usuario no activa la suscripción al terminar la prueba, el acceso operativo puede quedar restringido hasta la activación, sin que ello implique la eliminación automática de los datos del comercio.</p>
+        <p>Cuando se activa una suscripción recurrente mediante Mercado Pago, los cobros se procesan según la periodicidad y condiciones informadas durante el checkout, hasta su cancelación. Cualquier modificación futura de precios o condiciones aplicará hacia adelante y se informará antes de corresponder.</p>
+
+        <h2>3. Límites incluidos y ampliaciones del Plan Impulso</h2>
+        <p>La prueba gratuita y el Plan Impulso incluyen las siguientes capacidades base para las nuevas altas alcanzadas por esta promoción:</p>
+        <ul>
+          <li><strong>1 sucursal incluida.</strong> Las sucursales adicionales pueden habilitarse mediante una ampliación de $4.900 ARS por sucursal. El sistema admite actualmente un máximo de 5 sucursales activas por comercio.</li>
+          <li><strong>Hasta 1.000 productos activos.</strong> Al alcanzar ese límite, puede habilitarse la carga de productos sin límite mediante una ampliación de $4.900 ARS.</li>
+          <li><strong>Hasta 500 comprobantes fiscales autorizados por ARCA.</strong> Puede ampliarse ese límite hasta 2.500 comprobantes mediante una ampliación de $4.900 ARS.</li>
+        </ul>
+        <p>Las ampliaciones son opcionales, se habilitan una vez confirmado el pago correspondiente y sus importes son los vigentes a la fecha de esta versión. Los límites se computan de acuerdo con los registros activos o comprobantes efectivamente autorizados que consten en la plataforma.</p>
+
+        <h2>4. Cuenta y seguridad</h2>
+        <ul>
+          <li>El propietario es responsable de mantener seguras sus credenciales y las de sus empleados.</li>
+          <li>Cada usuario debe utilizar permisos acordes a su función.</li>
+          <li>No se permite intentar acceder a datos de otros comercios, alterar controles de seguridad, automatizar abuso del servicio ni utilizar la plataforma para actividades ilícitas.</li>
+        </ul>
+
+        <h2>5. Datos del comercio y facturación</h2>
+        <p>El comercio es responsable de que CUIT, condición fiscal, puntos de venta, datos de clientes, precios y demás información cargada sean correctos. Comercio Lleno facilita la conexión técnica con ARCA, pero la habilitación fiscal, los certificados, las autorizaciones, el encuadre tributario y la correcta emisión de comprobantes continúan siendo responsabilidad del contribuyente y de sus asesores.</p>
+        <p>La mención de facturación electrónica incluida significa que la función está disponible dentro del sistema, sujeta a la configuración fiscal necesaria y a la disponibilidad de los servicios de ARCA. El límite del Plan Impulso se aplica a comprobantes fiscales efectivamente autorizados.</p>
+
+        <h2>6. Disponibilidad e integraciones</h2>
+        <p>Trabajamos para mantener el servicio disponible y proteger la continuidad operativa, pero pueden existir interrupciones por mantenimiento, conectividad, cambios de terceros o indisponibilidad de servicios externos. Las funciones que dependen de ARCA, Mercado Pago u otros proveedores pueden verse afectadas por cambios o caídas ajenas a Comercio Lleno.</p>
+
+        <h2>7. Actualizaciones</h2>
+        <p>La plataforma puede recibir mejoras, correcciones de seguridad y cambios funcionales. Las actualizaciones críticas pueden aplicarse automáticamente cuando sean necesarias para mantener la seguridad, compatibilidad o integridad del servicio.</p>
+
+        <h2>8. Cancelación y pagos</h2>
+        <p>El cliente puede gestionar la cancelación de su suscripción según las opciones disponibles en su cuenta o mediante soporte. La cancelación evita futuras renovaciones conforme al estado confirmado por el proveedor de pagos, pero no extingue obligaciones o importes ya devengados antes de hacerse efectiva.</p>
+
+        <h2>9. Privacidad</h2>
+        <p>El tratamiento de datos personales y operativos se describe en la <Link href="/politica-de-privacidad">Política de Privacidad</Link>, que forma parte de estas condiciones.</p>
+
+        <h2>10. Soporte</h2>
+        <p>Las consultas técnicas o administrativas pueden realizarse desde los canales de ayuda disponibles dentro de Comercio Lleno. Cuando se utiliza el chat de ayuda humana, la conversación puede derivarse a la bandeja de soporte de Central Llena para su atención.</p>
+
+        <h2>11. Vigencia de promociones</h2>
+        <p>El Plan Impulso y sus beneficios promocionales se aplican a las altas realizadas mientras la oferta se encuentre publicada y disponible. Comercio Lleno puede modificar o finalizar promociones para nuevas altas; los cambios no reducen el período gratuito ya activado para una cuenta que haya ingresado válidamente a la promoción, salvo que exista una causa de uso abusivo, fraudulento o contrario a estos términos.</p>
+
+        <h2>12. Cambios en estos términos</h2>
+        <p>Podemos actualizar estos términos cuando cambie el producto, la normativa o la forma de prestación. Si el cambio es relevante, se informará dentro del servicio o mediante un canal de contacto registrado y se identificará una nueva versión.</p>
+
+        <h2>13. Ley aplicable</h2>
+        <p>Estos términos se interpretan conforme a la normativa aplicable en la República Argentina, respetando las disposiciones imperativas que correspondan según el tipo de cliente y su jurisdicción.</p>
+
+        <div className={styles.footer}>También podés consultar la <Link href="/politica-de-privacidad">Política de Privacidad</Link>.</div>
+      </article>
+    </div>
+  </main>
+}
