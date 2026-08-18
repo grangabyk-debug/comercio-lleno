@@ -7,7 +7,7 @@ const TRIAL_DAYS = 90;
 const MONTHLY_PRICE = 14900;
 const HOURLY_LIMIT = 8;
 const DAILY_LIMIT = 20;
-const TERMS_VERSION = '2026-08-13';
+const TERMS_VERSION = '2026-08-17';
 const PRIVACY_VERSION = '2026-08-13';
 const ALLOWED_TURNSTILE_HOSTS = new Set(['comerciolleno.com','www.comerciolleno.com']);
 
