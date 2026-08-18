@@ -2,14 +2,11 @@ import Link from 'next/link'
 import BrandLogo from './BrandLogo'
 import LandingFeatureTabs from './LandingFeatureTabs'
 import LandingMobileInnovation from './LandingMobileInnovation'
-import LandingQuickDemo from './LandingQuickDemo'
 import LandingSolutionsTeaser from './LandingSolutionsTeaser'
-import LandingHeroPromo from './LandingHeroPromo'
 import ArgentinaPride from './ArgentinaPride'
 import styles from './LandingPremium.module.css'
 import mobileFix from './LandingMobileHeaderFooterFix.module.css'
 
-const heroPhoto='https://images.pexels.com/photos/12935045/pexels-photo-12935045.jpeg?auto=compress&cs=tinysrgb&w=2200'
 const arcaLogo='https://arca.gob.ar/frameworkAFIP/img/logo_arca_blanco.svg'
 const mercadoPagoIcon='https://cdn.simpleicons.org/mercadopago/009EE3'
 const dataFiscalHref='http://qr.afip.gob.ar/?qr=ruCuZIwbDAsxcH_2p0YsXg,,'
@@ -55,34 +52,10 @@ export default function LandingPage(){
       </nav>
       <div className={`${styles.headerActions} ${mobileFix.headerActions}`}>
         <Link href="/redesign/access" className={`${styles.login} ${mobileFix.login}`}>Ingresar</Link>
-        <Link href="/prueba-gratis" className={`${styles.tryButton} ${mobileFix.tryButton}`}>3 meses gratis</Link>
       </div>
     </header>
 
-    <section className={styles.hero}>
-      <div className={styles.heroCopy}>
-        <p className={styles.kicker}><span>●</span> PLAN IMPULSO · POR TIEMPO LIMITADO</p>
-        <h1>El sistema que<br/><span className={styles.violet}>trabaja con vos.</span></h1>
-        <p className={styles.heroLead}>Vendé, facturá con ARCA, controlá stock y caja, y seguí el negocio desde el celular. Usalo completo durante 3 meses sin pagar.</p>
-        <div className={styles.heroActions}>
-          <Link href="/prueba-gratis" className={styles.primary}>Activar 3 meses gratis <span>→</span></Link>
-          <LandingQuickDemo/>
-        </div>
-        <div className={styles.heroFacts}>
-          <span>$0 por 90 días</span><span>Sin tarjeta</span><span>Empezá en minutos</span>
-        </div>
-      </div>
-
-      <div className={styles.heroVisual}>
-        <LandingHeroPromo/>
-        <div className={styles.photoFrame}>
-          <img src={heroPhoto} alt="Cajera operando un sistema POS moderno en un comercio" fetchPriority="high"/>
-        </div>
-        <div className={styles.heroStamp}><b>HECHO PARA EL<br/>COMERCIO REAL</b><span>Argentina · 2026</span></div>
-        <div className={`${styles.floatCard} ${styles.floatSale}`}><span>VENTAS HOY</span><strong>$428.650</strong><small>36 operaciones</small></div>
-        <div className={`${styles.floatCard} ${styles.floatArca}`}><i>✓</i><div><b>ARCA conectado</b><small>Facturación lista</small></div></div>
-      </div>
-    </section>
+    <LandingMobileInnovation/>
 
     <section className={styles.integrationBand} aria-label="Integraciones y compatibilidades">
       <div className={styles.integrationIntro}><b>Tu operación, conectada.</b><span>Marcas conocidas. Un solo flujo de trabajo.</span></div>
@@ -105,8 +78,6 @@ export default function LandingPage(){
       <LandingFeatureTabs/>
     </section>
 
-    <LandingMobileInnovation/>
-
     <ArgentinaPride/>
 
     <section className={styles.priceSection} id="precio">
@@ -120,7 +91,6 @@ export default function LandingPage(){
         <span className={styles.offerBadge}>PLAN IMPULSO · TIEMPO LIMITADO</span>
         <div className={styles.priceLine}><strong>$0</strong><small>/ primeros 3 meses</small></div>
         <p>Después, 3 meses a $14.900/mes. Luego $29.800/mes. Cancelás cuando quieras.</p>
-        <Link href="/prueba-gratis">Activar mis 3 meses gratis <span>→</span></Link>
         <small className={styles.supportNote}>Incluye 1 sucursal, hasta 1.000 productos y 500 comprobantes ARCA. Ampliaciones opcionales desde $4.900. <Link href="/terminos">Ver condiciones.</Link></small>
       </div>
     </section>
@@ -133,7 +103,7 @@ export default function LandingPage(){
         <details><summary>¿Puedo facturar con ARCA?<span>+</span></summary><p>Sí. Una vez configurado el certificado y el punto de venta, la facturación queda integrada al flujo de venta.</p></details>
         <details><summary>¿Funciona con Mercado Pago, scanner e impresora?<span>+</span></summary><p>El sistema contempla integración con Mercado Pago y compatibilidad con lectores de códigos USB e impresoras térmicas de 58 y 80 mm.</p></details>
         <details><summary>¿Qué hace la inteligencia artificial?<span>+</span></summary><p>El asistente puede consultar ventas, stock y tendencias del comercio. Utiliza modelos de IA —incluidos modelos de OpenAI— a través de nuestra infraestructura.</p></details>
-        <details><summary>¿Funciona desde el celular?<span>+</span></summary><p>Sí. La experiencia móvil está diseñada como herramienta principal: vender, consultar productos, escanear códigos y trabajar con caja y facturación.</p></details>
+        <details><summary>¿Funciona desde el celular?<span>+</span></summary><p>Sí. La experiencia móvil está diseñada como herramienta principal y también podés usar Comercio Lleno desde PC con los mismos datos sincronizados.</p></details>
       </div>
     </section>
 
@@ -146,9 +116,6 @@ export default function LandingPage(){
         </a>
       </div>
       <div className={styles.footerLinks}><Link href="/soluciones">Soluciones</Link><Link href="/terminos">Términos</Link><Link href="/politica-de-privacidad">Privacidad</Link><Link href="/politica-de-cookies">Cookies</Link><button type="button" data-cookie-settings>Configurar cookies</button><Link href="/eliminar-cuenta">Eliminar cuenta</Link></div>
-      <div className={styles.footerCta}><span>¿Querés probarlo con tu comercio?</span><Link href="/prueba-gratis">Activar 3 meses gratis →</Link></div>
     </footer>
-
-    <div className={styles.mobileSticky}><div><b>3 meses gratis</b><span>90 días · sin tarjeta</span></div><Link href="/prueba-gratis">Activar ahora</Link></div>
   </main>
 }
