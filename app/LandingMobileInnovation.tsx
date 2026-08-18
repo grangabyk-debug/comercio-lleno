@@ -39,6 +39,7 @@ export default function LandingMobileInnovation(){
         <strong>Punto de venta<br/>en tu bolsillo.</strong>
         <small>La misma operación del comercio, pensada para usarla con una mano.</small>
       </div>
+      <div className={styles.freeBadge}><b>GRATIS</b><span>3 MESES · SIN TARJETA</span></div>
       <PhonePreview/>
       <span className={styles.posterTag}>ANDROID · ESCÁNER · VENTAS · STOCK · ARCA</span>
     </div>
