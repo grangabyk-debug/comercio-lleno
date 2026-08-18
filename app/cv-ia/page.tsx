@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import CvIaExperience from './CvIaExperience'
+import './postula-mejor-polish.css'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://postulamejor.com'),
@@ -29,5 +30,14 @@ export const metadata: Metadata = {
 }
 
 export default function CvIaPage() {
-  return <CvIaExperience />
+  return (
+    <div className="postulaMejorShell">
+      <div className="postulaBrandBar" aria-label="Postulá Mejor">
+        <a className="postulaWordmark" href="#inicio" aria-label="Ir al inicio de Postulá Mejor">
+          <span>postula</span><strong>mejor</strong><span>.com</span>
+        </a>
+      </div>
+      <CvIaExperience />
+    </div>
+  )
 }
