@@ -19,6 +19,7 @@ export default function MobileCashDailyAccess(){
   const[busy,setBusy]=useState(false)
   const[message,setMessage]=useState('')
   const timer=useRef<number|undefined>(undefined)
+  const modeRef=useRef<'manual'|'automatic'>('automatic')
 
   function notify(value:string){setMessage(value);if(timer.current)window.clearTimeout(timer.current);timer.current=window.setTimeout(()=>setMessage(''),2400)}
 
@@ -26,17 +27,17 @@ export default function MobileCashDailyAccess(){
     const session=readTenantSession();if(!session)return
     try{
       const[settings,snapshot]=await Promise.all([loadSalesSettings(session).catch(()=>readCachedSalesSettings(session.companyId)),loadCommerceSnapshot(session)])
-      setMode(effective(settings.cashMode));setCash(snapshot.cashRegister)
+      const next=effective(settings.cashMode);modeRef.current=next;setMode(next);setCash(snapshot.cashRegister)
     }catch{}
   }
 
-  function removeHosts(){
+  function removeHosts(updateState=true){
     document.querySelector('[data-mobile-cash-home-host]')?.remove()
     document.querySelector('[data-mobile-cash-view-host]')?.remove()
-    setHomeHost(null);setCashHost(null)
+    if(updateState){setHomeHost(null);setCashHost(null)}
   }
 
-  function syncHosts(currentMode=mode){
+  function syncHosts(currentMode=modeRef.current){
     if(currentMode!=='manual'){removeHosts();return}
     const greeting=document.querySelector('div[class*="greeting"]') as HTMLElement|null
     if(greeting){
@@ -61,14 +62,14 @@ export default function MobileCashDailyAccess(){
   useEffect(()=>{
     const session=readTenantSession();if(!session)return
     const cached=readCachedSalesSettings(session.companyId)
-    const initial=effective(cached.cashMode);setMode(initial);void refresh()
-    const observer=new MutationObserver(()=>syncHosts(initial))
+    const initial=effective(cached.cashMode);modeRef.current=initial;setMode(initial);void refresh()
+    const observer=new MutationObserver(()=>syncHosts(modeRef.current))
     observer.observe(document.body,{childList:true,subtree:true})
-    window.setTimeout(()=>syncHosts(initial),120)
+    window.setTimeout(()=>syncHosts(modeRef.current),120)
 
     const onSettings=(event:Event)=>{
       const next=effective((event as CustomEvent<{cashMode?:CashMode}>).detail?.cashMode||'automatic')
-      setMode(next);window.setTimeout(()=>syncHosts(next),0);void refresh()
+      modeRef.current=next;setMode(next);window.setTimeout(()=>syncHosts(next),0);void refresh()
     }
     const onStatus=(event:Event)=>{
       const open=Boolean((event as CustomEvent<{open?:boolean}>).detail?.open)
@@ -77,11 +78,11 @@ export default function MobileCashDailyAccess(){
     }
     window.addEventListener('comercio:sales-settings',onSettings)
     window.addEventListener('comercio:mobile-cash-status',onStatus)
-    return()=>{observer.disconnect();window.removeEventListener('comercio:sales-settings',onSettings);window.removeEventListener('comercio:mobile-cash-status',onStatus);if(timer.current)window.clearTimeout(timer.current);removeHosts()}
+    return()=>{observer.disconnect();window.removeEventListener('comercio:sales-settings',onSettings);window.removeEventListener('comercio:mobile-cash-status',onStatus);if(timer.current)window.clearTimeout(timer.current);removeHosts(false)}
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[])
 
-  useEffect(()=>{syncHosts(mode)},[mode])
+  useEffect(()=>{modeRef.current=mode;syncHosts(mode)},[mode])
 
   function goToCash(){
     const buttons=Array.from(document.querySelectorAll('button')) as HTMLButtonElement[]
