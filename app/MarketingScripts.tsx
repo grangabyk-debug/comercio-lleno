@@ -30,7 +30,7 @@ function pageId(pathname:string){
 
 export default function MarketingScripts(){
   const pathname=usePathname()
-  const privateRoute=pathname.startsWith('/movil')||pathname.startsWith('/redesign')||pathname.startsWith('/login')||pathname.startsWith('/privacidad')||pathname.startsWith('/politica-de-privacidad')||pathname.startsWith('/politica-de-cookies')||pathname.startsWith('/eliminar-cuenta')
+  const privateRoute=pathname.startsWith('/movil')||pathname.startsWith('/redesign')||pathname.startsWith('/login')||pathname.startsWith('/privacidad')||pathname.startsWith('/politica-de-privacidad')||pathname.startsWith('/politica-de-cookies')||pathname.startsWith('/eliminar-cuenta')||pathname.startsWith('/cv-ia')
 
   useEffect(()=>{
     if(privateRoute)return
@@ -46,8 +46,6 @@ export default function MarketingScripts(){
         return
       }
       try{
-        // Force no-consent/cookieless mode: Clarity still records public-page
-        // interactions, but it must not persist visitor/session cookies.
         clarity('consentv2',{ad_Storage:'denied',analytics_Storage:'denied'})
         const currentPage=pageId(pathname)
         const stage=pathname==='/'?'landing':pathname==='/prueba-gratis'?'trial':'public'
