@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import styles from './orientation.module.css'
 import { SESSION_KEY } from './cvAuth'
@@ -46,6 +46,14 @@ export default function OrientationBridge(){
       targetInputRef.current=targetInput;jobTextRef.current=jobText
       targetFieldRef.current=targetInput.closest('div')
       jobFieldRef.current=jobText.closest('div')
+      const stepTitle=Array.from(form.querySelectorAll('b')).find(el=>(el.textContent||'').trim()==='Decinos el puesto')
+      if(stepTitle)stepTitle.textContent='Decinos el puesto o te orientamos'
+      const stepSmall=stepTitle?.parentElement?.querySelector('small')
+      if(stepSmall)stepSmall.textContent='Elegí la opción que mejor represente tu situación'
+      for(const p of Array.from(document.querySelectorAll('p'))){
+        const text=(p.textContent||'').trim()
+        if(text==='El primer diagnóstico es gratis. Sin tarjeta.')p.textContent='Tenés hasta 2 análisis gratuitos. Sin tarjeta.'
+      }
       let h=form.querySelector<HTMLElement>('[data-orientation-switch]')
       if(!h){h=document.createElement('div');h.dataset.orientationSwitch='1';targetFieldRef.current?.insertAdjacentElement('beforebegin',h)}
       let rh=document.querySelector<HTMLElement>('[data-orientation-result]')
@@ -128,7 +136,7 @@ export default function OrientationBridge(){
   const resultUi=resultHost&&guidance?createPortal(<section className={styles.result}><div className={styles.inner}>
     <div className={styles.head}><div><span className={styles.tag}>ORIENTACIÓN LABORAL</span><h2>Estos son los caminos que hoy tienen más sentido para tu perfil.</h2><p>{guidance.profile_summary}</p></div><div className={styles.score}><div><strong>{guidance.profile_score}</strong><span>fortaleza del perfil</span></div></div></div>
     <div className={styles.identity}><small>CÓMO TE LEERÍA EL MERCADO</small><h3>{guidance.professional_identity}</h3><p>No es una etiqueta definitiva: es una forma de traducir tu experiencia actual a búsquedas concretas.</p></div>
-    <div className={styles.roles}>{guidance.recommended_roles.map((r,i)=><article className={styles.role} key={`${r.role}-${i}`}><div className={styles.roleTop}><h3>{r.role}</h3><span className={styles.fit}>{r.fit_score}%</span></div><p>{r.why_it_fits}</p><b style={{fontSize:10}}>Se apoya en:</b><ul>{r.evidence.slice(0,3).map((x,k)=><li key={k}>{x}</li>)}</ul><b style={{fontSize:10}}>Buscalo también como:</b><p>{r.search_terms.join(' · ')}</p><button onClick={()=>chooseRole(r.role)}>Quiero apuntar a este puesto</button></article>)}</div>
+    <div className={styles.roles}>{guidance.recommended_roles.map((r,i)=><article className={styles.role} key={`${r.role}-${i}`}><div className={styles.roleTop}><h3>{r.role}</h3><span className={styles.fit}>{r.fit_score}%</span></div><p>{r.why_it_fits}</p><b style={{fontSize:10}}>Se apoya en:</b><ul>{r.evidence.slice(0,3).map((x,k)=><li key={k}>{x}</li>)}</ul><b style={{fontSize:10}}>En tu CV conviene destacar:</b><ul>{r.what_to_emphasize.slice(0,3).map((x,k)=><li key={k}>{x}</li>)}</ul><b style={{fontSize:10}}>Buscalo también como:</b><p>{r.search_terms.join(' · ')}</p><button onClick={()=>chooseRole(r.role)}>Quiero apuntar a este puesto</button></article>)}</div>
     <h3 className={styles.sectionTitle}>Opciones para crecer un poco más</h3><div className={styles.stretchGrid}>{guidance.stretch_roles.map((r,i)=><article className={styles.stretch} key={i}><h4>{r.role}</h4><p>{r.why_possible}</p><b style={{fontSize:10}}>Qué tendrías que cerrar:</b><ul>{r.gap_to_close.map((x,k)=><li key={k}>{x}</li>)}</ul><p><b>Primer paso:</b> {r.first_step}</p></article>)}</div>
     <h3 className={styles.sectionTitle}>Qué mejoraría antes de mandar más CV</h3><div className={styles.improveGrid}>{guidance.cv_improvements.map((x,i)=><article className={styles.improve} key={i}><h4>{x.title}</h4><p>{x.advice}</p><small style={{fontWeight:900,color:x.priority==='alta'?'#8b343a':'#6957ff'}}>Prioridad {x.priority}</small></article>)}</div>
     <div className={styles.next}><b>Próximos pasos sugeridos</b><ol>{guidance.next_steps.map((x,i)=><li key={i}>{x}</li>)}</ol></div>
