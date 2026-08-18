@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import CvIaExperience from './CvIaExperience'
 import OwnerTestBridge from './OwnerTestBridge'
+import ConsentBridge from './ConsentBridge'
+import AuthStatusLink from './AuthStatusLink'
 import './postula-mejor-polish.css'
 
 export const metadata: Metadata = {
@@ -37,8 +39,10 @@ export default function CvIaPage() {
         <a className="postulaWordmark" href="#inicio" aria-label="Ir al inicio de Postulá Mejor">
           <span>postula</span><strong>mejor</strong><span>.com</span>
         </a>
+        <AuthStatusLink />
       </div>
       <CvIaExperience />
+      <ConsentBridge />
       <OwnerTestBridge />
     </div>
   )
