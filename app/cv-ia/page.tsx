@@ -4,6 +4,7 @@ import OwnerTestBridge from './OwnerTestBridge'
 import ConsentBridge from './ConsentBridge'
 import AuthStatusLink from './AuthStatusLink'
 import './postula-mejor-polish.css'
+import './postula-flow-v2.css'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://postulamejor.com'),
