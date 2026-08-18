@@ -4,8 +4,9 @@ import MobileScanner from './MobileScanner'
 import MobileAiAssistant from './MobileAiAssistant'
 import MobileSupportChat from './MobileSupportChat'
 import MobilePcNotice from './MobilePcNotice'
-import MobileCashModeController from './MobileCashModeController'
+import MobileCashModeController from './MobileCashModeControllerV2'
 import MobileCashDailyAccess from './MobileCashDailyAccess'
+import MobileSaleUiFix from './MobileSaleUiFix'
 import MobileSettingsOverlay from './MobileSettingsOverlay'
 import MobileLegalLinks from './MobileLegalLinks'
 import MobileRevolutionTheme from './MobileRevolutionTheme'
@@ -43,6 +44,7 @@ export default function MobilePage(){
     <MobileCashDailyAccess/>
     <MobileScanner/>
     <MobileAiAssistant/>
+    <MobileSaleUiFix/>
     <MobileSupportChat/>
     <MobilePcNotice/>
     <MobileSettingsOverlay/>
