@@ -1,295 +1,191 @@
 'use client'
 
-import { FormEvent, useMemo, useRef, useState } from 'react'
-import styles from './cv-ia.module.css'
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import styles from './cv-ia-production.module.css'
 
-type Result = {
-  score: number
-  recruiter: number
-  fit: number
-  clarity: number
-  strengths: string[]
-  fixes: string[]
-}
+const CV_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai'
+const PAY_API='https://wtcntclzcubkbtcsqkzc.supabase.co/functions/v1/cv-ai-purchase'
+const SESSION_KEY='cv_ai_session_token_v1'
 
-type Comment = {
-  name: string
-  role: string
-  text: string
-}
+type Perspective={score:number;verdict:string;interview_decision:string;strengths:string[];issues:{severity:'high'|'medium'|'low';title:string;explanation:string;fix:string}[];missing_keywords:string[]}
+type Diagnostic={score:number;ats:Perspective;recruiter:Perspective;manager:Perspective;issues:Perspective['issues'];summary:string;target_role:string|null;job_specific:boolean}
+type Experience={company:string;role:string;start_date:string|null;end_date:string|null;bullets:string[]}
+type ResumePackage={candidate_name:string;headline:string;contact:{email:string|null;phone:string|null;location:string|null;linkedin:string|null};summary:string;experience:Experience[];education:{institution:string;degree:string;date:string|null}[];skills:string[];languages:string[];certifications:string[];cover_message:string;linkedin:{headline:string;about:string;experience_bullets:string[];skills:string[]};interview:{questions:{question:string;why:string;answer_strategy:string}[]}}
+type SessionState={id:string;plan:'free'|'pro'|'active';entitlement_until:string|null;free_analyses_used:number;active_searches_used:number;has_master_resume:boolean;last_diagnostic?:Diagnostic|null}
+type PublicComment={id:string;display_name:string;role_label:string|null;rating:number;body:string;created_at:string}
+type Application={id:string;company_name:string|null;role_name:string;status:string;analysis:any;created_at:string;updated_at:string}
 
-const initialComments: Comment[] = [
-  { name: 'Primeros usuarios', role: 'Esta sección se completa con experiencias reales', text: 'Todavía no publicamos testimonios inventados. Cuando alguien deje una experiencia, va a aparecer acá.' },
+type PlanName='pro'|'active'
+const plans=[
+ {name:'Diagnóstico',price:'$0',suffix:'',badge:'PARA EMPEZAR',features:['Score general real','Triple Filtro IA','Mejoras prioritarias','Compatibilidad con una búsqueda'],cta:'Analizar gratis',highlight:false,plan:null},
+ {name:'CV Pro',price:'$8.900',suffix:' pago único',badge:'MÁS ELEGIDO',features:['Todo el diagnóstico','CV reescrito sin inventar experiencia','Versión adaptada a un puesto','Carta o mensaje de postulación','LinkedIn: textos optimizados listos para copiar'],cta:'Quiero mi CV Pro',highlight:true,plan:'pro' as PlanName},
+ {name:'Búsqueda Activa',price:'$12.900',suffix:' / 30 días',badge:'PARA BUSCAR EN SERIO',features:['Todo CV Pro','Hasta 10 búsquedas analizadas','Versiones por empresa y puesto','Preparación y simulación de entrevista','Tablero de seguimiento de postulaciones'],cta:'Activar Búsqueda Activa',highlight:false,plan:'active' as PlanName},
 ]
 
-const plans = [
-  {
-    name: 'Diagnóstico',
-    price: '$0',
-    suffix: '',
-    badge: 'PARA EMPEZAR',
-    features: ['Score general', 'Triple Filtro IA', '3 mejoras prioritarias', 'Compatibilidad con una búsqueda'],
-    cta: 'Analizar gratis',
-    highlight: false,
-  },
-  {
-    name: 'CV Pro',
-    price: '$8.900',
-    suffix: ' pago único',
-    badge: 'MÁS ELEGIDO',
-    features: ['Todo el diagnóstico', 'CV reescrito sin inventar experiencia', 'Versión adaptada a un puesto', 'Carta o mensaje de postulación', 'Perfil de LinkedIn optimizado'],
-    cta: 'Quiero mi CV Pro',
-    highlight: true,
-  },
-  {
-    name: 'Búsqueda Activa',
-    price: '$12.900',
-    suffix: ' / 30 días',
-    badge: 'PARA BUSCAR EN SERIO',
-    features: ['Todo CV Pro', 'Hasta 10 búsquedas analizadas', 'Versiones por empresa y puesto', 'Simulaciones de entrevista', 'Seguimiento de postulaciones'],
-    cta: 'Activar Búsqueda Activa',
-    highlight: false,
-  },
-]
-
-function buildResult(jobText: string, fileName: string): Result {
-  const source = `${jobText} ${fileName}`.toLowerCase()
-  const hasNumbers = /\d/.test(source)
-  const hasRole = /(ventas|administr|marketing|analista|comercial|atenci[oó]n|caj|mozo|recepci[oó]n|developer|program|diseñ|log[ií]st)/.test(source)
-  const detail = Math.min(18, Math.floor(jobText.trim().length / 45))
-  const base = 57 + detail + (hasNumbers ? 4 : 0) + (hasRole ? 5 : 0)
-  const score = Math.max(58, Math.min(88, base))
-  return {
-    score,
-    recruiter: Math.max(54, score - 4),
-    fit: Math.min(92, score + 3),
-    clarity: Math.max(60, score - 1),
-    strengths: [
-      'Tu perfil tiene información aprovechable para construir una propuesta clara.',
-      'Hay experiencia que se puede traducir mejor al lenguaje del puesto buscado.',
-      'La base permite una versión más concreta, humana y fácil de escanear.',
-    ],
-    fixes: [
-      'Falta priorizar logros y resultados por encima de una lista de tareas.',
-      'Conviene adaptar el resumen inicial al puesto exacto al que te postulás.',
-      'Hay palabras y capacidades del aviso que deberían aparecer de forma natural.',
-    ],
-  }
+async function postJson(url:string,body:any){
+ const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+ const data=await response.json().catch(()=>({ok:false,error:'Respuesta inválida del servidor.'}))
+ if(!response.ok||!data?.ok)throw new Error(data?.error||'No pudimos completar la operación.')
+ return data
+}
+function fileToBase64(file:File){return new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(new Error('No pudimos leer el archivo.'));reader.onload=()=>{const value=String(reader.result||'');resolve(value.includes(',')?value.split(',')[1]:value)};reader.readAsDataURL(file)})}
+function safeText(value:string|null|undefined){return value?.trim()||''}
+function escapeHtml(value:string){return value.replace(/[&<>"']/g,(m)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]||m))}
+function resumeHtml(r:ResumePackage){
+ const contact=[r.contact.email,r.contact.phone,r.contact.location,r.contact.linkedin].filter(Boolean).map(String).join(' · ')
+ const exp=r.experience.map(x=>`<section><h3>${escapeHtml(x.role)} · ${escapeHtml(x.company)}</h3><small>${escapeHtml([x.start_date,x.end_date].filter(Boolean).join(' — '))}</small><ul>${x.bullets.map(b=>`<li>${escapeHtml(b)}</li>`).join('')}</ul></section>`).join('')
+ const edu=r.education.map(x=>`<li><b>${escapeHtml(x.degree)}</b> · ${escapeHtml(x.institution)} ${x.date?`(${escapeHtml(x.date)})`:''}</li>`).join('')
+ return `<!doctype html><html><head><meta charset="utf-8"><title>CV ${escapeHtml(r.candidate_name)}</title><style>body{font-family:Arial,sans-serif;color:#17191d;max-width:780px;margin:40px auto;padding:0 24px;line-height:1.42}h1{font-size:32px;margin:0}h2{font-size:15px;margin:24px 0 8px;border-bottom:1px solid #ddd;padding-bottom:5px}h3{font-size:13px;margin:15px 0 2px}p,li{font-size:11.5px}small{font-size:10px;color:#666}.headline{color:#5b49df;font-weight:700}.contact{font-size:10px;color:#666}.skills{font-size:11px}</style></head><body><h1>${escapeHtml(r.candidate_name)}</h1><p class="headline">${escapeHtml(r.headline)}</p><p class="contact">${escapeHtml(contact)}</p><h2>Perfil profesional</h2><p>${escapeHtml(r.summary)}</p><h2>Experiencia</h2>${exp}<h2>Formación</h2><ul>${edu}</ul><h2>Habilidades</h2><p class="skills">${r.skills.map(escapeHtml).join(' · ')}</p>${r.languages.length?`<h2>Idiomas</h2><p>${r.languages.map(escapeHtml).join(' · ')}</p>`:''}${r.certifications.length?`<h2>Certificaciones</h2><p>${r.certifications.map(escapeHtml).join(' · ')}</p>`:''}</body></html>`
 }
 
-export default function CvIaExperience() {
-  const fileRef = useRef<HTMLInputElement>(null)
-  const [fileName, setFileName] = useState('')
-  const [jobText, setJobText] = useState('')
-  const [result, setResult] = useState<Result | null>(null)
-  const [analyzing, setAnalyzing] = useState(false)
-  const [comments, setComments] = useState<Comment[]>(initialComments)
-  const [commentName, setCommentName] = useState('')
-  const [commentText, setCommentText] = useState('')
-  const [notice, setNotice] = useState('')
+export default function CvIaExperience(){
+ const fileRef=useRef<HTMLInputElement>(null)
+ const initialized=useRef(false)
+ const [file,setFile]=useState<File|null>(null)
+ const [targetRole,setTargetRole]=useState('')
+ const [jobText,setJobText]=useState('')
+ const [token,setToken]=useState('')
+ const [session,setSession]=useState<SessionState|null>(null)
+ const [diagnostic,setDiagnostic]=useState<Diagnostic|null>(null)
+ const [analyzing,setAnalyzing]=useState(false)
+ const [progress,setProgress]=useState(0)
+ const [notice,setNotice]=useState('')
+ const [error,setError]=useState('')
+ const [checkoutPlan,setCheckoutPlan]=useState<PlanName|null>(null)
+ const [checkoutEmail,setCheckoutEmail]=useState('')
+ const [checkoutBusy,setCheckoutBusy]=useState(false)
+ const [resume,setResume]=useState<ResumePackage|null>(null)
+ const [generating,setGenerating]=useState(false)
+ const [quality,setQuality]=useState<number|null>(null)
+ const [tab,setTab]=useState<'cv'|'linkedin'|'carta'|'entrevista'>('cv')
+ const [comments,setComments]=useState<PublicComment[]>([])
+ const [commentName,setCommentName]=useState('')
+ const [commentRole,setCommentRole]=useState('')
+ const [commentText,setCommentText]=useState('')
+ const [commentRating,setCommentRating]=useState(5)
+ const [commentNotice,setCommentNotice]=useState('')
+ const [applications,setApplications]=useState<Application[]>([])
+ const [activeCompany,setActiveCompany]=useState('')
+ const [activeRole,setActiveRole]=useState('')
+ const [activeJob,setActiveJob]=useState('')
+ const [activeBusy,setActiveBusy]=useState(false)
+ const [activeResult,setActiveResult]=useState<any>(null)
 
-  const ready = useMemo(() => Boolean(fileName && jobText.trim().length > 35), [fileName, jobText])
+ const ready=useMemo(()=>Boolean(file&&targetRole.trim().length>2&&jobText.trim().length>35),[file,targetRole,jobText])
+ const isPaid=session?.plan==='pro'||session?.plan==='active'
+ const activeValid=session?.plan==='active'&&(!session.entitlement_until||new Date(session.entitlement_until).getTime()>Date.now())
+ const remaining=Math.max(0,10-(session?.active_searches_used||0))
 
-  function analyze(e?: FormEvent) {
-    e?.preventDefault()
-    if (!ready || analyzing) return
-    setAnalyzing(true)
-    setResult(null)
-    window.setTimeout(() => {
-      setResult(buildResult(jobText, fileName))
-      setAnalyzing(false)
-      window.setTimeout(() => document.getElementById('resultado')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80)
-    }, 1150)
-  }
+ async function ensureSession(){
+  const stored=typeof window!=='undefined'?localStorage.getItem(SESSION_KEY)||'':''
+  const data=await postJson(CV_API,{action:'session',token:stored})
+  localStorage.setItem(SESSION_KEY,data.token)
+  setToken(data.token);setSession(data.session)
+  if(data.session?.last_diagnostic){setDiagnostic(data.session.last_diagnostic)}
+  return {token:data.token,session:data.session as SessionState}
+ }
+ async function refreshStatus(useToken=token){if(!useToken)return;const data=await postJson(CV_API,{action:'status',token:useToken});setSession(data.session);if(data.session.last_diagnostic)setDiagnostic(data.session.last_diagnostic);return data.session as SessionState}
+ async function loadComments(useToken=token){if(!useToken)return;try{const data=await postJson(CV_API,{action:'comments',token:useToken});setComments(data.comments||[])}catch{}}
+ async function loadApplications(useToken=token){if(!useToken)return;try{const data=await postJson(CV_API,{action:'applications',token:useToken});setApplications(data.applications||[])}catch{}}
+ async function generateProWithToken(useToken=token){
+  if(!useToken)return
+  setGenerating(true);setError('');setNotice('Tu pago está activo. El redactor está preparando el CV y después pasa por un control factual separado.')
+  try{const data=await postJson(CV_API,{action:'generate_pro',token:useToken,target_role:targetRole,job_text:jobText});setResume(data.resume);setQuality(Number(data.quality?.confidence||100));setNotice('CV Pro terminado y aprobado por el control de calidad.');await refreshStatus(useToken);window.setTimeout(()=>document.getElementById('mi-cv')?.scrollIntoView({behavior:'smooth'}),100)}catch(e){setError(e instanceof Error?e.message:'No pudimos generar el CV.')}finally{setGenerating(false)}
+ }
+ async function handlePaymentReturn(useToken:string){
+  const params=new URLSearchParams(location.search),state=params.get('cv_payment'),order=params.get('order');if(!state||!order)return
+  const orderToken=localStorage.getItem(`cv_ai_order_${order}`)||''
+  history.replaceState({},'',location.pathname+location.hash)
+  if(state==='failure'){setError('El pago no se completó. No se realizó ningún desbloqueo.');return}
+  if(!orderToken){setError('Volviste del pago, pero no encontramos el comprobante local para validarlo. Escribinos y lo revisamos.');return}
+  setNotice(state==='pending'?'Mercado Pago todavía está procesando el pago.':'Verificando el pago con Mercado Pago…')
+  try{const data=await postJson(CV_API,{action:'activate_payment',token:useToken,order_id:order,order_token:orderToken});if(data.status==='approved'){setNotice('Pago aprobado. Tu plan ya está activo.');const s=await refreshStatus(useToken);if(s?.last_diagnostic)await generateProWithToken(useToken)}else setNotice('El pago sigue pendiente. Cuando Mercado Pago lo apruebe, tocá “Verificar pago” o recargá esta página.')}catch(e){setError(e instanceof Error?e.message:'No pudimos verificar el pago.')}
+ }
 
-  function choosePlan(plan: string) {
-    setNotice(`Preview: el checkout de ${plan} queda listo para conectar al medio de pago cuando aprobemos esta versión.`)
-    document.getElementById('planes')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }
+ useEffect(()=>{if(initialized.current)return;initialized.current=true;(async()=>{try{const s=await ensureSession();await Promise.all([loadComments(s.token),s.session.plan==='active'?loadApplications(s.token):Promise.resolve()]);await handlePaymentReturn(s.token)}catch(e){setError(e instanceof Error?e.message:'No pudimos iniciar CV IA.')}})()},[])
+ useEffect(()=>{if(session?.plan==='active'&&token)loadApplications(token)},[session?.plan,token])
 
-  function publishComment(e: FormEvent) {
-    e.preventDefault()
-    const name = commentName.trim()
-    const text = commentText.trim()
-    if (!name || text.length < 8) return
-    setComments((current) => [{ name, role: 'Experiencia compartida en esta preview', text }, ...current.filter((item) => item.name !== 'Primeros usuarios')])
-    setCommentName('')
-    setCommentText('')
-  }
+ async function analyze(e?:FormEvent){
+  e?.preventDefault();if(!ready||analyzing)return
+  if(!file)return
+  setAnalyzing(true);setDiagnostic(null);setError('');setNotice('');setProgress(1)
+  let timer:number|undefined
+  try{
+   const s=token?{token,session}:await ensureSession();const useToken=s.token
+   if(file.size>6*1024*1024)throw new Error('El archivo supera los 6 MB. Reducilo y volvé a intentar.')
+   timer=window.setInterval(()=>setProgress(p=>Math.min(3,p+1)),4200)
+   const base64=await fileToBase64(file)
+   const data=await postJson(CV_API,{action:'diagnose',token:useToken,target_role:targetRole.trim(),job_text:jobText.trim(),file:{name:file.name,mime:file.type||'application/pdf',data:base64}})
+   setProgress(4);setDiagnostic(data.diagnostic);await refreshStatus(useToken);window.setTimeout(()=>document.getElementById('resultado')?.scrollIntoView({behavior:'smooth',block:'start'}),120)
+  }catch(e){setError(e instanceof Error?e.message:'No pudimos analizar el CV.')}finally{if(timer)window.clearInterval(timer);setAnalyzing(false)}
+ }
+ function openPlan(plan:PlanName|null){if(!plan){document.getElementById('analisis')?.scrollIntoView({behavior:'smooth'});return}setCheckoutPlan(plan);setError('')}
+ async function startCheckout(e:FormEvent){
+  e.preventDefault();if(!checkoutPlan||!session?.id)return
+  setCheckoutBusy(true);setError('')
+  try{const data=await postJson(`${PAY_API}?action=checkout`,{plan:checkoutPlan,email:checkoutEmail.trim(),session_id:session.id,return_url:location.origin+location.pathname});localStorage.setItem(`cv_ai_order_${data.order_id}`,data.order_token);location.href=data.init_point}catch(e){setError(e instanceof Error?e.message:'No pudimos abrir Mercado Pago.');setCheckoutBusy(false)}
+ }
+ function downloadWord(){if(!resume)return;const blob=new Blob([resumeHtml(resume)],{type:'application/msword;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`CV-${resume.candidate_name.replace(/[^a-z0-9]+/gi,'-')}.doc`;a.click();URL.revokeObjectURL(url)}
+ function printResume(){setTab('cv');window.setTimeout(()=>window.print(),120)}
+ async function copyText(text:string){try{await navigator.clipboard.writeText(text);setNotice('Copiado al portapapeles.')}catch{}}
+ async function submitComment(e:FormEvent){e.preventDefault();if(!token)return;setCommentNotice('');try{await postJson(CV_API,{action:'submit_comment',token,display_name:commentName,role_label:commentRole,rating:commentRating,body:commentText});setCommentName('');setCommentRole('');setCommentText('');setCommentNotice('Gracias. Quedó enviado para una revisión rápida antes de publicarse.')}catch(e){setCommentNotice(e instanceof Error?e.message:'No pudimos enviar el comentario.')}}
+ async function runActive(e:FormEvent){e.preventDefault();if(!token||activeBusy)return;setActiveBusy(true);setActiveResult(null);setError('');try{const data=await postJson(CV_API,{action:'active_adapt',token,company_name:activeCompany,role_name:activeRole,job_text:activeJob});setActiveResult(data);await refreshStatus(token);await loadApplications(token);setNotice('Nueva candidatura preparada y validada.')}catch(e){setError(e instanceof Error?e.message:'No pudimos preparar esta candidatura.')}finally{setActiveBusy(false)}}
+ async function changeApplication(id:string,status:string){if(!token)return;try{await postJson(CV_API,{action:'update_application',token,id,status});setApplications(list=>list.map(x=>x.id===id?{...x,status}:x))}catch(e){setError(e instanceof Error?e.message:'No pudimos cambiar el estado.')}}
 
-  return (
-    <main className={styles.page}>
-      <header className={styles.header}>
-        <a className={styles.brand} href="#inicio" aria-label="Inicio CV IA">
-          <span className={styles.brandMark}>CV</span>
-          <span><b>CV</b> IA<small>candidaturas que compiten mejor</small></span>
-        </a>
-        <a className={styles.headerCta} href="#analisis">Analizar gratis</a>
-      </header>
+ const perspectives=diagnostic?[['Filtro automático',diagnostic.ats],['Recruiter',diagnostic.recruiter],['Responsable del área',diagnostic.manager]] as const:[]
+ return <main className={styles.page}>
+  <header className={styles.header}><a className={styles.brand} href="#inicio"><span className={styles.brandMark}>CV</span><span className={styles.brandText}><b>CV IA</b><small>candidaturas que compiten mejor</small></span></a><a className={styles.headerCta} href={resume?'#mi-cv':'#analisis'}>{resume?'Mi candidatura':'Analizar gratis'}</a></header>
 
-      <section className={styles.hero} id="inicio">
-        <div className={styles.heroCopy}>
-          <span className={styles.eyebrow}>NO ES OTRO GENERADOR DE CV</span>
-          <h1>¿Mandás CV y <em>no te llaman?</em></h1>
-          <p className={styles.heroLead}>Descubrí qué puede estar frenándote y prepará una candidatura específica para el trabajo que querés.</p>
-          <div className={styles.heroTrust}>
-            <span>✓ No inventamos experiencia</span>
-            <span>✓ Pensado para filtros + personas</span>
-            <span>✓ Diagnóstico inicial gratis</span>
-          </div>
-        </div>
+  <section className={styles.hero} id="inicio">
+   <div className={styles.heroCopy}><span className={styles.eyebrow}>NO ES OTRO GENERADOR DE CV</span><h1>¿Mandás CV y <em>no te llaman?</em></h1><p className={styles.heroLead}>Descubrí qué puede estar frenándote y prepará una candidatura específica para el trabajo que querés.</p><div className={styles.heroTrust}><span>✓ No inventamos experiencia</span><span>✓ 3 evaluaciones independientes</span><span>✓ Control de calidad en planes pagos</span><span>✓ Diagnóstico inicial gratis</span></div></div>
+   <form className={styles.analyzerCard} id="analisis" onSubmit={analyze}>
+    <div className={styles.stepLabel}><span>1</span><b>Subí tu CV</b><small>PDF, DOC, DOCX o TXT · máximo 6 MB</small></div>
+    <input ref={fileRef} className={styles.fileInput} type="file" accept=".pdf,.doc,.docx,.txt" onChange={e=>setFile(e.target.files?.[0]||null)}/>
+    <button className={`${styles.dropzone} ${file?styles.dropzoneReady:''}`} type="button" onClick={()=>fileRef.current?.click()}><span className={styles.uploadIcon}>↑</span><b>{file?.name||'Elegir mi CV'}</b><small>{file?'Archivo listo':'Tocá acá para buscarlo en tu celular'}</small></button>
+    <div className={styles.stepLabel}><span>2</span><b>Decinos el puesto</b><small>Cuanto más específico, mejor</small></div>
+    <div className={styles.field}><label>Puesto al que querés postularte</label><input value={targetRole} onChange={e=>setTargetRole(e.target.value)} placeholder="Ej: Analista Comercial" maxLength={180}/></div>
+    <div className={styles.field}><label>Pegá la oferta o descripción del trabajo</label><textarea value={jobText} onChange={e=>setJobText(e.target.value)} placeholder="Ej: Buscamos Analista Comercial para gestionar cuentas, seguimiento de clientes, Excel..." rows={5}/></div>
+    <button className={styles.primaryCta} type="submit" disabled={!ready||analyzing}>{analyzing?'Analizando de verdad…':'Analizar mi CV gratis'}</button>
+    {analyzing&&<div className={styles.progress}><div className={`${styles.progressItem} ${progress>=1?styles.progressItemActive:''}`}><i className={styles.progressDot}/>Extrayendo únicamente hechos del CV</div><div className={`${styles.progressItem} ${progress>=2?styles.progressItemActive:''}`}><i className={styles.progressDot}/>Filtro automático + compatibilidad</div><div className={`${styles.progressItem} ${progress>=3?styles.progressItemActive:''}`}><i className={styles.progressDot}/>Recruiter + responsable del área</div><div className={`${styles.progressItem} ${progress>=4?styles.progressItemActive:''}`}><i className={styles.progressDot}/>Armando el diagnóstico</div></div>}
+    <p className={styles.microcopy}>Sin tarjeta. Tu archivo se usa para el análisis y no publicamos su contenido.</p><div className={styles.privacyLine}><span>🔒</span><span>No usamos tu CV para inventar datos: si algo no está en la fuente, el sistema debe omitirlo o marcarlo como faltante.</span></div>
+    {error&&<div className={`${styles.statusBox} ${styles.statusError}`}>{error}</div>}{notice&&<div className={`${styles.statusBox} ${styles.statusOk}`}>{notice}</div>}
+   </form>
+  </section>
 
-        <form className={styles.analyzerCard} id="analisis" onSubmit={analyze}>
-          <div className={styles.stepLabel}><span>1</span><b>Subí tu CV</b><small>PDF o documento · en la preview no se envía a ningún servidor</small></div>
-          <input
-            ref={fileRef}
-            className={styles.fileInput}
-            type="file"
-            accept=".pdf,.doc,.docx"
-            onChange={(e) => setFileName(e.target.files?.[0]?.name || '')}
-          />
-          <button className={`${styles.dropzone} ${fileName ? styles.dropzoneReady : ''}`} type="button" onClick={() => fileRef.current?.click()}>
-            <span className={styles.uploadIcon}>↑</span>
-            <b>{fileName || 'Elegir mi CV'}</b>
-            <small>{fileName ? 'Listo para analizar' : 'Tocá acá para buscarlo en tu celular'}</small>
-          </button>
+  <section className={styles.valueBand}><div><strong>3</strong><span>miradas distintas</span></div><div><strong>2</strong><span>controles en planes pagos</span></div><div><strong>0</strong><span>experiencia inventada</span></div></section>
 
-          <div className={styles.stepLabel}><span>2</span><b>Contanos qué trabajo querés</b><small>Pegá el aviso o describí el puesto</small></div>
-          <textarea
-            value={jobText}
-            onChange={(e) => setJobText(e.target.value)}
-            placeholder="Ej: Buscamos Analista Comercial para gestionar cuentas, seguimiento de clientes, Excel..."
-            rows={5}
-          />
-          <button className={styles.primaryCta} type="submit" disabled={!ready || analyzing}>
-            {analyzing ? 'Analizando candidatura…' : 'Analizar mi CV gratis'}
-          </button>
-          <p className={styles.microcopy}>Sin tarjeta. Esta preview usa un diagnóstico demostrativo para validar la experiencia antes de conectar la IA real.</p>
-        </form>
-      </section>
+  <section className={styles.sectionPaper}><div className={styles.sectionIntro}><span className={styles.sectionTag}>TRIPLE FILTRO</span><h2>Tu CV visto desde tres lugares distintos.</h2><p>No buscamos que “suene lindo”. Buscamos que sea entendible para un sistema, convincente para selección y coherente con lo que necesita el puesto.</p></div><div className={styles.filterGrid}><article className={styles.filterCard}><span>01</span><b>Filtro automático</b><p>Estructura, términos relevantes, legibilidad y ajuste al aviso sin trucos de keywords.</p></article><article className={styles.filterCard}><span>02</span><b>Recruiter IA</b><p>Decide si la presentación da motivos suficientes para avanzar a una entrevista.</p></article><article className={styles.filterCard}><span>03</span><b>Responsable del área</b><p>Mira la experiencia real y qué tan bien demuestra capacidad para resolver ese trabajo.</p></article></div></section>
 
-      <section className={styles.valueBand}>
-        <div><strong>3</strong><span>miradas distintas</span></div>
-        <div><strong>1</strong><span>candidatura enfocada</span></div>
-        <div><strong>0</strong><span>experiencia inventada</span></div>
-      </section>
+  {diagnostic&&<section className={styles.resultSection} id="resultado"><div className={styles.resultHeader}><div><span className={styles.resultTag}>DIAGNÓSTICO REAL</span><h2>{diagnostic.summary}</h2><p>{diagnostic.job_specific?'El análisis se hizo contra la búsqueda que pegaste.':'El análisis se hizo sobre el perfil general.'}</p></div><div className={styles.scoreRing} style={{'--score':`${diagnostic.score*3.6}deg`} as React.CSSProperties}><div><strong>{diagnostic.score}</strong><small>/100</small></div></div></div>
+   <div className={styles.scoreGrid}>{perspectives.map(([name,p])=><div className={styles.scoreCard} key={name}><span>{name}</span><b>{p.score}%</b><i><u style={{width:`${p.score}%`}}/></i></div>)}</div>
+   <div className={styles.perspectiveGrid}>{perspectives.map(([name,p])=><article className={styles.perspective} key={name}><div className={styles.perspectiveTop}><b>{name}</b><strong>{p.score}</strong></div><p>{p.verdict}</p><p><b>Decisión:</b> {p.interview_decision}</p>{p.strengths.slice(0,2).map(x=><p key={x}>✓ {x}</p>)}</article>)}</div>
+   <div className={styles.issueList}>{diagnostic.issues.slice(0,5).map((x,i)=><article className={`${styles.issue} ${x.severity==='high'?styles.issueHigh:''}`} key={`${x.title}-${i}`}><b>{x.title}</b><p>{x.explanation}</p><p><strong>Qué haríamos:</strong> {x.fix}</p></article>)}</div>
+   <div className={styles.resultUpsell}><div><small>SIGUIENTE PASO</small><b>Convertir el diagnóstico en una candidatura lista para enviar.</b><p>El redactor trabaja sólo con los hechos extraídos y otro agente audita el resultado antes de entregarlo.</p></div><button onClick={()=>openPlan('pro')}>Crear mi CV Pro</button></div>
+  </section>}
 
-      <section className={styles.tripleSection}>
-        <div className={styles.sectionIntro}>
-          <span>TRIPLE FILTRO</span>
-          <h2>Tu CV visto como lo puede ver un proceso real.</h2>
-          <p>No alcanza con que quede lindo. Tiene que ser entendible, relevante para el puesto y convincente para una persona.</p>
-        </div>
-        <div className={styles.filterGrid}>
-          <article><span>01</span><b>Filtro automático</b><p>Estructura, legibilidad, palabras relevantes y señales que ayudan a interpretar tu perfil.</p></article>
-          <article><span>02</span><b>Recruiter IA</b><p>Evalúa si tu presentación despierta suficiente interés como para avanzar a una entrevista.</p></article>
-          <article><span>03</span><b>Responsable del área</b><p>Compara tu experiencia con lo que realmente necesita el puesto, sin rellenar ni exagerar.</p></article>
-        </div>
-      </section>
+  <section className={styles.section}><div className={styles.sectionIntro}><span className={styles.sectionTag}>LA DIFERENCIA</span><h2>Una IA gratis redacta. Acá hay un proceso.</h2></div><div className={styles.compareCard}><div className={styles.compareHead}><span></span><b>Prompt genérico</b><b>CV IA</b></div>{[['Redacta texto','Sí','Sí'],['Extrae hechos antes de escribir','No necesariamente','Sí'],['3 evaluaciones separadas','No','Sí'],['Control factual del CV pago','Lo tenés que hacer vos','Incluido'],['Versiones por búsqueda','Manual','Incluido'],['LinkedIn','Tenés que pedirlo','Paquete listo para copiar'],['Seguimiento','No','Tablero en Búsqueda Activa']].map(row=><div className={styles.compareRow} key={row[0]}><span>{row[0]}</span><i>{row[1]}</i><strong>{row[2]}</strong></div>)}</div></section>
 
-      {result && (
-        <section className={styles.resultSection} id="resultado">
-          <div className={styles.resultHeader}>
-            <div>
-              <span>DIAGNÓSTICO DE PREVIEW</span>
-              <h2>Tenés material. Ahora hay que hacerlo competir mejor.</h2>
-              <p>Este resultado es demostrativo: sirve para validar cómo se va a sentir el producto antes de conectar el análisis real.</p>
-            </div>
-            <div className={styles.scoreRing} style={{ '--score': `${result.score * 3.6}deg` } as React.CSSProperties}>
-              <div><strong>{result.score}</strong><small>/100</small></div>
-            </div>
-          </div>
+  <section className={styles.sectionPaper} id="planes"><div className={styles.sectionIntro}><span className={styles.sectionTag}>EMPEZÁ GRATIS</span><h2>Pagás cuando querés pasar del diagnóstico a la acción.</h2><p>Los planes pagos se habilitan mediante Mercado Pago. CV Pro es un pago único; Búsqueda Activa dura 30 días.</p></div><div className={styles.plansGrid}>{plans.map(p=><article className={`${styles.plan} ${p.highlight?styles.planHighlight:''}`} key={p.name}><span className={styles.planBadge}>{p.badge}</span><h3>{p.name}</h3><div className={styles.price}><strong>{p.price}</strong><small>{p.suffix}</small></div><ul>{p.features.map(f=><li key={f}>✓ {f}</li>)}</ul><button onClick={()=>openPlan(p.plan)}>{p.cta}</button>{p.plan&&<p className={styles.planNote}>La optimización de LinkedIn entrega textos listos para copiar. No accedemos ni modificamos tu cuenta de LinkedIn.</p>}</article>)}</div></section>
 
-          <div className={styles.scoreGrid}>
-            <div><span>Recruiter</span><b>{result.recruiter}%</b><i><u style={{ width: `${result.recruiter}%` }} /></i></div>
-            <div><span>Ajuste al puesto</span><b>{result.fit}%</b><i><u style={{ width: `${result.fit}%` }} /></i></div>
-            <div><span>Claridad</span><b>{result.clarity}%</b><i><u style={{ width: `${result.clarity}%` }} /></i></div>
-          </div>
+  {(isPaid||resume||generating)&&<section className={styles.workspace} id="mi-cv"><div className={styles.workspaceInner}><div className={styles.workspaceHead}><span className={styles.sectionTag}>TU ESPACIO</span><h2>{resume?'Tu candidatura ya está lista.':'Tu plan está activo.'}</h2><p>{resume?'Podés guardar el CV, copiar el paquete de LinkedIn y practicar las preguntas que surgieron de tu propio perfil.':'Ahora falta generar la versión final y pasarla por el control factual.'}</p>{quality!==null&&<span className={styles.qualityPill}>✓ Control factual aprobado · confianza {quality}%</span>}</div>
+   {!resume&&<div className={styles.outputCard}><h3>{generating?'Preparando tu CV…':'Generar CV Pro'}</h3><p>{generating?'Primero redactamos y después un segundo agente compara el resultado contra los hechos extraídos. Puede tardar unos segundos.':'Usamos el diagnóstico que ya hiciste. Si el auditor detecta algo no respaldado, el sistema corrige o frena la entrega.'}</p><button className={styles.primaryCta} disabled={generating||!diagnostic} onClick={()=>generateProWithToken()}>{generating?'Controlando calidad…':diagnostic?'Generar ahora':'Primero hacé el diagnóstico'}</button></div>}
+   {resume&&<><div className={styles.tabs}><button data-active={tab==='cv'} onClick={()=>setTab('cv')}>CV final</button><button data-active={tab==='linkedin'} onClick={()=>setTab('linkedin')}>LinkedIn</button><button data-active={tab==='carta'} onClick={()=>setTab('carta')}>Postulación</button><button data-active={tab==='entrevista'} onClick={()=>setTab('entrevista')}>Entrevista</button></div>
+    {tab==='cv'&&<article className={styles.outputCard}><h3 className={styles.resumeName}>{resume.candidate_name}</h3><p className={styles.resumeHeadline}>{resume.headline}</p><p className={styles.contactLine}>{[resume.contact.email,resume.contact.phone,resume.contact.location,resume.contact.linkedin].filter(Boolean).join(' · ')}</p><h4>Perfil profesional</h4><p>{resume.summary}</p><h4>Experiencia</h4>{resume.experience.map((x,i)=><div className={styles.experienceItem} key={`${x.company}-${i}`}><b>{x.role} · {x.company}</b><small>{[x.start_date,x.end_date].filter(Boolean).join(' — ')}</small><ul>{x.bullets.map(b=><li key={b}>{b}</li>)}</ul></div>)}<h4>Formación</h4><ul>{resume.education.map((x,i)=><li key={`${x.institution}-${i}`}><b>{x.degree}</b> · {x.institution}{x.date?` · ${x.date}`:''}</li>)}</ul><h4>Habilidades</h4><p>{resume.skills.join(' · ')}</p>{resume.languages.length>0&&<><h4>Idiomas</h4><p>{resume.languages.join(' · ')}</p></>}<div className={styles.actionRow}><button onClick={printResume}>Guardar como PDF</button><button onClick={downloadWord}>Descargar para Word</button></div></article>}
+    {tab==='linkedin'&&<article className={styles.outputCard}><h3>LinkedIn listo para copiar</h3><p>No entramos a tu cuenta: te damos exactamente qué poner y vos decidís qué actualizar.</p><div className={styles.copyBox}><b>Titular</b><p>{resume.linkedin.headline}</p><button onClick={()=>copyText(resume.linkedin.headline)}>Copiar</button></div><div className={styles.copyBox}><b>Acerca de</b><p>{resume.linkedin.about}</p><button onClick={()=>copyText(resume.linkedin.about)}>Copiar</button></div><h4>Bullets sugeridos para experiencia</h4><ul>{resume.linkedin.experience_bullets.map(x=><li key={x}>{x}</li>)}</ul><h4>Habilidades a destacar</h4><p>{resume.linkedin.skills.join(' · ')}</p></article>}
+    {tab==='carta'&&<article className={styles.outputCard}><h3>Mensaje de postulación</h3><p>{resume.cover_message}</p><div className={styles.actionRow}><button onClick={()=>copyText(resume.cover_message)}>Copiar mensaje</button><button onClick={()=>setTab('cv')}>Volver al CV</button></div></article>}
+    {tab==='entrevista'&&<article className={styles.outputCard}><h3>Preparación de entrevista</h3>{resume.interview.questions.map((q,i)=><div className={styles.copyBox} key={`${q.question}-${i}`}><b>{i+1}. {q.question}</b><p><strong>Por qué puede aparecer:</strong> {q.why}</p><p><strong>Cómo encararla:</strong> {q.answer_strategy}</p></div>)}</article>}
+   </>}
+   {activeValid&&resume&&<><div className={styles.workspaceHead} style={{marginTop:42}}><span className={styles.sectionTag}>BÚSQUEDA ACTIVA</span><h2>Una versión para cada oportunidad.</h2><p>Te quedan {remaining} de 10 búsquedas incluidas. Pegá una oferta y generamos una adaptación sin cambiar los hechos del CV base.</p></div><form className={styles.activeForm} onSubmit={runActive}><input value={activeCompany} onChange={e=>setActiveCompany(e.target.value)} placeholder="Empresa (opcional)"/><input value={activeRole} onChange={e=>setActiveRole(e.target.value)} placeholder="Puesto" required/><textarea value={activeJob} onChange={e=>setActiveJob(e.target.value)} placeholder="Pegá la oferta laboral completa" required/><span className={styles.remaining}>{remaining} búsquedas disponibles · el seguimiento lo actualizás desde este tablero.</span><button disabled={activeBusy||remaining<1}>{activeBusy?'Analizando y controlando…':'Preparar esta candidatura'}</button></form>
+    {activeResult&&<article className={styles.outputCard}><h3>{activeResult.match_score}% de compatibilidad</h3><p>{activeResult.verdict}</p><h4>Consejos para esta postulación</h4><ul>{activeResult.application_tips?.map((x:string)=><li key={x}>{x}</li>)}</ul><p><b>La versión adaptada quedó guardada en esta candidatura.</b></p></article>}
+    <div className={styles.applications}>{applications.map(app=><article className={styles.application} key={app.id}><div><b>{app.role_name}</b><small>{app.company_name||'Empresa no indicada'} · Match {app.analysis?.match_score??'—'}%</small></div><small>{new Date(app.updated_at).toLocaleDateString('es-AR')}</small><select value={app.status} onChange={e=>changeApplication(app.id,e.target.value)}><option value="preparing">Preparando</option><option value="applied">Postulado</option><option value="interview">Entrevista</option><option value="offer">Oferta</option><option value="rejected">No avanzó</option><option value="paused">Pausado</option></select></article>)}</div></>}
+  </div></section>}
 
-          <div className={styles.findingsGrid}>
-            <article className={styles.goodBox}><span>LO QUE YA SUMA</span>{result.strengths.map((item) => <p key={item}>✓ {item}</p>)}</article>
-            <article className={styles.fixBox}><span>LO QUE CAMBIARÍAMOS PRIMERO</span>{result.fixes.map((item) => <p key={item}>→ {item}</p>)}</article>
-          </div>
+  <section className={styles.section}><div className={styles.sectionIntro}><span className={styles.sectionTag}>COMUNIDAD</span><h2>Experiencias reales, no testimonios inventados.</h2><p>Los comentarios se publican después de una revisión simple para evitar spam, datos privados o contenido falso.</p></div><div className={styles.communityGrid}><div className={styles.commentsList}>{comments.length?comments.map(c=><article key={c.id}><div className={styles.avatar}>{c.display_name.slice(0,1).toUpperCase()}</div><div><b>{c.display_name} {'★'.repeat(c.rating)}</b><small>{c.role_label||'Usuario de CV IA'}</small><p>{c.body}</p></div></article>):<div className={styles.emptyComments}>Todavía no hay experiencias públicas. Preferimos arrancar vacío antes que inventar testimonios.</div>}</div><form className={styles.commentForm} onSubmit={submitComment}><b>Dejá tu experiencia</b><p>Si usaste el análisis o un plan pago, contanos qué te pareció. No publiques teléfono, email ni otros datos sensibles.</p><input value={commentName} onChange={e=>setCommentName(e.target.value)} placeholder="Tu nombre" maxLength={40}/><input value={commentRole} onChange={e=>setCommentRole(e.target.value)} placeholder="Área o puesto (opcional)" maxLength={70}/><div className={styles.stars}>{[1,2,3,4,5].map(n=><button type="button" key={n} data-on={n<=commentRating} onClick={()=>setCommentRating(n)}>★</button>)}</div><textarea value={commentText} onChange={e=>setCommentText(e.target.value)} placeholder="¿Cómo fue tu experiencia?" rows={4} maxLength={600}/><button type="submit">Enviar comentario</button>{commentNotice&&<p>{commentNotice}</p>}</form></div></section>
 
-          <div className={styles.resultUpsell}>
-            <div><small>EL SIGUIENTE PASO</small><b>Convertir este diagnóstico en una candidatura lista para enviar.</b><p>Reescribimos, priorizamos y adaptamos sin inventar nada que no hayas hecho.</p></div>
-            <button onClick={() => choosePlan('CV Pro')}>Ver CV Pro</button>
-          </div>
-        </section>
-      )}
+  <section className={styles.finalCta}><h2>No necesitás “un CV más lindo”. Necesitás una candidatura que tenga razones para avanzar.</h2><p>El primer diagnóstico es gratis. Sin tarjeta.</p><a href="#analisis">Analizar mi CV</a></section>
+  <footer className={styles.footer}><div><b>CV IA</b><span>Un producto digital de Llena Group.</span></div><small>Gabriel Alejandro Granvillano · CUIT 20-38422407-6 · Los resultados orientan y mejoran la presentación de una candidatura; no garantizan contratación ni entrevista.</small></footer>
+  {!resume&&<a className={styles.mobileSticky} href="#analisis">Analizar gratis</a>}
 
-      <section className={styles.compareSection}>
-        <div className={styles.sectionIntro}>
-          <span>LA DIFERENCIA</span>
-          <h2>Una IA gratis redacta. Nosotros armamos la candidatura.</h2>
-        </div>
-        <div className={styles.compareCard}>
-          <div className={styles.compareHead}><span></span><b>Generador común</b><b>CV IA</b></div>
-          {[
-            ['Redacta texto', 'Sí', 'Sí'],
-            ['Compara contra el puesto', 'Depende del prompt', 'Incluido'],
-            ['Evalúa con 3 miradas', 'No', 'Incluido'],
-            ['Versiones por búsqueda', 'Manual', 'Incluido'],
-            ['Simula entrevista', 'Manual', 'Plan Búsqueda Activa'],
-            ['Regla: no inventar experiencia', 'La tenés que pedir', 'Parte del producto'],
-          ].map((row) => <div className={styles.compareRow} key={row[0]}><span>{row[0]}</span><i>{row[1]}</i><strong>{row[2]}</strong></div>)}
-        </div>
-      </section>
-
-      <section className={styles.plansSection} id="planes">
-        <div className={styles.sectionIntro}>
-          <span>EMPEZÁ GRATIS</span>
-          <h2>Pagás cuando querés pasar del diagnóstico a la acción.</h2>
-        </div>
-        <div className={styles.plansGrid}>
-          {plans.map((plan) => (
-            <article className={`${styles.plan} ${plan.highlight ? styles.planHighlight : ''}`} key={plan.name}>
-              <span className={styles.planBadge}>{plan.badge}</span>
-              <h3>{plan.name}</h3>
-              <div className={styles.price}><strong>{plan.price}</strong><small>{plan.suffix}</small></div>
-              <ul>{plan.features.map((feature) => <li key={feature}>✓ {feature}</li>)}</ul>
-              <button onClick={() => plan.name === 'Diagnóstico' ? document.getElementById('analisis')?.scrollIntoView({ behavior: 'smooth' }) : choosePlan(plan.name)}>{plan.cta}</button>
-            </article>
-          ))}
-        </div>
-        {notice && <div className={styles.notice}>{notice}</div>}
-      </section>
-
-      <section className={styles.communitySection}>
-        <div className={styles.sectionIntro}>
-          <span>COMUNIDAD</span>
-          <h2>Experiencias reales, no testimonios inventados.</h2>
-          <p>Cuando lancemos, las personas van a poder contar cómo les fue. En esta preview podés probar cómo funciona la sección.</p>
-        </div>
-        <div className={styles.communityGrid}>
-          <div className={styles.commentsList}>
-            {comments.map((comment) => (
-              <article key={`${comment.name}-${comment.text}`}><div className={styles.avatar}>{comment.name.slice(0, 1).toUpperCase()}</div><div><b>{comment.name}</b><small>{comment.role}</small><p>{comment.text}</p></div></article>
-            ))}
-          </div>
-          <form className={styles.commentForm} onSubmit={publishComment}>
-            <b>Dejá un comentario</b>
-            <p>En producción se publicará luego de una revisión simple para evitar spam o datos sensibles.</p>
-            <input value={commentName} onChange={(e) => setCommentName(e.target.value)} placeholder="Tu nombre" maxLength={30} />
-            <textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="¿Qué te pareció?" rows={4} maxLength={260} />
-            <button type="submit">Publicar en esta preview</button>
-          </form>
-        </div>
-      </section>
-
-      <section className={styles.finalCta}>
-        <span>NO BUSQUES “UN CV MÁS LINDO”</span>
-        <h2>Prepará una candidatura que tenga una razón para avanzar.</h2>
-        <p>El primer diagnóstico es gratis.</p>
-        <a href="#analisis">Analizar mi CV</a>
-      </section>
-
-      <footer className={styles.footer}>
-        <div><b>CV IA</b><span>Preview de producto · Llena Group</span></div>
-        <small>Producto en validación. No garantizamos entrevistas ni contrataciones.</small>
-      </footer>
-
-      <a className={styles.mobileSticky} href="#analisis">Analizar gratis</a>
-    </main>
-  )
+  {checkoutPlan&&<div className={styles.checkoutOverlay} onMouseDown={e=>{if(e.target===e.currentTarget)setCheckoutPlan(null)}}><form className={styles.checkoutModal} onSubmit={startCheckout}><div className={styles.checkoutTop}><div><span className={styles.planBadge}>PAGO SEGURO</span><h3>{checkoutPlan==='pro'?'CV Pro':'Búsqueda Activa'}</h3></div><button className={styles.closeBtn} type="button" onClick={()=>setCheckoutPlan(null)}>×</button></div><p>{checkoutPlan==='pro'?'Pago único. Incluye generación, versión adaptada, LinkedIn, postulación y preparación de entrevista.':'30 días. Incluye CV Pro y hasta 10 búsquedas con versiones específicas y tablero de seguimiento.'}</p><label>Email para asociar tu compra<input type="email" required value={checkoutEmail} onChange={e=>setCheckoutEmail(e.target.value)} placeholder="tu@email.com"/></label><div className={styles.checkoutPrice}><span>Total</span><strong>{checkoutPlan==='pro'?'$8.900':'$12.900'}</strong></div><button className={styles.checkoutButton} disabled={checkoutBusy}>{checkoutBusy?'Abriendo Mercado Pago…':'Continuar con Mercado Pago'}</button><p>El plan se activa únicamente después de verificar el pago aprobado con Mercado Pago.</p></form></div>}
+ </main>
 }
