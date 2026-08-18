@@ -5,6 +5,7 @@ import MobileAiAssistant from './MobileAiAssistant'
 import MobileSupportChat from './MobileSupportChat'
 import MobilePcNotice from './MobilePcNotice'
 import MobileCashModeController from './MobileCashModeController'
+import MobileCashDailyAccess from './MobileCashDailyAccess'
 import MobileSettingsOverlay from './MobileSettingsOverlay'
 import MobileLegalLinks from './MobileLegalLinks'
 import MobileRevolutionTheme from './MobileRevolutionTheme'
@@ -13,7 +14,7 @@ import MobileBrandHeaderOverride from './MobileBrandHeaderOverride'
 import MobileGoogleAccess from './MobileGoogleAccess'
 import MobileArcaStatus from './MobileArcaStatus'
 import MobilePermissionsGate from './MobilePermissionsGate'
-import MobileProductionSalesBridge from './MobileProductionSalesBridge'
+import MobileProductionSalesBridge from './MobileProductionSalesBridgeV2'
 import SaleSearchGuard from './SaleSearchGuard'
 import SessionFetchGuard from '../redesign/SessionFetchGuard'
 import SubscriptionGate from '../redesign/SubscriptionGate'
@@ -39,6 +40,7 @@ export default function MobilePage(){
     <MobileGoogleAccess/>
     <MobileBrandHeaderOverride/>
     <MobileCashModeController/>
+    <MobileCashDailyAccess/>
     <MobileScanner/>
     <MobileAiAssistant/>
     <MobileSupportChat/>
