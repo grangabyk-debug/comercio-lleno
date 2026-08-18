@@ -21,7 +21,45 @@ function secure(response: NextResponse, request: NextRequest) {
   return response
 }
 
+function postulaMejorRoute(request: NextRequest) {
+  const host = (request.headers.get('host') || '').split(':')[0].toLowerCase()
+  const isApex = host === 'postulamejor.com'
+  const isWww = host === 'www.postulamejor.com'
+  if (!isApex && !isWww) return null
+
+  const url = request.nextUrl.clone()
+
+  // Keep a single canonical host for ads, analytics and SEO.
+  if (isWww) {
+    const destination = new URL(`https://postulamejor.com${url.pathname}${url.search}`)
+    return secure(NextResponse.redirect(destination, 308), request)
+  }
+
+  // Public URLs stay clean while the implementation remains isolated under /cv-ia.
+  if (url.pathname === '/') {
+    url.pathname = '/cv-ia'
+    return secure(NextResponse.rewrite(url), request)
+  }
+  if (url.pathname === '/cv-ia') {
+    const destination = new URL(`https://postulamejor.com/${url.search}`)
+    return secure(NextResponse.redirect(destination, 308), request)
+  }
+  if (url.pathname === '/privacidad') {
+    url.pathname = '/cv-ia/privacidad'
+    return secure(NextResponse.rewrite(url), request)
+  }
+  if (url.pathname === '/terminos') {
+    url.pathname = '/cv-ia/terminos'
+    return secure(NextResponse.rewrite(url), request)
+  }
+
+  return secure(NextResponse.next(), request)
+}
+
 export function middleware(request: NextRequest) {
+  const postulaResponse = postulaMejorRoute(request)
+  if (postulaResponse) return postulaResponse
+
   const url = request.nextUrl.clone()
 
   // Legacy friendly private URLs now resolve to the isolated redesign app.
