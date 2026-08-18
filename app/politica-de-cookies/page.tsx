@@ -11,24 +11,24 @@ export default function CookiePolicyPage(){
 
     <section style={{marginTop:44}}>
       <h2>Cookies necesarias</h2>
-      <p>Son las que permiten funciones básicas del sitio, seguridad, inicio de sesión y preferencias esenciales. No se desactivan desde el panel de consentimiento porque son necesarias para prestar el servicio.</p>
+      <p>Son las que permiten funciones básicas del sitio, seguridad, inicio de sesión y preferencias esenciales. Se utilizan únicamente cuando son necesarias para prestar el servicio o mantener una función solicitada por el usuario.</p>
     </section>
     <section style={{marginTop:32}}>
-      <h2>Analítica</h2>
-      <p>Si das tu consentimiento, podemos utilizar Microsoft Clarity para comprender de forma agregada cómo se usa el sitio y detectar problemas de experiencia. Esta categoría es opcional.</p>
+      <h2>Analítica sin cookies</h2>
+      <p>En las páginas públicas podemos utilizar Microsoft Clarity en modo sin consentimiento de almacenamiento para comprender de forma agregada cómo se usa el sitio, detectar problemas de experiencia y analizar interacciones. En esta modalidad no habilitamos cookies de Clarity ni identificadores persistentes propios para unir visitas entre páginas o sesiones.</p>
     </section>
     <section style={{marginTop:32}}>
-      <h2>Marketing</h2>
-      <p>Si das tu consentimiento, podemos utilizar Google Ads para medir el rendimiento de campañas publicitarias y atribuir conversiones. Esta categoría también es opcional.</p>
+      <h2>Medición publicitaria</h2>
+      <p>Podemos cargar la etiqueta de Google Ads con el almacenamiento publicitario y analítico deshabilitado por defecto. Esto permite señales de medición limitadas sin habilitar cookies publicitarias ni personalización desde Comercio Lleno.</p>
     </section>
     <section style={{marginTop:32}}>
-      <h2>Cambiar tu elección</h2>
-      <p>Podés modificar tus preferencias en cualquier momento desde el enlace “Configurar cookies” disponible en el pie del sitio. También podés borrar las cookies desde la configuración de tu navegador.</p>
+      <h2>Qué implica el modo sin cookies</h2>
+      <p>La medición sin cookies puede registrar eventos técnicos o interacciones de una página, pero no se utiliza desde Comercio Lleno para crear un identificador persistente del visitante ni para reconstruir una navegación continua entre distintas páginas.</p>
     </section>
     <section style={{marginTop:32}}>
       <h2>Más información</h2>
       <p>Para conocer cómo tratamos los datos personales, consultá nuestra <Link href="/politica-de-privacidad" style={{color:'#147a50'}}>Política de privacidad</Link>.</p>
     </section>
-    <p style={{marginTop:48,fontSize:12,color:'#7a817c'}}>Última actualización: 15 de agosto de 2026.</p>
+    <p style={{marginTop:48,fontSize:12,color:'#7a817c'}}>Última actualización: 17 de agosto de 2026.</p>
   </main>
 }
