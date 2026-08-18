@@ -1,26 +1,25 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import MobileScanner from '../movil/MobileScanner'
+import { useEffect } from 'react'
 
 /**
- * Mobile safety bridge.
- *
- * The old /movil experience was a preview and never persisted sales. Production
- * users must stay on the real redesign flow, which has the atomic sale write and
- * cash-register guard. We still expose the camera scanner on phones from here so
- * the mobile workflow keeps the useful native feature without leaving production.
+ * The desktop/redesign dashboard and the dedicated mobile app are intentionally
+ * separate experiences. If a phone (or a real mobile-width preview) lands on
+ * /redesign, send it to /movil instead of squeezing the desktop dashboard into a
+ * narrow viewport. The /movil route owns the mobile scanner and mobile UI.
  */
 export default function MobileVersionPrompt(){
-  const [isPhone,setIsPhone]=useState(false)
-
   useEffect(()=>{
     const media=window.matchMedia('(max-width: 760px)')
-    const sync=()=>setIsPhone(media.matches)
-    sync()
-    media.addEventListener?.('change',sync)
-    return()=>media.removeEventListener?.('change',sync)
+    const redirectToMobile=()=>{
+      if(!media.matches)return
+      if(window.location.pathname==='/movil')return
+      window.location.replace('/movil')
+    }
+    redirectToMobile()
+    media.addEventListener?.('change',redirectToMobile)
+    return()=>media.removeEventListener?.('change',redirectToMobile)
   },[])
 
-  return isPhone?<MobileScanner/>:null
+  return null
 }
