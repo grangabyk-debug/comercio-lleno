@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Script from 'next/script'
 import LegacyScripts from './LegacyScripts'
 import MarketingScripts from './MarketingScripts'
-import CookieConsent from './CookieConsent'
 import LegalServiceActions from './LegalServiceActions'
 import FloatingWhatsApp from './FloatingWhatsApp'
 import PaidBranchPurchaseRuntime from './redesign/PaidBranchPurchaseRuntime'
@@ -83,7 +82,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <FloatingWhatsApp />
         <PaidBranchPurchaseRuntime />
         <LegalServiceActions />
-        <CookieConsent />
         <LegacyScripts />
       </body>
     </html>
