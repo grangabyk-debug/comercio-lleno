@@ -70,7 +70,7 @@ export default function LandingPage(){
           <LandingQuickDemo/>
         </div>
         <div className={styles.heroFacts}>
-          <span>$0 por 90 días</span><span>Sin tarjeta</span><span>Luego 3 meses a $14.900/mes</span>
+          <span>$0 por 90 días</span><span>Sin tarjeta</span><span>Empezá en minutos</span>
         </div>
       </div>
 
@@ -151,6 +151,6 @@ export default function LandingPage(){
       <div className={styles.footerCta}><span>¿Querés probarlo con tu comercio?</span><Link href="/prueba-gratis">Activar 3 meses gratis →</Link></div>
     </footer>
 
-    <div className={styles.mobileSticky}><div><b>3 meses gratis</b><span>Luego 3 meses a $14.900/mes</span></div><Link href="/prueba-gratis">Activar ahora</Link></div>
+    <div className={styles.mobileSticky}><div><b>3 meses gratis</b><span>90 días · sin tarjeta</span></div><Link href="/prueba-gratis">Activar ahora</Link></div>
   </main>
 }
