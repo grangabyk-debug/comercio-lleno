@@ -1,22 +1,26 @@
 'use client'
 
-import { useEffect } from 'react'
-import { loadMobileSettings,readCachedMobileSettings } from '@/lib/comercio/mobile-settings'
-import { readTenantSession } from '@/lib/comercio/session'
+import { useEffect, useState } from 'react'
+import MobileScanner from '../movil/MobileScanner'
 
+/**
+ * Mobile safety bridge.
+ *
+ * The old /movil experience was a preview and never persisted sales. Production
+ * users must stay on the real redesign flow, which has the atomic sale write and
+ * cash-register guard. We still expose the camera scanner on phones from here so
+ * the mobile workflow keeps the useful native feature without leaving production.
+ */
 export default function MobileVersionPrompt(){
+  const [isPhone,setIsPhone]=useState(false)
+
   useEffect(()=>{
-    let cancelled=false
-    const redirect=async()=>{
-      const session=readTenantSession()
-      const isPhone=window.matchMedia('(max-width: 760px)').matches
-      if(!session||!isPhone||!location.pathname.startsWith('/redesign'))return
-      let settings=readCachedMobileSettings(session.companyId)
-      try{settings=await loadMobileSettings(session)}catch{}
-      if(!cancelled&&settings.autoRedirect)location.replace('/movil')
-    }
-    const timer=window.setTimeout(()=>void redirect(),80)
-    return()=>{cancelled=true;window.clearTimeout(timer)}
+    const media=window.matchMedia('(max-width: 760px)')
+    const sync=()=>setIsPhone(media.matches)
+    sync()
+    media.addEventListener?.('change',sync)
+    return()=>media.removeEventListener?.('change',sync)
   },[])
-  return null
+
+  return isPhone?<MobileScanner/>:null
 }
