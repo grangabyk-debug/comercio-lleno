@@ -2,6 +2,7 @@ import Link from 'next/link'
 import BrandLogo from './BrandLogo'
 import LandingFeatureTabs from './LandingFeatureTabs'
 import LandingMobileInnovation from './LandingMobileInnovation'
+import LandingSystemShowcase from './LandingSystemShowcase'
 import LandingSolutionsTeaser from './LandingSolutionsTeaser'
 import ArgentinaPride from './ArgentinaPride'
 import styles from './LandingPremium.module.css'
@@ -67,6 +68,10 @@ export default function LandingPage(){
         <span><b>58 / 80 mm</b><small>impresora térmica</small></span>
       </div>
     </section>
+
+    <div id="pc" style={{scrollMarginTop:96}}>
+      <LandingSystemShowcase/>
+    </div>
 
     <LandingSolutionsTeaser/>
 
