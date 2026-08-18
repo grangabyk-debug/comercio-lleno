@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import CvIaExperience from './CvIaExperience'
 import OwnerTestBridge from './OwnerTestBridge'
 import ConsentBridge from './ConsentBridge'
+import OrientationBridge from './OrientationBridge'
 import AuthStatusLink from './AuthStatusLink'
 import './postula-mejor-polish.css'
 import './postula-flow-v2.css'
@@ -9,7 +10,7 @@ import './postula-flow-v2.css'
 export const metadata: Metadata = {
   metadataBase: new URL('https://postulamejor.com'),
   title: { absolute: 'Postulá Mejor | Mejorá tu CV y prepará cada postulación con IA' },
-  description: 'Analizá tu CV gratis, comparalo con una búsqueda laboral y prepará una candidatura específica con Triple Filtro IA, control factual y herramientas para entrevistas.',
+  description: 'Analizá tu CV gratis, recibí orientación laboral o comparalo con una búsqueda concreta y prepará una candidatura específica con control factual.',
   applicationName: 'Postulá Mejor',
   alternates: { canonical: 'https://postulamejor.com' },
   robots: { index: true, follow: true },
@@ -24,12 +25,12 @@ export const metadata: Metadata = {
     url: 'https://postulamejor.com',
     siteName: 'Postulá Mejor',
     title: 'Postulá Mejor | Una candidatura que compita mejor',
-    description: 'Diagnóstico gratis de CV, adaptación por puesto, LinkedIn y preparación de entrevistas con control factual.',
+    description: 'Diagnóstico gratis, orientación laboral, adaptación por puesto, LinkedIn y preparación de entrevistas con control factual.',
   },
   twitter: {
     card: 'summary',
     title: 'Postulá Mejor | Una candidatura que compita mejor',
-    description: 'Analizá tu CV gratis y prepará una candidatura específica para el trabajo que querés.',
+    description: 'Analizá tu CV gratis, descubrí a qué puestos te conviene apuntar y prepará candidaturas específicas.',
   },
 }
 
@@ -44,6 +45,7 @@ export default function CvIaPage() {
       </div>
       <CvIaExperience />
       <ConsentBridge />
+      <OrientationBridge />
       <OwnerTestBridge />
     </div>
   )
