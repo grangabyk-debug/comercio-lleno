@@ -36,6 +36,14 @@ export default function LandingMobileInnovation(){
       <div className={styles.posterGlow}/>
       <div className={styles.platformBadge}>VERSIÓN MÓVIL · TAMBIÉN EN PC</div>
       <div className={styles.freeBadge}><b>GRATIS</b><span>3 MESES</span></div>
+      <div className={styles.featureChips} aria-label="Funciones destacadas">
+        <span>Facturador ARCA</span>
+        <span>Ventas</span>
+        <span>Stock</span>
+        <span>Lector código de barras</span>
+        <span>Caja automática</span>
+        <span>Soporte humano</span>
+      </div>
       <PhonePreview/>
     </div>
     <div className={styles.copy}>
