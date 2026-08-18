@@ -3,7 +3,6 @@ import BrandLogo from './BrandLogo'
 import LandingFeatureTabs from './LandingFeatureTabs'
 import LandingMobileInnovation from './LandingMobileInnovation'
 import LandingQuickDemo from './LandingQuickDemo'
-import LandingSystemShowcase from './LandingSystemShowcase'
 import LandingSolutionsTeaser from './LandingSolutionsTeaser'
 import LandingHeroPromo from './LandingHeroPromo'
 import ArgentinaPride from './ArgentinaPride'
@@ -96,7 +95,6 @@ export default function LandingPage(){
       </div>
     </section>
 
-    <LandingSystemShowcase/>
     <LandingSolutionsTeaser/>
 
     <section className={styles.productSection} id="producto">
