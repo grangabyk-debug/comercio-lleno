@@ -37,20 +37,20 @@ export default function LandingMobileInnovation(){
       <div className={styles.posterCopy}>
         <span>VERSIÓN MÓVIL</span>
         <strong>Punto de venta<br/>en tu bolsillo.</strong>
-        <small>La misma operación del comercio, pensada para usarla con una mano.</small>
+        <small>La misma operación del comercio, pensada para usarla con una mano. También disponible en PC.</small>
       </div>
       <div className={styles.freeBadge}><b>GRATIS</b><span>3 MESES · SIN TARJETA</span></div>
       <PhonePreview/>
-      <span className={styles.posterTag}>ANDROID · ESCÁNER · VENTAS · STOCK · ARCA</span>
+      <span className={styles.posterTag}>ANDROID · PC · ESCÁNER · VENTAS · STOCK · ARCA</span>
     </div>
     <div className={styles.copy}>
-      <p>PUNTO DE VENTA MÓVIL</p>
+      <p>PUNTO DE VENTA MÓVIL · TAMBIÉN EN PC</p>
       <h2 id="mobile-title">Todo tu negocio<br/><em>en el celu.</em></h2>
-      <p className={styles.lead}>Vendé, facturá, mirá el stock y seguí cómo viene el día desde el teléfono. No es una captura decorativa: es una experiencia pensada para operar Comercio Lleno desde el celular.</p>
+      <p className={styles.lead}>Vendé, facturá, mirá el stock y seguí cómo viene el día desde el teléfono. También podés trabajar desde la versión PC con el mismo comercio y los mismos datos sincronizados.</p>
       <div className={styles.lines}>
         <div><span>01</span><b>Vendé desde el mostrador</b><small>Armá una venta, elegí el medio de pago y facturá sin depender de una computadora.</small></div>
         <div><span>02</span><b>Usá la cámara como escáner</b><small>Buscá productos y leé códigos de barras directamente desde el celular.</small></div>
-        <div><span>03</span><b>Todo queda sincronizado</b><small>Ventas, productos, caja, movimientos y stock actualizados en el mismo sistema.</small></div>
+        <div><span>03</span><b>Todo queda sincronizado</b><small>Ventas, productos, caja, movimientos y stock actualizados en el mismo sistema, tanto en celular como en PC.</small></div>
       </div>
       <div className={styles.mobileCta}>
         <Link href="/prueba-gratis">Probar 3 meses gratis <span>→</span></Link>
