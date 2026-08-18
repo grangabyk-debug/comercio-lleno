@@ -11,6 +11,19 @@ const money=new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maxim
 type ScannerControls={stop:()=>void}
 type AudioWindow=Window & typeof globalThis & {webkitAudioContext?:typeof AudioContext}
 
+function cameraErrorMessage(error:unknown){
+  if(error instanceof DOMException){
+    if(error.name==='NotAllowedError'||error.name==='SecurityError'){
+      return 'Chrome no pudo habilitar la cámara. Si ves una burbuja, grabador de pantalla o cualquier app flotante, cerrala y tocá “Reintentar cámara”. Si la cámara quedó bloqueada, abrí los permisos del sitio y elegí Cámara → Permitir.'
+    }
+    if(error.name==='NotFoundError'||error.name==='OverconstrainedError')return 'No encontramos una cámara disponible en este dispositivo. Podés ingresar el código manualmente.'
+    if(error.name==='NotReadableError'||error.name==='AbortError')return 'La cámara está siendo usada por otra app. Cerrala y tocá “Reintentar cámara”.'
+  }
+  const message=error instanceof Error?error.message:String(error)
+  if(/permission|permiso|denied|notallowed/i.test(message))return 'No pudimos obtener permiso para la cámara. Cerrá cualquier burbuja o app flotante, revisá el permiso de Cámara del sitio y tocá “Reintentar cámara”.'
+  return message||'No se pudo iniciar la cámara. Podés reintentar o ingresar el código manualmente.'
+}
+
 export default function MobileScanner(){
   const[open,setOpen]=useState(false),[error,setError]=useState(''),[code,setCode]=useState(''),[product,setProduct]=useState<Product|null>(null),[notFound,setNotFound]=useState(false),[busy,setBusy]=useState(false),[manual,setManual]=useState('')
   const[enabled,setEnabled]=useState(false),[appReady,setAppReady]=useState(false),[editPrice,setEditPrice]=useState(''),[editStock,setEditStock]=useState(''),[saving,setSaving]=useState(false)
@@ -68,7 +81,7 @@ export default function MobileScanner(){
     let timer:number|undefined
     let shown=false
     const sync=()=>{
-      const ready=Boolean(document.querySelector('main[class*="app"]'))
+      const ready=Boolean(document.querySelector('main[class*="app"], main[class*="shell"]'))
       if(!ready){
         if(timer!==undefined)window.clearTimeout(timer)
         timer=undefined
@@ -98,17 +111,19 @@ export default function MobileScanner(){
   async function start(){
     setBusy(true);setError('');setProduct(null);setNotFound(false);setCode('');setAddOpen(false);lastRef.current=''
     try{
+      stop()
       const session=readTenantSession();sessionRef.current=session;if(!session)throw new Error('Iniciá sesión para usar el escáner.')
       const mobile=await loadMobileSettings(session).catch(()=>readCachedMobileSettings(session.companyId));setEnabled(mobile.scannerEnabled)
       if(!mobile.scannerEnabled)throw new Error('El escáner con cámara está desactivado en Configuración para este comercio.')
       const data=await loadCommerceSnapshot(session);productsRef.current=data.products
+      if(!window.isSecureContext)throw new Error('La cámara requiere una conexión segura HTTPS. Volvé a abrir Comercio Lleno desde su dirección oficial.')
       if(!navigator.mediaDevices?.getUserMedia)throw new Error('Este navegador no permite usar la cámara. Podés ingresar el código manualmente.')
       const video=videoRef.current;if(!video)throw new Error('No se pudo preparar la vista de cámara.')
       const { BrowserMultiFormatReader }=await import('@zxing/browser')
       const reader=new BrowserMultiFormatReader()
       const controls=await reader.decodeFromConstraints({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false},video,(result)=>{const value=result?.getText?.();if(value)resolve(value)})
       controlsRef.current=controls as ScannerControls
-    }catch(e){setError(e instanceof Error?e.message:String(e))}finally{setBusy(false)}
+    }catch(e){stop();setError(cameraErrorMessage(e))}finally{setBusy(false)}
   }
 
   async function openScanner(){
@@ -152,7 +167,7 @@ export default function MobileScanner(){
     {open&&appReady&&Boolean(readTenantSession())&&<div className={styles.backdrop}><div className={styles.sheet}>
       <div className={styles.head}><div><span>CONSULTA Y EDICIÓN</span><h2>Escáner de productos</h2></div><button onClick={close}>×</button></div>
       <div className={styles.camera}><video ref={videoRef} playsInline muted/><div className={styles.frame}/><div className={styles.hint}>{busy?'Preparando cámara…':product||notFound?'Código leído':'Apuntá al código de barras'}</div></div>
-      {error&&<div className={styles.warning}>{error}</div>}
+      {error&&<div className={styles.warning}><div>{error}</div><button type="button" onClick={()=>void start()} disabled={busy} style={{marginTop:10,width:'100%',minHeight:42,border:0,borderRadius:10,fontWeight:900,cursor:'pointer'}}>{busy?'Preparando…':'Reintentar cámara'}</button></div>}
       <div className={styles.manual}><input inputMode="numeric" value={manual} onChange={e=>setManual(e.target.value)} onKeyDown={e=>e.key==='Enter'&&resolve(manual)} placeholder="Ingresar código manualmente"/><button onClick={()=>resolve(manual)}>Buscar</button></div>
 
       {product&&<div className={styles.result}><span>PRODUCTO ENCONTRADO</span><h3>{product.name}</h3><strong>{money.format(product.price)}</strong><div className={styles.infoGrid}><p><b>Código</b>{product.barcode||'—'}</p><p><b>Categoría</b>{product.category||'General'}</p><p><b>Stock</b>{product.stock}</p><p><b>Unidad</b>{product.unit||'unidad'}</p></div>

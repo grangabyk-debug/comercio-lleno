@@ -1,23 +1,18 @@
 import type { Metadata } from 'next'
-import MobileSimpleApp from './MobileSimpleAppV2'
-import MobileScanner from './MobileScanner'
-import MobileAiAssistant from './MobileAiAssistant'
-import MobileSupportChat from './MobileSupportChat'
-import MobilePcNotice from './MobilePcNotice'
-import MobileCashModeController from './MobileCashModeController'
-import MobileSettingsOverlay from './MobileSettingsOverlay'
-import MobileLegalLinks from './MobileLegalLinks'
-import MobileRevolutionTheme from './MobileRevolutionTheme'
-import MobileDarkTheme from './MobileDarkTheme'
-import MobileBrandHeaderOverride from './MobileBrandHeaderOverride'
-import MobileGoogleAccess from './MobileGoogleAccess'
-import MobileArcaStatus from './MobileArcaStatus'
-import MobilePermissionsGate from './MobilePermissionsGate'
-import SaleSearchGuard from './SaleSearchGuard'
-import SessionFetchGuard from '../redesign/SessionFetchGuard'
-import SubscriptionGate from '../redesign/SubscriptionGate'
-import './mobile-modern-v4.css'
+import { redirect } from 'next/navigation'
 
-export const metadata: Metadata={title:'Comercio Lleno · Móvil',description:'Experiencia simple de Comercio Lleno para vender y consultar productos desde el celular',robots:{index:false,follow:false}}
+export const metadata: Metadata={
+  title:'Comercio Lleno · Móvil',
+  description:'Comercio Lleno adaptado para celular',
+  robots:{index:false,follow:false},
+}
 export const dynamic='force-dynamic'
-export default function MobilePage(){return <><MobileRevolutionTheme/><MobileDarkTheme/><SessionFetchGuard/><SaleSearchGuard/><SubscriptionGate/><MobileSimpleApp/><MobileArcaStatus/><MobileGoogleAccess/><MobileBrandHeaderOverride/><MobileCashModeController/><MobileScanner/><MobileAiAssistant/><MobileSupportChat/><MobilePcNotice/><MobileSettingsOverlay/><MobileLegalLinks/><MobilePermissionsGate/></>}
+
+/**
+ * /movil used to mount a preview-only POS that showed totals locally without
+ * persisting the sale. Never expose that preview to production tenants again.
+ * The real /redesign app is responsive and now also mounts the mobile scanner.
+ */
+export default function MobilePage(){
+  redirect('/redesign')
+}

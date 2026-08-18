@@ -5,9 +5,10 @@ function secure(response: NextResponse, request: NextRequest) {
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('X-Frame-Options', 'SAMEORIGIN')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  const cameraAllowed = request.nextUrl.pathname.startsWith('/movil') || request.nextUrl.pathname.startsWith('/redesign')
   response.headers.set(
     'Permissions-Policy',
-    request.nextUrl.pathname.startsWith('/movil')
+    cameraAllowed
       ? 'camera=(self), microphone=(self), geolocation=()'
       : 'camera=(), microphone=(self), geolocation=()',
   )
