@@ -61,7 +61,7 @@ export default function MarketingScripts(){
   },[prefs])
 
   useEffect(()=>{
-    if(!ready||privateRoute||!prefs.analytics)return
+    if(!ready||privateRoute)return
     let cancelled=false
     let timer:ReturnType<typeof setTimeout>|undefined
     let attempts=0
@@ -74,11 +74,17 @@ export default function MarketingScripts(){
         return
       }
       try{
-        const anonymousId=getOrCreateId(localStorage,'cl_clarity_anon_id','visitor')
-        const sessionId=getOrCreateId(sessionStorage,'cl_clarity_session_id','session')
         const currentPage=pageId(pathname)
         const stage=pathname==='/'?'landing':pathname==='/prueba-gratis'?'trial':'public'
-        clarity('identify',anonymousId,sessionId,currentPage)
+
+        // Without analytics consent, keep Clarity in cookieless mode and avoid
+        // creating our own persistent visitor/session identifiers.
+        if(prefs.analytics){
+          const anonymousId=getOrCreateId(localStorage,'cl_clarity_anon_id','visitor')
+          const sessionId=getOrCreateId(sessionStorage,'cl_clarity_session_id','session')
+          clarity('identify',anonymousId,sessionId,currentPage)
+        }
+
         clarity('set','page_path',pathname)
         clarity('set','funnel_stage',stage)
         clarity('event',`page_view_${currentPage}`)
@@ -92,10 +98,8 @@ export default function MarketingScripts(){
 
   if(!ready||privateRoute)return null
   return <>
-    {prefs.analytics&&<>
-      <Script id="microsoft-clarity" strategy="afterInteractive">{clarityTag}</Script>
-      <Script id="clarity-consent" strategy="afterInteractive">{`window.clarity&&window.clarity('consentv2',{ad_Storage:'${prefs.marketing?'granted':'denied'}',analytics_Storage:'granted'});`}</Script>
-    </>}
+    <Script id="microsoft-clarity" strategy="afterInteractive">{clarityTag}</Script>
+    <Script id="clarity-consent" strategy="afterInteractive">{`window.clarity&&window.clarity('consentv2',{ad_Storage:'${prefs.marketing?'granted':'denied'}',analytics_Storage:'${prefs.analytics?'granted':'denied'}'});`}</Script>
     {prefs.marketing&&<>
       <Script src="https://www.googletagmanager.com/gtag/js?id=AW-18388928228" strategy="afterInteractive"/>
       <Script id="google-ads-tag" strategy="afterInteractive">{googleAdsTag}</Script>
