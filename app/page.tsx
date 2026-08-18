@@ -29,12 +29,12 @@ export const metadata={
   description:'Sistema POS online para vender, controlar stock y caja, facturar con ARCA y gestionar el comercio desde computadora o celular. Probalo gratis durante 3 meses.',
   keywords:['sistema pos argentina','punto de venta','software para comercios','facturación ARCA','control de stock','caja diaria','POS online'],
   alternates:{canonical:'https://comerciolleno.com'},
-  openGraph:{title:'Comercio Lleno | Un sistema para todo tu comercio',description:'Ventas, stock, caja y facturación ARCA. Plan Impulso: 3 meses gratis; luego 3 meses a $14.900 por mes.',url:'https://comerciolleno.com',siteName:'Comercio Lleno',locale:'es_AR',type:'website'},
+  openGraph:{title:'Comercio Lleno | Un sistema para todo tu comercio',description:'Ventas, stock, caja y facturación ARCA. Plan Impulso: 3 meses gratis; después $14.900 por mes.',url:'https://comerciolleno.com',siteName:'Comercio Lleno',locale:'es_AR',type:'website'},
   robots:{index:true,follow:true},
 }
 
 export default function LandingPage(){
-  const softwareLd={'@context':'https://schema.org','@type':'SoftwareApplication',name:'Comercio Lleno',applicationCategory:'BusinessApplication',operatingSystem:'Web, Android',url:'https://comerciolleno.com',description:'Sistema POS online para comercios con ventas, stock, caja, facturación ARCA y versión móvil.',offers:{'@type':'Offer',price:'0',priceCurrency:'ARS',description:'Plan Impulso: 90 días gratis. Luego, 3 meses a $14.900 por mes y después $29.800 por mes.'},featureList:productFeatures}
+  const softwareLd={'@context':'https://schema.org','@type':'SoftwareApplication',name:'Comercio Lleno',applicationCategory:'BusinessApplication',operatingSystem:'Web, Android',url:'https://comerciolleno.com',description:'Sistema POS online para comercios con ventas, stock, caja, facturación ARCA y versión móvil.',offers:{'@type':'Offer',price:'0',priceCurrency:'ARS',description:'Plan Impulso: 90 días gratis. Después $14.900 por mes.'},featureList:productFeatures}
   const organizationLd={'@context':'https://schema.org','@type':'Organization',name:'Llena Group',brand:{'@type':'Brand',name:'Comercio Lleno'},url:'https://comerciolleno.com'}
 
   return <main className={styles.page}>
@@ -88,14 +88,14 @@ export default function LandingPage(){
     <section className={styles.priceSection} id="precio">
       <div className={styles.priceMain}>
         <p>PLAN IMPULSO</p>
-        <h2>3 meses gratis.<br/><span>Después, 3 meses a $14.900 por mes.</span></h2>
-        <p>Usá Comercio Lleno de verdad durante 90 días: cargá productos, vendé, controlá caja, stock y recorré todo el sistema sin pagar. Luego de los tres meses promocionales pagos, el precio regular es $29.800 por mes.</p>
+        <h2>3 meses gratis.<br/><span>Después, $14.900 por mes.</span></h2>
+        <p>Usá Comercio Lleno de verdad durante 90 días: cargá productos, vendé, controlá caja, stock y recorré todo el sistema sin pagar. Después de los 90 días gratis, el precio es $14.900 por mes.</p>
       </div>
       <div className={styles.priceOffer}>
         <div className="landingTrialSpotlight"><strong>90 DÍAS · $0</strong><span>SIN TARJETA</span></div>
         <span className={styles.offerBadge}>PLAN IMPULSO · TIEMPO LIMITADO</span>
         <div className={styles.priceLine}><strong>$0</strong><small>/ primeros 3 meses</small></div>
-        <p>Después, 3 meses a $14.900/mes. Luego $29.800/mes. Cancelás cuando quieras.</p>
+        <p>Después, $14.900/mes. Cancelás cuando quieras.</p>
         <small className={styles.supportNote}>Incluye 1 sucursal, hasta 1.000 productos y 500 comprobantes ARCA. Ampliaciones opcionales desde $4.900. <Link href="/terminos">Ver condiciones.</Link></small>
       </div>
     </section>
@@ -103,7 +103,7 @@ export default function LandingPage(){
     <section className={styles.moreInfo} id="preguntas" aria-label="Más información">
       <div><p>LO QUE SUELE IMPORTAR</p><h2>Respuestas cortas.<br/>Como debe ser.</h2></div>
       <div className={styles.detailsList}>
-        <details><summary>¿Cuánto cuesta el Plan Impulso?<span>+</span></summary><p>Los primeros 90 días son gratis. Después tenés 3 meses a $14.900 por mes; terminado ese período, el precio regular es $29.800 por mes. Podés cancelar cuando quieras.</p></details>
+        <details><summary>¿Cuánto cuesta el Plan Impulso?<span>+</span></summary><p>Los primeros 90 días son gratis. Después, el precio es $14.900 por mes. Podés cancelar cuando quieras.</p></details>
         <details><summary>¿Qué incluye la prueba gratis y cuáles son sus límites?<span>+</span></summary><p>Incluye 1 sucursal, hasta 1.000 productos activos y hasta 500 comprobantes fiscales autorizados por ARCA. Si necesitás más, podés agregar sucursales, desbloquear productos ilimitados o ampliar la facturación hasta 2.500 comprobantes mediante ampliaciones opcionales de $4.900 cada una. Máximo 5 sucursales por comercio.</p></details>
         <details><summary>¿Puedo facturar con ARCA?<span>+</span></summary><p>Sí. Una vez configurado el certificado y el punto de venta, la facturación queda integrada al flujo de venta.</p></details>
         <details><summary>¿Funciona con Mercado Pago, scanner e impresora?<span>+</span></summary><p>El sistema contempla integración con Mercado Pago y compatibilidad con lectores de códigos USB e impresoras térmicas de 58 y 80 mm.</p></details>
