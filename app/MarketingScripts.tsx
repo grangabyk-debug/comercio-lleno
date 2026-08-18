@@ -27,24 +27,21 @@ function pageId(pathname:string){
   if(pathname.startsWith('/soluciones/'))return `solution-${pathname.split('/').filter(Boolean).pop()||'detail'}`
   return pathname.replace(/^\/+|\/+$/g,'').replace(/[^a-z0-9-]+/gi,'-')||'home'
 }
+function postulaRoute(pathname:string){return pathname.startsWith('/cv-ia')||pathname.startsWith('/cuenta')||pathname.startsWith('/mi-cv')||pathname.startsWith('/busqueda-activa')}
 
 export default function MarketingScripts(){
   const pathname=usePathname()
-  const privateRoute=pathname.startsWith('/movil')||pathname.startsWith('/redesign')||pathname.startsWith('/login')||pathname.startsWith('/privacidad')||pathname.startsWith('/politica-de-privacidad')||pathname.startsWith('/politica-de-cookies')||pathname.startsWith('/eliminar-cuenta')||pathname.startsWith('/cv-ia')
+  const privateRoute=pathname.startsWith('/movil')||pathname.startsWith('/redesign')||pathname.startsWith('/login')||pathname.startsWith('/privacidad')||pathname.startsWith('/politica-de-privacidad')||pathname.startsWith('/politica-de-cookies')||pathname.startsWith('/eliminar-cuenta')||postulaRoute(pathname)
 
   useEffect(()=>{
     if(privateRoute)return
     let cancelled=false
     let timer:ReturnType<typeof setTimeout>|undefined
     let attempts=0
-
     const annotate=()=>{
       if(cancelled)return
       const clarity=(window as typeof window & {clarity?:ClarityFn}).clarity
-      if(!clarity){
-        if(attempts++<20)timer=setTimeout(annotate,250)
-        return
-      }
+      if(!clarity){if(attempts++<20)timer=setTimeout(annotate,250);return}
       try{
         clarity('consentv2',{ad_Storage:'denied',analytics_Storage:'denied'})
         const currentPage=pageId(pathname)
@@ -55,7 +52,6 @@ export default function MarketingScripts(){
         if(pathname==='/prueba-gratis')clarity('upgrade','trial_registration')
       }catch{}
     }
-
     annotate()
     return()=>{cancelled=true;if(timer)clearTimeout(timer)}
   },[pathname,privateRoute])
