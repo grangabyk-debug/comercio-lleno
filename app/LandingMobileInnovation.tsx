@@ -35,7 +35,7 @@ export default function LandingMobileInnovation(){
     <div className={styles.poster}>
       <div className={styles.posterGlow}/>
       <div className={styles.platformBadge}>VERSIÓN MÓVIL · TAMBIÉN EN PC</div>
-      <div className={styles.freeBadge}><b>GRATIS</b><span>3 MESES GRATIS</span></div>
+      <div className={styles.freeBadge}><b>GRATIS</b><span>3 MESES</span></div>
       <PhonePreview/>
     </div>
     <div className={styles.copy}>
@@ -45,7 +45,11 @@ export default function LandingMobileInnovation(){
       <div className={styles.mobileCta}>
         <Link href="/prueba-gratis">INICIAR PRUEBA GRATIS <span>→</span></Link>
       </div>
-      <a className={styles.pcJump} href="#pc">Ver versión PC <span>↓</span></a>
+      <a className={styles.pcJump} href="#pc">VER VERSIÓN PC <span>↓</span></a>
+      <div className={styles.touchCue}>
+        <span className={styles.touchPhone}><i/></span>
+        <div><b>Tu comercio, siempre a mano.</b><small>Vendé y controlá todo desde el celular.</small></div>
+      </div>
     </div>
   </section>
 }
