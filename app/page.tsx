@@ -116,6 +116,7 @@ export default function LandingPage(){
       <div className={`${styles.footerBrand} ${mobileFix.footerBrand}`}>
         <BrandLogo size={38}/>
         <p>Software de gestión comercial de Llena Group.</p>
+        <p style={{marginTop:8,fontSize:12,lineHeight:1.5,opacity:.78}}>Titular: Gabriel Alejandro Granvillano · CUIT: 20-38422407-6</p>
         <a href={dataFiscalHref} target="_F960AFIPInfo" rel="noopener noreferrer" aria-label="Ver Data Fiscal de ARCA" style={{display:'inline-flex',marginTop:12,borderRadius:8,overflow:'hidden'}}>
           <img src={dataFiscalImage} alt="Formulario 960/D - Data Fiscal" width="76" height="105" style={{display:'block',width:76,height:'auto'}}/>
         </a>
