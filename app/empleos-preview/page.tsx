@@ -4,6 +4,7 @@ import {getJobCatalog} from '../postula-preview/jobs'
 import JobsExplorer from './JobsExplorer'
 import './jobs-premium.css'
 import '../postula-preview/premium-v5.css'
+import '../postula-preview/premium-v6.css'
 
 export const metadata={title:'Ofertas de empleo | Postulá Mejor Preview',description:'Explorador de oportunidades laborales de Postulá Mejor.',robots:{index:false,follow:false}}
 export const revalidate=21600
