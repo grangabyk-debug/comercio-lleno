@@ -18,8 +18,8 @@ import './landing-refinement-v2.css'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://postulamejor.com'),
-  title: { absolute: 'Postulá Mejor | CV ATS, CV PRO y postulaciones con IA' },
-  description: 'Analizá tu CV gratis, revisá compatibilidad ATS, recibí orientación laboral y prepará un CV PRO optimizado para sistemas de selección sin inventar experiencia.',
+  title: { absolute: 'Postulá Mejor | CV ATS, CV Pro+ y postulaciones con IA' },
+  description: 'Analizá tu CV gratis, revisá compatibilidad ATS, recibí orientación laboral y prepará un CV Pro+ optimizado para sistemas de selección sin inventar experiencia.',
   applicationName: 'Postulá Mejor',
   alternates: { canonical: 'https://postulamejor.com' },
   robots: { index: true, follow: true },
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     url: 'https://postulamejor.com',
     siteName: 'Postulá Mejor',
     title: 'Postulá Mejor | CV ATS y candidaturas que compiten mejor',
-    description: 'Diagnóstico gratis, análisis ATS, test de intereses, primer CV guiado y CV PRO optimizado con control factual.',
+    description: 'Diagnóstico gratis, análisis ATS, test de intereses, primer CV guiado y CV Pro+ optimizado con control factual.',
   },
   twitter: {
     card: 'summary',
