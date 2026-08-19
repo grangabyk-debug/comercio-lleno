@@ -1,49 +1,28 @@
 import Link from 'next/link'
 import styles from './platform.module.css'
 import {PlatformFooter,PlatformHeader,MobileNav} from './PlatformChrome'
-import {previewJobs} from './jobs'
+import {getJobCatalog} from './jobs'
+import './premium-v4.css'
 
 export const metadata={title:'Postulá Mejor | Empleo y selección con tecnología',description:'Buscá trabajo, mejorá tu perfil o contratá con una plataforma simple y asistida por IA.',robots:{index:false,follow:false}}
+export const revalidate=21600
 
-export default function PostulaPreview(){
-  return <main className={styles.page}>
+function initials(name:string){return name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()}
+
+export default async function PostulaPreview(){
+  const jobs=await getJobCatalog()
+  const featured=jobs.slice(0,6)
+  return <main className={`${styles.page} pmv4`}>
     <PlatformHeader/>
-    <section className={styles.hero}>
-      <div className={styles.heroGrid}>
-        <div>
-          <span className={styles.eyebrow}>Una nueva capa para el mercado laboral</span>
-          <h1>Menos ruido.<br/><em>Mejores encuentros.</em></h1>
-          <p className={styles.heroLead}>Postulá Mejor conecta dos experiencias distintas: una persona que quiere conseguir trabajo sin perderse entre formularios, y una empresa que necesita encontrar talento sin leer cientos de CV a ciegas.</p>
-          <div className={styles.heroActions}><Link href="/empleos-preview" className={styles.button}>Buscar empleo</Link><Link href="/empresas-preview" className={styles.buttonGhost}>Necesito contratar</Link></div>
-          <div className={styles.heroMicro}><span><i/>Postularse es gratis</span><span><i/>IA que explica, no decide</span><span><i/>Experiencia pensada para celular</span></div>
-        </div>
-        <div className={styles.signal} aria-label="Vista conceptual de coincidencias entre personas y búsquedas">
-          <div className={styles.signalTop}><span>Motor de coincidencia</span><span className={styles.pulse}><i/>señal activa</span></div>
-          <article className={styles.candidateCard}><div className={styles.candidateHead}><div className={styles.avatar}>LM</div><div><strong>Lucía · Atención al cliente</strong><span>Experiencia + disponibilidad</span></div><div className={styles.match}>86%</div></div><div className={styles.meter}><i/></div><div className={styles.reasons}><span>3 requisitos fuertes</span><span>Zona compatible</span><span>Turno compatible</span></div></article>
-          <article className={styles.candidateCard}><div className={styles.candidateHead}><div className={styles.avatar}>FR</div><div><strong>Franco · Comercial</strong><span>Ventas + turismo</span></div><div className={styles.match}>91%</div></div><div className={styles.meter}><i style={{width:'91%'}}/></div><div className={styles.reasons}><span>Experiencia relevante</span><span>Disponibilidad completa</span></div></article>
-        </div>
-      </div>
-    </section>
+    <section className="pmv4-hero"><div className="pmv4-hero-inner"><div><span className="pmv4-kicker">EMPLEO + TECNOLOGÍA QUE EXPLICA</span><h1>Que buscar trabajo<br/>no se sienta <em>tan solo.</em></h1><p className="pmv4-lead">Un lugar para encontrar oportunidades, presentarte mejor y entender qué conviene hacer después. Del otro lado, empresas que pueden contratar sin vivir dentro de un ATS.</p><div className="pmv4-actions"><Link href="/empleos-preview" className="pmv4-btn">Buscar empleo</Link><Link href="/empresas-preview" className="pmv4-btn-ghost">Necesito contratar</Link></div><div className="pmv4-hero-micro"><span><i/>Postularse es gratis</span><span><i/>Cuenta gratis para siempre</span><span><i/>Los planes vencen; la cuenta no</span></div></div><div className="pmv4-console" aria-label="Vista de producto"><div className="pmv4-console-head"><span>POSTULÁ MEJOR · SIGNAL DESK</span><span className="pmv4-live"><i/>ACTIVO</span></div><div className="pmv4-float one"><div className="pmv4-float-top"><span className="pmv4-bubble">CV</span><div><strong>Tu perfil está listo para comparar</strong><small>Experiencia, disponibilidad y preferencias</small></div><b>01</b></div><p>No te reducimos a una palabra clave. El sistema organiza lo que vos decidís compartir.</p></div><div className="pmv4-float two"><div className="pmv4-float-top"><span className="pmv4-bubble">IA</span><div><strong>Encontramos coincidencias explicables</strong><small>Sin descarte automático por datos sensibles</small></div><b>02</b></div><p>Te mostramos por qué una oportunidad puede servirte y qué requisito conviene revisar.</p></div><div className="pmv4-float three"><div className="pmv4-float-top"><span className="pmv4-bubble">GO</span><div><strong>Vos elegís cuándo avanzar</strong><small>Postulación simple o asistida</small></div><b>03</b></div><p>La tecnología prepara. La decisión sigue siendo tuya.</p></div></div></div></section>
 
-    <section className={styles.section}>
-      <div className={styles.sectionInner}>
-        <div className={styles.sectionHead}><div><p>Dos puertas, una identidad</p><h2>Entrá por lo que necesitás hoy.</h2></div><p>La cuenta, el tablero y las herramientas cambian según tu rol. Un candidato no ve un ATS disfrazado; un empleador no ve una web de currículums reciclada.</p></div>
-        <div className={styles.pathGrid}>
-          <Link href="/empleos-preview" className={styles.pathCard}><span className={styles.miniLabel}>Candidatos</span><h3>Quiero trabajar.</h3><p>Explorá ofertas reales, guardá oportunidades, reutilizá tu CV, seguí tus postulaciones y elegí cuánto querés automatizar.</p><div className={styles.pathFoot}><span>Empezar gratis</span><span className={styles.pathArrow}>→</span></div></Link>
-          <Link href="/empresas-preview" className={`${styles.pathCard} ${styles.pathCardDark}`}><span className={styles.miniLabel}>Empleadores</span><h3>Quiero contratar.</h3><p>Publicá en minutos, definí filtros relevantes y dejá que agentes especializados ordenen el trabajo pesado sin reemplazar tu decisión.</p><div className={styles.pathFoot}><span>Conocer la plataforma</span><span className={styles.pathArrow}>→</span></div></Link>
-        </div>
-      </div>
-    </section>
+    <section className="pmv4-section"><div className="pmv4-inner"><div className="pmv4-head"><div><span className="pmv4-label">DOS EXPERIENCIAS, UNA MISMA MARCA</span><h2>Entrá por lo que necesitás hoy.</h2></div><p>Candidato y empleador comparten identidad, pero no panel. Cada uno recibe una experiencia pensada alrededor de sus tareas reales.</p></div><div className="pmv4-dual"><Link href="/empleos-preview" className="pmv4-path candidate"><div className="pmv4-path-number">01</div><h3>Quiero encontrar trabajo.</h3><p>Ofertas por área y zona, CV reutilizable, guardados, seguimiento, plantillas y herramientas pagas sólo cuando realmente te aportan valor.</p><div className="pmv4-path-foot"><span>Cuenta gratuita · empezar ahora</span><span className="pmv4-arrow">→</span></div></Link><Link href="/empresas-preview" className="pmv4-path employer"><div className="pmv4-path-number">02</div><h3>Quiero contratar mejor.</h3><p>Publicación simple, filtros relevantes, shortlist explicada, roles para RRHH y agentes que absorben tareas repetitivas sin quitarte el control.</p><div className="pmv4-path-foot"><span>Publicar gratis · ver plataforma</span><span className="pmv4-arrow">→</span></div></Link></div></div></section>
 
-    <section className={`${styles.section} ${styles.jobsBand}`}>
-      <div className={styles.sectionInner}>
-        <div className={styles.sectionHead}><div><p>Ofertas verificadas al 19/08/2026</p><h2>Empleos para explorar ahora.</h2></div><p>Durante esta etapa mostramos también búsquedas externas con fuente y enlace originales. Nunca simulamos representar a una empresa que todavía no trabaja con Postulá Mejor.</p></div>
-        <div className={styles.jobList}>{previewJobs.slice(0,3).map((job,i)=><Link href={`/empleos-preview/${job.slug}`} className={styles.jobCard} key={job.slug}><div><div className={styles.jobCompany}><span className={styles.companyLogo}>{job.company.slice(0,2).toUpperCase()}</span><span>{job.company} · {job.area}</span></div><h3>{job.title}</h3><div className={styles.jobMeta}><span>{job.location}</span><span>{job.mode}</span><span>{job.schedule}</span></div></div><div className={styles.jobScore}><span className={styles.external}>Fuente externa</span><div className={styles.scoreRing}><span>{84-i*4}%</span></div></div></Link>)}</div>
-        <div className={styles.heroActions}><Link href="/empleos-preview" className={styles.buttonDark}>Ver todas las ofertas</Link><Link href="/mi-postula-preview" className={styles.buttonLight}>Abrir mi tablero</Link></div>
-      </div>
-    </section>
+    <section className="pmv4-section pmv4-jobs"><div className="pmv4-inner"><div className="pmv4-head"><div><span className="pmv4-label">CATÁLOGO VIVO</span><h2>{jobs.length}+ oportunidades para explorar ahora.</h2></div><p>La preview consulta fuentes públicas oficiales y prioriza Buenos Aires y Argentina. Renovamos el catálogo cada seis horas y siempre mostramos la fuente original.</p></div><div className="pmv4-job-grid">{featured.map(job=><Link href={`/empleos-preview/${job.slug}`} className="pmv4-job" key={job.slug}><div className="pmv4-job-top"><span className="pmv4-logo">{initials(job.company)}</span><div><b>{job.company}</b><small>{job.area}</small></div></div><h3>{job.title}</h3><div className="pmv4-job-tags"><span>{job.location}</span><span>{job.mode}</span><span>{job.schedule}</span></div><div className="pmv4-job-foot"><span><i/>Fuente oficial</span><strong>Ver oportunidad</strong></div></Link>)}</div><div className="pmv4-actions" style={{marginTop:22}}><Link href="/empleos-preview" className="pmv4-btn-dark">Ver todas las ofertas</Link><Link href="/mi-postula-preview" className="pmv4-btn-dark">Abrir mi tablero</Link></div></div></section>
 
-    <section className={styles.section}><div className={styles.sectionInner}><div className={styles.sectionHead}><div><p>Escalera de valor</p><h2>Gratis para entrar. Más tecnología cuando la necesitás.</h2></div><p>La postulación a empleos permanece gratuita. Los planes del candidato agregan herramientas: CV Pro+, plantillas avanzadas, análisis de coincidencia y Búsqueda Activa.</p></div><div className={styles.flow}><div className={styles.flowCard}><span className={styles.flowNo}>01</span><h3>Cuenta gratis</h3><p>Buscar, guardar, cargar CV propio, postularse a búsquedas nativas y seguir estados.</p></div><div className={styles.flowCard}><span className={styles.flowNo}>02</span><h3>CV Pro+</h3><p>Mejora de contenido, versiones del CV y plantillas profesionales propias.</p></div><div className={styles.flowCard}><span className={styles.flowNo}>03</span><h3>Match explicado</h3><p>Entender por qué una oferta encaja, qué falta y qué conviene destacar.</p></div><div className={styles.flowCard}><span className={styles.flowNo}>04</span><h3>Búsqueda Activa</h3><p>Radar, preparación y postulaciones asistidas con límites de calidad y confirmación humana.</p></div></div></div></section>
+    <section className="pmv4-section pmv4-value"><div className="pmv4-inner"><div className="pmv4-head"><div><span className="pmv4-label">CRECER SIN BLOQUEAR LO BÁSICO</span><h2>Gratis para buscar. Pago para hacer más y mejor.</h2></div><p>La cuenta no se elimina cuando vence un plan. Simplemente vuelve al nivel gratuito y conserva historial, datos y postulaciones.</p></div><div className="pmv4-flow"><article className="pmv4-step"><span>01</span><h3>Gratis</h3><p>Buscar, guardar, postularte, cargar tu CV, ver tu tablero y hacer seguimiento básico.</p></article><article className="pmv4-step"><span>02</span><h3>CV Pro+</h3><p>30 días con CV mejorado, plantillas premium, versiones y más herramientas de presentación.</p></article><article className="pmv4-step"><span>03</span><h3>Postulación inteligente</h3><p>Más volumen asistido, cartas personalizadas y explicación de compatibilidad sin enviar a ciegas.</p></article><article className="pmv4-step"><span>04</span><h3>Búsqueda Activa</h3><p>30 días con radar, seguimiento avanzado, preparación y automatizaciones bajo confirmación.</p></article></div></div></section>
+
+    <section className="pmv4-final"><div className="pmv4-final-inner"><div><span className="pmv4-label" style={{color:'#dbe2ff'}}>POSTULÁ MEJOR</span><h2>Tu próxima oportunidad no debería perderse entre pestañas.</h2></div><Link href="/empleos-preview" className="pmv4-btn">Empezar gratis</Link></div></section>
     <PlatformFooter/><MobileNav active="inicio"/>
   </main>
 }
