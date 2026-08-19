@@ -10,6 +10,15 @@
     forced-color-adjust: none !important;
   }
 
+  /* La descarga ATS usa el mismo CV visual, pero ningún control de la
+     interfaz debe formar parte del PDF final. */
+  [data-ats-workspace-download],
+  [data-ats-workspace-download] *,
+  [data-workspace-tabs] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
   /* Chrome puede economizar fondos al imprimir. Repetimos el color como
      background + gradient para que el lateral del CV sea idéntico al preview. */
   [class*="modernSide"] {
