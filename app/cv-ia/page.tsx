@@ -5,6 +5,7 @@ import ConsentBridge from './ConsentBridge'
 import OrientationBridge from './OrientationBridge'
 import CheckoutBridge from './CheckoutBridge'
 import AuthStatusLink from './AuthStatusLink'
+import FunnelBridge from './FunnelBridge'
 import './postula-mejor-polish.css'
 import './postula-flow-v2.css'
 
@@ -48,6 +49,7 @@ export default function CvIaPage() {
       <ConsentBridge />
       <OrientationBridge />
       <CheckoutBridge />
+      <FunnelBridge />
       <OwnerTestBridge />
     </div>
   )
