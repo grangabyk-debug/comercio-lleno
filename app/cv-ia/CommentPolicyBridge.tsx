@@ -19,7 +19,15 @@ export default function CommentPolicyBridge(){
       return nativeFetch(input as any,init)
     }
     window.fetch=patched
-    const rewrite=()=>{for(const el of Array.from(document.querySelectorAll<HTMLElement>('p,div,span'))){if(el.children.length===0&&el.textContent?.includes('Quedó enviado para una revisión rápida antes de publicarse.'))el.textContent='Gracias. Tu comentario ya se publicó.'}}
+    const rewrite=()=>{
+      for(const el of Array.from(document.querySelectorAll<HTMLElement>('p,div,span'))){
+        if(el.children.length!==0)continue
+        const text=el.textContent||''
+        if(text.includes('Quedó enviado para una revisión rápida antes de publicarse.'))el.textContent='Gracias. Tu comentario ya se publicó.'
+        if(text.includes('Los comentarios se publican después de una revisión simple para evitar spam, datos privados o contenido falso.'))el.textContent='Las opiniones se publican automáticamente. Sólo pedimos respeto: los insultos o malas palabras no se publican.'
+      }
+    }
+    rewrite()
     const observer=new MutationObserver(rewrite);observer.observe(document.body,{subtree:true,childList:true,characterData:true})
     return()=>{window.fetch=nativeFetch as typeof window.fetch;observer.disconnect()}
   },[])
