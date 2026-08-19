@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import styles from '../postula-preview/platform.module.css'
 import {PlatformFooter,PlatformHeader,MobileNav} from '../postula-preview/PlatformChrome'
 import {getJobCatalog} from '../postula-preview/jobs'
@@ -5,18 +6,19 @@ import JobsExplorer from './JobsExplorer'
 import './jobs-premium.css'
 import '../postula-preview/premium-v5.css'
 import '../postula-preview/premium-v6.css'
+import '../postula-preview/premium-v7.css'
 
-export const metadata={title:'Ofertas de empleo | Postulá Mejor Preview',description:'Explorador de oportunidades laborales de Postulá Mejor.',robots:{index:false,follow:false}}
+export const metadata={title:'Empleos | Postulá Mejor Preview',description:'Descubrí oportunidades laborales con una experiencia más cercana, visual y simple.',robots:{index:false,follow:false}}
 export const revalidate=21600
 
 export default async function JobsPage(){
-  const jobs=await getJobCatalog()
-  const ba=jobs.filter(j=>/buenos aires|caba|capital federal/i.test(j.location)).length
-  const areas=new Set(jobs.map(j=>j.area)).size
-  return <main className={`${styles.page} pm-jobs-page-v5`}>
-    <PlatformHeader/>
-    <section className="pm-jobs-hero"><div className="pm-jobs-hero-inner"><div><span className="pm-kicker">TRABAJO REAL · FUENTES TRAZABLES · IA CUANDO SUMA</span><h1>Encontrá algo que te cierre.<br/><em>Y presentate mejor.</em></h1><p>No queremos que mandes CV a ciegas. Buscá por área, zona o modalidad, guardá oportunidades y prepará cada postulación con contexto.</p></div><div className="pm-hero-stats"><div><strong>{jobs.length}+</strong><span>ofertas disponibles ahora</span></div><div><strong>{ba}</strong><span>en Buenos Aires</span></div><div><strong>{areas}</strong><span>áreas distintas</span></div><div><strong>6 h</strong><span>ciclo de actualización</span></div></div></div></section>
-    <section className={`${styles.section} ${styles.jobsBand}`} style={{paddingTop:28}}><div className={styles.sectionInner}><div className="pm-catalog-note"><div><b>Catálogo inicial inteligente.</b> Priorizamos ofertas públicas de fuentes oficiales como páginas de carrera y ATS públicos. No fingimos representar al empleador ni copiamos formularios privados.</div><span>Postularse sigue siendo gratis</span></div><JobsExplorer jobs={jobs}/></div></section>
-    <PlatformFooter/><MobileNav active="empleos"/>
-  </main>
+ const jobs=await getJobCatalog()
+ const ba=jobs.filter(j=>/buenos aires|caba|capital federal/i.test(j.location)).length
+ const areas=new Set(jobs.map(j=>j.area)).size
+ return <main className={`${styles.page} pm-jobs-page-v5 pm-jobs-page-v7 pm7-page`}>
+  <PlatformHeader/>
+  <section className="pm7-jobs-hero"><div className="pm7-jobs-hero-inner"><div><span className="pm7-eyebrow coral">TU FEED DE TRABAJO</span><h1>Buscá menos.<br/><em>Descubrí mejor.</em></h1><p>Filtrá cuando lo necesites, pero también dejate encontrar por oportunidades que quizás no habías escrito exactamente en el buscador.</p><div className="pm7-hero-actions"><Link href="/changas-preview" className="pm7-btn-black">Ver changas para hoy</Link><Link href="/plantillas-preview" className="pm7-btn-white">Mejorar mi CV</Link></div></div><div className="pm7-jobs-pulse"><div><b>{jobs.length}+</b><span>oportunidades visibles</span></div><div><b>{ba}</b><span>en Buenos Aires</span></div><div><b>{areas}</b><span>rubros distintos</span></div><div><b>6 h</b><span>ciclo de actualización</span></div></div></div></section>
+  <section className={`${styles.section} ${styles.jobsBand}`} style={{paddingTop:22}}><div className={styles.sectionInner}><div className="pm-catalog-note"><div><b>Trabajo real y fuente visible.</b> Priorizamos canales públicos trazables y te mostramos siempre de dónde sale cada oportunidad.</div><span>Postularse sigue siendo gratis</span></div><div className="pm-jobs-v7"><JobsExplorer jobs={jobs}/></div></div></section>
+  <PlatformFooter/><MobileNav active="empleos"/>
+ </main>
 }
