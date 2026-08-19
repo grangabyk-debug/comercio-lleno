@@ -2,20 +2,21 @@ import type {PreviewJob} from './jobs'
 
 const ARGENTINA_HINTS=['argentina','buenos aires','caba','capital federal','rosario','cordoba','córdoba','mendoza','mar del plata','la plata','tucuman','tucumán','salta','neuquen','neuquén','santa fe','bariloche']
 
-const leverSources=[
-  {site:'despegar',company:'Despegar'},
-  {site:'emilabs',company:'Emi Labs'},
-  {site:'RyzLabs',company:'RYZ Labs'},
-  {site:'getwingapp',company:'Wing Assistant'},
-  {site:'assist-world',company:'Assist World'},
-  {site:'1840&Company',company:'1840 & Company'},
-  {site:'weloglobal',company:'Welo Global'},
-  {site:'eleks',company:'ELEKS'},
-  {site:'celaralabs',company:'Celara'},
-  {site:'aleph',company:'Aleph'},
-  {site:'dlocal',company:'dLocal'},
-  {site:'binance',company:'Binance'},
-  {site:'handoff',company:'Handoff'},
+type LeverSource={site:string;company:string;locations:string[]}
+const leverSources:LeverSource[]=[
+  {site:'despegar',company:'Despegar',locations:['Buenos Aires']},
+  {site:'emilabs',company:'Emi Labs',locations:['Buenos Aires','Provincia de Buenos Aires']},
+  {site:'RyzLabs',company:'RYZ Labs',locations:['Buenos Aires']},
+  {site:'getwingapp',company:'Wing Assistant',locations:['Argentina','Buenos Aires']},
+  {site:'assist-world',company:'Assist World',locations:['Argentina']},
+  {site:'1840&Company',company:'1840 & Company',locations:['Buenos Aires, Buenos Aires','Argentina']},
+  {site:'weloglobal',company:'Welo Global',locations:['Argentina']},
+  {site:'eleks',company:'ELEKS',locations:['Argentina']},
+  {site:'celaralabs',company:'Celara',locations:['Buenos Aires']},
+  {site:'aleph',company:'Aleph',locations:['Buenos Aires, Argentina']},
+  {site:'dlocal',company:'dLocal',locations:['Buenos Aires']},
+  {site:'binance',company:'Binance',locations:['Argentina, Buenos Aires']},
+  {site:'handoff',company:'Handoff',locations:['Buenos Aires']},
 ]
 
 const greenhouseSources=[
@@ -35,27 +36,29 @@ function prettySchedule(value=''){const v=value.trim();if(!v)return 'A confirmar
 function neutralSummary(company:string,title:string,area:string){return `${company} publicó una oportunidad para ${title}. La clasificamos en ${area} para facilitar la búsqueda. Revisá requisitos, condiciones y vigencia en la fuente oficial antes de postularte.`}
 function priority(job:PreviewJob){return /buenos aires|caba|capital federal/i.test(job.location)?3:/argentina/i.test(job.location)?2:job.mode==='Remoto'?1:0}
 
-async function fetchLever(site:string,company:string):Promise<PreviewJob[]>{
+async function fetchLever(source:LeverSource):Promise<PreviewJob[]>{
   try{
-    const res=await fetch(`https://api.lever.co/v0/postings/${encodeURIComponent(site)}?mode=json`,{next:{revalidate:21600}})
+    const params=new URLSearchParams({mode:'json'})
+    source.locations.forEach(location=>params.append('location',location))
+    const res=await fetch(`https://api.lever.co/v0/postings/${encodeURIComponent(source.site)}?${params.toString()}`,{next:{revalidate:21600}})
     if(!res.ok)return []
     const rows=await res.json() as LeverPosting[]
     return rows.filter(row=>{const loc=[row.categories?.location,...(row.categories?.allLocations||[])].filter(Boolean).join(' · ');return isArgentina(loc)}).map(row=>{
       const location=[row.categories?.location,...(row.categories?.allLocations||[])].filter(Boolean).join(' · ')||'Argentina'
       const area=inferArea(row.text,`${row.categories?.team||''} ${row.categories?.department||''}`)
-      const sourceUrl=row.hostedUrl||row.applyUrl||`https://jobs.lever.co/${site}/${row.id}`
-      return {slug:`lever-${slugify(company)}-${slugify(row.text)}-${row.id.slice(0,8)}`,title:row.text,company,location,mode:inferMode(location,row.workplaceType),schedule:prettySchedule(row.categories?.commitment),area,source:'Fuente oficial · Lever',sourceUrl,checkedAt:new Date().toISOString().slice(0,10),summary:neutralSummary(company,row.text,area),requirements:['Revisar requisitos completos en la publicación oficial','Confirmar modalidad, horario y ubicación antes de enviar','Validar que la búsqueda continúe abierta'],tags:[area,row.categories?.team||'',row.categories?.commitment||''].filter(Boolean),external:true}
+      const sourceUrl=row.hostedUrl||row.applyUrl||`https://jobs.lever.co/${source.site}/${row.id}`
+      return {slug:`lever-${slugify(source.company)}-${slugify(row.text)}-${row.id.slice(0,8)}`,title:row.text,company:source.company,location,mode:inferMode(location,row.workplaceType),schedule:prettySchedule(row.categories?.commitment),area,source:'Fuente oficial · Lever',sourceUrl,checkedAt:new Date().toISOString().slice(0,10),summary:neutralSummary(source.company,row.text,area),requirements:['Revisar requisitos completos en la publicación oficial','Confirmar modalidad, horario y ubicación antes de enviar','Validar que la búsqueda continúe abierta'],tags:[area,row.categories?.team||'',row.categories?.commitment||''].filter(Boolean),external:true}
     })
   }catch{return []}
 }
 
 async function fetchGreenhouse(board:string,company:string):Promise<PreviewJob[]>{
   try{
-    const res=await fetch(`https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(board)}/jobs?content=true`,{next:{revalidate:21600}})
+    const res=await fetch(`https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(board)}/jobs`,{next:{revalidate:21600}})
     if(!res.ok)return []
     const payload=await res.json() as {jobs?:GreenhousePosting[]}
-    return (payload.jobs||[]).filter(row=>{const loc=[row.location?.name,...(row.offices||[]).flatMap(o=>[o.name,o.location])].filter(Boolean).join(' · ');return isArgentina(loc)}).map(row=>{
-      const location=[row.location?.name,...(row.offices||[]).flatMap(o=>[o.location])].filter(Boolean).join(' · ')||'Argentina'
+    return (payload.jobs||[]).filter(row=>isArgentina(row.location?.name||'')).map(row=>{
+      const location=row.location?.name||'Argentina'
       const team=(row.departments||[]).map(d=>d.name).join(' · ')
       const area=inferArea(row.title,team)
       return {slug:`gh-${slugify(company)}-${slugify(row.title)}-${row.id}`,title:row.title,company,location,mode:inferMode(location),schedule:'A confirmar',area,source:'Fuente oficial · Greenhouse',sourceUrl:row.absolute_url,checkedAt:new Date().toISOString().slice(0,10),summary:neutralSummary(company,row.title,area),requirements:['Revisar requisitos completos en la publicación oficial','Confirmar modalidad, horario y ubicación antes de enviar','Validar que la búsqueda continúe abierta'],tags:[area,...(row.departments||[]).slice(0,2).map(d=>d.name)].filter(Boolean),external:true}
@@ -76,7 +79,7 @@ function diversify(jobs:PreviewJob[]){
 
 export async function discoverPublicJobs(){
   const settled=await Promise.allSettled([
-    ...leverSources.map(s=>fetchLever(s.site,s.company)),
+    ...leverSources.map(fetchLever),
     ...greenhouseSources.map(s=>fetchGreenhouse(s.board,s.company)),
   ])
   const all=settled.flatMap(r=>r.status==='fulfilled'?r.value:[])
