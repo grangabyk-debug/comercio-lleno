@@ -7,13 +7,16 @@ import CheckoutBridge from './CheckoutBridge'
 import AuthStatusLink from './AuthStatusLink'
 import FunnelBridge from './FunnelBridge'
 import PhotoPreserveBridge from './PhotoPreserveBridge'
+import FreeCareerTools from './FreeCareerTools'
+import FirstCvBridge from './FirstCvBridge'
+import PriceBridge from './PriceBridge'
 import './postula-mejor-polish.css'
 import './postula-flow-v2.css'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://postulamejor.com'),
   title: { absolute: 'Postulá Mejor | Mejorá tu CV y prepará cada postulación con IA' },
-  description: 'Analizá tu CV gratis, recibí orientación laboral o comparalo con una búsqueda concreta y prepará una candidatura específica con control factual.',
+  description: 'Analizá tu CV gratis, recibí orientación laboral, hacé un test de intereses o armá tu primer CV paso a paso y prepará una candidatura específica con control factual.',
   applicationName: 'Postulá Mejor',
   alternates: { canonical: 'https://postulamejor.com' },
   robots: { index: true, follow: true },
@@ -28,12 +31,12 @@ export const metadata: Metadata = {
     url: 'https://postulamejor.com',
     siteName: 'Postulá Mejor',
     title: 'Postulá Mejor | Una candidatura que compita mejor',
-    description: 'Diagnóstico gratis, orientación laboral, adaptación por puesto, LinkedIn y preparación de entrevistas con control factual.',
+    description: 'Diagnóstico gratis, test de intereses, primer CV guiado, orientación laboral y preparación de candidaturas con control factual.',
   },
   twitter: {
     card: 'summary',
     title: 'Postulá Mejor | Una candidatura que compita mejor',
-    description: 'Analizá tu CV gratis, descubrí a qué puestos te conviene apuntar y prepará candidaturas específicas.',
+    description: 'Analizá tu CV gratis, descubrí a qué puestos te conviene apuntar o armá tu primer CV desde cero.',
   },
 }
 
@@ -47,10 +50,13 @@ export default function CvIaPage() {
         <AuthStatusLink />
       </div>
       <CvIaExperience />
+      <FreeCareerTools />
       <ConsentBridge />
       <OrientationBridge />
       <CheckoutBridge />
       <PhotoPreserveBridge />
+      <FirstCvBridge />
+      <PriceBridge />
       <FunnelBridge />
       <OwnerTestBridge />
     </div>
