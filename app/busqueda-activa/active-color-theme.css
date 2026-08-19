@@ -1,0 +1,46 @@
+/* Búsqueda Activa: paleta clara y viva. No modifica layout, tamaños ni responsive. */
+.active-color-theme{
+  background:radial-gradient(circle at 78% 0%,rgba(105,87,255,.12),transparent 34%),linear-gradient(180deg,#fbfbff 0%,#f4f5fb 100%)!important;
+  color:#15171d!important;
+}
+.active-color-theme>header{
+  background:rgba(255,255,255,.94)!important;
+  border-bottom-color:#dedff0!important;
+  box-shadow:0 8px 30px rgba(64,50,160,.06)!important;
+}
+.active-color-theme>header [class*="brand"]{color:#17191d!important}
+.active-color-theme>header [class*="back"]{color:#37324d!important}
+.active-color-theme>header [class*="account"]{color:#312a63!important;background:#f8f7ff!important;border-color:#d9d4ff!important}
+.active-color-theme [class*="hero"] h1{color:#15171d!important}
+.active-color-theme [class*="hero"] p{color:#414653!important}
+.active-color-theme [class*="ownerTag"]{background:#efffd0!important;color:#3c5200!important;border-color:#cde885!important}
+.active-color-theme [class*="helpButton"]{background:linear-gradient(135deg,#6957ff,#7868ff)!important;color:#fff!important;border-color:#6957ff!important;box-shadow:0 0 26px rgba(105,87,255,.3)!important}
+.active-color-theme [class*="helpButton"]:hover{background:linear-gradient(135deg,#5b47f3,#7564ff)!important}
+.active-color-theme [class*="counter"]{background:#fff!important;border-color:#dedff0!important;box-shadow:0 10px 30px rgba(49,38,119,.08)!important}
+.active-color-theme [class*="counter"] strong{color:#6957ff!important}
+.active-color-theme [class*="counter"] span{color:#555b66!important}
+.active-color-theme [class*="formCard"]{background:rgba(255,255,255,.96)!important;border-color:#dddff0!important;box-shadow:0 18px 55px rgba(47,39,108,.09)!important}
+.active-color-theme [class*="formCard"] h2{color:#17191d!important}
+.active-color-theme [class*="formCard"] p{color:#555b66!important}
+.active-color-theme [class*="form"] input,
+.active-color-theme [class*="form"] textarea{background:#fbfbff!important;color:#17191d!important;border-color:#d9d9e8!important}
+.active-color-theme [class*="form"] input::placeholder,
+.active-color-theme [class*="form"] textarea::placeholder{color:#8a8e99!important}
+.active-color-theme [class*="form"] input:focus,
+.active-color-theme [class*="form"] textarea:focus{border-color:#6957ff!important;box-shadow:0 0 0 3px rgba(105,87,255,.13)!important}
+.active-color-theme [class*="primary"]{background:linear-gradient(135deg,#d9ff61,#c9ff43)!important;color:#171912!important;box-shadow:0 9px 26px rgba(155,202,33,.18)!important}
+.active-color-theme [class*="note"]{color:#646a75!important}
+.active-color-theme [class*="boardTitle"] h2{color:#17191d!important}
+.active-color-theme [class*="boardTitle"] button{background:#fff!important;color:#4738c8!important;border-color:#d8d3ff!important;box-shadow:0 6px 20px rgba(64,50,160,.06)!important}
+.active-color-theme [class*="column"]{background:linear-gradient(180deg,#f7f5ff,#f3f4f9)!important;border-color:#dedaf7!important;box-shadow:0 8px 26px rgba(50,42,107,.05)!important}
+.active-color-theme [class*="columnHead"] b{color:#262335!important}
+.active-color-theme [class*="columnHead"] span{color:#5546cf!important;background:#e9e5ff!important}
+.active-color-theme [class*="card"]{background:#fff!important;border-color:#dedfea!important;box-shadow:0 8px 22px rgba(38,31,82,.06)!important}
+.active-color-theme [class*="card"]:hover{border-color:#8b7dff!important;box-shadow:0 10px 28px rgba(105,87,255,.12)!important}
+.active-color-theme [class*="card"] b{color:#17191d!important}
+.active-color-theme [class*="card"] small{color:#666c77!important}
+.active-color-theme [class*="match"]{color:#5847dc!important}
+.active-color-theme [class*="card"] select{background:#f8f7ff!important;color:#262335!important;border-color:#d8d5eb!important}
+.active-color-theme [class*="empty"]{color:#7a7f89!important}
+.active-color-theme [class*="error"]{background:#fff0f1!important;border-color:#ffcfd4!important;color:#8b2630!important}
+.active-color-theme [class*="success"]{background:#efffdc!important;border-color:#cfe9a2!important;color:#36510c!important}
