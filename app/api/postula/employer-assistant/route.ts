@@ -23,6 +23,9 @@ Máximo 140 palabras salvo que el usuario pida detalle.`
 function fallback(message:string){const q=message.toLowerCase();if(/mejor|primero|llamo|entrevist/.test(q))return`Yo empezaría por Martina R. (94%) y después Nicolás G. (87%). Martina reúne caja, retail y disponibilidad; falta validar objetivos comerciales. Nicolás tiene atención y POS; falta confirmar sábados. Si querés, te preparo 3 preguntas para cada uno.`;if(/referencia|recomendar|cumpl|puntual/.test(q))return`La señal de referencias puede servir como contexto, pero no la usaría para descartar automáticamente. En esta demo, Martina tiene 92% “volvería a trabajar” con 3 referencias verificadas y Camila 96% con 2. La persona debería poder ver el dato y pedir revisión.`;if(/resumen|cu[aá]ntos|postul/.test(q))return`En esta búsqueda demo hay 186 postulaciones, 12 personas en shortlist y 4 listas para entrevista. Puedo ayudarte a reducir la shortlist, comparar candidatos o preparar preguntas.`;return`Puedo ayudarte con la shortlist, comparar perfiles, preparar entrevistas o resumir qué falta validar. Probá: “¿a quién llamo primero?” o “compará Martina y Nicolás”.`}
 
 export async function POST(req:NextRequest){
+  if(process.env.VERCEL_ENV==='production'&&process.env.POSTULA_EMPLOYER_ASSISTANT_ENABLED!=='true')return NextResponse.json({ok:false,error:'Asistente de preview deshabilitado.'},{status:404})
+  const type=req.headers.get('content-type')||''
+  if(!type.includes('application/json'))return NextResponse.json({ok:false,error:'Formato inválido.'},{status:415})
   const body=await req.json().catch(()=>({}))
   const message=String(body?.message||'').trim().slice(0,1200)
   if(!message)return NextResponse.json({ok:false,error:'Escribí o dictá una pregunta.'},{status:400})
