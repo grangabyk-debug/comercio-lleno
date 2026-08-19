@@ -1,6 +1,7 @@
+import Link from 'next/link'
 import styles from './templates.module.css'
 import platform from '../postula-preview/platform.module.css'
 import {PlatformHeader,PlatformFooter,MobileNav} from '../postula-preview/PlatformChrome'
 import TemplatesClient from './TemplatesClient'
 export const metadata={title:'Plantillas de CV | Postulá Mejor Preview',robots:{index:false,follow:false}}
-export default function TemplatesPage(){return <main className={`${platform.page} ${styles.page}`}><PlatformHeader/><div className={styles.wrap}><div className={styles.head}><div><span className={styles.label}>Biblioteca original</span><h1>Tu CV puede ser sobrio o visual. La elección es tuya.</h1></div><p>No copiamos plantillas de terceros. La biblioteca combina opciones simples, compatibles con lectura automatizada, y diseños más expresivos. Las plantillas avanzadas están previstas dentro de CV Pro+ y Búsqueda Activa.</p></div><TemplatesClient/></div><PlatformFooter/><MobileNav active="cv"/></main>}
+export default function TemplatesPage(){return <main className={`${platform.page} ${styles.page}`}><PlatformHeader/><div className={styles.wrap}><Link className={styles.back} href="/mi-postula-preview">Volver a mi cuenta</Link><div className={styles.head}><div><span className={styles.label}>Biblioteca de CV</span><h1>Diseños que se ven bien antes de pedirte pagar.</h1></div><p>Tenés tres plantillas gratuitas completas, editables y descargables. Las Pro+ se muestran sin blur ni tapas para que puedas elegir con criterio, pero la edición y exportación premium sólo se habilitan con un plan válido.</p></div><TemplatesClient/></div><PlatformFooter/><MobileNav active="cv"/></main>}
