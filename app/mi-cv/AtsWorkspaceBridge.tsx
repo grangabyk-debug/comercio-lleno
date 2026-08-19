@@ -3,8 +3,6 @@
 import { useEffect } from 'react'
 import { CV_PRO_API, SESSION_KEY, authHeaders, trackCvEvent } from '../cv-ia/cvAuth'
 
-function esc(v:any){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]||m))}
-
 type AtsTheme={accent:string;accentDark:string;soft:string}
 const themes:Record<string,AtsTheme>={
  navy:{accent:'#1f4b73',accentDark:'#172532',soft:'#eef5fa'},
@@ -28,56 +26,171 @@ async function loadResume(){
  return d.resume
 }
 
-function atsHtml(r:any,theme:AtsTheme){
- const contact=[r?.contact?.email,r?.contact?.phone,r?.contact?.location,r?.contact?.linkedin].filter(Boolean).map(esc).join('  ·  ')
- const exp=(Array.isArray(r.experience)?r.experience:[]).map((x:any)=>`<section class="entry"><table class="entryHead" cellspacing="0" cellpadding="0"><tr><td><h3>${esc(x.role)} <span>· ${esc(x.company)}</span></h3></td><td class="dates">${esc([x.start_date,x.end_date].filter(Boolean).join(' — '))}</td></tr></table><ul>${(Array.isArray(x.bullets)?x.bullets:[]).map((b:any)=>`<li>${esc(b)}</li>`).join('')}</ul></section>`).join('')
- const edu=(Array.isArray(r.education)?r.education:[]).map((x:any)=>`<div class="education"><strong>${esc(x.degree)}</strong><span>${esc(x.institution)}${x.date?` · ${esc(x.date)}`:''}</span></div>`).join('')
- const skills=(Array.isArray(r.skills)?r.skills:[]).map(esc)
- const languages=(Array.isArray(r.languages)?r.languages:[]).map(esc)
- const certifications=(Array.isArray(r.certifications)?r.certifications:[]).map(esc)
- const skillText=skills.join('  ·  ')
- const languageText=languages.join('  ·  ')
- const certificationText=certifications.join('  ·  ')
- return `<!doctype html><html><head><meta charset="utf-8"><title>CV ATS ${esc(r.candidate_name)}</title><style>
- @page{size:A4;margin:14mm 16mm 15mm}
- *{box-sizing:border-box}
- body{font-family:Arial,Helvetica,sans-serif;color:#17191d;margin:0;background:#fff;line-height:1.48;font-size:10.6pt}
- .topbar{height:7px;background:${theme.accent};font-size:0;line-height:0;margin:0 0 20px}
- .identity{border-bottom:1px solid #dfe3e7;padding:0 0 15px;margin:0 0 15px}
- .label{font-size:8pt;letter-spacing:1.4px;text-transform:uppercase;color:${theme.accent};font-weight:700;margin:0 0 7px}
- h1{font-size:27pt;line-height:1.03;letter-spacing:-.7px;color:${theme.accentDark};margin:0 0 5px;font-weight:700}
- .headline{font-size:11.5pt;line-height:1.35;color:${theme.accent};font-weight:700;margin:0 0 8px}
- .contact{font-size:9pt;color:#414851;margin:0;line-height:1.5}
- h2{font-size:10.3pt;line-height:1;text-transform:uppercase;letter-spacing:1.15px;color:${theme.accentDark};margin:20px 0 9px;padding:0 0 6px;border-bottom:2px solid ${theme.accent}}
- .summary{font-size:10.4pt;color:#252b32;margin:0;line-height:1.58}
- .entry{break-inside:avoid;margin:0 0 14px}
- .entryHead{width:100%;border-collapse:collapse;margin:0 0 4px}
- .entryHead td{vertical-align:top;padding:0}
- .entryHead td:last-child{text-align:right;width:29%}
- h3{font-size:10.8pt;line-height:1.3;color:#17191d;margin:0;font-weight:700}
- h3 span{font-weight:600;color:#3d454e}
- .dates{font-size:8.7pt;color:#626a74;white-space:nowrap;padding-top:1px!important}
- ul{margin:5px 0 0 17px;padding:0}
- li{font-size:10pt;line-height:1.5;color:#282e35;margin:2px 0;padding-left:1px}
- .education{break-inside:avoid;margin:0 0 8px}
- .education strong{display:block;font-size:10.3pt;color:#17191d;margin:0 0 1px}
- .education span{display:block;font-size:9.3pt;color:#555e68}
- .skillsBox{background:${theme.soft};border-left:4px solid ${theme.accent};padding:10px 12px;margin:0}
- .skillsBox p{font-size:9.8pt;line-height:1.55;margin:0;color:#222a31}
- .plainList{font-size:9.8pt;line-height:1.55;margin:0;color:#222a31}
- .footer{margin-top:20px;padding-top:7px;border-top:1px solid #e1e4e7;font-size:7.8pt;color:#747b84}
- p{margin:5px 0}
-</style></head><body>
- <div class="topbar">&nbsp;</div>
- <header class="identity"><p class="label">Currículum profesional · Versión ATS</p><h1>${esc(r.candidate_name)}</h1><p class="headline">${esc(r.headline)}</p><p class="contact">${contact}</p></header>
- <h2>Perfil profesional</h2><p class="summary">${esc(r.summary)}</p>
- <h2>Experiencia</h2>${exp}
- <h2>Formación</h2>${edu}
- ${skills.length?`<h2>Habilidades</h2><div class="skillsBox"><p>${skillText}</p></div>`:''}
- ${languages.length?`<h2>Idiomas</h2><p class="plainList">${languageText}</p>`:''}
- ${certifications.length?`<h2>Certificaciones</h2><p class="plainList">${certificationText}</p>`:''}
- <p class="footer">Versión ATS Pro+ · PostuláMejor.com · Estructura de una columna y encabezados estándar para facilitar la lectura automatizada.</p>
-</body></html>`
+function rgb(hex:string){
+ const h=hex.replace('#',''),n=parseInt(h,16)
+ return [((n>>16)&255)/255,((n>>8)&255)/255,(n&255)/255].map(v=>Number(v.toFixed(3))) as [number,number,number]
+}
+
+function winAnsiByte(ch:string){
+ const code=ch.charCodeAt(0)
+ if(code<=255)return code
+ const map:Record<string,number>={'€':128,'‚':130,'ƒ':131,'„':132,'…':133,'†':134,'‡':135,'ˆ':136,'‰':137,'Š':138,'‹':139,'Œ':140,'Ž':142,'‘':145,'’':146,'“':147,'”':148,'•':149,'–':150,'—':151,'˜':152,'™':153,'š':154,'›':155,'œ':156,'ž':158,'Ÿ':159}
+ return map[ch]??63
+}
+
+function pdfString(value:any){
+ const text=String(value??'').replace(/\r?\n/g,' ').replace(/\s+/g,' ').trim()
+ let out=''
+ for(const ch of text){
+  const b=winAnsiByte(ch)
+  if(b===40||b===41||b===92)out+='\\'+String.fromCharCode(b)
+  else if(b<32||b>126)out+='\\'+b.toString(8).padStart(3,'0')
+  else out+=String.fromCharCode(b)
+ }
+ return out
+}
+
+let measureCtx:CanvasRenderingContext2D|null=null
+function measure(text:string,size:number,bold=false){
+ if(typeof document==='undefined')return text.length*size*.52
+ if(!measureCtx)measureCtx=document.createElement('canvas').getContext('2d')
+ if(!measureCtx)return text.length*size*.52
+ measureCtx.font=`${bold?'700':'400'} ${size}px Arial`
+ return measureCtx.measureText(text).width
+}
+
+function wrapText(value:any,maxWidth:number,size:number,bold=false){
+ const text=String(value??'').replace(/\r?\n/g,' ').replace(/\s+/g,' ').trim()
+ if(!text)return [] as string[]
+ const words=text.split(' '),lines:string[]=[]
+ let line=''
+ for(const word of words){
+  const test=line?`${line} ${word}`:word
+  if(!line||measure(test,size,bold)<=maxWidth)line=test
+  else{lines.push(line);line=word}
+ }
+ if(line)lines.push(line)
+ return lines
+}
+
+function buildAtsPdf(r:any,theme:AtsTheme){
+ const W=595.28,H=841.89,left=48,right=48,usable=W-left-right,bottom=55
+ const accent=rgb(theme.accent),dark=rgb(theme.accentDark),soft=rgb(theme.soft)
+ const pages:string[][]=[]
+ let page:string[]=[],y=0
+ const cmd=(s:string)=>page.push(s)
+ const setFill=(c:[number,number,number])=>`${c[0]} ${c[1]} ${c[2]} rg`
+ const setStroke=(c:[number,number,number])=>`${c[0]} ${c[1]} ${c[2]} RG`
+
+ function newPage(){
+  if(page.length)pages.push(page)
+  page=[];y=H-48
+  cmd(`q ${setFill(accent)} 0 ${H-11} ${W} 11 re f Q`)
+ }
+ function ensure(height:number){if(y-height<bottom)newPage()}
+ function textLine(text:string,x:number,size:number,color:[number,number,number]=[.1,.11,.13],bold=false){
+  cmd(`BT /${bold?'F2':'F1'} ${size} Tf ${setFill(color)} 1 0 0 1 ${x.toFixed(2)} ${y.toFixed(2)} Tm (${pdfString(text)}) Tj ET`)
+ }
+ function wrapped(text:any,x:number,maxWidth:number,size:number,lineHeight:number,color:[number,number,number]=[.15,.17,.2],bold=false,prefix=''){
+  const lines=wrapText(text,maxWidth-prefix.length*size*.45,size,bold)
+  for(let i=0;i<lines.length;i++){
+   ensure(lineHeight+3)
+   textLine(`${i===0?prefix:''}${lines[i]}`,x,size,color,bold)
+   y-=lineHeight
+  }
+  return lines.length
+ }
+ function section(title:string){
+  ensure(38);y-=8;textLine(title.toUpperCase(),left,10.5,dark,true);y-=7
+  cmd(`q ${setStroke(accent)} 1.6 w ${left} ${y.toFixed(2)} m ${(W-right).toFixed(2)} ${y.toFixed(2)} l S Q`);y-=14
+ }
+
+ newPage()
+ textLine('CURRICULUM PROFESIONAL · VERSION ATS PRO+',left,8.2,accent,true);y-=20
+ wrapped(r?.candidate_name||'',left,usable,26,29,dark,true);y-=2
+ wrapped(r?.headline||'',left,usable,11.6,15,accent,true);y-=3
+ const contact=[r?.contact?.email,r?.contact?.phone,r?.contact?.location,r?.contact?.linkedin].filter(Boolean).join(' · ')
+ wrapped(contact,left,usable,8.8,12,[.28,.31,.35],false);y-=8
+ cmd(`q .86 .88 .9 RG .8 w ${left} ${y.toFixed(2)} m ${(W-right).toFixed(2)} ${y.toFixed(2)} l S Q`);y-=7
+
+ section('Perfil profesional')
+ wrapped(r?.summary||'',left,usable,10.3,15,[.15,.17,.2]);y-=3
+
+ const experience=Array.isArray(r?.experience)?r.experience:[]
+ if(experience.length){
+  section('Experiencia')
+  for(const job of experience){
+   ensure(58)
+   const roleCompany=[job?.role,job?.company].filter(Boolean).join(' · ')
+   wrapped(roleCompany,left,usable,10.7,14,[.08,.09,.11],true)
+   const dates=[job?.start_date,job?.end_date].filter(Boolean).join(' — ')
+   if(dates){textLine(dates,left,8.5,[.38,.41,.45]);y-=12}
+   const bullets=Array.isArray(job?.bullets)?job.bullets:[]
+   for(const b of bullets)wrapped(b,left+12,usable-12,9.8,13.5,[.16,.18,.2],false,'- ')
+   y-=7
+  }
+ }
+
+ const education=Array.isArray(r?.education)?r.education:[]
+ if(education.length){
+  section('Formación')
+  for(const ed of education){
+   ensure(38)
+   wrapped(ed?.degree||'',left,usable,10.2,13,[.08,.09,.11],true)
+   const meta=[ed?.institution,ed?.date].filter(Boolean).join(' · ')
+   if(meta)wrapped(meta,left,usable,9,12,[.34,.37,.41]);
+   y-=6
+  }
+ }
+
+ const skills=Array.isArray(r?.skills)?r.skills.filter(Boolean):[]
+ if(skills.length){
+  section('Habilidades')
+  const skillText=skills.join(' · '),lines=wrapText(skillText,usable-24,9.6,false),boxH=Math.max(34,lines.length*13+18)
+  ensure(boxH+5)
+  cmd(`q ${setFill(soft)} ${left} ${(y-boxH+8).toFixed(2)} ${usable} ${boxH.toFixed(2)} re f Q`)
+  cmd(`q ${setFill(accent)} ${left} ${(y-boxH+8).toFixed(2)} 4 ${boxH.toFixed(2)} re f Q`)
+  const oldY=y;y-=4
+  wrapped(skillText,left+14,usable-25,9.6,13,[.14,.16,.18]);
+  y=Math.min(y,oldY-boxH+2);y-=5
+ }
+
+ const languages=Array.isArray(r?.languages)?r.languages.filter(Boolean):[]
+ if(languages.length){section('Idiomas');wrapped(languages.join(' · '),left,usable,9.7,13,[.15,.17,.2]);y-=3}
+ const certifications=Array.isArray(r?.certifications)?r.certifications.filter(Boolean):[]
+ if(certifications.length){section('Certificaciones');wrapped(certifications.join(' · '),left,usable,9.7,13,[.15,.17,.2]);y-=3}
+
+ if(page.length)pages.push(page)
+ pages.forEach((p,index)=>{
+  p.push(`q .87 .88 .9 RG .7 w ${left} 38 m ${(W-right).toFixed(2)} 38 l S Q`)
+  p.push(`BT /F1 7.5 Tf .43 .46 .5 rg 1 0 0 1 ${left} 25 Tm (${pdfString('PostuláMejor.com · CV ATS Pro+ · estructura de una columna para lectura automatizada')}) Tj ET`)
+  p.push(`BT /F1 7.5 Tf .43 .46 .5 rg 1 0 0 1 ${(W-right-30).toFixed(2)} 25 Tm (${pdfString(`${index+1}/${pages.length}`)}) Tj ET`)
+ })
+
+ const objects:string[]=[]
+ objects[1]='<< /Type /Catalog /Pages 2 0 R >>'
+ objects[3]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>'
+ objects[4]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>'
+ const kids:string[]=[]
+ pages.forEach((commands,i)=>{
+  const pageId=5+i*2,contentId=pageId+1,stream=commands.join('\n')
+  kids.push(`${pageId} 0 R`)
+  objects[pageId]=`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W.toFixed(2)} ${H.toFixed(2)}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentId} 0 R >>`
+  objects[contentId]=`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`
+ })
+ objects[2]=`<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${pages.length} >>`
+
+ const enc=new TextEncoder(),chunks:string[]=['%PDF-1.4\n'],offsets:number[]=[0]
+ let offset=enc.encode(chunks[0]).length
+ for(let id=1;id<objects.length;id++){
+  const obj=`${id} 0 obj\n${objects[id]}\nendobj\n`
+  offsets[id]=offset;chunks.push(obj);offset+=enc.encode(obj).length
+ }
+ const xrefOffset=offset
+ let xref=`xref\n0 ${objects.length}\n0000000000 65535 f \n`
+ for(let id=1;id<objects.length;id++)xref+=`${String(offsets[id]).padStart(10,'0')} 00000 n \n`
+ const trailer=`trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`
+ return new Blob([enc.encode(chunks.join('')+xref+trailer)],{type:'application/pdf'})
 }
 
 export default function AtsWorkspaceBridge(){
@@ -86,16 +199,16 @@ export default function AtsWorkspaceBridge(){
    const tabs=document.querySelector('[data-workspace-tabs]') as HTMLElement|null
    if(!tabs||document.querySelector('[data-ats-workspace-download]'))return
    const wrap=document.createElement('div');wrap.className='atsWorkspaceDownload';wrap.setAttribute('data-ats-workspace-download','1')
-   wrap.innerHTML='<div><b>Versión ATS Pro+ incluida</b><span>Mismo contenido profesional y color de tu CV, en un diseño limpio de una columna preparado para sistemas ATS.</span></div><button type="button">Descargar CV ATS Pro+</button>'
+   wrap.innerHTML='<div><b>Versión ATS Pro+ incluida</b><span>Mismo contenido profesional y color de tu CV, en un PDF limpio de una columna preparado para sistemas ATS.</span></div><button type="button">Descargar PDF ATS Pro+</button>'
    const button=wrap.querySelector('button') as HTMLButtonElement|null
    button?.addEventListener('click',async()=>{
     if(!button)return
-    const original=button.textContent;button.disabled=true;button.textContent='Preparando versión ATS…'
+    const original=button.textContent;button.disabled=true;button.textContent='Preparando PDF ATS…'
     try{
-     const resume=await loadResume(),theme=getTheme(),blob=new Blob([atsHtml(resume,theme)],{type:'application/msword;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a')
-     a.href=url;a.download=`CV-ATS-Pro-${String(resume.candidate_name||'Postula-Mejor').replace(/[^a-z0-9]+/gi,'-')}.doc`;a.click();URL.revokeObjectURL(url);void trackCvEvent('ats_cv_downloaded',{format:'word',style:'pro_plus'},'/mi-cv')
-     button.textContent='✓ CV ATS Pro+ descargado'
-     window.setTimeout(()=>{button.textContent=original||'Descargar CV ATS Pro+';button.disabled=false},1800)
+     const resume=await loadResume(),blob=buildAtsPdf(resume,getTheme()),url=URL.createObjectURL(blob),a=document.createElement('a')
+     a.href=url;a.download=`CV-ATS-Pro-${String(resume.candidate_name||'Postula-Mejor').replace(/[^a-z0-9]+/gi,'-')}.pdf`;document.body.appendChild(a);a.click();a.remove();window.setTimeout(()=>URL.revokeObjectURL(url),1500);void trackCvEvent('ats_cv_downloaded',{format:'pdf',style:'pro_plus'},'/mi-cv')
+     button.textContent='✓ PDF ATS Pro+ descargado'
+     window.setTimeout(()=>{button.textContent=original||'Descargar PDF ATS Pro+';button.disabled=false},1800)
     }catch{button.textContent='Reintentar descarga ATS';button.disabled=false}
    })
    tabs.insertAdjacentElement('afterend',wrap)
