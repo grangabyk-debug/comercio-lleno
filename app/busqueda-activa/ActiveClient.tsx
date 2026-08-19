@@ -36,7 +36,7 @@ export default function ActiveClient(){
    void trackCvEvent('active_opened',{source:'dashboard'},'/busqueda-activa')
    let useToken=localStorage.getItem(SESSION_KEY)||'';setToken(useToken);if(useToken)await activatePayment(useToken)
    const client=cvAuthClient();let {data:a}=await client.auth.getSession();let authSession=a.session
-   if(!authSession&&useToken)authSession=await ownerAutoSession(useToken)
+   if(useToken){const ownerSession=await ownerAutoSession(useToken);if(ownerSession)authSession=ownerSession}
    if(!authSession){setLogged(false);const d=await pro({action:'get_resume',token:useToken});setPlan(d.plan||'free');setLoading(false);return}
    setLogged(true);const linked=await accountCall(authSession.access_token,{action:'link',session_token:useToken});if(linked.session_token){useToken=linked.session_token;localStorage.setItem(SESSION_KEY,useToken);setToken(useToken)}setOwner(linked.account?.role==='owner');if(linked.account?.role==='owner')await accountCall(authSession.access_token,{action:'owner_prepare',session_token:useToken})
    let data=await pro({action:'get_resume',token:useToken});setPlan(data.plan||'free');if(!data.resume&&(data.plan==='active'||linked.account?.role==='owner'))await pro({action:'generate_pro',token:useToken});
