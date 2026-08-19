@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import styles from './FloatingWhatsApp.module.css'
 
@@ -7,8 +8,15 @@ const whatsappUrl='https://wa.me/5491140540970?text=Hola%2C%20quiero%20consultar
 
 export default function FloatingWhatsApp(){
   const pathname=usePathname()
-  if(pathname!=='/')return null
+  const[visible,setVisible]=useState(false)
 
+  useEffect(()=>{
+    const host=location.hostname.toLowerCase()
+    const postula=host==='postulamejor.com'||host==='www.postulamejor.com'
+    setVisible(pathname==='/'&&!postula)
+  },[pathname])
+
+  if(!visible)return null
   return <a
     className={styles.button}
     href={whatsappUrl}
