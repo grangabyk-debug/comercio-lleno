@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect } from 'react'
+import { trackCvEvent } from './cvAuth'
 
 function textIs(el:Element|null,value:string){return (el?.textContent||'').trim()===value}
 
 export default function AtsBridge(){
  useEffect(()=>{
   const apply=()=>{
-   // Hacemos explícito que el primer filtro ya es una evaluación ATS real.
    document.querySelectorAll('span,b').forEach(el=>{
     if(textIs(el,'Filtro automático'))el.textContent='Filtro ATS'
    })
@@ -25,6 +25,7 @@ export default function AtsBridge(){
      box.innerHTML='<div><span>ATS · INCLUIDO EN CV PRO</span><h3>Optimizar mi CV para filtros ATS</h3><p>Revisamos estructura, legibilidad y palabras relevantes de la oferta sin inventar experiencia. Después comparamos el CV final para comprobar que siga siendo fiel a tu perfil.</p></div><div class="postulaAtsScore"><b>ATS</b><small>optimización real</small></div><button type="button">Optimizar para ATS · CV Pro</button>'
      const button=box.querySelector('button')
      button?.addEventListener('click',()=>{
+      void trackCvEvent('ats_pro_clicked',{source:'diagnostic_result'},'/')
       const proButton=Array.from(result.querySelectorAll('button')).find(b=>(b.textContent||'').includes('Crear mi CV Pro')) as HTMLButtonElement|undefined
       if(proButton)proButton.click()
       else document.getElementById('planes')?.scrollIntoView({behavior:'smooth',block:'start'})
