@@ -3,6 +3,7 @@ import WorkspaceClient from './WorkspaceClient'
 import AtsWorkspaceBridge from './AtsWorkspaceBridge'
 import styles from './workspace.module.css'
 import './workspace-screen-fix.css'
+import './workspace-print-color.css'
 import './ats-workspace.css'
 
 const icon='/postula-mejor-favicon.svg'
