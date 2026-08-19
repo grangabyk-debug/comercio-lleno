@@ -50,7 +50,8 @@ export default function CvIaPage() {
         <a className="postulaWordmark" href="#inicio" aria-label="Ir al inicio de Postulá Mejor">
           <span>postula</span><strong>mejor</strong><span>.com</span>
         </a>
-        <nav className="postulaTopTools" aria-label="Herramientas gratuitas">
+        <nav className="postulaTopTools" aria-label="Herramientas y empleo">
+          <a href="/empleos-preview">Ofertas de empleo <b>nuevo</b></a>
           <a href="/test-vocacional">Test vocacional <b>gratis</b></a>
           <a href="/primer-cv">Primer CV <b>gratis</b></a>
         </nav>
