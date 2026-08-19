@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 function isPostulaHost(){
   const host=window.location.hostname.toLowerCase()
-  return host==='postulamejor.com'||host==='www.postulamejor.com'||host.includes('comercio-lleno-')
+  return host==='postulamejor.com'||host==='www.postulamejor.com'
 }
 
 function rewrite(value:string){
