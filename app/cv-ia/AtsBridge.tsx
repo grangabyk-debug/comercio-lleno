@@ -65,7 +65,7 @@ export default function AtsBridge(){
       if(sample){
         const row=document.createElement('div')
         row.className=sample.className
-        row.setAttribute('data-ats-comparison]','1')
+        row.setAttribute('data-ats-comparison','1')
         const label=document.createElement('span');label.textContent='Optimización para filtros ATS'
         const generic=document.createElement('i');generic.textContent='No incluida'
         const postula=document.createElement('strong');postula.textContent='Incluido'
