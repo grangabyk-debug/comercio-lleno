@@ -5,6 +5,7 @@ import MarketingScripts from './MarketingScripts'
 import LegalServiceActions from './LegalServiceActions'
 import FloatingWhatsApp from './FloatingWhatsApp'
 import PaidBranchPurchaseRuntime from './redesign/PaidBranchPurchaseRuntime'
+import PostulaClarity from './PostulaClarity'
 import './globals.css'
 import './prepaint.css'
 import './design-readability.css'
@@ -77,6 +78,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="es" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <Script id="private-route-guard" strategy="beforeInteractive">{privateRouteGuard}</Script>
+        <PostulaClarity />
         <MarketingScripts />
         {children}
         <FloatingWhatsApp />
