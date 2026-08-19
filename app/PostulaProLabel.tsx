@@ -10,9 +10,7 @@ function isPostulaHost(){
 function rewrite(value:string){
   return value
     .replace(/CV PRO\b/g,'CV Pro+')
-    .replace(/CV Pro(?!\+)/g,'CV Pro+')
     .replace(/\bPRO\b/g,'Pro+')
-    .replace(/\bPro\b(?!\+)/g,'Pro+')
 }
 
 function patchTextNode(node:Node){
