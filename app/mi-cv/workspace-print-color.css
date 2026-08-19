@@ -1,0 +1,36 @@
+@media print {
+  html,
+  body,
+  [class*="resume"],
+  [class*="resume"] *,
+  [class*="modernSide"],
+  [class*="classicHead"] {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    forced-color-adjust: none !important;
+  }
+
+  /* Chrome puede economizar fondos al imprimir. Repetimos el color como
+     background + gradient para que el lateral del CV sea idéntico al preview. */
+  [class*="modernSide"] {
+    background-color: var(--cv-side) !important;
+    background-image: linear-gradient(var(--cv-side), var(--cv-side)) !important;
+    color: var(--cv-side-text) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  [class*="modernSide"] h4 {
+    color: var(--cv-side-highlight) !important;
+  }
+
+  [class*="modernSide"] p,
+  [class*="modernSide"] li {
+    color: var(--cv-side-text) !important;
+  }
+
+  [class*="photo"] {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
