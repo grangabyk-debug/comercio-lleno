@@ -11,13 +11,12 @@ export default function AtsBridge(){
    document.querySelectorAll<HTMLElement>('span,b,small,h3').forEach(el=>{
     const t=(el.textContent||'').trim()
     if(t==='Filtro automático'||t==='Filtro ATS')el.textContent='Filtro ATS'
-    if(t==='Recruiter'||t==='Recruiter IA'||t==='Reclutador')el.textContent='Reclutador IA'
+    if(t==='Recruiter'||t==='Recruiter IA'||t==='Reclutador IA')el.textContent='Reclutador'
     if(t==='Responsable del área')el.textContent='Responsable de área'
     if(t==='CV IA')el.textContent='PostulaMejor.com'
     if(t==='Usuario de CV IA')el.textContent='Usuario de PostuláMejor.com'
    })
 
-   // La marca PRO se muestra siempre en mayúsculas, sin cambiar nombres internos del plan.
    const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT)
    let node:Node|null
    while((node=walker.nextNode())){
