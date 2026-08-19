@@ -11,6 +11,7 @@ import FreeCareerTools from './FreeCareerTools'
 import FirstCvBridge from './FirstCvBridge'
 import CommentPolicyBridge from './CommentPolicyBridge'
 import AtsBridge from './AtsBridge'
+import TemplateIdentityBridge from './TemplateIdentityBridge'
 import './postula-mejor-polish.css'
 import './postula-flow-v2.css'
 import './ats-offer.css'
@@ -53,6 +54,7 @@ export default function CvIaPage() {
         <nav className="postulaTopTools" aria-label="Herramientas gratuitas">
           <a href="/test-vocacional">Test vocacional <b>gratis</b></a>
           <a href="/primer-cv">Primer CV <b>gratis</b></a>
+          <a href="/plantillas-cv">Plantillas CV <b>10 diseños</b></a>
         </nav>
         <AuthStatusLink />
       </div>
@@ -63,6 +65,7 @@ export default function CvIaPage() {
       <CheckoutBridge />
       <PhotoPreserveBridge />
       <FirstCvBridge />
+      <TemplateIdentityBridge />
       <FunnelBridge />
       <CommentPolicyBridge />
       <AtsBridge />
