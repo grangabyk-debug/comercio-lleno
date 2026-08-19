@@ -6,6 +6,7 @@ import { CV_ACCOUNT_API, CV_API, CV_PRO_API, CV_TELEMETRY_API, SESSION_KEY, auth
 
 type AppItem={id:string;company_name:string|null;role_name:string;status:string;analysis:any;adapted_resume:any;interview_pack:any[];job_text:string;created_at:string;updated_at:string}
 const columns=[['preparing','Preparando'],['applied','Postulado'],['interview','Entrevista'],['offer','Oferta'],['rejected','No avanzó']] as const
+const OWNER_AUTH_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai-owner-auth'
 
 async function pro(body:any){const headers:Record<string,string>={'Content-Type':'application/json',...(await authHeaders())};const r=await fetch(CV_PRO_API,{method:'POST',headers,body:JSON.stringify(body)});const d=await r.json().catch(()=>({ok:false,error:'Respuesta inválida'}));if(!r.ok||!d?.ok)throw new Error(d?.error||'No pudimos completar la operación.');return d}
 async function accountCall(accessToken:string,body:any){const r=await fetch(CV_ACCOUNT_API,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${accessToken}`},body:JSON.stringify(body)});const d=await r.json().catch(()=>({ok:false,error:'Respuesta inválida'}));if(!r.ok||!d?.ok)throw new Error(d?.error||'No pudimos vincular la cuenta.');return d}
@@ -32,12 +33,15 @@ export default function ActiveClient(){
  const [helpSent,setHelpSent]=useState(false)
 
  async function activatePayment(useToken:string){const p=new URLSearchParams(location.search),state=p.get('cv_payment'),order=p.get('order');if(!state||!order)return;const ot=localStorage.getItem(`cv_ai_order_${order}`)||'';history.replaceState({},'',location.pathname);if(state==='failure')throw new Error('El pago no se completó.');if(!ot)throw new Error('No encontramos el comprobante local para validar el pago.');setMessage('Verificando tu pago…');const d=await postCv(CV_API,{action:'activate_payment',token:useToken,order_id:order,order_token:ot});if(d.status!=='approved')throw new Error('El pago todavía está pendiente.');setMessage('Pago aprobado. Ahora vinculá tu cuenta para guardar el tablero.')}
+ async function ownerAutoSession(useToken:string){try{const r=await fetch(OWNER_AUTH_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_token:useToken})});const d=await r.json().catch(()=>null);if(!r.ok||!d?.ok||!d?.token_hash)return null;const verified=await cvAuthClient().auth.verifyOtp({type:'magiclink',token_hash:d.token_hash});if(verified.error)return null;return verified.data.session||null}catch{return null}}
 
  async function load(){setLoading(true);setError('');try{
    void trackCvEvent('active_opened',{source:'dashboard'},'/busqueda-activa')
    let useToken=localStorage.getItem(SESSION_KEY)||'';setToken(useToken);if(useToken)await activatePayment(useToken)
-   const {data:a}=await cvAuthClient().auth.getSession();if(!a.session){setLogged(false);const d=await pro({action:'get_resume',token:useToken});setPlan(d.plan||'free');setLoading(false);return}
-   setLogged(true);const linked=await accountCall(a.session.access_token,{action:'link',session_token:useToken});if(linked.session_token){useToken=linked.session_token;localStorage.setItem(SESSION_KEY,useToken);setToken(useToken)}setOwner(linked.account?.role==='owner');if(linked.account?.role==='owner')await accountCall(a.session.access_token,{action:'owner_prepare',session_token:useToken})
+   const client=cvAuthClient();let {data:a}=await client.auth.getSession();let authSession=a.session
+   if(!authSession&&useToken)authSession=await ownerAutoSession(useToken)
+   if(!authSession){setLogged(false);const d=await pro({action:'get_resume',token:useToken});setPlan(d.plan||'free');setLoading(false);return}
+   setLogged(true);const linked=await accountCall(authSession.access_token,{action:'link',session_token:useToken});if(linked.session_token){useToken=linked.session_token;localStorage.setItem(SESSION_KEY,useToken);setToken(useToken)}setOwner(linked.account?.role==='owner');if(linked.account?.role==='owner')await accountCall(authSession.access_token,{action:'owner_prepare',session_token:useToken})
    let data=await pro({action:'get_resume',token:useToken});setPlan(data.plan||'free');if(!data.resume&&(data.plan==='active'||linked.account?.role==='owner'))await pro({action:'generate_pro',token:useToken});
    const list=await pro({action:'applications',token:useToken});setApps(list.applications||[]);setRemaining(Number(list.remaining||0));setMessage('')
  }catch(e){setError(e instanceof Error?e.message:'No pudimos abrir Búsqueda Activa.')}finally{setLoading(false)}}
