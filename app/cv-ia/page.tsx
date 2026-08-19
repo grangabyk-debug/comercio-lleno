@@ -10,6 +10,7 @@ import PhotoPreserveBridge from './PhotoPreserveBridge'
 import FreeCareerTools from './FreeCareerTools'
 import FirstCvBridge from './FirstCvBridge'
 import PriceBridge from './PriceBridge'
+import CommentPolicyBridge from './CommentPolicyBridge'
 import './postula-mejor-polish.css'
 import './postula-flow-v2.css'
 
@@ -62,6 +63,7 @@ export default function CvIaPage() {
       <FirstCvBridge />
       <PriceBridge />
       <FunnelBridge />
+      <CommentPolicyBridge />
       <OwnerTestBridge />
     </div>
   )
