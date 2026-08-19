@@ -1,73 +1,14 @@
 import Link from 'next/link'
-import EmployerDemo from './EmployerDemo'
-import styles from './empresas-preview.module.css'
+import styles from '../postula-preview/platform.module.css'
+import {PlatformFooter,PlatformHeader} from '../postula-preview/PlatformChrome'
 
-export const metadata={title:'Postulá Mejor Empresas | Preview',description:'Publicación y selección asistida por agentes de IA para PyMEs y comercios.',robots:{index:false,follow:false}}
-
-const agents=[
- ['01','Publicador','Le contás a quién necesitás. Convierte eso en un aviso claro, requisitos y preguntas filtro.'],
- ['02','Selector','Ordena postulaciones por ajuste al puesto y explica por qué cada perfil puede encajar.'],
- ['03','Entrevistador','Prepara preguntas distintas para cada finalista según lo que falta confirmar.'],
- ['04','Seguimiento','Te deja listos mensajes para avanzar, coordinar, pedir datos o cerrar el proceso con respeto.'],
+export const metadata={title:'Postulá Mejor Empresas | Selección asistida',description:'Publicá, filtrá y ordená postulaciones con agentes especializados.',robots:{index:false,follow:false}}
+const agents=[['PU','Publicador','Convierte una necesidad escrita en lenguaje normal en un aviso claro y preguntas relevantes.'],['SE','Selector','Compara requisitos explícitos, resume evidencia y explica coincidencias sin tomar la decisión final.'],['CO','Coordinador','Ordena etapas, recordatorios, mensajes y derivaciones hacia RRHH o responsables del negocio.'],['EN','Entrevista','Prepara una guía distinta por finalista y señala lo que todavía falta validar.'],['AU','Auditor','Detecta duplicados, criterios débiles y riesgos de sesgo antes de que se transformen en decisiones.']]
+const plans=[
+ {name:'Gratis',price:'$0',copy:'Para probar el circuito con una búsqueda real.',items:['2 avisos por mes · 30 días','Primeros 10 postulantes completos','1 pregunta filtro + pipeline básico','Publicación y recepción sin tarjeta']},
+ {name:'Impulso',price:'$18.900',copy:'Para comercios y equipos chicos.',items:['5 búsquedas activas','Hasta 250 postulaciones/mes','Aviso asistido + filtros inteligentes','CV completos + exportación']},
+ {name:'Selección IA',price:'$34.900',copy:'Cuando leer CV ya se volvió trabajo.',items:['Hasta 2.000 postulaciones/mes','Selector + shortlist explicado','Guías de entrevista','Derivación a RRHH y reportes'],featured:true},
+ {name:'Escala',price:'$74.900',copy:'Para varias búsquedas y varios usuarios.',items:['Hasta 5.000 postulaciones/mes','5 agentes + reglas por búsqueda','Roles de equipo + auditoría','Analítica y plantillas internas']},
+ {name:'Empresa',price:'A medida',copy:'Volumen alto y gobierno corporativo.',items:['10.000+ postulaciones','Múltiples unidades / reclutadores','MFA/SSO y políticas avanzadas','Integraciones y soporte acordado']},
 ]
-
-export default function EmpresasPreview(){
- return <main className={styles.page}>
-  <header className={styles.header}>
-    <Link href="/postula-preview" className={styles.brand}><span className={styles.brandMark}>PM</span><span><b>Postulá Mejor</b><small>EMPRESAS</small></span></Link>
-    <nav><a href="#como">Cómo funciona</a><a href="#agentes">Agentes IA</a><a href="#planes">Planes</a></nav>
-    <div className={styles.headerActions}><Link href="/postula-preview">Volver</Link><a href="#demo" className={styles.darkBtn}>Probar demo</a></div>
-  </header>
-
-  <section className={styles.hero}>
-    <div className={styles.heroCopy}>
-      <span className={styles.eyebrow}>SELECCIÓN PARA EQUIPOS CHICOS · SIN ATS COMPLICADO</span>
-      <h1>Publicá fácil.<br/><em>La IA te muestra a quién entrevistar primero.</em></h1>
-      <p>Para comercios, PyMEs, hoteles, gastronomía y equipos que necesitan contratar bien sin sumar una plataforma de Recursos Humanos imposible de aprender.</p>
-      <div className={styles.heroActions}><a className={styles.primary} href="#demo">Crear una búsqueda de prueba</a><a className={styles.secondary} href="#como">Ver cómo funciona</a></div>
-      <div className={styles.microTrust}><span>Sin tarjeta para empezar</span><span>Recomendaciones explicadas</span><span>La decisión siempre es humana</span></div>
-    </div>
-    <div className={styles.heroPanel}>
-      <div className={styles.panelHeader}><span>BÚSQUEDA ACTIVA</span><b>Vendedor/a · Belgrano</b><small>36 postulaciones</small></div>
-      <div className={styles.pipeline}><span>RECIBIDOS <b>36</b></span><span>IA REVISÓ <b>36</b></span><span>SHORTLIST <b>5</b></span><span>ENTREVISTA <b>3</b></span></div>
-      <div className={styles.heroCandidate}><strong>94</strong><div><b>Martina R.<small>RECOMENDADA</small></b><p>Caja + venta presencial + disponibilidad compatible.</p></div></div>
-      <div className={styles.heroCandidate}><strong>87</strong><div><b>Nicolás G.<small>MUY BUEN MATCH</small></b><p>Atención al cliente + objetivos + experiencia POS.</p></div></div>
-      <div className={styles.agentPulse}><i/><span><b>4 agentes terminaron el análisis</b><small>Todo lo recomendado incluye una explicación.</small></span></div>
-    </div>
-  </section>
-
-  <section className={styles.problem}>
-    <div><span>EL PROBLEMA NO ES PUBLICAR</span><h2>Es qué hacer cuando llegan 40 CV y vos además tenés un negocio que atender.</h2></div>
-    <div className={styles.problemStats}><article><strong>1</strong><p>pedido simple para crear el aviso</p></article><article><strong>100%</strong><p>de los candidatos comparados con los mismos requisitos</p></article><article><strong>5</strong><p>finalistas claros en vez de una bandeja infinita</p></article></div>
-  </section>
-
-  <section className={styles.how} id="como">
-    <div className={styles.sectionTitle}><span>DE LA NECESIDAD A LA ENTREVISTA</span><h2>Contratar sin convertirse en recruiter.</h2><p>Diseñado para una persona que sabe a quién necesita, pero no quiere aprender un ATS entero para cubrir un puesto.</p></div>
-    <div className={styles.steps}><article><i>01</i><h3>Contanos qué necesitás</h3><p>Escribí como hablás: puesto, zona, horarios y lo indispensable.</p></article><article><i>02</i><h3>Publicá en minutos</h3><p>La IA ordena el pedido, arma el aviso y propone preguntas filtro.</p></article><article><i>03</i><h3>Recibí y ordená</h3><p>Los CV quedan deduplicados, resumidos y comparados con criterios consistentes.</p></article><article><i>04</i><h3>Entrevistá mejor</h3><p>Recibís shortlist, razones y preguntas específicas para validar lo importante.</p></article></div>
-  </section>
-
-  <section className={styles.agentsSection} id="agentes">
-    <div className={styles.sectionTitleLight}><span>NO ES UN CHAT SUELTO</span><h2>Un pequeño equipo de agentes trabajando por tu búsqueda.</h2><p>Cada agente tiene una tarea concreta. Se pasan contexto entre sí y dejan una salida que una persona puede revisar.</p></div>
-    <div className={styles.agentGrid}>{agents.map(([n,title,copy])=><article key={n}><i>{n}</i><div><h3>Agente {title}</h3><p>{copy}</p></div><span>IA ASISTIDA</span></article>)}</div>
-    <div className={styles.guardrail}><b>Lo importante</b><p>El score ayuda a ordenar; no contrata ni descarta por sí solo. La recomendación muestra sus motivos y evita usar características protegidas como criterio de selección.</p></div>
-  </section>
-
-  <section className={styles.demoSection} id="demo">
-    <div className={styles.sectionTitle}><span>PROBALO SIN PUBLICAR NADA</span><h2>Así se siente del lado del empleador.</h2><p>Esta demo es interactiva, pero trabaja sólo con datos de ejemplo: no crea avisos públicos ni contacta candidatos.</p></div>
-    <EmployerDemo/>
-  </section>
-
-  <section className={styles.plans} id="planes">
-   <div className={styles.sectionTitle}><span>ENTRADA BAJA, VALOR CLARO</span><h2>Pagá según cuánto contratás.</h2><p>La propuesta evita obligar a un comercio que contrata dos veces al año a pagar un software corporativo todos los meses.</p></div>
-   <div className={styles.planGrid}>
-    <article><span>GRATIS</span><h3>$0</h3><p>Para publicar la primera necesidad.</p><ul><li>1 búsqueda activa</li><li>Hasta 20 postulaciones</li><li>Filtros básicos</li><li>1 análisis IA de muestra</li></ul><button>Empezar gratis</button></article>
-    <article className={styles.featured}><span>SELECCIÓN EXPRESS</span><h3>$12.900 <small>/ búsqueda</small></h3><p>Para resolver una contratación sin suscripción.</p><ul><li>Hasta 50 CV</li><li>Ranking + explicación</li><li>Shortlist automático</li><li>Preguntas para entrevista</li></ul><button>Analizar una búsqueda</button></article>
-    <article><span>PRO</span><h3>$24.900 <small>/ mes</small></h3><p>Para equipos que contratan seguido.</p><ul><li>3 búsquedas activas</li><li>Hasta 150 CV/mes</li><li>4 agentes IA</li><li>Pipeline + plantillas</li></ul><button>Elegir Pro</button></article>
-   </div>
-   <small className={styles.priceNote}>Precios conceptuales para validar la propuesta comercial antes de publicar.</small>
-  </section>
-
-  <section className={styles.finalCta}><span>POSTULÁ MEJOR EMPRESAS</span><h2>Menos tiempo leyendo CV.<br/>Más claridad para decidir.</h2><a href="#demo">Probar el flujo de empleador</a></section>
-  <footer className={styles.footer}><Link href="/postula-preview">Postulá Mejor</Link><span>Preview de producto · no indexado · no publicado como oferta comercial todavía</span></footer>
- </main>
-}
+export default function EmployerLanding(){return <main className={styles.page}><PlatformHeader audience="employer"/><section className={styles.employerHero}><div className={styles.employerGrid}><div><span className={styles.eyebrow}>Selección para empresas reales, no para expertos en ATS</span><h1>Publicá una vez.<br/>Ordená miles sin perder el control.</h1><p>Un empleador chico puede manejar la búsqueda solo. Un equipo de RRHH puede repartir trabajo, exportar, auditar y escalar. La misma base se adapta al volumen.</p><div className={styles.heroActions}><Link className={styles.button} href="/empresas-preview/publicar">Crear una búsqueda</Link><Link className={styles.buttonGhost} href="/empresas-preview/panel">Ver panel de empresa</Link></div><div className={styles.heroMicro}><span><i/>Registro gratuito</span><span><i/>Mercado Pago en planes pagos</span><span><i/>Decisión humana</span></div></div><div className={styles.agentBoard}><div className={styles.agentHeader}><span>Equipo de agentes · búsqueda activa</span><span>5/5 online</span></div><div className={styles.agentList}>{agents.map(([id,title,copy])=><div className={styles.agent} key={id}><span className={styles.agentIcon}>{id}</span><div><strong>{title}</strong><span>{copy}</span></div><span className={styles.agentState}>LISTO</span></div>)}</div></div></div></section><section className={styles.section}><div className={styles.sectionInner}><div className={styles.sectionHead}><div><p>De la necesidad a la shortlist</p><h2>Menos formularios. Más contexto útil.</h2></div><p>Tomamos las bases que ya funcionan en bolsas de empleo: publicación gratuita, preguntas filtro, panel de postulantes y upsell por alcance. La diferencia es que el trabajo pesado se organiza alrededor de agentes especializados y explicaciones revisables.</p></div><div className={styles.flow}><article className={styles.flowCard}><span className={styles.flowNo}>01</span><h3>Describís el puesto</h3><p>Una frase alcanza para empezar. La plataforma propone título, tareas, requisitos, modalidad y preguntas.</p></article><article className={styles.flowCard}><span className={styles.flowNo}>02</span><h3>Revisás y publicás</h3><p>La IA no inventa condiciones. Todo queda editable antes de activar el aviso.</p></article><article className={styles.flowCard}><span className={styles.flowNo}>03</span><h3>Llegan candidatos</h3><p>CV, carta opcional, respuestas y datos relevantes en una ficha común.</p></article><article className={styles.flowCard}><span className={styles.flowNo}>04</span><h3>Decidís con contexto</h3><p>Shortlist, motivos, dudas, guía de entrevista y derivación al responsable adecuado.</p></article></div></div></section><section className={`${styles.section} ${styles.jobsBand}`}><div className={styles.sectionInner}><div className={styles.sectionHead}><div><p>Arquitectura multicuenta</p><h2>Sirve para un dueño y también para RRHH.</h2></div><p>Cada empresa funciona como un espacio aislado con sus búsquedas, miembros, permisos, consumos y auditoría. Un comercio puede tener un solo administrador; una compañía puede sumar recruiters, managers y lectores.</p></div><div className={styles.pathGrid}><div className={styles.pathCard}><span className={styles.miniLabel}>Empresa chica</span><h3>“Mandame los mejores y los llamo yo.”</h3><p>El propietario recibe una shortlist, puede descargar CV, abrir contacto, marcar entrevista y cerrar la búsqueda sin aprender un proceso complejo.</p><div className={styles.pathFoot}><span>1 responsable · flujo directo</span><span className={styles.pathArrow}>01</span></div></div><div className={`${styles.pathCard} ${styles.pathCardDark}`}><span className={styles.miniLabel}>Equipo con RRHH</span><h3>“Derivámelos al área correcta.”</h3><p>Reglas de routing por sucursal, puesto o área; usuarios con roles, notas internas, exportaciones y trazabilidad de quién hizo cada cambio.</p><div className={styles.pathFoot}><span>Roles + routing + auditoría</span><span className={styles.pathArrow}>02</span></div></div></div></div></section><section className={styles.section} id="planes"><div className={styles.sectionInner}><div className={styles.sectionHead}><div><p>Planes de lanzamiento · propuesta</p><h2>El precio crece con el trabajo que ahorramos.</h2></div><p>La entrada gratuita se mantiene competitiva y deja probar de verdad el producto. Los límites pagos se concentran en volumen, automatización, colaboración y capacidad de análisis, no en cobrar por cada clic básico.</p></div><div className={styles.plans}>{plans.map(plan=><article className={`${styles.plan} ${plan.featured?styles.planFeatured:''}`} key={plan.name}><small>{plan.name.toUpperCase()}</small><h3>{plan.copy}</h3><div className={styles.price}>{plan.price}{plan.price.startsWith('$')&&plan.price!=='$0'?<small> / mes</small>:null}</div><ul>{plan.items.map(i=><li key={i}>{i}</li>)}</ul><Link href={plan.name==='Gratis'?'/empresas-preview/registro':'/empresas-preview/panel'} className={plan.featured?styles.button:styles.buttonDark}>{plan.name==='Gratis'?'Empezar gratis':'Ver en el panel'}</Link></article>)}</div><p style={{fontSize:11,color:'#738495',marginTop:18}}>Valores de lanzamiento propuestos para la preview. Antes de producción se validarán impuestos, costo real por análisis, límites y comparación comercial vigente.</p></div></section><section className={styles.section}><div className={styles.sectionInner}><div className={styles.sectionHead}><div><p>Guardrails de selección</p><h2>Tecnología fuerte, decisión responsable.</h2></div><p>Los agentes ayudan a ordenar evidencia relacionada con el puesto. No deben inferir edad, salud, origen, religión, género u otras características protegidas. Los descartes automáticos quedan limitados a requisitos objetivos definidos por la empresa y siempre pueden revisarse.</p></div><div className={styles.compareTable}><table><thead><tr><th>Agente</th><th>Hace</th><th>No hace</th><th>Salida</th></tr></thead><tbody><tr><td>Publicador</td><td>Redacta y estructura</td><td>No inventa condiciones</td><td>Aviso editable</td></tr><tr><td>Selector</td><td>Ordena evidencia</td><td>No contrata ni sentencia</td><td>Match explicado</td></tr><tr><td>Entrevista</td><td>Prepara preguntas</td><td>No diagnostica personalidad sensible</td><td>Scorecard</td></tr><tr><td>Auditor</td><td>Marca riesgos</td><td>No reemplaza revisión legal/RRHH</td><td>Alertas</td></tr></tbody></table></div></div></section><section className={styles.detailHero}><div className={styles.detailHeroInner}><span className={styles.eyebrow}>Empezar sin configuración eterna</span><h1>Describí a quién necesitás. El resto se ordena alrededor.</h1><div className={styles.heroActions}><Link href="/empresas-preview/publicar" className={styles.button}>Crear aviso de prueba</Link><Link href="/postula-acceso-preview?rol=empresa&next=%2Fempresas-preview%2Fpanel" className={styles.buttonGhost}>Crear cuenta de empresa</Link></div></div></section><PlatformFooter/></main>}
