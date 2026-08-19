@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import WorkspaceClient from './WorkspaceClient'
 import styles from './workspace.module.css'
+import './workspace-screen-fix.css'
 
 const icon='/postula-mejor-favicon.svg'
 export const metadata:Metadata={
