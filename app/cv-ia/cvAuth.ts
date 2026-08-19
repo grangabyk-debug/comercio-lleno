@@ -3,7 +3,7 @@
 import { createClient } from '@supabase/supabase-js'
 
 export const CV_SUPABASE_URL='https://pejkycdttogpmmdntzuq.supabase.co'
-export const CV_SUPABASE_KEY='sb_publishable_JmqxkVG1qNuCwFqMeVgBg_-Nn32N2I'
+export const CV_SUPABASE_KEY='sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I'
 export const CV_API=`${CV_SUPABASE_URL}/functions/v1/cv-ai`
 export const CV_PRO_API=`${CV_SUPABASE_URL}/functions/v1/cv-ai-pro-v2`
 export const CV_ACCOUNT_API=`${CV_SUPABASE_URL}/functions/v1/cv-ai-account`
