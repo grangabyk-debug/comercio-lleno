@@ -2,12 +2,13 @@ import Link from 'next/link'
 import styles from './platform.module.css'
 
 export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'employer'}){
-  return <header className={styles.header}>
+  const headerClass=`${styles.header} ${audience==='employer'?'pm-topbar-employer':'pm-topbar-candidate'}`
+  return <header className={headerClass}>
     <Link href="/postula-preview" className={styles.brand}><span className={styles.mark}>PM</span><span>Postulá Mejor</span></Link>
     <nav className={styles.nav} aria-label="Navegación Postulá Mejor">
       <Link href="/empleos-preview">Ofertas de empleo</Link>
-      <Link href="/cv-ia">Mejorar mi CV</Link>
-      {audience==='candidate'?<Link href="/empresas-preview" className={styles.navPrimary}>Soy empleador</Link>:<Link href="/postula-preview" className={styles.navPrimary}>Soy candidato</Link>}
+      {audience==='candidate'?<Link href="/cv-ia">Mejorar mi CV</Link>:<Link href="/empresas-preview/movil" className="pm-mobile-assistant-link">Modo móvil</Link>}
+      {audience==='candidate'?<Link href="/empresas-preview" className={`${styles.navPrimary} pm-role-switch`}>Soy empleador</Link>:<Link href="/postula-preview" className={`${styles.navPrimary} pm-role-switch`}>Soy candidato</Link>}
       <Link href={audience==='candidate'?'/mi-postula-preview':'/empresas-preview/panel'} className={styles.navAccent}>Mi cuenta</Link>
     </nav>
   </header>
