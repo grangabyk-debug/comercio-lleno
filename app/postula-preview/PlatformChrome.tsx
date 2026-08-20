@@ -15,12 +15,12 @@ export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'em
         <Link href="/mejorar-cv">Mejorar CV</Link>
         <Link href="/test-vocacional">Test</Link>
       </>:<>
-        <Link href="/empresas-preview">Contratar</Link>
-        <Link href="/empresas-preview/panel">Candidatos</Link>
-        <Link href="/empresas-preview/movil" className="pm-nav-new">Nexo <small>MÓVIL</small></Link>
+        <Link href="/empresas">Contratar</Link>
+        <Link href="/empresas/panel">Candidatos</Link>
+        <Link href="/empresas/movil" className="pm-nav-new">Nexo <small>MÓVIL</small></Link>
       </>}
-      {audience==='candidate'?<Link href="/empresas-preview" className={`${styles.navPrimary} pm-role-switch`}>Soy empleador</Link>:<Link href="/" className={`${styles.navPrimary} pm-role-switch`}>Busco trabajo</Link>}
-      <Link href={audience==='candidate'?'/mi-cuenta':'/empresas-preview/panel'} className={`${styles.navAccent} pm-social-account`}>Mi cuenta</Link>
+      {audience==='candidate'?<Link href="/empresas" className={`${styles.navPrimary} pm-role-switch`}>Soy empleador</Link>:<Link href="/" className={`${styles.navPrimary} pm-role-switch`}>Busco trabajo</Link>}
+      <Link href={audience==='candidate'?'/mi-cuenta':'/empresas/panel'} className={`${styles.navAccent} pm-social-account`}>Mi cuenta</Link>
     </nav>
   </header>{audience==='employer'?<MobileChoicePrompt/>:null}</>
 }
@@ -35,4 +35,4 @@ export function MobileNav({active='inicio'}:{active?:'inicio'|'empleos'|'cuenta'
   </nav>
 }
 
-export function PlatformFooter(){return <footer className={`${styles.footer} pm-postula-footer`}><div className={styles.footerInner}><div className="pm-footer-brand"><div className={styles.brand}><span className={styles.mark}>PM</span><span>Postulá Mejor</span></div><p>Trabajo, oportunidades y selección con tecnología explicable. Empleo formal, búsquedas rápidas y Trabajos Flex en una experiencia independiente.</p><div className="pm-footer-trust"><span><i/>Conexión segura HTTPS</span><span><i/>Privacidad y trazabilidad</span><span><i/>IA con decisión humana</span></div></div><div className="pm-footer-links"><Link href="/empleos">Empleos</Link><Link href="/trabajos-flex">Trabajos Flex</Link><Link href="/empresas-preview">Empresas</Link><Link href="/plantillas">Plantillas</Link><Link href="/mejorar-cv">Mejorar CV</Link><Link href="/test-vocacional">Test vocacional</Link><Link href="/legales">Legales</Link><Link href="/privacidad">Privacidad</Link><Link href="/terminos">Términos</Link></div></div><div className="pm-footer-legal"><span>© 2026 Postulá Mejor. Todos los derechos reservados.</span><span>Gabriel Alejandro Granvillano · CUIT 20-38422407-6</span><span className="pm-security-seal">SEGURIDAD · DATOS PROTEGIDOS</span></div></footer>}
+export function PlatformFooter(){return <footer className={`${styles.footer} pm-postula-footer`}><div className={styles.footerInner}><div className="pm-footer-brand"><div className={styles.brand}><span className={styles.mark}>PM</span><span>Postulá Mejor</span></div><p>Trabajo, oportunidades y selección con tecnología explicable. Empleo formal, búsquedas rápidas y Trabajos Flex en una experiencia independiente.</p><div className="pm-footer-trust"><span><i/>Conexión segura HTTPS</span><span><i/>Privacidad y trazabilidad</span><span><i/>IA con decisión humana</span></div></div><div className="pm-footer-links"><Link href="/empleos">Empleos</Link><Link href="/trabajos-flex">Trabajos Flex</Link><Link href="/empresas">Empresas</Link><Link href="/plantillas">Plantillas</Link><Link href="/mejorar-cv">Mejorar CV</Link><Link href="/test-vocacional">Test vocacional</Link><Link href="/legales">Legales</Link><Link href="/privacidad">Privacidad</Link><Link href="/terminos">Términos</Link></div></div><div className="pm-footer-legal"><span>© 2026 Postulá Mejor. Todos los derechos reservados.</span><span>Gabriel Alejandro Granvillano · CUIT 20-38422407-6</span><span className="pm-security-seal">SEGURIDAD · DATOS PROTEGIDOS</span></div></footer>}

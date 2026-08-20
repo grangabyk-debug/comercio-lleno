@@ -35,6 +35,7 @@ function inferArea(title:string,team=''){const t=`${title} ${team}`.toLowerCase(
 function prettySchedule(value=''){const v=value.trim();if(!v)return 'A confirmar';if(/part/i.test(v))return 'Part time';if(/intern/i.test(v))return 'Pasantía';if(/contract/i.test(v))return 'Contrato';return /full/i.test(v)?'Full time':v}
 function neutralSummary(company:string,title:string,area:string){return `${company} publicó una oportunidad para ${title}. La clasificamos en ${area} para facilitar la búsqueda. Revisá requisitos, condiciones y vigencia en la fuente oficial antes de postularte.`}
 function priority(job:PreviewJob){return /buenos aires|caba|capital federal/i.test(job.location)?3:/argentina/i.test(job.location)?2:job.mode==='Remoto'?1:0}
+function uniqueText(values:Array<string|null|undefined>){const seen=new Set<string>();return values.map(v=>(v||'').trim()).filter(v=>{if(!v)return false;const key=v.toLocaleLowerCase('es');if(seen.has(key))return false;seen.add(key);return true})}
 
 async function fetchLever(source:LeverSource):Promise<PreviewJob[]>{
   try{
@@ -43,11 +44,11 @@ async function fetchLever(source:LeverSource):Promise<PreviewJob[]>{
     const res=await fetch(`https://api.lever.co/v0/postings/${encodeURIComponent(source.site)}?${params.toString()}`,{next:{revalidate:21600}})
     if(!res.ok)return []
     const rows=await res.json() as LeverPosting[]
-    return rows.filter(row=>{const loc=[row.categories?.location,...(row.categories?.allLocations||[])].filter(Boolean).join(' · ');return isArgentina(loc)}).map(row=>{
-      const location=[row.categories?.location,...(row.categories?.allLocations||[])].filter(Boolean).join(' · ')||'Argentina'
+    return rows.filter(row=>{const loc=uniqueText([row.categories?.location,...(row.categories?.allLocations||[])]).join(' · ');return isArgentina(loc)}).map(row=>{
+      const location=uniqueText([row.categories?.location,...(row.categories?.allLocations||[])]).join(' · ')||'Argentina'
       const area=inferArea(row.text,`${row.categories?.team||''} ${row.categories?.department||''}`)
       const sourceUrl=row.hostedUrl||row.applyUrl||`https://jobs.lever.co/${source.site}/${row.id}`
-      return {slug:`lever-${slugify(source.company)}-${slugify(row.text)}-${row.id.slice(0,8)}`,title:row.text,company:source.company,location,mode:inferMode(location,row.workplaceType),schedule:prettySchedule(row.categories?.commitment),area,source:'Fuente oficial · Lever',sourceUrl,checkedAt:new Date().toISOString().slice(0,10),summary:neutralSummary(source.company,row.text,area),requirements:['Revisar requisitos completos en la publicación oficial','Confirmar modalidad, horario y ubicación antes de enviar','Validar que la búsqueda continúe abierta'],tags:[area,row.categories?.team||'',row.categories?.commitment||''].filter(Boolean),external:true}
+      return {slug:`lever-${slugify(source.company)}-${slugify(row.text)}-${row.id.slice(0,8)}`,title:row.text,company:source.company,location,mode:inferMode(location,row.workplaceType),schedule:prettySchedule(row.categories?.commitment),area,source:'Fuente oficial · Lever',sourceUrl,checkedAt:new Date().toISOString().slice(0,10),summary:neutralSummary(source.company,row.text,area),requirements:['Revisar requisitos completos en la publicación oficial','Confirmar modalidad, horario y ubicación antes de enviar','Validar que la búsqueda continúe abierta'],tags:uniqueText([area,row.categories?.team,row.categories?.commitment]),external:true}
     })
   }catch{return []}
 }
@@ -61,7 +62,7 @@ async function fetchGreenhouse(board:string,company:string):Promise<PreviewJob[]
       const location=row.location?.name||'Argentina'
       const team=(row.departments||[]).map(d=>d.name).join(' · ')
       const area=inferArea(row.title,team)
-      return {slug:`gh-${slugify(company)}-${slugify(row.title)}-${row.id}`,title:row.title,company,location,mode:inferMode(location),schedule:'A confirmar',area,source:'Fuente oficial · Greenhouse',sourceUrl:row.absolute_url,checkedAt:new Date().toISOString().slice(0,10),summary:neutralSummary(company,row.title,area),requirements:['Revisar requisitos completos en la publicación oficial','Confirmar modalidad, horario y ubicación antes de enviar','Validar que la búsqueda continúe abierta'],tags:[area,...(row.departments||[]).slice(0,2).map(d=>d.name)].filter(Boolean),external:true}
+      return {slug:`gh-${slugify(company)}-${slugify(row.title)}-${row.id}`,title:row.title,company,location,mode:inferMode(location),schedule:'A confirmar',area,source:'Fuente oficial · Greenhouse',sourceUrl:row.absolute_url,checkedAt:new Date().toISOString().slice(0,10),summary:neutralSummary(company,row.title,area),requirements:['Revisar requisitos completos en la publicación oficial','Confirmar modalidad, horario y ubicación antes de enviar','Validar que la búsqueda continúe abierta'],tags:uniqueText([area,...(row.departments||[]).slice(0,2).map(d=>d.name)]),external:true}
     })
   }catch{return []}
 }

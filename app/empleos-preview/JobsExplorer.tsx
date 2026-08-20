@@ -51,7 +51,7 @@ export default function JobsExplorer({jobs}:{jobs:PreviewJob[]}){
       {areas.slice(0,10).map(a=><button key={a} data-active={area===a} onClick={()=>setArea(a)}>{a}</button>)}
     </div>
 
-    <div className="pm-motivation"><span>PARA VOS</span><p>{motivators[(query.length+area.length)%motivators.length]}</p><Link href="/mi-postula-preview">Ordenar mi búsqueda</Link></div>
+    <div className="pm-motivation"><span>PARA VOS</span><p>{motivators[(query.length+area.length)%motivators.length]}</p><Link href="/mi-cuenta">Ordenar mi búsqueda</Link></div>
 
     <div className="pm-workspace">
       <aside className="pm-filters">
@@ -70,7 +70,7 @@ export default function JobsExplorer({jobs}:{jobs:PreviewJob[]}){
           <h3>{job.title}</h3>
           <div className="pm-job-tags"><span>{job.location}</span><span>{job.mode}</span><span>{job.schedule}</span></div>
           <p>{job.summary}</p>
-          <div className="pm-job-foot"><span><i/>Fuente oficial revisada</span><Link href={`/empleos-preview/${job.slug}`} onClick={e=>e.stopPropagation()}>Abrir detalle</Link></div>
+          <div className="pm-job-foot"><span><i/>Fuente oficial revisada</span><Link href={`/empleos/${job.slug}`} onClick={e=>e.stopPropagation()}>Abrir detalle</Link></div>
         </article>):<div className="pm-empty">No encontramos ofertas con estos filtros. Probá otra área, una zona más amplia o modalidad remota.</div>}</div>
       </section>
 
@@ -82,7 +82,7 @@ export default function JobsExplorer({jobs}:{jobs:PreviewJob[]}){
           <div className="pm-match"><div><span>MATCH EXPLICABLE</span><b>Disponible con tu perfil</b></div><p>Al iniciar sesión comparamos requisitos explícitos con los datos que vos autorizaste. Sin descarte automático por características sensibles.</p></div>
           <div className="pm-preview-section"><strong>Resumen</strong><p>{selected.summary}</p></div>
           <div className="pm-preview-section"><strong>Antes de postularte</strong><ul>{selected.requirements.map(r=><li key={r}>{r}</li>)}</ul></div>
-          <div className="pm-preview-actions"><Link href={`/postulacion-preview/${selected.slug}`} className={styles.button}>Preparar postulación</Link><a href={selected.sourceUrl} target="_blank" rel="noopener noreferrer" className={styles.buttonDark}>Ver fuente oficial</a></div>
+          <div className="pm-preview-actions"><Link href={`/postular/${selected.slug}`} className={styles.button}>Preparar postulación</Link><a href={selected.sourceUrl} target="_blank" rel="noopener noreferrer" className={styles.buttonDark}>Ver fuente oficial</a></div>
           <div className="pm-safety">Postularse es gratis. CV Pro+ y Búsqueda Activa son opcionales: mejoran presentación, seguimiento y automatizaciones con confirmación del usuario.</div>
         </div>:<div className="pm-empty">Elegí una oportunidad para ver el detalle.</div>}
       </aside>
