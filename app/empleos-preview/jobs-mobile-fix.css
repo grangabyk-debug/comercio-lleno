@@ -1,0 +1,9 @@
+@media(max-width:760px){
+  .pm-jobs,.pm-workspace,.pm-results,.pm-job-list,.pm-job-card{min-width:0;max-width:100%;}
+  .pm-jobs{overflow-x:hidden;}
+  .pm-area-rail{width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;}
+  .pm-job-card{overflow:hidden;}
+  .pm-company-row,.pm-job-foot{min-width:0;}
+  .pm-company-row>div,.pm-job-foot>*{min-width:0;}
+  .pm-job-tags span,.pm-job-card h3,.pm-job-card p,.pm-company-row b,.pm-company-row small{max-width:100%;overflow-wrap:anywhere;word-break:break-word;}
+}
