@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import FacturaLlenaPreview from './FacturaLlenaPreview'
 import HistoryNavRuntime from './HistoryNavRuntime'
 import ConsumerFinalLimitGuard from './ConsumerFinalLimitGuard'
+import './app-mobile-fix.css'
 
 export const metadata: Metadata = {
   title: 'Factura Llena | Facturá desde el celular en segundos',
