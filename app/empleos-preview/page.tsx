@@ -4,6 +4,7 @@ import {PlatformFooter,PlatformHeader,MobileNav} from '../postula-preview/Platfo
 import {getJobCatalog} from '../postula-preview/jobs'
 import JobsExplorer from './JobsExplorer'
 import './jobs-premium.css'
+import './jobs-mobile-fix.css'
 import '../postula-preview/premium-v5.css'
 import '../postula-preview/premium-v6.css'
 import '../postula-preview/premium-v7.css'
