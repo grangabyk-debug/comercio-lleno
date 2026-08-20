@@ -34,38 +34,56 @@ function inferMode(location:string,workplace=''){const t=`${location} ${workplac
 function inferArea(title:string,team=''){
   const name=title.toLowerCase()
   const context=`${title} ${team}`.toLowerCase()
-  if(/linguist|translation|translator|localization|language|interpret|idioma/.test(name))return 'Idiomas y Traducción'
+  if(/patient coordinator|patient support|patient care/.test(name))return 'Salud y Servicios'
+  if(/linguist|translation|translator|localization|language specialist|interpret|idioma/.test(name)&&!/non-linguistic/.test(name))return 'Idiomas y Traducción'
   if(/compliance|legal|counsel|lawyer|abogad/.test(name))return 'Legal y Compliance'
   if(/finance|financial|accounting|accountant|contab|audit|tax|tesorer|controller/.test(name))return 'Administración y Finanzas'
-  if(/product owner|product manager|product designer|product lead|\bproduct\b|\bux\b|\bui\b|designer|diseñ|retoucher|imaging/.test(name))return 'Producto y Diseño'
-  if(/engineer|developer|software|data engineer|data scientist|cloud|security|devops|\bqa\b|technical|machine learning|\bai\b|artificial intelligence/.test(name))return 'Tecnología'
-  if(/sales|venta|account executive|business development|commercial|outreach|cold caller|appointment setter|closer/.test(name))return 'Ventas y Comercial'
-  if(/customer|support|soporte|atenci[oó]n|help desk|customer success/.test(name))return 'Atención al cliente'
-  if(/marketing|growth|brand|content|media|seo|social|copywriter/.test(name))return 'Marketing y Comunicación'
+  if(/test manager|quality assurance|visual quality|software quality|\bqa\b/.test(name))return 'Tecnología'
+  if(/technology talent pool|technolog|engineer|developer|software|data engineer|data scientist|cloud|security|devops|technical|machine learning|\bai\b|artificial intelligence/.test(name))return 'Tecnología'
+  if(/product owner|product manager|product designer|product lead|\bproduct\b|\bux\b|\bui\b|designer|diseñ|retoucher|imaging|art director|creative director|3d generalist/.test(name))return 'Producto y Diseño'
+  if(/key account|account specialist|sales|venta|account executive|business development|commercial|outreach|cold caller|appointment setter|closer/.test(name))return 'Ventas y Comercial'
+  if(/customer|support|soporte|atenci[oó]n|help desk|customer success|receptionist/.test(name))return 'Atención al cliente'
+  if(/marketing|growth|brand|content|media|seo|social|copywriter|ads quality|community manager|paid social|traffic coordinator|digital asset/.test(name))return 'Marketing y Comunicación'
+  if(/purchasing|procurement|buyer|supply|logistic|warehouse|almac[eé]n|operation|operaci/.test(name))return 'Operaciones y Logística'
   if(/assistant|administrative|virtual assistant|data entry|office|secretar/.test(name))return 'Administración y Asistencia'
   if(/recruit|recruiter|talent acquisition|people partner|human resources|\bhr\b|recursos humanos/.test(name))return 'Recursos Humanos'
-  if(/operation|operaci|supply|logistic|warehouse|almac[eé]n/.test(name))return 'Operaciones y Logística'
   if(/travel|viajes|turismo|hotel|lodging/.test(name))return 'Turismo y Hotelería'
   if(/health|medical|scribe|healthcare/.test(name))return 'Salud y Servicios'
   if(/compliance|legal|counsel|abogad/.test(context))return 'Legal y Compliance'
   if(/finance|accounting|audit|tax|tesorer|controller/.test(context))return 'Administración y Finanzas'
-  if(/engineer|developer|software|cloud|security|devops|\bqa\b|technical/.test(context))return 'Tecnología'
-  if(/sales|venta|account executive|business development|commercial|outreach/.test(context))return 'Ventas y Comercial'
+  if(/test|quality assurance|engineer|developer|software|cloud|security|devops|\bqa\b|technical|technology/.test(context))return 'Tecnología'
+  if(/sales|venta|account executive|business development|commercial|outreach|key account/.test(context))return 'Ventas y Comercial'
   if(/customer|support|soporte|atenci[oó]n|help desk/.test(context))return 'Atención al cliente'
   if(/marketing|growth|brand|content|media|seo|social/.test(context))return 'Marketing y Comunicación'
   if(/people|human|recruit|talent acquisition|\bhr\b|recursos humanos/.test(context))return 'Recursos Humanos'
-  if(/product|producto|ux|design|diseñ|retoucher|imaging/.test(context))return 'Producto y Diseño'
-  if(/operation|operaci|supply|logistic|warehouse|almac[eé]n/.test(context))return 'Operaciones y Logística'
+  if(/product|producto|ux|design|diseñ|retoucher|imaging|art director/.test(context))return 'Producto y Diseño'
+  if(/operation|operaci|supply|logistic|warehouse|almac[eé]n|purchasing|procurement/.test(context))return 'Operaciones y Logística'
   if(/translation|linguistic|language|localization|interpret/.test(context))return 'Idiomas y Traducción'
   if(/travel|viajes|turismo|hotel|lodging/.test(context))return 'Turismo y Hotelería'
-  if(/health|medical|scribe|healthcare/.test(context))return 'Salud y Servicios'
+  if(/health|medical|scribe|healthcare|patient/.test(context))return 'Salud y Servicios'
   return 'Otros rubros'
 }
-function prettySchedule(value=''){const v=value.trim();if(!v)return 'A confirmar';if(/part/i.test(v))return 'Part time';if(/intern/i.test(v))return 'Pasantía';if(/contract/i.test(v))return 'Contrato';return /full/i.test(v)?'Full time':v}
+function prettySchedule(value=''){
+  const v=value.trim()
+  if(!v)return 'A confirmar'
+  if(/part[ -]?time/i.test(v))return 'Part time'
+  if(/full[ -]?time/i.test(v))return 'Full time'
+  if(/intern|pasant/i.test(v))return 'Pasantía'
+  if(/contract|consultant/i.test(v))return 'Contrato'
+  if(/freelance/i.test(v))return 'Freelance'
+  return 'A confirmar'
+}
 function neutralSummary(company:string,title:string,area:string){return `${company} publicó una oportunidad para ${title}. La clasificamos en ${area} para facilitar la búsqueda. Revisá requisitos, condiciones y vigencia en la fuente oficial antes de postularte.`}
 function priority(job:PreviewJob){return /buenos aires|caba|capital federal/i.test(job.location)?3:/argentina/i.test(job.location)?2:job.mode==='Remoto'?1:0}
 function uniqueText(values:Array<string|null|undefined>){const seen=new Set<string>();return values.map(v=>(v||'').trim()).filter(v=>{if(!v)return false;const key=v.toLocaleLowerCase('es');if(seen.has(key))return false;seen.add(key);return true})}
 function duplicateKey(job:PreviewJob){return [job.company,job.title,job.location,job.mode,job.schedule].map(slugify).join('|')}
+function argentinaPlace(location:string){const l=location.toLowerCase();if(/buenos aires|caba|capital federal/.test(l))return 'buenos-aires';if(/argentina/.test(l))return 'argentina';return slugify(location)}
+function rolePlaceKey(job:PreviewJob){return [job.company,job.title,job.mode,argentinaPlace(job.location)].map(slugify).join('|')}
+function foreignBasedMismatch(title:string,location:string){
+  const t=title.toLowerCase(),l=location.toLowerCase()
+  if(!/argentina|buenos aires|caba|capital federal/.test(l))return false
+  return /(chile|mexico|méxico|colombia|brazil|brasil|peru|perú|uruguay)[ -]based/.test(t)||/based in (chile|mexico|méxico|colombia|brazil|brasil|peru|perú|uruguay)/.test(t)
+}
 
 async function fetchLever(source:LeverSource):Promise<PreviewJob[]>{
   try{
@@ -74,11 +92,11 @@ async function fetchLever(source:LeverSource):Promise<PreviewJob[]>{
     const res=await fetch(`https://api.lever.co/v0/postings/${encodeURIComponent(source.site)}?${params.toString()}`,{next:{revalidate:21600}})
     if(!res.ok)return []
     const rows=await res.json() as LeverPosting[]
-    return rows.filter(row=>{const loc=uniqueText([row.categories?.location,...(row.categories?.allLocations||[])]).join(' · ');return isArgentina(loc)}).map(row=>{
+    return rows.filter(row=>{const loc=uniqueText([row.categories?.location,...(row.categories?.allLocations||[])]).join(' · ');return isArgentina(loc)&&!foreignBasedMismatch(row.text,loc)}).map(row=>{
       const location=uniqueText([row.categories?.location,...(row.categories?.allLocations||[])]).join(' · ')||'Argentina'
       const area=inferArea(row.text,`${row.categories?.team||''} ${row.categories?.department||''}`)
       const sourceUrl=row.hostedUrl||row.applyUrl||`https://jobs.lever.co/${source.site}/${row.id}`
-      return {slug:`lever-${slugify(source.company)}-${slugify(row.text)}-${row.id.slice(0,8)}`,title:row.text,company:source.company,location,mode:inferMode(location,row.workplaceType),schedule:prettySchedule(row.categories?.commitment),area,source:'Fuente oficial · Lever',sourceUrl,checkedAt:new Date().toISOString().slice(0,10),summary:neutralSummary(source.company,row.text,area),requirements:['Revisar requisitos completos en la publicación oficial','Confirmar modalidad, horario y ubicación antes de enviar','Validar que la búsqueda continúe abierta'],tags:uniqueText([area,row.categories?.team,row.categories?.commitment]),external:true}
+      return {slug:`lever-${slugify(source.company)}-${slugify(row.text)}-${row.id.slice(0,8)}`,title:row.text,company:source.company,location,mode:inferMode(location,row.workplaceType),schedule:prettySchedule(row.categories?.commitment),area,source:'Fuente oficial · Lever',sourceUrl,checkedAt:new Date().toISOString().slice(0,10),summary:neutralSummary(source.company,row.text,area),requirements:['Revisar requisitos completos en la publicación oficial','Confirmar modalidad, horario y ubicación antes de enviar','Validar que la búsqueda continúe abierta'],tags:uniqueText([area,row.categories?.team,prettySchedule(row.categories?.commitment)]),external:true}
     })
   }catch{return []}
 }
@@ -88,7 +106,7 @@ async function fetchGreenhouse(board:string,company:string):Promise<PreviewJob[]
     const res=await fetch(`https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(board)}/jobs`,{next:{revalidate:21600}})
     if(!res.ok)return []
     const payload=await res.json() as {jobs?:GreenhousePosting[]}
-    return (payload.jobs||[]).filter(row=>isArgentina(row.location?.name||'')).map(row=>{
+    return (payload.jobs||[]).filter(row=>isArgentina(row.location?.name||'')&&!foreignBasedMismatch(row.title,row.location?.name||'')).map(row=>{
       const location=row.location?.name||'Argentina'
       const team=(row.departments||[]).map(d=>d.name).join(' · ')
       const area=inferArea(row.title,team)
@@ -116,11 +134,13 @@ export async function discoverPublicJobs(){
   const all=settled.flatMap(r=>r.status==='fulfilled'?r.value:[])
   const urls=new Set<string>()
   const semantic=new Set<string>()
+  const roles=new Set<string>()
   const unique=all.filter(job=>{
     const url=job.sourceUrl.toLowerCase()
-    const key=duplicateKey(job)
-    if(urls.has(url)||semantic.has(key))return false
-    urls.add(url);semantic.add(key);return true
+    const exact=duplicateKey(job)
+    const role=rolePlaceKey(job)
+    if(urls.has(url)||semantic.has(exact)||roles.has(role))return false
+    urls.add(url);semantic.add(exact);roles.add(role);return true
   })
   return diversify(unique)
 }
