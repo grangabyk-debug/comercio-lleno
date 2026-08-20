@@ -27,7 +27,10 @@ function pageId(pathname:string){
   if(pathname.startsWith('/soluciones/'))return `solution-${pathname.split('/').filter(Boolean).pop()||'detail'}`
   return pathname.replace(/^\/+|\/+$/g,'').replace(/[^a-z0-9-]+/gi,'-')||'home'
 }
-function postulaRoute(pathname:string){return pathname.startsWith('/cv-ia')||pathname.startsWith('/cuenta')||pathname.startsWith('/mi-cv')||pathname.startsWith('/busqueda-activa')}
+function postulaRoute(pathname:string){
+  const roots=['/postula-preview','/empleos-preview','/changas-preview','/empresas-preview','/mi-postula-preview','/plantillas-preview','/postula-acceso-preview','/postulacion-preview','/cv-ia','/cuenta','/mi-cv','/busqueda-activa','/test-vocacional','/primer-cv','/legales']
+  return roots.some(root=>pathname===root||pathname.startsWith(`${root}/`))
+}
 
 export default function MarketingScripts(){
   const pathname=usePathname()
