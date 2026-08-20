@@ -4,7 +4,7 @@ import { useEffect,useMemo,useState } from 'react'
 import Link from 'next/link'
 import { readTenantSession } from '@/lib/comercio/session'
 import type { TenantSession } from '@/lib/comercio/types'
-import FacturaLlenaPreview from './FacturaLlenaPreview'
+import FacturaLlenaLanding from './FacturaLlenaLanding'
 import styles from './app-ui.module.css'
 
 type Fiscal={configured:boolean;environment?:'homologacion'|'produccion';point_of_sale?:number|null}
@@ -29,7 +29,7 @@ export default function FacturaLlenaMobile(){
  function shareText(){if(!invoice)return'';return `Factura C ${String(fiscal?.point_of_sale||0).padStart(5,'0')}-${String(invoice.receipt_number).padStart(8,'0')}\n${client}\n${concept||'Comprobante electrónico'}\nTotal: ${money.format(invoice.amount)}\nCAE: ${invoice.cae}`}
  async function share(){if(!invoice)return;const text=shareText();if(navigator.share){try{await navigator.share({title:'Factura C',text});return}catch(e){if(e instanceof DOMException&&e.name==='AbortError')return}}window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,'_blank')}
  if(!ready)return <main className={styles.appPage}/>
- if(!session)return <FacturaLlenaPreview/>
+ if(!session)return <FacturaLlenaLanding/>
  return <main className={styles.appPage}>
   <header className={styles.appHeader}><button className={styles.iconButton} onClick={()=>void load()}>↻</button><div className={styles.appWordmark}>FacturaLlena</div><button className={styles.iconButton} onClick={()=>alert('En Chrome: menú ⋮ → Agregar a pantalla principal')}>↓</button></header>
   <section className={styles.statusBar}><span className={fiscal?.configured?styles.okDot:styles.warnDot}/><b>{statusBusy?'Consultando ARCA…':fiscal?.configured?`ARCA ${fiscal.environment==='produccion'?'Producción':'Homologación'}`:'ARCA pendiente'}</b><small>{session.companyName}</small></section>
