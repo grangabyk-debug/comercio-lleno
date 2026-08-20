@@ -38,26 +38,15 @@ export async function POST(req:NextRequest){
  if(requestedJob)appQuery=appQuery.eq('job_id',requestedJob)
  const {data:apps,error:aErr}=await appQuery
  if(aErr)return NextResponse.json({ok:false,error:'No pudimos leer las postulaciones de esta empresa.'},{status:400})
- const candidates:Candidate[]=(apps||[]).map((a:any)=>{
-  const match=Array.isArray(a.pm_candidate_matches)?a.pm_candidate_matches[0]:a.pm_candidate_matches
-  const snap=a.candidate_snapshot||{}
-  return {application_id:String(a.id),user_id:String(a.candidate_user_id),name:String(snap.display_name||'Candidato/a'),score:match?.score==null?null:Number(match.score),role:String(a.pm_jobs?.title||''),status:String(a.status||'submitted'),availability:String(snap.availability||'No informada'),experience:String(snap.experience||'No informada'),city:String(snap.city||'No informada'),cover_letter:String(a.cover_letter||''),reasons:Array.isArray(match?.reasons)?match.reasons.map(String):[],missing:Array.isArray(match?.missing_evidence)?match.missing_evidence.map(String):[],resume_path:a.resume_path?String(a.resume_path):null}
- })
+ const candidates:Candidate[]=(apps||[]).map((a:any)=>{const match=Array.isArray(a.pm_candidate_matches)?a.pm_candidate_matches[0]:a.pm_candidate_matches;const snap=a.candidate_snapshot||{};return {application_id:String(a.id),user_id:String(a.candidate_user_id),name:String(snap.display_name||'Candidato/a'),score:match?.score==null?null:Number(match.score),role:String(a.pm_jobs?.title||''),status:String(a.status||'submitted'),availability:String(snap.availability||'No informada'),experience:String(snap.experience||'No informada'),city:String(snap.city||'No informada'),cover_letter:String(a.cover_letter||''),reasons:Array.isArray(match?.reasons)?match.reasons.map(String):[],missing:Array.isArray(match?.missing_evidence)?match.missing_evidence.map(String):[],resume_path:a.resume_path?String(a.resume_path):null}})
  const q=message.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
  const selectedIds=contextIds(body)
  const selected=selectedIds.map(id=>candidates.find(x=>x.application_id===id)).filter(Boolean) as Candidate[]
  const sorted=rank(candidates)
 
  if(!candidates.length)return NextResponse.json({ok:true,tenant:companyId,company:companyName,answer:'Todavía no hay postulaciones para revisar en esta empresa. Cuando entren candidatos, puedo resumirlos, comparar perfiles, preparar entrevistas y derivar una selección a RRHH.',selected_candidate_ids:[]})
- if(/(resumen|cuantos|postulaciones|embudo|pipeline)/.test(q)){
-  const counts=candidates.reduce((acc:Record<string,number>,x)=>{acc[x.status]=(acc[x.status]||0)+1;return acc},{})
-  return NextResponse.json({ok:true,tenant:companyId,company:companyName,answer:`${companyName} tiene ${candidates.length} postulaciones en el contexto actual. ${Object.entries(counts).map(([k,v])=>`${k}: ${v}`).join(' · ')}. Puedo ordenar las que tienen match disponible, comparar personas, revisar disponibilidad o derivar una selección al equipo.`,selected_candidate_ids:[]})
- }
- if(/(mejor(?:es)?|top|ranking).*(curr|cv|candidat)|(?:curr|cv|candidat).*(mejor(?:es)?|top|ranking)/.test(q)){
-  const n=numberWanted(q),list=sorted.filter(x=>!['rejected','withdrawn'].includes(x.status)).slice(0,n)
-  const intro=list.some(x=>x.score!=null)?'Ordené usando el match explicable disponible y la etapa del proceso.':'Todavía no hay scores de match para todos; te ordeno por etapa del proceso y datos disponibles, sin inventar una evaluación.'
-  return NextResponse.json({ok:true,tenant:companyId,company:companyName,answer:`${intro}\n${list.map((x,i)=>`${i+1}. ${candidateLabel(x)}. Disponibilidad: ${x.availability}. Experiencia declarada: ${x.experience}.`).join('\n')}`,selected_candidate_ids:list.map(x=>x.application_id),intent:'shortlist'})
- }
+ if(/(resumen|cuantos|postulaciones|embudo|pipeline)/.test(q)){const counts=candidates.reduce((acc:Record<string,number>,x)=>{acc[x.status]=(acc[x.status]||0)+1;return acc},{});return NextResponse.json({ok:true,tenant:companyId,company:companyName,answer:`${companyName} tiene ${candidates.length} postulaciones en el contexto actual. ${Object.entries(counts).map(([k,v])=>`${k}: ${v}`).join(' · ')}. Puedo ordenar las que tienen match disponible, comparar personas, revisar disponibilidad o derivar una selección al equipo.`,selected_candidate_ids:[]})}
+ if(/(mejor(?:es)?|top|ranking).*(curr|cv|candidat)|(?:curr|cv|candidat).*(mejor(?:es)?|top|ranking)/.test(q)){const n=numberWanted(q),list=sorted.filter(x=>!['rejected','withdrawn'].includes(x.status)).slice(0,n);const intro=list.some(x=>x.score!=null)?'Ordené usando el match explicable disponible y la etapa del proceso.':'Todavía no hay scores de match para todos; te ordeno por etapa del proceso y datos disponibles, sin inventar una evaluación.';return NextResponse.json({ok:true,tenant:companyId,company:companyName,answer:`${intro}\n${list.map((x,i)=>`${i+1}. ${candidateLabel(x)}. Disponibilidad: ${x.availability}. Experiencia declarada: ${x.experience}.`).join('\n')}`,selected_candidate_ids:list.map(x=>x.application_id),intent:'shortlist'})}
  const named=candidates.filter(x=>q.includes(x.name.toLowerCase().split(' ')[0].normalize('NFD').replace(/[\u0300-\u036f]/g,''))).slice(0,5)
  if(/compara|comparame|diferencia/.test(q)&&named.length>=2)return NextResponse.json({ok:true,tenant:companyId,company:companyName,answer:named.map(x=>`${candidateLabel(x)}. Disponibilidad: ${x.availability}. Experiencia: ${x.experience}. ${x.reasons.length?`A favor: ${x.reasons.slice(0,3).join(', ')}.`:''} ${x.missing.length?`Falta validar: ${x.missing.slice(0,3).join(', ')}.`:''}`).join('\n'),selected_candidate_ids:named.map(x=>x.application_id),intent:'compare'})
  if(/disponibil|horario|turno|sabado|domingo/.test(q)){const list=named.length?named:(selected.length?selected:sorted.slice(0,8));return NextResponse.json({ok:true,tenant:companyId,company:companyName,answer:list.map(x=>`${x.name}: ${x.availability}. Zona: ${x.city}.`).join('\n'),selected_candidate_ids:list.map(x=>x.application_id),intent:'availability'})}
@@ -75,6 +64,8 @@ export async function POST(req:NextRequest){
  }
 
  const safeContext=sorted.slice(0,30).map(x=>({id:x.application_id,name:x.name,match:x.score,puesto:x.role,estado:x.status,disponibilidad:x.availability,experiencia:x.experience,zona:x.city,carta:x.cover_letter.slice(0,500),razones:x.reasons,falta_validar:x.missing}))
+ const {data:quota,error:quotaError}=await c.rpc('pm_consume_nexo_quota',{p_company_id:companyId})
+ if(quotaError||Number(quota)<0)return NextResponse.json({ok:true,tenant:companyId,company:companyName,answer:'Llegaste al límite de consultas abiertas con IA por esta hora. Los resúmenes, rankings, comparaciones, disponibilidad, entrevistas y derivaciones directas siguen funcionando sin consumir ese cupo.',intent:'ai_quota'})
  let key=process.env.AI_GATEWAY_API_KEY||process.env.VERCEL_OIDC_TOKEN
  try{if(!key)key=await getVercelOidcToken()}catch{}
  if(!key)return NextResponse.json({ok:true,tenant:companyId,company:companyName,answer:'Puedo resumir postulaciones, ordenar las que tienen match, comparar candidatos, revisar disponibilidad, preparar entrevistas y derivar una selección al equipo. Probá “dame los cinco mejores CV” o “enviá esos cinco a Recursos Humanos”.'})
