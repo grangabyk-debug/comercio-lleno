@@ -1,76 +1,57 @@
+import type {Metadata} from 'next'
 import Link from 'next/link'
+import {headers} from 'next/headers'
 import BrandLogo from '../BrandLogo'
+import {PlatformFooter,PlatformHeader} from '../postula-preview/PlatformChrome'
+import '../postula-preview/premium-v7.css'
 import styles from '../legal.module.css'
 
-export const metadata={title:'Términos y Condiciones | Comercio Lleno'}
+function isPostulaHost(host:string){const clean=host.split(':')[0].toLowerCase();return clean==='postulamejor.com'||clean==='www.postulamejor.com'}
+async function postulaRequest(){const h=await headers();return isPostulaHost(h.get('x-forwarded-host')||h.get('host')||'')}
 
-export default function TermsPage(){
-  return <main className={styles.page}>
-    <div className={styles.shell}>
-      <div className={styles.top}>
-        <Link href="/" aria-label="Comercio Lleno"><BrandLogo size={46}/></Link>
-        <Link className={styles.back} href="/prueba-gratis">← Volver al registro</Link>
-      </div>
-      <article className={styles.card}>
-        <span className={styles.eyebrow}>COMERCIO LLENO</span>
-        <h1>Términos y Condiciones de Uso</h1>
-        <div className={styles.updated}>Versión vigente desde el 17 de agosto de 2026.</div>
-        <p className={styles.notice}>Estos términos regulan el uso de Comercio Lleno, una plataforma de gestión comercial en modalidad software como servicio. Al crear una cuenta, la persona que se registra declara tener facultades para operar el comercio informado y acepta estas condiciones.</p>
-
-        <h2>1. Servicio</h2>
-        <p>Comercio Lleno ofrece herramientas para administrar productos, stock, ventas, caja, clientes, reportes, facturación electrónica, integraciones y otras funciones que se habiliten para cada plan. Algunas funciones dependen de servicios de terceros, entre ellos proveedores de infraestructura, medios de pago y organismos públicos.</p>
-
-        <h2>2. Plan Impulso: prueba gratuita y suscripción</h2>
-        <p>El Plan Impulso ofrece una prueba gratuita de 90 días corridos desde el alta del comercio. Para iniciar la prueba no se solicita tarjeta ni medio de pago y el mero vencimiento de los 90 días no genera por sí solo un cobro automático.</p>
-        <p>Una vez finalizada la prueba, para continuar utilizando las funciones operativas deberá activarse la suscripción. Al momento de esta versión, los primeros 3 ciclos mensuales pagos tienen un valor promocional de $14.900 ARS por mes. Finalizados esos 3 ciclos, el precio regular es de $29.800 ARS por mes. Si el usuario no activa la suscripción al terminar la prueba, el acceso operativo puede quedar restringido hasta la activación, sin que ello implique la eliminación automática de los datos del comercio.</p>
-        <p>Cuando se activa una suscripción recurrente mediante Mercado Pago, los cobros se procesan según la periodicidad y condiciones informadas durante el checkout, hasta su cancelación. Cualquier modificación futura de precios o condiciones aplicará hacia adelante y se informará antes de corresponder.</p>
-
-        <h2>3. Límites incluidos y ampliaciones del Plan Impulso</h2>
-        <p>La prueba gratuita y el Plan Impulso incluyen las siguientes capacidades base para las nuevas altas alcanzadas por esta promoción:</p>
-        <ul>
-          <li><strong>1 sucursal incluida.</strong> Las sucursales adicionales pueden habilitarse mediante una ampliación de $4.900 ARS por sucursal. El sistema admite actualmente un máximo de 5 sucursales activas por comercio.</li>
-          <li><strong>Hasta 1.000 productos activos.</strong> Al alcanzar ese límite, puede habilitarse la carga de productos sin límite mediante una ampliación de $4.900 ARS.</li>
-          <li><strong>Hasta 500 comprobantes fiscales autorizados por ARCA.</strong> Puede ampliarse ese límite hasta 2.500 comprobantes mediante una ampliación de $4.900 ARS.</li>
-        </ul>
-        <p>Las ampliaciones son opcionales, se habilitan una vez confirmado el pago correspondiente y sus importes son los vigentes a la fecha de esta versión. Los límites se computan de acuerdo con los registros activos o comprobantes efectivamente autorizados que consten en la plataforma.</p>
-
-        <h2>4. Cuenta y seguridad</h2>
-        <ul>
-          <li>El propietario es responsable de mantener seguras sus credenciales y las de sus empleados.</li>
-          <li>Cada usuario debe utilizar permisos acordes a su función.</li>
-          <li>No se permite intentar acceder a datos de otros comercios, alterar controles de seguridad, automatizar abuso del servicio ni utilizar la plataforma para actividades ilícitas.</li>
-        </ul>
-
-        <h2>5. Datos del comercio y facturación</h2>
-        <p>El comercio es responsable de que CUIT, condición fiscal, puntos de venta, datos de clientes, precios y demás información cargada sean correctos. Comercio Lleno facilita la conexión técnica con ARCA, pero la habilitación fiscal, los certificados, las autorizaciones, el encuadre tributario y la correcta emisión de comprobantes continúan siendo responsabilidad del contribuyente y de sus asesores.</p>
-        <p>La mención de facturación electrónica incluida significa que la función está disponible dentro del sistema, sujeta a la configuración fiscal necesaria y a la disponibilidad de los servicios de ARCA. El límite del Plan Impulso se aplica a comprobantes fiscales efectivamente autorizados.</p>
-
-        <h2>6. Disponibilidad e integraciones</h2>
-        <p>Trabajamos para mantener el servicio disponible y proteger la continuidad operativa, pero pueden existir interrupciones por mantenimiento, conectividad, cambios de terceros o indisponibilidad de servicios externos. Las funciones que dependen de ARCA, Mercado Pago u otros proveedores pueden verse afectadas por cambios o caídas ajenas a Comercio Lleno.</p>
-
-        <h2>7. Actualizaciones</h2>
-        <p>La plataforma puede recibir mejoras, correcciones de seguridad y cambios funcionales. Las actualizaciones críticas pueden aplicarse automáticamente cuando sean necesarias para mantener la seguridad, compatibilidad o integridad del servicio.</p>
-
-        <h2>8. Cancelación y pagos</h2>
-        <p>El cliente puede gestionar la cancelación de su suscripción según las opciones disponibles en su cuenta o mediante soporte. La cancelación evita futuras renovaciones conforme al estado confirmado por el proveedor de pagos, pero no extingue obligaciones o importes ya devengados antes de hacerse efectiva.</p>
-
-        <h2>9. Privacidad</h2>
-        <p>El tratamiento de datos personales y operativos se describe en la <Link href="/politica-de-privacidad">Política de Privacidad</Link>, que forma parte de estas condiciones.</p>
-
-        <h2>10. Soporte</h2>
-        <p>Las consultas técnicas o administrativas pueden realizarse desde los canales de ayuda disponibles dentro de Comercio Lleno. Cuando se utiliza el chat de ayuda humana, la conversación puede derivarse a la bandeja de soporte de Central Llena para su atención.</p>
-
-        <h2>11. Vigencia de promociones</h2>
-        <p>El Plan Impulso y sus beneficios promocionales se aplican a las altas realizadas mientras la oferta se encuentre publicada y disponible. Comercio Lleno puede modificar o finalizar promociones para nuevas altas; los cambios no reducen el período gratuito ya activado para una cuenta que haya ingresado válidamente a la promoción, salvo que exista una causa de uso abusivo, fraudulento o contrario a estos términos.</p>
-
-        <h2>12. Cambios en estos términos</h2>
-        <p>Podemos actualizar estos términos cuando cambie el producto, la normativa o la forma de prestación. Si el cambio es relevante, se informará dentro del servicio o mediante un canal de contacto registrado y se identificará una nueva versión.</p>
-
-        <h2>13. Ley aplicable</h2>
-        <p>Estos términos se interpretan conforme a la normativa aplicable en la República Argentina, respetando las disposiciones imperativas que correspondan según el tipo de cliente y su jurisdicción.</p>
-
-        <div className={styles.footer}>También podés consultar la <Link href="/politica-de-privacidad">Política de Privacidad</Link>.</div>
-      </article>
-    </div>
-  </main>
+export async function generateMetadata():Promise<Metadata>{
+  if(await postulaRequest())return{
+    title:{absolute:'Términos y Condiciones | Postulá Mejor'},
+    description:'Condiciones de uso de Postulá Mejor para candidatos, empleadores, CV, mensajería, inteligencia artificial y Trabajos Flex.',
+    robots:{index:true,follow:true},
+    alternates:{canonical:'https://postulamejor.com/terminos'},
+    openGraph:{title:'Términos y Condiciones | Postulá Mejor',description:'Reglas de uso para candidatos, empresas, publicaciones, IA y Trabajos Flex.',url:'https://postulamejor.com/terminos'},
+  }
+  return{title:{absolute:'Términos y Condiciones | Comercio Lleno'},alternates:{canonical:'https://comerciolleno.com/terminos'}}
 }
+
+function PostulaTerms(){return <><PlatformHeader/><main className={styles.page}><div className={styles.shell}><div className={styles.top}><Link className={styles.back} href="/legales">← Centro legal de Postulá Mejor</Link></div><article className={styles.card}><span className={styles.eyebrow}>POSTULÁ MEJOR · CONDICIONES DE USO</span><h1>Términos y Condiciones</h1><div className={styles.updated}>Versión vigente desde el 20 de agosto de 2026.</div><p className={styles.notice}>Estos términos regulan el uso de Postulá Mejor por candidatos, empleadores y personas que publican o responden Trabajos Flex. La plataforma facilita búsqueda, organización y contacto; no garantiza que una postulación termine en contratación ni que una tarea termine en acuerdo.</p>
+<h2>1. Servicio</h2><p>Postulá Mejor ofrece un portal de oportunidades, perfil laboral, herramientas de CV y orientación, mensajería, gestión de postulaciones, funciones para empresas, Trabajos Flex y asistencia mediante inteligencia artificial. Algunas oportunidades provienen de fuentes públicas externas y otras pueden publicarse directamente dentro de la plataforma.</p>
+<h2>2. Cuenta y veracidad</h2><p>Cada persona debe utilizar una cuenta propia, mantener seguras sus credenciales y brindar información razonablemente verdadera. No se permite suplantar a terceros, crear identidades engañosas, intentar acceder a cuentas u organizaciones ajenas, manipular controles de seguridad o utilizar la plataforma para fraude.</p>
+<h2>3. Candidatos</h2><p>La persona candidata conserva control sobre su perfil, CV y postulaciones. Es responsable de revisar antes de enviar cualquier texto sugerido por la plataforma o por inteligencia artificial. No debe incluir datos falsos, títulos inexistentes ni experiencia inventada.</p><p>Buscar, crear una cuenta y postularse con las funciones básicas se ofrece de manera gratuita mientras esas funciones se indiquen como gratuitas en el producto. Herramientas adicionales pueden requerir un plan pago.</p>
+<h2>4. Empleadores y búsquedas</h2><p>Quien publica en nombre de una empresa declara tener autorización suficiente para hacerlo y debe describir de buena fe el puesto, condiciones, ubicación, modalidad y requisitos. No se permiten ofertas engañosas, discriminatorias, ilegales, que exijan pagos indebidos al candidato o que busquen obtener documentación o dinero mediante fraude.</p><p>Postulá Mejor puede solicitar señales de identidad o validación empresarial, pausar publicaciones, limitar funciones o pedir información adicional cuando existan indicadores de riesgo. Una verificación o insignia reduce incertidumbre, pero no constituye garantía absoluta sobre una organización.</p>
+<h2>5. Inteligencia artificial y match</h2><p>La IA puede resumir CV, explicar coincidencias con una búsqueda, ordenar evidencia, sugerir preguntas, preparar una shortlist o asistir en redacción. Estas funciones son de apoyo y pueden cometer errores. La decisión final de contactar, entrevistar, contratar, rechazar o aceptar una tarea corresponde a las personas involucradas.</p><p>No se autoriza utilizar características sensibles o irrelevantes como criterio automatizado de descarte. La plataforma busca explicar las señales utilizadas y permitir revisión humana.</p>
+<h2>6. Trabajos Flex</h2><p>Trabajos Flex está pensado para tareas concretas, breves o independientes. Las partes deben acordar alcance, lugar, horario, importe, forma de pago y demás condiciones antes de comenzar. Si por la realidad del vínculo corresponde una relación laboral, una publicación Flex no modifica esa naturaleza ni reemplaza las obligaciones legales aplicables.</p><p>No se permite utilizar Trabajos Flex para encubrir empleo dependiente, actividades ilícitas, propuestas peligrosas, servicios prohibidos o esquemas en los que se exige dinero previo para acceder a la oportunidad.</p>
+<h2>7. Mensajería y conducta</h2><p>Los canales de contacto deben usarse para conversar sobre búsquedas, postulaciones, entrevistas, tareas y soporte. Se prohíben amenazas, acoso, contenido ilegal, spam, solicitudes de claves, intentos de fraude y el uso de la plataforma para recolectar datos sin relación con la oportunidad.</p>
+<h2>8. Fuentes externas</h2><p>Cuando una oportunidad proviene de una página oficial externa, Postulá Mejor muestra la fuente y puede permitir preparar la postulación antes de continuar. La publicación original puede cambiar o cerrar sin aviso a la plataforma. Postulá Mejor no afirma tener relación comercial con una empresa por el solo hecho de mostrar una oportunidad pública.</p>
+<h2>9. Planes pagos</h2><p>Algunas herramientas, como determinadas funciones de CV, automatización, búsqueda activa o capacidades empresariales, pueden ofrecerse mediante planes pagos. Precio, duración, límites, modalidad de cobro y eventual renovación deben mostrarse antes de confirmar el pago. Salvo que el checkout informe y la persona acepte expresamente una renovación, el vencimiento de una función por tiempo limitado no autoriza por sí solo un nuevo cobro.</p><p>El vencimiento de un plan pago no elimina automáticamente la cuenta gratuita ni el historial que corresponda conservar. Las funciones premium pueden quedar bloqueadas hasta una nueva contratación.</p>
+<h2>10. Referencias y señales de confianza</h2><p>Las referencias o señales agregadas deben vincularse a relaciones verificables y no pueden funcionar como listas negras, acusaciones abiertas ni sistemas secretos de exclusión. La persona afectada debe poder conocer la señal que corresponda y solicitar revisión conforme a las herramientas disponibles.</p>
+<h2>11. Propiedad intelectual</h2><p>El software, marca, diseño, textos propios y demás elementos de Postulá Mejor están protegidos por las normas aplicables. Las personas conservan los derechos que correspondan sobre el contenido que aportan y otorgan únicamente los permisos necesarios para almacenarlo, mostrarlo y procesarlo con las finalidades del servicio.</p>
+<h2>12. Disponibilidad y terceros</h2><p>La plataforma depende de infraestructura y servicios de terceros. Trabajamos para mantener continuidad y seguridad, pero pueden existir interrupciones, errores, mantenimiento o cambios externos. No garantizamos disponibilidad ininterrumpida ni que todas las fuentes externas permanezcan activas.</p>
+<h2>13. Moderación y suspensión</h2><p>Podemos pausar publicaciones, restringir cuentas o suspender funciones cuando exista una base razonable para investigar fraude, abuso, seguridad, incumplimiento de estos términos o riesgo para otras personas. Cuando sea posible y apropiado, se habilitarán mecanismos de revisión o soporte.</p>
+<h2>14. Privacidad</h2><p>El tratamiento de datos se describe en la <Link href="/privacidad">Política de Privacidad</Link>. Los empleadores deben tratar la información de candidatos sólo para finalidades legítimas relacionadas con selección y respetar la normativa aplicable.</p>
+<h2>15. Limitación del rol de la plataforma</h2><p>Postulá Mejor funciona como herramienta tecnológica e intermediaria de información y contacto. No es empleador de los candidatos por el solo uso del portal, no es parte de un contrato entre terceros salvo que se indique expresamente y no garantiza solvencia, conducta, contratación, pago o resultado de una relación entre usuarios.</p>
+<h2>16. Cambios</h2><p>Estos términos pueden actualizarse cuando cambie el producto, la normativa o la forma de prestación. La versión vigente y la fecha se publican en esta página. Los cambios relevantes podrán comunicarse además dentro del servicio.</p>
+<h2>17. Ley aplicable</h2><p>Estos términos se interpretan conforme a la normativa aplicable en la República Argentina, sin afectar derechos imperativos que correspondan por la condición de la persona usuaria o su jurisdicción.</p><div className={styles.footer}>También podés consultar la <Link href="/privacidad">Política de Privacidad</Link> y el <Link href="/legales">Centro legal y de seguridad</Link>.</div></article></div></main><PlatformFooter/></>}
+
+function ComercioTerms(){return <main className={styles.page}><div className={styles.shell}><div className={styles.top}><Link href="/" aria-label="Comercio Lleno"><BrandLogo size={46}/></Link><Link className={styles.back} href="/prueba-gratis">← Volver al registro</Link></div><article className={styles.card}><span className={styles.eyebrow}>COMERCIO LLENO</span><h1>Términos y Condiciones de Uso</h1><div className={styles.updated}>Versión vigente desde el 17 de agosto de 2026.</div><p className={styles.notice}>Estos términos regulan el uso de Comercio Lleno, una plataforma de gestión comercial en modalidad software como servicio. Al crear una cuenta, la persona que se registra declara tener facultades para operar el comercio informado y acepta estas condiciones.</p>
+<h2>1. Servicio</h2><p>Comercio Lleno ofrece herramientas para administrar productos, stock, ventas, caja, clientes, reportes, facturación electrónica, integraciones y otras funciones que se habiliten para cada plan. Algunas funciones dependen de servicios de terceros, entre ellos proveedores de infraestructura, medios de pago y organismos públicos.</p>
+<h2>2. Plan Impulso: prueba gratuita y suscripción</h2><p>El Plan Impulso ofrece una prueba gratuita de 90 días corridos desde el alta del comercio. Para iniciar la prueba no se solicita tarjeta ni medio de pago y el mero vencimiento de los 90 días no genera por sí solo un cobro automático.</p><p>Una vez finalizada la prueba, para continuar utilizando las funciones operativas deberá activarse la suscripción. Al momento de esta versión, los primeros 3 ciclos mensuales pagos tienen un valor promocional de $14.900 ARS por mes. Finalizados esos 3 ciclos, el precio regular es de $29.800 ARS por mes. Si el usuario no activa la suscripción al terminar la prueba, el acceso operativo puede quedar restringido hasta la activación, sin que ello implique la eliminación automática de los datos del comercio.</p><p>Cuando se activa una suscripción recurrente mediante Mercado Pago, los cobros se procesan según la periodicidad y condiciones informadas durante el checkout, hasta su cancelación. Cualquier modificación futura de precios o condiciones aplicará hacia adelante y se informará antes de corresponder.</p>
+<h2>3. Límites incluidos y ampliaciones del Plan Impulso</h2><p>La prueba gratuita y el Plan Impulso incluyen las siguientes capacidades base para las nuevas altas alcanzadas por esta promoción:</p><ul><li><strong>1 sucursal incluida.</strong> Las sucursales adicionales pueden habilitarse mediante una ampliación de $4.900 ARS por sucursal. El sistema admite actualmente un máximo de 5 sucursales activas por comercio.</li><li><strong>Hasta 1.000 productos activos.</strong> Al alcanzar ese límite, puede habilitarse la carga de productos sin límite mediante una ampliación de $4.900 ARS.</li><li><strong>Hasta 500 comprobantes fiscales autorizados por ARCA.</strong> Puede ampliarse ese límite hasta 2.500 comprobantes mediante una ampliación de $4.900 ARS.</li></ul><p>Las ampliaciones son opcionales, se habilitan una vez confirmado el pago correspondiente y sus importes son los vigentes a la fecha de esta versión. Los límites se computan de acuerdo con los registros activos o comprobantes efectivamente autorizados que consten en la plataforma.</p>
+<h2>4. Cuenta y seguridad</h2><ul><li>El propietario es responsable de mantener seguras sus credenciales y las de sus empleados.</li><li>Cada usuario debe utilizar permisos acordes a su función.</li><li>No se permite intentar acceder a datos de otros comercios, alterar controles de seguridad, automatizar abuso del servicio ni utilizar la plataforma para actividades ilícitas.</li></ul>
+<h2>5. Datos del comercio y facturación</h2><p>El comercio es responsable de que CUIT, condición fiscal, puntos de venta, datos de clientes, precios y demás información cargada sean correctos. Comercio Lleno facilita la conexión técnica con ARCA, pero la habilitación fiscal, los certificados, las autorizaciones, el encuadre tributario y la correcta emisión de comprobantes continúan siendo responsabilidad del contribuyente y de sus asesores.</p><p>La mención de facturación electrónica incluida significa que la función está disponible dentro del sistema, sujeta a la configuración fiscal necesaria y a la disponibilidad de los servicios de ARCA. El límite del Plan Impulso se aplica a comprobantes fiscales efectivamente autorizados.</p>
+<h2>6. Disponibilidad e integraciones</h2><p>Trabajamos para mantener el servicio disponible y proteger la continuidad operativa, pero pueden existir interrupciones por mantenimiento, conectividad, cambios de terceros o indisponibilidad de servicios externos. Las funciones que dependen de ARCA, Mercado Pago u otros proveedores pueden verse afectadas por cambios o caídas ajenas a Comercio Lleno.</p>
+<h2>7. Actualizaciones</h2><p>La plataforma puede recibir mejoras, correcciones de seguridad y cambios funcionales. Las actualizaciones críticas pueden aplicarse automáticamente cuando sean necesarias para mantener la seguridad, compatibilidad o integridad del servicio.</p>
+<h2>8. Cancelación y pagos</h2><p>El cliente puede gestionar la cancelación de su suscripción según las opciones disponibles en su cuenta o mediante soporte. La cancelación evita futuras renovaciones conforme al estado confirmado por el proveedor de pagos, pero no extingue obligaciones o importes ya devengados antes de hacerse efectiva.</p>
+<h2>9. Privacidad</h2><p>El tratamiento de datos personales y operativos se describe en la <Link href="/privacidad">Política de Privacidad</Link>, que forma parte de estas condiciones.</p>
+<h2>10. Soporte</h2><p>Las consultas técnicas o administrativas pueden realizarse desde los canales de ayuda disponibles dentro de Comercio Lleno. Cuando se utiliza el chat de ayuda humana, la conversación puede derivarse a la bandeja de soporte de Central Llena para su atención.</p>
+<h2>11. Vigencia de promociones</h2><p>El Plan Impulso y sus beneficios promocionales se aplican a las altas realizadas mientras la oferta se encuentre publicada y disponible. Comercio Lleno puede modificar o finalizar promociones para nuevas altas; los cambios no reducen el período gratuito ya activado para una cuenta que haya ingresado válidamente a la promoción, salvo que exista una causa de uso abusivo, fraudulento o contrario a estos términos.</p>
+<h2>12. Cambios en estos términos</h2><p>Podemos actualizar estos términos cuando cambie el producto, la normativa o la forma de prestación. Si el cambio es relevante, se informará dentro del servicio o mediante un canal de contacto registrado y se identificará una nueva versión.</p>
+<h2>13. Ley aplicable</h2><p>Estos términos se interpretan conforme a la normativa aplicable en la República Argentina, respetando las disposiciones imperativas que correspondan según el tipo de cliente y su jurisdicción.</p><div className={styles.footer}>También podés consultar la <Link href="/privacidad">Política de Privacidad</Link>.</div></article></div></main>}
+
+export default async function TermsPage(){return await postulaRequest()?<PostulaTerms/>:<ComercioTerms/>}
