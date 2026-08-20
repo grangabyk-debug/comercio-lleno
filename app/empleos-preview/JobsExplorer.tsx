@@ -13,6 +13,14 @@ const motivators=[
 ]
 
 function initials(name:string){return name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()}
+function compactLocation(value:string){
+  const parts=value.split(' · ').map(x=>x.trim()).filter(Boolean)
+  if(parts.length<=2)return value
+  const local=parts.filter(x=>/argentina|buenos aires|caba|capital federal/i.test(x))
+  const chosen=(local.length?local:parts).slice(0,2)
+  const hidden=Math.max(0,parts.length-chosen.length)
+  return hidden?`${chosen.join(' · ')} · +${hidden} ubic.`:chosen.join(' · ')
+}
 
 export default function JobsExplorer({jobs}:{jobs:PreviewJob[]}){
   const [query,setQuery]=useState('')
@@ -68,9 +76,9 @@ export default function JobsExplorer({jobs}:{jobs:PreviewJob[]}){
           <button className="pm-save" onClick={e=>{e.stopPropagation();toggleSaved(job.slug)}} aria-label={saved.includes(job.slug)?'Quitar de guardados':'Guardar oferta'} data-saved={saved.includes(job.slug)}>{saved.includes(job.slug)?'Guardado':'Guardar'}</button>
           <div className="pm-company-row"><span className="pm-company-avatar">{initials(job.company)}</span><div><b>{job.company}</b><small>{job.area}</small></div></div>
           <h3>{job.title}</h3>
-          <div className="pm-job-tags"><span>{job.location}</span><span>{job.mode}</span><span>{job.schedule}</span></div>
+          <div className="pm-job-tags"><span title={job.location}>{compactLocation(job.location)}</span><span>{job.mode}</span><span>{job.schedule}</span></div>
           <p>{job.summary}</p>
-          <div className="pm-job-foot"><span><i/>Fuente oficial revisada</span><Link href={`/empleos/${job.slug}`} onClick={e=>e.stopPropagation()}>Abrir detalle</Link></div>
+          <div className="pm-job-foot"><span><i/>{job.external?'Fuente oficial revisada':'Publicada en Postulá Mejor'}</span><Link href={`/empleos/${job.slug}`} onClick={e=>e.stopPropagation()}>Abrir detalle</Link></div>
         </article>):<div className="pm-empty">No encontramos ofertas con estos filtros. Probá otra área, una zona más amplia o modalidad remota.</div>}</div>
       </section>
 
@@ -78,11 +86,11 @@ export default function JobsExplorer({jobs}:{jobs:PreviewJob[]}){
         {selected?<div className="pm-preview-inner">
           <div className="pm-preview-company"><span className="pm-company-avatar-lg">{initials(selected.company)}</span><div><span>{selected.company}</span><small>{selected.source}</small></div></div>
           <h2>{selected.title}</h2>
-          <div className="pm-preview-meta"><span>{selected.location}</span><span>{selected.mode}</span><span>{selected.schedule}</span><span>{selected.area}</span></div>
+          <div className="pm-preview-meta"><span title={selected.location}>{compactLocation(selected.location)}</span><span>{selected.mode}</span><span>{selected.schedule}</span><span>{selected.area}</span></div>
           <div className="pm-match"><div><span>MATCH EXPLICABLE</span><b>Disponible con tu perfil</b></div><p>Al iniciar sesión comparamos requisitos explícitos con los datos que vos autorizaste. Sin descarte automático por características sensibles.</p></div>
           <div className="pm-preview-section"><strong>Resumen</strong><p>{selected.summary}</p></div>
           <div className="pm-preview-section"><strong>Antes de postularte</strong><ul>{selected.requirements.map(r=><li key={r}>{r}</li>)}</ul></div>
-          <div className="pm-preview-actions"><Link href={`/postular/${selected.slug}`} className={styles.button}>Preparar postulación</Link><a href={selected.sourceUrl} target="_blank" rel="noopener noreferrer" className={styles.buttonDark}>Ver fuente oficial</a></div>
+          <div className="pm-preview-actions"><Link href={`/postular/${selected.slug}`} className={styles.button}>{selected.external?'Preparar postulación':'Postularme ahora'}</Link>{selected.external&&<a href={selected.sourceUrl} target="_blank" rel="noopener noreferrer" className={styles.buttonDark}>Ver fuente oficial</a>}</div>
           <div className="pm-safety">Postularse es gratis. CV Pro+ y Búsqueda Activa son opcionales: mejoran presentación, seguimiento y automatizaciones con confirmación del usuario.</div>
         </div>:<div className="pm-empty">Elegí una oportunidad para ver el detalle.</div>}
       </aside>

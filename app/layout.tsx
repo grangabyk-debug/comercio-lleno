@@ -53,11 +53,15 @@ const postulaMetadata:Metadata={
   robots:{index:true,follow:true},
 }
 
+function isPostulaHost(host:string){
+  const clean=host.split(':')[0].toLowerCase()
+  return clean==='postulamejor.com'||clean==='www.postulamejor.com'
+}
+
 export async function generateMetadata():Promise<Metadata>{
   const h=await headers()
-  const host=(h.get('x-forwarded-host')||h.get('host')||'').split(':')[0].toLowerCase()
-  if(host==='postulamejor.com'||host==='www.postulamejor.com')return postulaMetadata
-  return commerceMetadata
+  const host=h.get('x-forwarded-host')||h.get('host')||''
+  return isPostulaHost(host)?postulaMetadata:commerceMetadata
 }
 
 const privateRouteGuard = `
@@ -99,19 +103,23 @@ const privateRouteGuard = `
   }
 })();`
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const h=await headers()
+  const host=h.get('x-forwarded-host')||h.get('host')||''
+  const postula=isPostulaHost(host)
+
   return (
     <html lang="es" suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <Script id="private-route-guard" strategy="beforeInteractive">{privateRouteGuard}</Script>
+        {!postula&&<Script id="private-route-guard" strategy="beforeInteractive">{privateRouteGuard}</Script>}
         <PostulaClarity />
         <PostulaProLabel />
-        <MarketingScripts />
+        {!postula&&<MarketingScripts />}
         {children}
-        <FloatingWhatsApp />
-        <PaidBranchPurchaseRuntime />
-        <LegalServiceActions />
-        <LegacyScripts />
+        {!postula&&<FloatingWhatsApp />}
+        {!postula&&<PaidBranchPurchaseRuntime />}
+        {!postula&&<LegalServiceActions />}
+        {!postula&&<LegacyScripts />}
       </body>
     </html>
   )
