@@ -7,5 +7,5 @@ import '../../postula-preview/premium-v7.css'
 import '../../postula-preview/premium-v7-employer-dashboard.css'
 import '../../postula-preview/inner-v5.css'
 import './dashboard-live.css'
-export const metadata={title:'Panel de empresa | Postulá Mejor',robots:{index:false,follow:false}}
+export const metadata={title:{absolute:'Panel de empresa | Postulá Mejor'},robots:{index:false,follow:false},alternates:{canonical:'https://postulamejor.com/empresas/panel'}}
 export default function EmployerPanel(){return <main className={`${styles.page} pm7-page pm7-employer`}><PlatformHeader audience="employer"/><EmployerDashboardLive/><PlatformFooter/></main>}
