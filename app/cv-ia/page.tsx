@@ -1,73 +1,25 @@
-import type { Metadata } from 'next'
+import type {Metadata} from 'next'
 import CvIaExperience from './CvIaExperience'
 import OwnerTestBridge from './OwnerTestBridge'
 import ConsentBridge from './ConsentBridge'
 import OrientationBridge from './OrientationBridge'
 import CheckoutBridge from './CheckoutBridge'
-import AuthStatusLink from './AuthStatusLink'
 import FunnelBridge from './FunnelBridge'
 import PhotoPreserveBridge from './PhotoPreserveBridge'
 import FreeCareerTools from './FreeCareerTools'
 import FirstCvBridge from './FirstCvBridge'
 import CommentPolicyBridge from './CommentPolicyBridge'
 import AtsBridge from './AtsBridge'
+import CvPlatformJobPicker from './CvPlatformJobPicker'
+import CvUnifiedBridge from './CvUnifiedBridge'
+import {PlatformFooter,PlatformHeader,MobileNav} from '../postula-preview/PlatformChrome'
+import {getJobCatalog} from '../postula-preview/jobs'
 import './postula-mejor-polish.css'
 import './postula-flow-v2.css'
 import './ats-offer.css'
 import './landing-refinement-v2.css'
+import './cv-unified-v8.css'
 
-export const metadata: Metadata = {
-  metadataBase: new URL('https://postulamejor.com'),
-  title: { absolute: 'Postulá Mejor | CV ATS, CV Pro+ y postulaciones con IA' },
-  description: 'Analizá tu CV gratis, revisá compatibilidad ATS, recibí orientación laboral y prepará un CV Pro+ optimizado para sistemas de selección sin inventar experiencia.',
-  applicationName: 'Postulá Mejor',
-  alternates: { canonical: 'https://postulamejor.com' },
-  robots: { index: true, follow: true },
-  icons: {
-    icon: [{ url: '/postula-mejor-favicon.svg', type: 'image/svg+xml', sizes: 'any' }],
-    shortcut: '/postula-mejor-favicon.svg',
-    apple: '/postula-mejor-favicon.svg',
-  },
-  openGraph: {
-    type: 'website',
-    locale: 'es_AR',
-    url: 'https://postulamejor.com',
-    siteName: 'Postulá Mejor',
-    title: 'Postulá Mejor | CV ATS y candidaturas que compiten mejor',
-    description: 'Diagnóstico gratis, análisis ATS, test de intereses, primer CV guiado y CV Pro+ optimizado con control factual.',
-  },
-  twitter: {
-    card: 'summary',
-    title: 'Postulá Mejor | CV ATS y candidaturas con IA',
-    description: 'Analizá tu CV gratis y optimizalo para sistemas ATS sin inventar experiencia.',
-  },
-}
-
-export default function CvIaPage() {
-  return (
-    <div className="postulaMejorShell">
-      <div className="postulaBrandBar" aria-label="Postulá Mejor">
-        <a className="postulaWordmark" href="#inicio" aria-label="Ir al inicio de Postulá Mejor">
-          <span>postula</span><strong>mejor</strong><span>.com</span>
-        </a>
-        <nav className="postulaTopTools" aria-label="Herramientas y empleo">
-          <a href="/empleos-preview">Ofertas de empleo <b>nuevo</b></a>
-          <a href="/test-vocacional">Test vocacional <b>gratis</b></a>
-          <a href="/primer-cv">Primer CV <b>gratis</b></a>
-        </nav>
-        <AuthStatusLink />
-      </div>
-      <CvIaExperience />
-      <FreeCareerTools />
-      <ConsentBridge />
-      <OrientationBridge />
-      <CheckoutBridge />
-      <PhotoPreserveBridge />
-      <FirstCvBridge />
-      <FunnelBridge />
-      <CommentPolicyBridge />
-      <AtsBridge />
-      <OwnerTestBridge />
-    </div>
-  )
-}
+export const metadata:Metadata={metadataBase:new URL('https://postulamejor.com'),title:{absolute:'Mejorar mi CV | ATS y CV Pro+ · Postulá Mejor'},description:'Analizá tu CV gratis, revisá compatibilidad ATS y prepará versiones adaptadas a búsquedas reales sin inventar experiencia.',applicationName:'Postulá Mejor',alternates:{canonical:'https://postulamejor.com/mejorar-cv'},robots:{index:true,follow:true},icons:{icon:[{url:'/postula-mejor-favicon.svg',type:'image/svg+xml',sizes:'any'}],shortcut:'/postula-mejor-favicon.svg',apple:'/postula-mejor-favicon.svg'}}
+export const revalidate=300
+export default async function CvIaPage(){const jobs=await getJobCatalog();const pickerJobs=jobs.slice(0,80).map(j=>({slug:j.slug,title:j.title,company:j.company,location:j.location,summary:j.summary,requirements:j.requirements,external:j.external}));return <main className="pmcv-page pm7-page"><PlatformHeader/><section className="pmcv-intro"><div><span>CV + ATS + OPORTUNIDADES</span><h1>Tu CV viejo ahora vive dentro de <em>Postulá Mejor.</em></h1><p>Conservamos el motor que ya funcionaba: subís el CV, lo vemos desde ATS, selección y responsable del área, y te mostramos qué mejorar. La diferencia es que ahora también podés elegir una búsqueda real de la plataforma y hacer el análisis contra ese puesto.</p></div><aside className="pmcv-intro-side"><b>Empezá sin pagar.</b><p>El diagnóstico inicial sigue siendo gratuito. Pro+ y Búsqueda Activa son planes opcionales de 30 días; cuando vencen, tu cuenta y tu historial siguen existiendo.</p><div><span>ATS gratis</span><span>Primer CV</span><span>Test vocacional</span><span>Plantillas</span></div></aside></section><CvPlatformJobPicker jobs={pickerJobs}/><div className="pmcv-plan-note"><b>Dos caminos:</b> elegí una oferta publicada en Postulá Mejor y completamos puesto + descripción, o pegá una oferta externa como siempre. El análisis no modifica ni envía tu CV sin tu acción.</div><div className="pmcv-shell"><CvIaExperience/></div><FreeCareerTools/><ConsentBridge/><OrientationBridge/><CheckoutBridge/><PhotoPreserveBridge/><FirstCvBridge/><FunnelBridge/><CommentPolicyBridge/><AtsBridge/><OwnerTestBridge/><CvUnifiedBridge/><PlatformFooter/><MobileNav active="cv"/></main>}
