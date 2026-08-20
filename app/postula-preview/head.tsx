@@ -1,0 +1,1 @@
+export default function Head(){return <><title>Postulá Mejor | Trabajo, CV y oportunidades</title><meta name="application-name" content="Postulá Mejor"/><link rel="icon" href="/postula-mejor-favicon.svg"/></>}
