@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import FacturasHistory from './FacturasHistory'
+import '../app-mobile-fix.css'
 
 export const metadata:Metadata={
   title:'Mis facturas | FacturaLlena',
