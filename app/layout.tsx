@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import {headers} from 'next/headers'
 import Script from 'next/script'
 import LegacyScripts from './LegacyScripts'
 import MarketingScripts from './MarketingScripts'
@@ -19,7 +20,7 @@ import './redesign/branch-contrast-fix.css'
 
 const faviconUrl='/comercio-lleno-favicon-v3.svg?v=20260815'
 
-export const metadata: Metadata = {
+const commerceMetadata:Metadata={
   metadataBase:new URL('https://comerciolleno.com'),
   title:{default:'Comercio Lleno',template:'%s | Comercio Lleno'},
   description:'Sistema POS online para comercios con ventas, stock, caja, ARCA, modo offline e inteligencia artificial.',
@@ -33,6 +34,30 @@ export const metadata: Metadata = {
   other:{
     'facebook-domain-verification':'q5v3fcz0ukr2pub2khpoyipx28fmtc',
   },
+}
+
+const postulaMetadata:Metadata={
+  metadataBase:new URL('https://postulamejor.com'),
+  title:{default:'Postulá Mejor',template:'%s | Postulá Mejor'},
+  description:'Empleos, perfil laboral, CV y herramientas para buscar trabajo mejor, en un solo lugar.',
+  applicationName:'Postulá Mejor',
+  openGraph:{
+    siteName:'Postulá Mejor',
+    type:'website',
+    locale:'es_AR',
+    title:'Postulá Mejor',
+    description:'Empleos, perfil laboral, CV y herramientas para buscar trabajo mejor, en un solo lugar.',
+    url:'https://postulamejor.com',
+  },
+  alternates:{canonical:'https://postulamejor.com'},
+  robots:{index:true,follow:true},
+}
+
+export async function generateMetadata():Promise<Metadata>{
+  const h=await headers()
+  const host=(h.get('x-forwarded-host')||h.get('host')||'').split(':')[0].toLowerCase()
+  if(host==='postulamejor.com'||host==='www.postulamejor.com')return postulaMetadata
+  return commerceMetadata
 }
 
 const privateRouteGuard = `
