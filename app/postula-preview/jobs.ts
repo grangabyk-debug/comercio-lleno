@@ -1,5 +1,7 @@
+import {createClient} from '@supabase/supabase-js'
+
 export type PreviewJob={
-  slug:string;title:string;company:string;location:string;mode:'Presencial'|'Híbrido'|'Remoto';schedule:string;area:string;source:string;sourceUrl:string;checkedAt:string;summary:string;requirements:string[];tags:string[];external:true
+  slug:string;title:string;company:string;location:string;mode:'Presencial'|'Híbrido'|'Remoto';schedule:string;area:string;source:string;sourceUrl:string;checkedAt:string;summary:string;requirements:string[];tags:string[];external:boolean;internalJobId?:string;compensation?:string
 }
 
 export const previewJobs:PreviewJob[]=[
@@ -10,11 +12,14 @@ export const previewJobs:PreviewJob[]=[
   {slug:'ey-junior-auditoria',title:'Junior para Auditoría Externa - Base de Talentos',company:'EY',location:'Buenos Aires · CABA',mode:'Híbrido',schedule:'Full time',area:'Administración y Finanzas',source:'EY Careers',sourceUrl:'https://careers.ey.com/ey/job/Buenos-Aires-EY-Junior-para-Auditor%C3%ADa-Externa-Base-de-Talentos-CABA-1002/1399547833/',checkedAt:'2026-08-19',summary:'Convocatoria junior para incorporarse a equipos de auditoría externa y desarrollarse dentro de una firma global de servicios profesionales.',requirements:['Interés en Auditoría y servicios profesionales','Perfil analítico y colaborativo','Disponibilidad para trabajar en Buenos Aires'],tags:['Junior','Auditoría','Primeros empleos'],external:true},
 ]
 
+function normalizeMode(v:string):'Presencial'|'Híbrido'|'Remoto'{const s=v.toLowerCase();if(s.includes('remot'))return'Remoto';if(s.includes('híbr')||s.includes('hibr'))return'Híbrido';return'Presencial'}
+async function nativeJobs():Promise<PreviewJob[]>{try{const db=createClient('https://pejkycdttogpmmdntzuq.supabase.co','sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I',{auth:{persistSession:false,autoRefreshToken:false}});const {data,error}=await db.rpc('pm_public_job_catalog');if(error||!Array.isArray(data))return[];return data.map((r:any)=>({slug:`pm-${r.id}`,title:String(r.title),company:String(r.company_name),location:String(r.location_text||'Argentina'),mode:normalizeMode(String(r.work_mode||'')),schedule:String(r.schedule||'A confirmar'),area:String(r.area||'Otros rubros'),source:`Publicada en Postulá Mejor · ${r.company_verification==='verified'?'empresa verificada':'validación básica'}`,sourceUrl:`/postulacion-preview/pm-${r.id}`,checkedAt:new Date().toISOString().slice(0,10),summary:String(r.description||'').slice(0,1000),requirements:Array.isArray(r.requirements)?r.requirements.map(String):[],tags:[String(r.area||'Trabajo'),String(r.work_mode||'')].filter(Boolean),external:false,internalJobId:String(r.id),compensation:String(r.compensation_text||'')}))}catch{return[]}}
+
 export async function getJobCatalog(){
-  const {discoverPublicJobs}=await import('./publicJobSources')
+  const [{discoverPublicJobs},native]=await Promise.all([import('./publicJobSources'),nativeJobs()])
   const live=await discoverPublicJobs()
   const seen=new Set<string>()
-  return [...live,...previewJobs].filter(job=>{const key=job.sourceUrl.toLowerCase();if(seen.has(key))return false;seen.add(key);return true})
+  return [...native,...live,...previewJobs].filter(job=>{const key=(job.internalJobId||job.sourceUrl).toLowerCase();if(seen.has(key))return false;seen.add(key);return true})
 }
 
 export function getPreviewJob(slug:string){return previewJobs.find(job=>job.slug===slug)}
