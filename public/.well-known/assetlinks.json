@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.llenagroup.app",
+      "sha256_cert_fingerprints": [
+        "F4:30:D9:CD:52:AE:F5:D6:49:BD:A5:8A:D7:CB:00:94:F8:80:4D:87:7C:FD:9A:08:50:8D:74:ED:0A:91:39:1F"
+      ]
+    }
+  }
+]
