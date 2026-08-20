@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import styles from './platform.module.css'
 import MobileChoicePrompt from './MobileChoicePrompt'
+import './integration-v8.css'
 
 export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'employer'}){
   const headerClass=`${styles.header} pm-social-header ${audience==='employer'?'pm-social-header-employer':'pm-social-header-candidate'}`
