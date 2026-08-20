@@ -53,7 +53,7 @@ export async function POST(req:NextRequest){
   const counts=candidates.reduce((acc:Record<string,number>,x)=>{acc[x.status]=(acc[x.status]||0)+1;return acc},{})
   return NextResponse.json({ok:true,tenant:companyId,company:companyName,answer:`${companyName} tiene ${candidates.length} postulaciones en el contexto actual. ${Object.entries(counts).map(([k,v])=>`${k}: ${v}`).join(' · ')}. Puedo ordenar las que tienen match disponible, comparar personas, revisar disponibilidad o derivar una selección al equipo.`,selected_candidate_ids:[]})
  }
- if(/(mejores|top|ranking).*(curr|cv|candidat)|(?:curr|cv|candidat).*(mejores|top|ranking)/.test(q)){
+ if(/(mejor(?:es)?|top|ranking).*(curr|cv|candidat)|(?:curr|cv|candidat).*(mejor(?:es)?|top|ranking)/.test(q)){
   const n=numberWanted(q),list=sorted.filter(x=>!['rejected','withdrawn'].includes(x.status)).slice(0,n)
   const intro=list.some(x=>x.score!=null)?'Ordené usando el match explicable disponible y la etapa del proceso.':'Todavía no hay scores de match para todos; te ordeno por etapa del proceso y datos disponibles, sin inventar una evaluación.'
   return NextResponse.json({ok:true,tenant:companyId,company:companyName,answer:`${intro}\n${list.map((x,i)=>`${i+1}. ${candidateLabel(x)}. Disponibilidad: ${x.availability}. Experiencia declarada: ${x.experience}.`).join('\n')}`,selected_candidate_ids:list.map(x=>x.application_id),intent:'shortlist'})
