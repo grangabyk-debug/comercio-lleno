@@ -28,13 +28,24 @@ const greenhouseSources=[
 type LeverPosting={id:string;text:string;hostedUrl?:string;applyUrl?:string;categories?:{location?:string;commitment?:string;team?:string;department?:string;allLocations?:string[]};workplaceType?:string;createdAt?:number}
 type GreenhousePosting={id:number;title:string;updated_at?:string;absolute_url:string;location?:{name?:string};departments?:{name:string}[];offices?:{name?:string;location?:string}[]}
 
-function slugify(value:string){return value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,92)}
+function cleanTitle(value:string){return value.replace(/\s+/g,' ').replace(/\s*[\[(]?copy(?:\s*\d+)?[\])]?\s*$/i,'').trim()}
+function slugify(value:string){return cleanTitle(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,92)}
 function isArgentina(location:string){const l=location.toLowerCase();return ARGENTINA_HINTS.some(x=>l.includes(x))||(/latin america|latam/.test(l)&&/remote|remoto/.test(l))}
 function inferMode(location:string,workplace=''){const t=`${location} ${workplace}`.toLowerCase();if(/remote|remoto/.test(t))return 'Remoto' as const;if(/hybrid|hibrid|híbrido/.test(t))return 'Híbrido' as const;return 'Presencial' as const}
+function cleanLocation(value:string){
+  const raw=value.replace(/\s+/g,' ').trim()
+  const parts=raw.split('·').map(x=>x.trim()).filter(Boolean)
+  if(parts.length<=3)return raw
+  const ba=parts.find(x=>/buenos aires|caba|capital federal/i.test(x))
+  const ar=parts.find(x=>/^argentina$/i.test(x)||/argentina[, ]/i.test(x))
+  const anchor=ba||ar
+  return anchor?`${anchor} · otras ubicaciones disponibles`:raw
+}
 function inferArea(title:string,team=''){
-  const name=title.toLowerCase()
-  const context=`${title} ${team}`.toLowerCase()
-  if(/patient coordinator|patient support|patient care/.test(name))return 'Salud y Servicios'
+  const name=cleanTitle(title).toLowerCase()
+  const context=`${name} ${team}`.toLowerCase()
+  if(/patient coordinator|patient support|patient care|medical practice|medical assistant/.test(name))return 'Salud y Servicios'
+  if(/non-linguistic quality control/.test(name))return 'Otros rubros'
   if(/linguist|translation|translator|localization|language specialist|interpret|idioma/.test(name)&&!/non-linguistic/.test(name))return 'Idiomas y Traducción'
   if(/compliance|legal|counsel|lawyer|abogad/.test(name))return 'Legal y Compliance'
   if(/finance|financial|accounting|accountant|contab|audit|tax|tesorer|controller/.test(name))return 'Administración y Finanzas'
@@ -58,7 +69,7 @@ function inferArea(title:string,team=''){
   if(/people|human|recruit|talent acquisition|\bhr\b|recursos humanos/.test(context))return 'Recursos Humanos'
   if(/product|producto|ux|design|diseñ|retoucher|imaging|art director/.test(context))return 'Producto y Diseño'
   if(/operation|operaci|supply|logistic|warehouse|almac[eé]n|purchasing|procurement/.test(context))return 'Operaciones y Logística'
-  if(/translation|linguistic|language|localization|interpret/.test(context))return 'Idiomas y Traducción'
+  if(/translation|linguistic|language|localization|interpret/.test(context)&&!/non-linguistic/.test(context))return 'Idiomas y Traducción'
   if(/travel|viajes|turismo|hotel|lodging/.test(context))return 'Turismo y Hotelería'
   if(/health|medical|scribe|healthcare|patient/.test(context))return 'Salud y Servicios'
   return 'Otros rubros'
@@ -93,10 +104,12 @@ async function fetchLever(source:LeverSource):Promise<PreviewJob[]>{
     if(!res.ok)return []
     const rows=await res.json() as LeverPosting[]
     return rows.filter(row=>{const loc=uniqueText([row.categories?.location,...(row.categories?.allLocations||[])]).join(' · ');return isArgentina(loc)&&!foreignBasedMismatch(row.text,loc)}).map(row=>{
-      const location=uniqueText([row.categories?.location,...(row.categories?.allLocations||[])]).join(' · ')||'Argentina'
-      const area=inferArea(row.text,`${row.categories?.team||''} ${row.categories?.department||''}`)
+      const rawLocation=uniqueText([row.categories?.location,...(row.categories?.allLocations||[])]).join(' · ')||'Argentina'
+      const title=cleanTitle(row.text)
+      const area=inferArea(title,`${row.categories?.team||''} ${row.categories?.department||''}`)
       const sourceUrl=row.hostedUrl||row.applyUrl||`https://jobs.lever.co/${source.site}/${row.id}`
-      return {slug:`lever-${slugify(source.company)}-${slugify(row.text)}-${row.id.slice(0,8)}`,title:row.text,company:source.company,location,mode:inferMode(location,row.workplaceType),schedule:prettySchedule(row.categories?.commitment),area,source:'Fuente oficial · Lever',sourceUrl,checkedAt:new Date().toISOString().slice(0,10),summary:neutralSummary(source.company,row.text,area),requirements:['Revisar requisitos completos en la publicación oficial','Confirmar modalidad, horario y ubicación antes de enviar','Validar que la búsqueda continúe abierta'],tags:uniqueText([area,row.categories?.team,prettySchedule(row.categories?.commitment)]),external:true}
+      const schedule=prettySchedule(row.categories?.commitment)
+      return {slug:`lever-${slugify(source.company)}-${slugify(title)}-${row.id.slice(0,8)}`,title,company:source.company,location:cleanLocation(rawLocation),mode:inferMode(rawLocation,row.workplaceType),schedule,area,source:'Fuente oficial · Lever',sourceUrl,checkedAt:new Date().toISOString().slice(0,10),summary:neutralSummary(source.company,title,area),requirements:['Revisar requisitos completos en la publicación oficial','Confirmar modalidad, horario y ubicación antes de enviar','Validar que la búsqueda continúe abierta'],tags:uniqueText([area,row.categories?.team,schedule==='A confirmar'?'':schedule]),external:true}
     })
   }catch{return []}
 }
@@ -107,22 +120,39 @@ async function fetchGreenhouse(board:string,company:string):Promise<PreviewJob[]
     if(!res.ok)return []
     const payload=await res.json() as {jobs?:GreenhousePosting[]}
     return (payload.jobs||[]).filter(row=>isArgentina(row.location?.name||'')&&!foreignBasedMismatch(row.title,row.location?.name||'')).map(row=>{
-      const location=row.location?.name||'Argentina'
+      const rawLocation=row.location?.name||'Argentina'
+      const title=cleanTitle(row.title)
       const team=(row.departments||[]).map(d=>d.name).join(' · ')
-      const area=inferArea(row.title,team)
-      return {slug:`gh-${slugify(company)}-${slugify(row.title)}-${row.id}`,title:row.title,company,location,mode:inferMode(location),schedule:'A confirmar',area,source:'Fuente oficial · Greenhouse',sourceUrl:row.absolute_url,checkedAt:new Date().toISOString().slice(0,10),summary:neutralSummary(company,row.title,area),requirements:['Revisar requisitos completos en la publicación oficial','Confirmar modalidad, horario y ubicación antes de enviar','Validar que la búsqueda continúe abierta'],tags:uniqueText([area,...(row.departments||[]).slice(0,2).map(d=>d.name)]),external:true}
+      const area=inferArea(title,team)
+      return {slug:`gh-${slugify(company)}-${slugify(title)}-${row.id}`,title,company,location:cleanLocation(rawLocation),mode:inferMode(rawLocation),schedule:'A confirmar',area,source:'Fuente oficial · Greenhouse',sourceUrl:row.absolute_url,checkedAt:new Date().toISOString().slice(0,10),summary:neutralSummary(company,title,area),requirements:['Revisar requisitos completos en la publicación oficial','Confirmar modalidad, horario y ubicación antes de enviar','Validar que la búsqueda continúe abierta'],tags:uniqueText([area,...(row.departments||[]).slice(0,2).map(d=>d.name)]),external:true}
     })
   }catch{return []}
 }
 
 function diversify(jobs:PreviewJob[]){
-  const sorted=[...jobs].sort((a,b)=>priority(b)-priority(a))
-  const buckets=new Map<string,PreviewJob[]>()
-  for(const job of sorted){const key=`${job.area}::${job.company}`;const bucket=buckets.get(key)||[];bucket.push(job);buckets.set(key,bucket)}
-  const keys=[...buckets.keys()].sort((a,b)=>{const [aa,ac]=a.split('::');const [ba,bc]=b.split('::');return aa.localeCompare(ba)||ac.localeCompare(bc)})
+  const sorted=[...jobs].sort((a,b)=>priority(b)-priority(a)||a.company.localeCompare(b.company)||a.title.localeCompare(b.title))
+  const byArea=new Map<string,PreviewJob[]>()
+  for(const job of sorted){const bucket=byArea.get(job.area)||[];bucket.push(job);byArea.set(job.area,bucket)}
+  const areas=[...byArea.keys()].sort((a,b)=>a.localeCompare(b))
   const out:PreviewJob[]=[]
+  const companyCounts=new Map<string,number>()
   let round=0
-  while(out.length<140){let added=false;for(const key of keys){const bucket=buckets.get(key)||[];const item=bucket[round];if(item){out.push(item);added=true;if(out.length>=140)break}}if(!added)break;round++}
+  while(out.length<140){
+    let added=false
+    for(const area of areas){
+      const bucket=byArea.get(area)||[]
+      let picked:PreviewJob|undefined
+      for(let i=round;i<bucket.length;i++){
+        const candidate=bucket[i]
+        const count=companyCounts.get(candidate.company)||0
+        if(count<3){picked=candidate;bucket.splice(i,1);break}
+      }
+      if(!picked&&bucket.length)picked=bucket.shift()
+      if(picked){out.push(picked);companyCounts.set(picked.company,(companyCounts.get(picked.company)||0)+1);added=true;if(out.length>=140)break}
+    }
+    if(!added)break
+    round=0
+  }
   return out
 }
 
