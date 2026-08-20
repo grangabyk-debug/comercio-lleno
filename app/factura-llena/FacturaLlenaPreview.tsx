@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { readTenantSession, signInTenant, type } from '@/lib/comercio/session'
+import { readTenantSession, signInTenant } from '@/lib/comercio/session'
 import type { TenantSession } from '@/lib/comercio/types'
 import styles from './factura-llena.module.css'
 
