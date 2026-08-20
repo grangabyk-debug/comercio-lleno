@@ -1,0 +1,79 @@
+/* Postulá Mejor — ajustes visuales solicitados para la experiencia móvil */
+
+/* La primera tarjeta de rubros es Gastronomía: usar una escena gastronómica real. */
+.pm7-category-card.c0.pm7-category-card{
+  background-image:url('https://images.pexels.com/photos/4543002/pexels-photo-4543002.jpeg?auto=compress&cs=tinysrgb&w=1200')!important;
+  background-position:center!important;
+}
+
+/* En la portada de Trabajos Flex no mostrar la etiqueta “EJEMPLO” sobre las fotos. */
+.pm7-changa-mini-img>span{
+  display:none!important;
+}
+
+@media(max-width:860px){
+  /* Marca centrada aunque “Mi cuenta” permanezca a la derecha. */
+  .pm-social-header.pm-social-header{
+    justify-content:flex-end!important;
+    padding-left:14px!important;
+    padding-right:14px!important;
+  }
+  .pm-social-brand.pm-social-brand{
+    position:absolute!important;
+    left:50%!important;
+    transform:translateX(-50%)!important;
+    z-index:1!important;
+    margin:0!important;
+    gap:0!important;
+    font-size:18px!important;
+    font-weight:950!important;
+    letter-spacing:-.045em!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+  }
+  .pm-social-nav.pm-social-nav{
+    position:relative!important;
+    z-index:2!important;
+    margin-left:auto!important;
+  }
+}
+
+@media(max-width:720px){
+  /* Cinco accesos, cinco columnas: ocupar todo el ancho útil de la barra. */
+  .pm-social-mobile-nav.pm-social-mobile-nav{
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    left:10px!important;
+    right:10px!important;
+    bottom:10px!important;
+    width:auto!important;
+    min-height:80px!important;
+    padding:8px 6px 9px!important;
+    border-radius:22px!important;
+    align-items:stretch!important;
+  }
+  .pm-social-mobile-nav.pm-social-mobile-nav a{
+    display:flex!important;
+    width:100%!important;
+    min-width:0!important;
+    padding:7px 2px!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    font-size:9px!important;
+    line-height:1.05!important;
+    text-align:center!important;
+  }
+  .pm-social-mobile-nav.pm-social-mobile-nav .pm-nav-i{
+    width:22px!important;
+    height:22px!important;
+    flex:0 0 auto!important;
+  }
+  .pm-social-mobile-nav.pm-social-mobile-nav .pm-nav-i.search{
+    width:20px!important;
+    height:20px!important;
+  }
+  .pm-social-mobile-nav.pm-social-mobile-nav .pm-nav-i.bolt:before{
+    font-size:20px!important;
+  }
+}
