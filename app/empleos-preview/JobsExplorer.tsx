@@ -78,7 +78,7 @@ export default function JobsExplorer({jobs}:{jobs:PreviewJob[]}){
           <h3>{job.title}</h3>
           <div className="pm-job-tags"><span title={job.location}>{compactLocation(job.location)}</span><span>{job.mode}</span><span>{job.schedule}</span></div>
           <p>{job.summary}</p>
-          <div className="pm-job-foot"><span><i/>{job.external?'Fuente oficial revisada':'Publicada en Postulá Mejor'}</span><Link href={`/empleos/${job.slug}`} onClick={e=>e.stopPropagation()}>Abrir detalle</Link></div>
+          <div className="pm-job-foot"><span><i/>{job.external?'Fuente oficial':'Publicada en Postulá Mejor'}</span><Link href={`/empleos/${job.slug}`} onClick={e=>e.stopPropagation()}>Abrir detalle</Link></div>
         </article>):<div className="pm-empty">No encontramos ofertas con estos filtros. Probá otra área, una zona más amplia o modalidad remota.</div>}</div>
       </section>
 
