@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import VocationalTestClient from './VocationalTestClient'
 import VocationalCertificate from './VocationalCertificate'
+import './test-polish-v2.css'
 
 export const metadata:Metadata={
   metadataBase:new URL('https://postulamejor.com'),
