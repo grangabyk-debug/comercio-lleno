@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+const POSTULA_MAINTENANCE = true
+
 function secure(response: NextResponse, request: NextRequest) {
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('X-Frame-Options', 'SAMEORIGIN')
@@ -32,17 +34,41 @@ function rewritePostula(request: NextRequest, pathname: string) {
   return secure(NextResponse.rewrite(url), request)
 }
 
+function postulaMaintenance(request: NextRequest) {
+  const html = `<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<title>Postulá Mejor | Estamos trabajando</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#0d0b12;color:#fff;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 12% 8%,rgba(128,74,255,.20),transparent 34%),radial-gradient(circle at 88% 86%,rgba(255,111,60,.14),transparent 32%),#0d0b12}.card{width:min(640px,100%);text-align:center;padding:clamp(34px,7vw,64px) clamp(22px,6vw,52px);border-radius:30px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);box-shadow:0 30px 90px rgba(0,0,0,.34);backdrop-filter:blur(22px)}.brand{display:inline-flex;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:11px;font-weight:900;letter-spacing:.12em;color:rgba(255,255,255,.74);margin-bottom:24px}h1{margin:0;font-size:clamp(38px,8vw,68px);line-height:.96;letter-spacing:-.055em;font-weight:950}p{margin:24px auto 0;max-width:470px;font-size:clamp(16px,3.7vw,20px);line-height:1.55;color:rgba(255,255,255,.66)}.line{width:46px;height:4px;margin:30px auto 0;border-radius:999px;background:linear-gradient(90deg,#8d5cff,#ff6f3c)}small{display:block;margin-top:18px;color:rgba(255,255,255,.42);font-size:13px}
+</style>
+</head>
+<body><main class="card"><div class="brand">POSTULÁ MEJOR</div><h1>Estamos trabajando<br>en algo nuevo.</h1><p>Estamos mejorando la plataforma. El sitio público y los nuevos registros están temporalmente pausados.</p><div class="line"></div><small>Volvemos pronto.</small></main></body>
+</html>`
+  return secure(new NextResponse(html, {
+    status: 200,
+    headers: {
+      'content-type': 'text/html; charset=utf-8',
+      'cache-control': 'no-store, max-age=0',
+    },
+  }), request)
+}
+
 function postulaMejorRoute(request: NextRequest) {
   const host = (request.headers.get('host') || '').split(':')[0].toLowerCase()
   const isApex = host === 'postulamejor.com'
   const isWww = host === 'www.postulamejor.com'
   if (!isApex && !isWww) return null
 
+  if (POSTULA_MAINTENANCE) return postulaMaintenance(request)
+
   const pathname = request.nextUrl.pathname
 
   if (isWww) return redirectPostula(request, pathname)
 
-  // Implementation URLs never become public canonicals.
   if (pathname === '/postula-preview') return redirectPostula(request, '/')
   if (pathname.startsWith('/empleos-preview/')) return redirectPostula(request, `/empleos/${pathname.slice('/empleos-preview/'.length)}`)
   if (pathname === '/empleos-preview') return redirectPostula(request, '/empleos')
@@ -56,7 +82,6 @@ function postulaMejorRoute(request: NextRequest) {
   if (pathname.startsWith('/empresas-preview/')) return redirectPostula(request, `/empresas/${pathname.slice('/empresas-preview/'.length)}`)
   if (pathname === '/cv-ia') return redirectPostula(request, '/mejorar-cv')
 
-  // Public product routes. The implementation remains isolated so Comercio Lleno is untouched.
   if (pathname === '/') return rewritePostula(request, '/postula-preview')
   if (pathname === '/empleos') return rewritePostula(request, '/empleos-preview')
   if (pathname.startsWith('/empleos/')) return rewritePostula(request, `/empleos-preview/${pathname.slice('/empleos/'.length)}`)
@@ -69,7 +94,6 @@ function postulaMejorRoute(request: NextRequest) {
   if (pathname === '/empresas') return rewritePostula(request, '/empresas-preview')
   if (pathname.startsWith('/empresas/')) return rewritePostula(request, `/empresas-preview/${pathname.slice('/empresas/'.length)}`)
   if (pathname === '/mejorar-cv') return rewritePostula(request, '/cv-ia')
-
   if (pathname === '/privacidad') return rewritePostula(request, '/cv-ia/privacidad')
   if (pathname === '/terminos') return rewritePostula(request, '/cv-ia/terminos')
 
@@ -81,8 +105,6 @@ export function middleware(request: NextRequest) {
   if (postulaResponse) return postulaResponse
 
   const url = request.nextUrl.clone()
-
-  // Legacy friendly private URLs now resolve to the isolated redesign app.
   if (url.pathname.startsWith('/app/')) {
     url.pathname = '/redesign'
     url.search = ''
