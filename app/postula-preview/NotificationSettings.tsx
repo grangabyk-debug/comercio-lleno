@@ -1,23 +1,26 @@
 'use client'
 
 import {useEffect,useState} from 'react'
+import {cvAuthClient} from '../cv-ia/cvAuth'
 
 type OptionalPrefs={applications:boolean;interviews:boolean;matches:boolean}
 type PermissionState='default'|'granted'|'denied'|'unsupported'
-const STORAGE_KEY='pm_notification_preferences_v1'
 const defaults:OptionalPrefs={applications:true,interviews:true,matches:false}
 
 export default function NotificationSettings({audience='candidate'}:{audience?:'candidate'|'employer'}){
+ const storageKey=`pm_notification_preferences_v1_${audience}`
+ const [authed,setAuthed]=useState<boolean|null>(null)
  const [prefs,setPrefs]=useState<OptionalPrefs>(defaults)
  const [browserEnabled,setBrowserEnabled]=useState(false)
  const [permission,setPermission]=useState<PermissionState>('default')
  const [notice,setNotice]=useState('')
  useEffect(()=>{
-  try{const raw=localStorage.getItem(STORAGE_KEY);if(raw){const parsed=JSON.parse(raw);setPrefs({...defaults,...parsed.prefs});setBrowserEnabled(Boolean(parsed.browserEnabled))}}catch{}
+  cvAuthClient().auth.getSession().then(({data})=>setAuthed(Boolean(data.session))).catch(()=>setAuthed(false))
+  try{const raw=localStorage.getItem(storageKey);if(raw){const parsed=JSON.parse(raw);setPrefs({...defaults,...parsed.prefs});setBrowserEnabled(Boolean(parsed.browserEnabled))}}catch{}
   if(typeof window==='undefined'||!('Notification'in window))setPermission('unsupported')
   else setPermission(Notification.permission)
- },[])
- function persist(next:OptionalPrefs,enabled=browserEnabled){setPrefs(next);try{localStorage.setItem(STORAGE_KEY,JSON.stringify({prefs:next,browserEnabled:enabled,updatedAt:new Date().toISOString()}))}catch{}}
+ },[storageKey])
+ function persist(next:OptionalPrefs,enabled=browserEnabled){setPrefs(next);try{localStorage.setItem(storageKey,JSON.stringify({prefs:next,browserEnabled:enabled,updatedAt:new Date().toISOString()}))}catch{}}
  function toggle(key:keyof OptionalPrefs){persist({...prefs,[key]:!prefs[key]})}
  async function enableBrowser(){
   setNotice('')
@@ -25,13 +28,14 @@ export default function NotificationSettings({audience='candidate'}:{audience?:'
   try{
    const result=await Notification.requestPermission();setPermission(result)
    if(result==='granted'){
-    setBrowserEnabled(true);try{localStorage.setItem(STORAGE_KEY,JSON.stringify({prefs,browserEnabled:true,updatedAt:new Date().toISOString()}))}catch{}
+    setBrowserEnabled(true);try{localStorage.setItem(storageKey,JSON.stringify({prefs,browserEnabled:true,updatedAt:new Date().toISOString()}))}catch{}
     setNotice('Notificaciones activadas en este dispositivo.')
     try{new Notification('Postulá Mejor',{body:'Listo. Este dispositivo puede mostrarte avisos cuando corresponda.',tag:'pm-notifications-ready'})}catch{}
    }else if(result==='denied'){setBrowserEnabled(false);setNotice('El navegador bloqueó las notificaciones. Podés habilitarlas más adelante desde los permisos del sitio.')}
   }catch{setNotice('No pudimos solicitar el permiso de notificaciones en este dispositivo.')}
  }
- function pauseBrowser(){setBrowserEnabled(false);try{localStorage.setItem(STORAGE_KEY,JSON.stringify({prefs,browserEnabled:false,updatedAt:new Date().toISOString()}))}catch{}setNotice('Avisos del navegador pausados para este dispositivo.')}
+ function pauseBrowser(){setBrowserEnabled(false);try{localStorage.setItem(storageKey,JSON.stringify({prefs,browserEnabled:false,updatedAt:new Date().toISOString()}))}catch{}setNotice('Avisos del navegador pausados para este dispositivo.')}
+ if(authed!==true)return null
  const roleCopy=audience==='employer'?'candidatos, entrevistas y actividad de tus búsquedas':'postulaciones, entrevistas y nuevas oportunidades'
  return <section className="pm16-notifications" aria-labelledby={`pm16-title-${audience}`}>
   <div className="pm16-notif-head"><div><span>NOTIFICACIONES</span><h2 id={`pm16-title-${audience}`}>Enterate de lo importante. Nada más.</h2><p>Elegí cómo querés enterarte de {roleCopy}. Los avisos dentro de la plataforma y los del navegador se manejan por separado.</p></div><div className="pm16-browser-card" data-on={browserEnabled&&permission==='granted'}><small>ESTE DISPOSITIVO</small><b>{permission==='granted'?(browserEnabled?'Notificaciones activas':'Permiso disponible · avisos pausados'):permission==='denied'?'Notificaciones bloqueadas':permission==='unsupported'?'No compatible':'Notificaciones sin activar'}</b>{permission==='granted'&&browserEnabled?<button type="button" onClick={pauseBrowser}>Pausar en este dispositivo</button>:permission!=='denied'&&permission!=='unsupported'?<button type="button" onClick={enableBrowser}>{permission==='granted'?'Reactivar':'Activar notificaciones'}</button>:<span className="pm16-browser-help">Cambialo desde los permisos del sitio en tu navegador.</span>}</div></div>
