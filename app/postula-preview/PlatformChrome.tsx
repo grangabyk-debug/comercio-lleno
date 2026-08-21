@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import styles from './platform.module.css'
 import MobileChoicePrompt from './MobileChoicePrompt'
+import LandingConversationV12 from './LandingConversationV12'
 import './integration-v8.css'
 import './premium-v9.css'
 import './premium-v10.css'
 import './premium-v11.css'
+import './premium-v12.css'
 
 export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'employer'}){
   const headerClass=`${styles.header} pm-social-header ${audience==='employer'?'pm-social-header-employer':'pm-social-header-candidate'}`
@@ -25,7 +27,7 @@ export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'em
       {audience==='candidate'?<Link href="/empresas" className={`${styles.navPrimary} pm-role-switch`}>Soy empleador</Link>:<Link href="/" className={`${styles.navPrimary} pm-role-switch`}>Busco trabajo</Link>}
       <Link href={audience==='candidate'?'/mi-cuenta':'/empresas/panel'} className={`${styles.navAccent} pm-social-account`}>Mi cuenta</Link>
     </nav>
-  </header>{audience==='employer'?<MobileChoicePrompt/>:null}</>
+  </header><LandingConversationV12/>{audience==='employer'?<MobileChoicePrompt/>:null}</>
 }
 
 export function MobileNav({active='inicio'}:{active?:'inicio'|'empleos'|'cuenta'|'cv'|'changas'|'mensajes'}){
