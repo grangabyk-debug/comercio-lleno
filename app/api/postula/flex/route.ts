@@ -37,9 +37,13 @@ export async function POST(req:NextRequest){
   return NextResponse.json({ok:true,response:data})
  }
  if(action!=='create')return NextResponse.json({ok:false,error:'Acción inválida.'},{status:400})
+ if(b?.responsibility_ack!==true)return NextResponse.json({ok:false,error:'Necesitás aceptar las reglas de publicación y asumir la responsabilidad de la publicación.'},{status:400})
  const title=text(b?.title,140),category=text(b?.category,80),description=text(b?.description,1800),location=text(b?.location_text,180),compensation=text(b?.compensation_text,120),duration=text(b?.duration_text,100),scheduled=text(b?.scheduled_for,80),companyId=text(b?.company_id,80)
  if(title.length<5||category.length<2||description.length<15||location.length<2||compensation.length<2)return NextResponse.json({ok:false,error:'Completá título, categoría, descripción, zona e importe.'},{status:400})
  if(companyId){const {data:member}=await c.from('pm_company_members').select('role').eq('company_id',companyId).eq('user_id',user.id).eq('status','active').in('role',['owner','admin','recruiter']).maybeSingle();if(!member)return NextResponse.json({ok:false,error:'No tenés permiso para publicar por esa empresa.'},{status:403})}
+ const version=text(b?.policy_version,40)||'2026-08-21'
+ const consentRows=['terms','privacy','flex_publish_rules'].map(consent_type=>({user_id:user.id,consent_type,version,accepted:true,source:'flex_publish'}))
+ const {error:consentErr}=await c.from('pm_consents').upsert(consentRows,{onConflict:'user_id,consent_type,version'});if(consentErr)return NextResponse.json({ok:false,error:'No pudimos registrar la aceptación de las reglas. Intentá nuevamente.'},{status:400})
  const row={publisher_user_id:user.id,company_id:companyId||null,title,category,description,location_text:location,compensation_text:compensation,duration_text:duration||null,scheduled_for:scheduled?new Date(scheduled).toISOString():null,verification_level:'basic',status:'published'}
  const {data,error}=await c.from('pm_flex_posts').insert(row).select('*').single();if(error)return NextResponse.json({ok:false,error:error.message},{status:400})
  return NextResponse.json({ok:true,post:data})
