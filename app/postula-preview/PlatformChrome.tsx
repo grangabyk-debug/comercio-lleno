@@ -8,6 +8,7 @@ import './premium-v10.css'
 import './premium-v11.css'
 import './premium-v12.css'
 import './footer-v13.css'
+import './readability-v14.css'
 
 export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'employer'}){
   const headerClass=`${styles.header} pm-social-header ${audience==='employer'?'pm-social-header-employer':'pm-social-header-candidate'}`
