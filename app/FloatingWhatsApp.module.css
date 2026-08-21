@@ -20,5 +20,13 @@
 .button:focus-visible{outline:4px solid rgba(37,211,102,.28);outline-offset:4px}
 
 @media(max-width:700px){
-  .button{display:none}
+  .button{
+    right:16px;
+    bottom:calc(18px + env(safe-area-inset-bottom,0px));
+    width:56px;
+    height:56px;
+    border-width:2px;
+    box-shadow:0 12px 28px rgba(16,99,57,.32),0 4px 10px rgba(0,0,0,.18);
+  }
+  .button svg{width:31px;height:31px}
 }
