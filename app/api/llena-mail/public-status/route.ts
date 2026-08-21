@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
 const RESEND_API = 'https://api.resend.com'
 const DOMAIN = 'postulamejor.com'
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) return NextResponse.json({ ok: false, error: 'mail_provider_not_configured' }, { status: 503 })
 
@@ -18,18 +18,6 @@ export async function GET(req: NextRequest) {
     ? listData.data.find((item: any) => String(item?.name || '').toLowerCase() === DOMAIN)
     : null
   if (!row?.id) return NextResponse.json({ ok: false, error: 'domain_not_found' }, { status: 404 })
-
-  if (req.nextUrl.searchParams.get('verify') === '1') {
-    const verification = await fetch(`${RESEND_API}/domains/${encodeURIComponent(row.id)}/verify`, {
-      method: 'POST',
-      headers,
-      cache: 'no-store',
-    })
-    const verifyData = await verification.json().catch(() => ({}))
-    if (!verification.ok) {
-      return NextResponse.json({ ok: false, error: 'verify_failed', provider: verifyData }, { status: 502 })
-    }
-  }
 
   const detail = await fetch(`${RESEND_API}/domains/${encodeURIComponent(row.id)}`, { headers, cache: 'no-store' })
   const data = await detail.json().catch(() => ({}))
