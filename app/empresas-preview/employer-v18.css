@@ -1,0 +1,65 @@
+/* Employer V18 — contraste de header + grilla de planes corregida */
+.pm7-employer .pm-social-header-employer{
+  background:rgba(248,249,250,.98)!important;
+  border-bottom:1px solid rgba(7,24,39,.10)!important;
+  box-shadow:0 8px 28px rgba(7,24,39,.04)!important;
+}
+.pm7-employer .pm-social-header-employer .pm-social-brand,
+.pm7-employer .pm-social-header-employer .pm-social-brand span,
+.pm7-employer .pm-social-header-employer .pm-social-nav>a:not(.pm-social-account){
+  color:#10151d!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+.pm7-employer .pm-social-header-employer .pm-social-brand{font-weight:950!important}
+.pm7-employer .pm-social-header-employer .pm-social-mark{
+  background:#10151d!important;
+  color:#d9ff59!important;
+  border-color:#10151d!important;
+}
+.pm7-employer .pm-social-header-employer .pm-social-nav>a:not(.pm-social-account){
+  font-weight:850!important;
+}
+.pm7-employer .pm-social-header-employer .pm-social-nav>a:not(.pm-social-account):hover{
+  color:#071827!important;
+  background:rgba(7,24,39,.055)!important;
+}
+.pm7-employer .pm-social-header-employer .pm-social-nav .pm-nav-new{
+  color:#071827!important;
+  background:#fff!important;
+  border:1px solid #dfe5e8!important;
+  box-shadow:0 7px 20px rgba(7,24,39,.055)!important;
+}
+.pm7-employer .pm-social-header-employer .pm-social-nav .pm-nav-new small{
+  background:#d9ff59!important;
+  color:#071827!important;
+  border-color:#c3e944!important;
+  font-weight:950!important;
+}
+.pm7-employer .pm-social-header-employer .pm-role-switch{
+  color:#071827!important;
+  background:#fff!important;
+  border:1px solid #dfe5e8!important;
+}
+.pm7-employer .pm-social-header-employer .pm-social-account{
+  background:#11151d!important;
+  color:#fff!important;
+  border-color:#11151d!important;
+}
+
+/* En desktop: tres planes arriba y dos abajo, centrados y del mismo ancho. */
+@media(min-width:1081px){
+  .pm7-employer-plans{
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    gap:18px!important;
+    align-items:stretch!important;
+  }
+  .pm7-employer-plan{
+    grid-column:span 2!important;
+    margin-left:0!important;
+    width:auto!important;
+    min-width:0!important;
+  }
+  .pm7-employer-plan:nth-child(4){grid-column:2/span 2!important;margin-left:0!important}
+  .pm7-employer-plan:nth-child(5){grid-column:4/span 2!important;margin-left:0!important}
+}
