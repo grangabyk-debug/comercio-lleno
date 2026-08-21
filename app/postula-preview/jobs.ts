@@ -2,7 +2,7 @@ import {createClient} from '@supabase/supabase-js'
 import {currentJobBoost} from './publicJobBoost'
 
 export type PreviewJob={
-  slug:string;title:string;company:string;location:string;mode:'Presencial'|'Híbrido'|'Remoto';schedule:string;area:string;source:string;sourceUrl:string;checkedAt:string;summary:string;requirements:string[];tags:string[];external:boolean;internalJobId?:string;compensation?:string
+  slug:string;title:string;company:string;location:string;mode:'Presencial'|'Híbrido'|'Remoto';schedule:string;area:string;source:string;sourceUrl:string;checkedAt:string;summary:string;requirements:string[];tags:string[];external:boolean;internalJobId?:string;compensation?:string;confidential?:boolean
 }
 
 export const previewJobs:PreviewJob[]=[
@@ -14,7 +14,7 @@ export const previewJobs:PreviewJob[]=[
 ]
 
 function normalizeMode(v:string):'Presencial'|'Híbrido'|'Remoto'{const s=v.toLowerCase();if(s.includes('remot'))return'Remoto';if(s.includes('híbr')||s.includes('hibr'))return'Híbrido';return'Presencial'}
-async function nativeJobs():Promise<PreviewJob[]>{try{const db=createClient('https://pejkycdttogpmmdntzuq.supabase.co','sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I',{auth:{persistSession:false,autoRefreshToken:false}});const {data,error}=await db.rpc('pm_public_job_catalog');if(error||!Array.isArray(data))return[];return data.map((r:any)=>({slug:`pm-${r.id}`,title:String(r.title),company:String(r.company_name),location:String(r.location_text||'Argentina'),mode:normalizeMode(String(r.work_mode||'')),schedule:String(r.schedule||'A confirmar'),area:String(r.area||'Otros rubros'),source:`Publicada en Postulá Mejor · ${r.company_verification==='verified'?'empresa verificada':'validación básica'}`,sourceUrl:`/postular/pm-${r.id}`,checkedAt:new Date().toISOString().slice(0,10),summary:String(r.description||'').slice(0,1000),requirements:Array.isArray(r.requirements)?r.requirements.map(String):[],tags:[String(r.area||'Trabajo'),String(r.work_mode||'')].filter(Boolean),external:false,internalJobId:String(r.id),compensation:String(r.compensation_text||'')}))}catch{return[]}}
+async function nativeJobs():Promise<PreviewJob[]>{try{const db=createClient('https://pejkycdttogpmmdntzuq.supabase.co','sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I',{auth:{persistSession:false,autoRefreshToken:false}});const {data,error}=await db.rpc('pm_public_job_catalog');if(error||!Array.isArray(data))return[];return data.map((r:any)=>({slug:`pm-${r.id}`,title:String(r.title),company:String(r.company_name),location:String(r.location_text||'Argentina'),mode:normalizeMode(String(r.work_mode||'')),schedule:String(r.schedule||'A confirmar'),area:String(r.area||'Otros rubros'),source:`Publicada en Postulá Mejor · ${r.employer_visibility==='confidential'?'identidad del empleador reservada':r.company_verification==='verified'?'empresa verificada':'validación básica'}`,sourceUrl:`/postular/pm-${r.id}`,checkedAt:new Date().toISOString().slice(0,10),summary:String(r.description||'').slice(0,1000),requirements:Array.isArray(r.requirements)?r.requirements.map(String):[],tags:[String(r.area||'Trabajo'),String(r.work_mode||''),r.employer_visibility==='confidential'?'Empleador reservado':''].filter(Boolean),external:false,internalJobId:String(r.id),compensation:String(r.compensation_text||''),confidential:r.employer_visibility==='confidential'}))}catch{return[]}}
 
 export async function getJobCatalog(){
   const [{discoverPublicJobs},native]=await Promise.all([import('./publicJobSources'),nativeJobs()])
