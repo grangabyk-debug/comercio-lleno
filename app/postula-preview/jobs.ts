@@ -1,4 +1,5 @@
 import {createClient} from '@supabase/supabase-js'
+import {currentJobBoost} from './publicJobBoost'
 
 export type PreviewJob={
   slug:string;title:string;company:string;location:string;mode:'Presencial'|'Híbrido'|'Remoto';schedule:string;area:string;source:string;sourceUrl:string;checkedAt:string;summary:string;requirements:string[];tags:string[];external:boolean;internalJobId?:string;compensation?:string
@@ -19,7 +20,7 @@ export async function getJobCatalog(){
   const [{discoverPublicJobs},native]=await Promise.all([import('./publicJobSources'),nativeJobs()])
   const live=await discoverPublicJobs()
   const seen=new Set<string>()
-  return [...native,...live,...previewJobs].filter(job=>{const key=(job.internalJobId||job.sourceUrl).toLowerCase();if(seen.has(key))return false;seen.add(key);return true})
+  return [...native,...currentJobBoost,...live,...previewJobs].filter(job=>{const key=(job.internalJobId||job.sourceUrl).toLowerCase();if(seen.has(key))return false;seen.add(key);return true})
 }
 
-export function getPreviewJob(slug:string){return previewJobs.find(job=>job.slug===slug)}
+export function getPreviewJob(slug:string){return [...currentJobBoost,...previewJobs].find(job=>job.slug===slug)}
