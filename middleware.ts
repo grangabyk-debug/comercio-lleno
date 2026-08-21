@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const POSTULA_MAINTENANCE = true
+const POSTULA_MAINTENANCE = false
 
 function secure(response: NextResponse, request: NextRequest) {
   response.headers.set('X-Content-Type-Options', 'nosniff')
