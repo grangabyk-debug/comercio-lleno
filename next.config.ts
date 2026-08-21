@@ -1,7 +1,5 @@
 import type { NextConfig } from 'next'
 
-console.log(`[integration-check] RESEND_CONFIGURED=${Boolean(process.env.RESEND_API_KEY)}`)
-
 const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
