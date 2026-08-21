@@ -1,0 +1,101 @@
+/* POSTULÁ MEJOR V11 — escena de contacto laboral desde cero */
+
+/* Ocultar por completo el concepto visual anterior */
+.pm7-social-proof{position:relative!important;overflow:hidden!important;padding:92px 0 110px!important;background:linear-gradient(135deg,#fff8ed 0%,#f8f6ff 48%,#f1f8ff 100%)!important}
+.pm7-social-proof-head{position:relative!important;z-index:5!important;max-width:1080px!important;margin:0 auto 50px!important;padding:0 28px!important;text-align:left!important}
+.pm7-social-proof-head>.pm7-eyebrow{display:none!important}
+.pm7-social-proof-head h2{font-size:0!important;line-height:0!important;margin:0!important;max-width:none!important}
+.pm7-social-proof-head h2:before{content:'Cuando aparece una oportunidad, la conversación empieza ahí.';display:block;font-size:clamp(46px,5.6vw,78px)!important;line-height:.95!important;letter-spacing:-.06em!important;font-weight:950!important;max-width:930px!important;color:#111218!important}
+.pm7-social-proof-head>p{font-size:0!important;line-height:0!important;margin:18px 0 0!important;max-width:none!important}
+.pm7-social-proof-head>p:before{content:'Un mensaje simple puede terminar en una entrevista. Así se siente Postulá Mejor: directo, humano y sin vueltas.';display:block;font-size:19px!important;line-height:1.55!important;font-weight:650!important;color:#666b76!important;max-width:760px!important}
+
+/* Escena general */
+.pm7-conversation-stage{position:relative!important;z-index:2!important;max-width:1260px!important;min-height:680px!important;margin:0 auto!important;padding:0 28px!important;display:grid!important;grid-template-columns:1fr minmax(400px,.95fr) 1fr!important;gap:26px!important;align-items:center!important;isolation:isolate!important}
+
+/* eliminar pseudo-concepto previo */
+.pm7-conversation-stage:before,.pm7-conversation-stage:after{content:none!important;display:none!important}
+.pm7-phone-chat:before,.pm7-phone-chat:after{content:none!important;display:none!important}
+.pm7-floating-community{display:none!important}
+
+/* Recruiter: foto humana real a la izquierda */
+.pm7-conversation-stage::marker{display:none!important}
+.pm7-conversation-stage{background:none!important}
+.pm7-conversation-stage .pm7-phone-chat{grid-column:2!important}
+.pm7-conversation-stage:has(.pm7-phone-chat){--recruiter:url('https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1200');--candidate:url('https://images.pexels.com/photos/3769021/pexels-photo-3769021.jpeg?auto=compress&cs=tinysrgb&w=1200')}
+
+.pm7-social-proof:before,.pm7-social-proof:after{content:''!important;position:absolute!important;border-radius:50%!important;pointer-events:none!important;z-index:0!important}
+.pm7-social-proof:before{width:360px!important;height:360px!important;left:-100px!important;top:28%!important;background:#ffe3d0!important;opacity:.72!important}
+.pm7-social-proof:after{width:300px!important;height:300px!important;right:-60px!important;bottom:6%!important;background:#dce7ff!important;opacity:.7!important}
+
+/* Dos retratos, creados sobre el escenario */
+.pm7-conversation-stage{--photoRadius:42px}
+.pm7-phone-chat{position:relative!important;z-index:6!important;width:100%!important;max-width:520px!important;min-height:520px!important;margin:0 auto!important;padding:24px!important;border:1px solid rgba(17,18,24,.08)!important;border-radius:32px!important;background:rgba(255,255,255,.96)!important;box-shadow:0 34px 90px rgba(40,42,74,.16)!important;overflow:hidden!important;animation:pm11CenterFloat 6s ease-in-out infinite!important}
+.pm7-phone-chat>header,.pm7-phone-chat>.pm7-bubble,.pm7-phone-chat>.pm7-chat-compose{display:none!important}
+
+/* panel interno como conversación laboral */
+.pm7-phone-chat{display:flex!important;flex-direction:column!important;gap:14px!important}
+.pm7-phone-chat:before{content:'HOY · 11:42\A\ASelección · Hotel Centro\A\AHola, vimos tu perfil para Recepción.\A¿Tenés disponibilidad para una entrevista hoy a las 16:30?\A\A                Sí, puedo hoy.\A\APerfecto. Te enviamos la dirección y los datos de contacto.\A\A✓ Entrevista coordinada';white-space:pre-wrap!important;display:block!important;position:relative!important;inset:auto!important;padding:24px!important;border-radius:26px!important;background:#f5f6f8!important;color:#171820!important;font-size:16px!important;line-height:1.52!important;font-weight:750!important;letter-spacing:-.015em!important;box-shadow:none!important;animation:none!important}
+.pm7-phone-chat:after{content:'Recepcionista · CABA\AEntrevista hoy · 16:30\AEstado: confirmada';white-space:pre-wrap!important;display:block!important;position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;margin-top:auto!important;padding:18px 20px!important;border-radius:22px!important;background:#d9ff59!important;color:#121318!important;font-size:15px!important;line-height:1.45!important;font-weight:950!important;box-shadow:none!important;animation:none!important}
+
+/* foto recruiter */
+.pm7-conversation-stage{background-image:var(--recruiter),var(--candidate)!important;background-repeat:no-repeat!important;background-size:31% 78%,31% 78%!important;background-position:0 54%,100% 54%!important}
+.pm7-conversation-stage:after{display:block!important;content:''!important;position:absolute!important;inset:8% 0 6%!important;border-radius:46px!important;pointer-events:none!important;z-index:1!important;box-shadow:inset 0 0 0 9999px rgba(255,255,255,0)!important}
+
+/* overlays tipo ficha sobre cada persona */
+.pm7-phone-chat{transform-style:preserve-3d!important}
+.pm7-phone-chat>div{display:none!important}
+.pm7-conversation-stage .pm7-phone-chat{filter:none!important}
+.pm7-conversation-stage{overflow:visible!important}
+
+.pm7-conversation-stage .pm7-phone-chat{--shadow:0 34px 90px rgba(40,42,74,.16)}
+.pm7-conversation-stage .pm7-phone-chat{box-shadow:var(--shadow)!important}
+
+.pm7-social-proof-head:after{content:'EMPRESA  →  PERSONA  →  ENTREVISTA';display:inline-flex;margin-top:22px;padding:10px 14px;border-radius:999px;background:#111218;color:#fff;font-size:11px;font-weight:950;letter-spacing:.08em}
+
+/* etiquetas encima de retratos */
+.pm7-conversation-stage .pm7-phone-chat{border-top:5px solid #111218!important}
+.pm7-conversation-stage .pm7-phone-chat{outline:1px solid rgba(17,18,24,.03)!important}
+
+.pm7-conversation-stage .pm7-phone-chat{isolation:isolate!important}
+.pm7-conversation-stage .pm7-phone-chat{overflow:visible!important}
+.pm7-phone-chat:global(*){}
+.pm7-phone-chat span{display:none!important}
+
+/* badges independientes usando hijos ocultos del stage */
+.pm7-conversation-stage .pm7-phone-chat::selection{background:#d9ff59}
+
+.pm7-social-proof{--chip:#fff}
+.pm7-social-proof .pm7-conversation-stage{border-radius:48px!important}
+.pm7-social-proof .pm7-conversation-stage{box-shadow:none!important}
+
+/* Crear captions visuales con sombras mediante fondos extra */
+.pm7-conversation-stage{filter:drop-shadow(0 26px 50px rgba(44,45,72,.08))}
+
+@keyframes pm11CenterFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+@media(min-width:981px){
+ .pm7-conversation-stage{padding-top:26px!important;padding-bottom:26px!important}
+ .pm7-conversation-stage:before{display:block!important;content:'RECRUITER\AHotel Centro\ASelección activa';white-space:pre!important;position:absolute!important;left:44px!important;bottom:42px!important;width:230px!important;padding:16px 18px!important;border-radius:20px!important;background:rgba(255,255,255,.95)!important;color:#171820!important;font-size:13px!important;line-height:1.35!important;font-weight:900!important;box-shadow:0 18px 45px rgba(36,38,66,.14)!important;z-index:4!important}
+ .pm7-conversation-stage:after{display:block!important;content:'CANDIDATA\APerfil completo\ADisponible hoy';white-space:pre!important;position:absolute!important;right:44px!important;bottom:42px!important;left:auto!important;top:auto!important;width:220px!important;height:auto!important;padding:16px 18px!important;border-radius:20px!important;background:rgba(255,255,255,.95)!important;color:#171820!important;font-size:13px!important;line-height:1.35!important;font-weight:900!important;box-shadow:0 18px 45px rgba(36,38,66,.14)!important;z-index:4!important}
+}
+
+@media(max-width:980px){
+ .pm7-social-proof{padding:72px 0 88px!important}
+ .pm7-social-proof-head{margin-bottom:34px!important}
+ .pm7-conversation-stage{grid-template-columns:1fr!important;min-height:auto!important;padding:0 18px!important;background-size:48% 360px,48% 360px!important;background-position:0 0,100% 0!important;padding-top:330px!important}
+ .pm7-conversation-stage .pm7-phone-chat{grid-column:1!important;max-width:620px!important;min-height:auto!important}
+ .pm7-conversation-stage:before,.pm7-conversation-stage:after{display:none!important}
+}
+
+@media(max-width:620px){
+ .pm7-social-proof-head{padding:0 16px!important}
+ .pm7-social-proof-head h2:before{font-size:43px!important}
+ .pm7-social-proof-head>p:before{font-size:16px!important}
+ .pm7-social-proof-head:after{font-size:9px!important}
+ .pm7-conversation-stage{padding:250px 12px 0!important;background-size:49% 280px,49% 280px!important;background-position:0 0,100% 0!important}
+ .pm7-phone-chat{padding:16px!important;border-radius:26px!important}
+ .pm7-phone-chat:before{padding:19px!important;font-size:14px!important}
+ .pm7-phone-chat:after{padding:16px!important;font-size:14px!important}
+}
+
+@media(prefers-reduced-motion:reduce){.pm7-phone-chat{animation:none!important}}
