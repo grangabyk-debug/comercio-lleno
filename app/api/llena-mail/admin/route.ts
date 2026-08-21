@@ -9,7 +9,7 @@ type AdminBody = {
   version: 1
   issuedAt: number
   nonce: string
-  action: 'inspect_domain' | 'enable_receiving' | 'create_inbound_webhook' | 'list_webhooks' | 'get_received_email'
+  action: 'inspect_domain' | 'verify_domain' | 'enable_receiving' | 'create_inbound_webhook' | 'list_webhooks' | 'get_received_email'
   domain?: string
   webhookEndpoint?: string
   emailId?: string
@@ -93,6 +93,11 @@ export async function POST(req: NextRequest) {
   if (body.action === 'inspect_domain') {
     const current = await resend(apiKey, `/domains/${encodeURIComponent(row.id)}`)
     return NextResponse.json(current.response.ok ? { ok: true, data: current.data } : { ok: false, error: 'provider_error' }, { status: current.response.ok ? 200 : 502 })
+  }
+
+  if (body.action === 'verify_domain') {
+    const verified = await resend(apiKey, `/domains/${encodeURIComponent(row.id)}/verify`, { method: 'POST' })
+    return NextResponse.json(verified.response.ok ? { ok: true, data: verified.data } : { ok: false, error: 'provider_error', data: verified.data }, { status: verified.response.ok ? 200 : 502 })
   }
 
   if (body.action === 'enable_receiving') {
