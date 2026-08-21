@@ -18,6 +18,7 @@ import './ats-offer.css'
 import './landing-refinement-v2.css'
 import './cv-unified-v8.css'
 import './cv-visual-v9.css'
+import './cv-polish-v10.css'
 
 export const metadata:Metadata={
  metadataBase:new URL('https://postulamejor.com'),
