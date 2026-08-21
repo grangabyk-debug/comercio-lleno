@@ -1,0 +1,68 @@
+import {NextRequest,NextResponse} from 'next/server'
+import {createClient} from '@supabase/supabase-js'
+
+const URL='https://pejkycdttogpmmdntzuq.supabase.co'
+const KEY='sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I'
+const PRIORITY:Record<string,number>={security_fraud:1,user_problem:1,payment:2,publishing:2,technical:3,how_to:4,other:4}
+const LABEL:Record<string,string>={security_fraud:'Seguridad o posible estafa',user_problem:'Problema con otro usuario',payment:'Pago, plan o créditos',publishing:'Postulación o publicación',technical:'Problema técnico',how_to:'Cómo usar Postulá Mejor',other:'Otra consulta'}
+
+function userDb(req:NextRequest){const auth=req.headers.get('authorization')||'';return createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{Authorization:auth}}})}
+function adminDb(){const key=process.env.SUPABASE_SERVICE_ROLE_KEY;return key?createClient(URL,key,{auth:{persistSession:false,autoRefreshToken:false}}):null}
+const txt=(v:unknown,n=3000)=>String(v??'').replace(/\s+/g,' ').trim().slice(0,n)
+
+async function notifyUrgent(ticket:any,userEmail:string|null){
+ const admin=adminDb()
+ if(admin)await admin.from('pm_support_alerts').insert({ticket_id:ticket.id,priority:ticket.priority,alert_kind:ticket.priority<=1?'urgent_ticket':'new_ticket'})
+ if(ticket.priority>1)return
+ const apiKey=process.env.RESEND_API_KEY,recipient=process.env.POSTULA_SUPPORT_EMAIL
+ if(!apiKey||!recipient)return
+ const body=`Nuevo caso prioritario en Postulá Mejor.\n\nCategoría: ${LABEL[ticket.category]||ticket.category}\nAsunto: ${ticket.subject}\nUsuario: ${userEmail||ticket.user_id}\nRuta: ${ticket.page_path||'-'}\nTicket: ${ticket.id}`
+ try{await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},body:JSON.stringify({from:'Postulá Mejor <hola@postulamejor.com>',to:[recipient],subject:`[PRIORIDAD ${ticket.priority}] ${LABEL[ticket.category]||'Soporte'}`,text:body,reply_to:'hola@postulamejor.com'})})}catch{}
+}
+
+export async function GET(req:NextRequest){
+ const db=userDb(req),{data:{user}}=await db.auth.getUser()
+ if(!user)return NextResponse.json({ok:false,error:'Iniciá sesión para usar soporte.'},{status:401})
+ const ticketId=req.nextUrl.searchParams.get('ticket')||''
+ if(ticketId){
+  const {data:ticket,error:tErr}=await db.from('pm_support_tickets').select('*').eq('id',ticketId).maybeSingle()
+  if(tErr||!ticket)return NextResponse.json({ok:false,error:'Caso no disponible.'},{status:404})
+  const {data:messages,error:mErr}=await db.from('pm_support_messages').select('id,sender_kind,body,created_at').eq('ticket_id',ticketId).order('created_at',{ascending:true}).limit(200)
+  if(mErr)return NextResponse.json({ok:false,error:mErr.message},{status:400})
+  return NextResponse.json({ok:true,ticket,messages:messages||[]})
+ }
+ const {data,error}=await db.from('pm_support_tickets').select('id,category,priority,subject,status,last_message_at,created_at').order('last_message_at',{ascending:false}).limit(30)
+ if(error)return NextResponse.json({ok:false,error:error.message},{status:400})
+ return NextResponse.json({ok:true,tickets:data||[]})
+}
+
+export async function POST(req:NextRequest){
+ const db=userDb(req),{data:{user}}=await db.auth.getUser()
+ if(!user)return NextResponse.json({ok:false,error:'Iniciá sesión para usar soporte.'},{status:401})
+ const body=await req.json().catch(()=>({})),action=txt(body?.action,30)||'create'
+ if(action==='message'){
+  const ticketId=txt(body?.ticket_id,80),message=txt(body?.message,3000)
+  if(!ticketId||message.length<2)return NextResponse.json({ok:false,error:'Escribí un mensaje.'},{status:400})
+  const {data,error}=await db.from('pm_support_messages').insert({ticket_id:ticketId,sender_user_id:user.id,sender_kind:'user',body:message}).select('id,sender_kind,body,created_at').single()
+  if(error)return NextResponse.json({ok:false,error:error.message},{status:403})
+  return NextResponse.json({ok:true,message:data})
+ }
+ if(action!=='create')return NextResponse.json({ok:false,error:'Acción inválida.'},{status:400})
+ const category=txt(body?.category,40),message=txt(body?.message,3000),audience=body?.audience==='employer'?'employer':'candidate',pagePath=txt(body?.page_path,300)
+ if(!PRIORITY[category]||message.length<5)return NextResponse.json({ok:false,error:'Elegí el tipo de ayuda y contanos brevemente qué pasó.'},{status:400})
+ let companyId:string|null=null
+ if(audience==='employer'){
+  const requested=txt(body?.company_id,80)
+  let q=db.from('pm_company_members').select('company_id').eq('user_id',user.id).eq('status','active').limit(1)
+  if(requested)q=q.eq('company_id',requested)
+  const {data}=await q
+  companyId=data?.[0]?.company_id||null
+ }
+ const subject=txt(body?.subject,160)||LABEL[category]||'Ayuda'
+ const {data:ticket,error:tErr}=await db.from('pm_support_tickets').insert({user_id:user.id,company_id:companyId,audience,category,priority:PRIORITY[category],subject,status:'open',page_path:pagePath||null}).select('*').single()
+ if(tErr||!ticket)return NextResponse.json({ok:false,error:tErr?.message||'No pudimos abrir el caso.'},{status:400})
+ const {data:msg,error:mErr}=await db.from('pm_support_messages').insert({ticket_id:ticket.id,sender_user_id:user.id,sender_kind:'user',body:message}).select('id,sender_kind,body,created_at').single()
+ if(mErr)return NextResponse.json({ok:false,error:mErr.message},{status:400})
+ await notifyUrgent(ticket,user.email||null)
+ return NextResponse.json({ok:true,ticket,message:msg})
+}
