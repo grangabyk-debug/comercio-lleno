@@ -3,6 +3,7 @@ import styles from './platform.module.css'
 import MobileChoicePrompt from './MobileChoicePrompt'
 import './integration-v8.css'
 import './premium-v9.css'
+import './premium-v10.css'
 
 export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'employer'}){
   const headerClass=`${styles.header} pm-social-header ${audience==='employer'?'pm-social-header-employer':'pm-social-header-candidate'}`
