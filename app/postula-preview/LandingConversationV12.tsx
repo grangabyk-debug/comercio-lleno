@@ -7,15 +7,28 @@ export default function LandingConversationV12(){
  const [host,setHost]=useState<HTMLElement|null>(null)
  useEffect(()=>{
   if(window.location.pathname!=='/')return
+
+  // Mantener intacto el diseño de las tarjetas de oportunidades y quitar sólo el prefijo “EJEMPLO ·”.
+  const cleanExampleLabels=()=>{
+   document.querySelectorAll<HTMLElement>('body *').forEach(el=>{
+    if(el.children.length===0&&/^EJEMPLO\s*·\s*/i.test(el.textContent||'')){
+      el.textContent=(el.textContent||'').replace(/^EJEMPLO\s*·\s*/i,'')
+    }
+   })
+  }
+  cleanExampleLabels()
+  const observer=new MutationObserver(cleanExampleLabels)
+  observer.observe(document.body,{childList:true,subtree:true})
+
   const old=document.querySelector<HTMLElement>('.pm7-social-proof')
-  if(!old)return
+  if(!old){return()=>observer.disconnect()}
   const mount=document.createElement('div')
   mount.dataset.pm12ContactHost='1'
   old.insertAdjacentElement('beforebegin',mount)
   const previous=old.style.display
   old.style.display='none'
   setHost(mount)
-  return()=>{old.style.display=previous;mount.remove()}
+  return()=>{observer.disconnect();old.style.display=previous;mount.remove()}
  },[])
  if(!host)return null
  return createPortal(
