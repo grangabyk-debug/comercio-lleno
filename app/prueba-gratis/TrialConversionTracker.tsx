@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 
-const GOOGLE_ADS_SEND_TO = 'AW-18388928228/75vtCNf_9oIcEOSNw8BE'
+const GOOGLE_ADS_SEND_TO = 'AW-18388928228/75vtCNf_9OIcEOSNw8BE'
 const TRIAL_ENDPOINT_MARKERS = [
   '/functions/v1/start-trial-turnstile',
   '/functions/v1/start-trial-google',
