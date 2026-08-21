@@ -1,0 +1,103 @@
+/* Postulá Mejor · Mejorar CV V9 — inicio limpio, carga clara y comparación legible */
+
+/* El componente trae un header interno viejo: en la integración usamos sólo el header global. */
+.pmcv-shell > [class*="page"] > [class*="header"]{display:none!important}
+
+/* Arriba: sólo la pregunta principal + el cargador. */
+.pmcv-shell [class*="hero"]{
+  padding:72px clamp(18px,5vw,72px) 76px!important;
+  background:
+    radial-gradient(circle at 12% 18%,rgba(255,210,90,.28),transparent 28%),
+    radial-gradient(circle at 88% 22%,rgba(105,87,255,.17),transparent 31%),
+    linear-gradient(135deg,#fffaf2 0%,#f7f4ff 54%,#f2fbff 100%)!important;
+}
+.pmcv-shell [class*="heroCopy"]{max-width:1080px!important;margin:0 auto 38px!important;text-align:center!important}
+.pmcv-shell [class*="heroCopy"]>[class*="eyebrow"],
+.pmcv-shell [class*="heroCopy"]>[class*="heroLead"],
+.pmcv-shell [class*="heroCopy"]>[class*="heroTrust"]{display:none!important}
+.pmcv-shell [class*="hero"] h1{
+  max-width:1000px!important;margin:0 auto!important;
+  font-size:clamp(58px,7.4vw,108px)!important;line-height:.88!important;
+  letter-spacing:-.075em!important;font-weight:950!important;
+}
+.pmcv-shell [class*="hero"] h1 em{color:#6957ff!important;font-family:Georgia,'Times New Roman',serif!important;font-weight:500!important;letter-spacing:-.055em!important}
+
+/* Cargador de CV: fuera del negro, más amable y con jerarquía. */
+.pmcv-shell [class*="analyzerCard"]{
+  max-width:760px!important;padding:28px!important;border-radius:34px!important;
+  background:linear-gradient(145deg,#eee9ff 0%,#e4edff 48%,#e8ffd8 100%)!important;
+  color:#171822!important;border:1px solid rgba(76,59,175,.13)!important;
+  box-shadow:0 30px 80px rgba(72,59,130,.15),inset 0 1px 0 rgba(255,255,255,.75)!important;
+}
+.pmcv-shell [class*="stepLabel"]{margin:8px 0 13px!important}
+.pmcv-shell [class*="stepLabel"]>span{background:#6957ff!important;color:#fff!important;box-shadow:0 8px 22px rgba(105,87,255,.22)!important}
+.pmcv-shell [class*="stepLabel"]>b{font-size:16px!important;font-weight:950!important;color:#191a23!important}
+.pmcv-shell [class*="stepLabel"]>small{font-size:11.5px!important;color:#686879!important;font-weight:700!important}
+.pmcv-shell [class*="dropzone"]{
+  border:1.5px dashed rgba(105,87,255,.42)!important;background:rgba(255,255,255,.72)!important;color:#171822!important;
+  border-radius:22px!important;padding:24px 16px!important;margin-bottom:23px!important;
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease!important;
+}
+.pmcv-shell [class*="dropzone"]:hover{transform:translateY(-3px)!important;border-color:#6957ff!important;box-shadow:0 16px 34px rgba(78,63,150,.12)!important}
+.pmcv-shell [class*="dropzoneReady"]{background:#f5ffe5!important;border-color:#89b82a!important}
+.pmcv-shell [class*="uploadIcon"]{background:#6957ff!important;color:#fff!important;width:46px!important;height:46px!important;border-radius:15px!important;font-size:26px!important}
+.pmcv-shell [class*="dropzone"] b{font-size:16px!important}.pmcv-shell [class*="dropzone"] small{font-size:12px!important;color:#6f7180!important}
+.pmcv-shell [class*="field"] label{font-size:12.5px!important;color:#343642!important;font-weight:900!important}
+.pmcv-shell [class*="field"] input,.pmcv-shell [class*="analyzerCard"] textarea{
+  background:rgba(255,255,255,.86)!important;color:#171822!important;border:1px solid rgba(69,62,111,.18)!important;
+  border-radius:16px!important;padding:15px!important;font-size:14px!important;
+}
+.pmcv-shell [class*="field"] input:focus,.pmcv-shell [class*="analyzerCard"] textarea:focus{border-color:#6957ff!important;box-shadow:0 0 0 4px rgba(105,87,255,.12)!important}
+.pmcv-shell [class*="primaryCta"]{background:#6957ff!important;color:#fff!important;min-height:55px!important;font-size:15px!important;border-radius:17px!important;box-shadow:0 15px 32px rgba(105,87,255,.24)!important}
+.pmcv-shell [class*="microcopy"],.pmcv-shell [class*="privacyLine"]{color:#666a78!important;font-size:11px!important}
+.pmcv-shell [class*="statusBox"]{background:rgba(255,255,255,.75)!important;color:#2b2d36!important;border:1px solid rgba(69,62,111,.12)!important}
+
+/* Eliminar por completo la franja 3 / 2 / 0. */
+.pmcv-shell [class*="valueBand"]{display:none!important}
+
+/* Triple filtro: sin numeritos, palabras grandes y tres identidades cromáticas. */
+.pmcv-shell section:has([class*="filterGrid"]){padding-top:78px!important;padding-bottom:80px!important;background:#fbfaf7!important}
+.pmcv-shell section:has([class*="filterGrid"]) [class*="sectionTag"]{display:none!important}
+.pmcv-shell section:has([class*="filterGrid"]) [class*="sectionIntro"]{max-width:900px!important;margin-bottom:34px!important}
+.pmcv-shell section:has([class*="filterGrid"]) [class*="sectionIntro"] h2{font-size:clamp(44px,5.2vw,72px)!important;line-height:.95!important;letter-spacing:-.06em!important}
+.pmcv-shell section:has([class*="filterGrid"]) [class*="sectionIntro"] p{font-size:17px!important;line-height:1.6!important;max-width:760px!important}
+.pmcv-shell [class*="filterGrid"]{grid-template-columns:repeat(3,1fr)!important;gap:16px!important;max-width:1180px!important}
+.pmcv-shell [class*="filterCard"]{min-height:260px!important;padding:30px!important;border-radius:30px!important;display:flex!important;flex-direction:column!important;justify-content:flex-end!important;overflow:hidden!important;position:relative!important}
+.pmcv-shell [class*="filterCard"]>span{display:none!important}
+.pmcv-shell [class*="filterCard"] b{font-size:clamp(34px,3.3vw,50px)!important;line-height:.93!important;margin:0 0 18px!important;letter-spacing:-.06em!important;font-weight:950!important}
+.pmcv-shell [class*="filterCard"] p{font-size:16px!important;line-height:1.55!important;color:#454955!important;max-width:90%!important}
+.pmcv-shell [class*="filterCard"]:nth-child(1){background:linear-gradient(145deg,#fff0d8,#fff9ef)!important;border-color:#f1c888!important}.pmcv-shell [class*="filterCard"]:nth-child(1) b{color:#e47437!important}
+.pmcv-shell [class*="filterCard"]:nth-child(2){background:linear-gradient(145deg,#ebe6ff,#f8f6ff)!important;border-color:#c9bdff!important}.pmcv-shell [class*="filterCard"]:nth-child(2) b{color:#6957ff!important}
+.pmcv-shell [class*="filterCard"]:nth-child(3){background:linear-gradient(145deg,#e3fbe9,#f5fff7)!important;border-color:#b7e8c3!important}.pmcv-shell [class*="filterCard"]:nth-child(3) b{color:#178b57!important}
+
+/* Comparación: tipografía bastante más grande, cálida y fácil de escanear. */
+.pmcv-shell section:has([class*="compareCard"]){padding-top:82px!important;padding-bottom:92px!important;background:linear-gradient(180deg,#fff 0%,#faf8ff 100%)!important}
+.pmcv-shell section:has([class*="compareCard"]) [class*="sectionTag"]{font-size:12px!important;padding:9px 13px!important}
+.pmcv-shell section:has([class*="compareCard"]) [class*="sectionIntro"]{max-width:1000px!important;margin-bottom:34px!important}
+.pmcv-shell section:has([class*="compareCard"]) [class*="sectionIntro"] h2{
+  font-family:Georgia,'Times New Roman',serif!important;font-weight:600!important;
+  font-size:clamp(42px,5.4vw,72px)!important;line-height:1!important;letter-spacing:-.045em!important;
+}
+.pmcv-shell [class*="compareCard"]{max-width:1120px!important;border-radius:28px!important;box-shadow:0 24px 60px rgba(47,40,86,.09)!important}
+.pmcv-shell [class*="compareHead"]{background:#5e4ee8!important;font-size:15px!important;min-height:68px!important;padding:18px 24px!important;font-weight:950!important}
+.pmcv-shell [class*="compareHead"] b{font-size:16px!important}
+.pmcv-shell [class*="compareRow"]{font-size:16px!important;min-height:72px!important;padding:17px 24px!important;line-height:1.3!important}
+.pmcv-shell [class*="compareRow"] span{font-size:16px!important;font-weight:900!important;color:#22242d!important}
+.pmcv-shell [class*="compareRow"] i{font-size:15px!important;color:#747784!important}
+.pmcv-shell [class*="compareRow"] strong{font-size:16px!important;color:#5747df!important;font-weight:950!important}
+.pmcv-shell [class*="compareRow"]:nth-child(even){background:#faf9ff!important}
+
+@media(max-width:900px){
+  .pmcv-shell [class*="filterGrid"]{grid-template-columns:1fr!important}
+  .pmcv-shell [class*="filterCard"]{min-height:210px!important}
+}
+@media(max-width:680px){
+  .pmcv-shell [class*="hero"]{padding:48px 14px 56px!important}.pmcv-shell [class*="hero"] h1{font-size:clamp(50px,15vw,70px)!important}
+  .pmcv-shell [class*="analyzerCard"]{padding:19px!important;border-radius:26px!important}
+  .pmcv-shell [class*="stepLabel"]>b{font-size:15px!important}.pmcv-shell [class*="stepLabel"]>small{font-size:10.5px!important}
+  .pmcv-shell section:has([class*="filterGrid"]),.pmcv-shell section:has([class*="compareCard"]){padding-left:14px!important;padding-right:14px!important}
+  .pmcv-shell [class*="filterCard"] b{font-size:38px!important}.pmcv-shell [class*="filterCard"] p{font-size:15px!important}
+  .pmcv-shell [class*="compareHead"],.pmcv-shell [class*="compareRow"]{grid-template-columns:1.05fr .9fr .9fr!important;padding-left:12px!important;padding-right:12px!important;gap:8px!important}
+  .pmcv-shell [class*="compareHead"] b,.pmcv-shell [class*="compareRow"],.pmcv-shell [class*="compareRow"] span,.pmcv-shell [class*="compareRow"] strong{font-size:12px!important}
+  .pmcv-shell [class*="compareRow"] i{font-size:11.5px!important}
+}
