@@ -44,7 +44,8 @@ export async function POST(req:NextRequest){
  const version=text(b?.policy_version,40)||'2026-08-21'
  const consentRows=['terms','privacy','flex_publish_rules'].map(consent_type=>({user_id:user.id,consent_type,version,accepted:true,source:'flex_publish'}))
  const {error:consentErr}=await c.from('pm_consents').upsert(consentRows,{onConflict:'user_id,consent_type,version'});if(consentErr)return NextResponse.json({ok:false,error:'No pudimos registrar la aceptación de las reglas. Intentá nuevamente.'},{status:400})
- const row={publisher_user_id:user.id,company_id:companyId||null,title,category,description,location_text:location,compensation_text:compensation,duration_text:duration||null,scheduled_for:scheduled?new Date(scheduled).toISOString():null,verification_level:'basic',status:'published'}
- const {data,error}=await c.from('pm_flex_posts').insert(row).select('*').single();if(error)return NextResponse.json({ok:false,error:error.message},{status:400})
+ const scopeKey=companyId?`company:${companyId}`:`user:${user.id}`
+ const {data,error}=await c.rpc('pm_publish_flex_with_credit',{p_scope_key:scopeKey,p_company_id:companyId||null,p_title:title,p_category:category,p_description:description,p_location_text:location,p_compensation_text:compensation,p_duration_text:duration,p_scheduled_for:scheduled?new Date(scheduled).toISOString():null})
+ if(error){const noCredits=/no_flex_credits|wallet_not_found/i.test(error.message);return NextResponse.json({ok:false,code:noCredits?'no_credits':'publish_failed',error:noCredits?'No te quedan créditos para publicar. Podés usar un crédito incluido en tu plan o comprar un pack de Trabajo Flex.':error.message},{status:noCredits?402:400})}
  return NextResponse.json({ok:true,post:data})
 }
