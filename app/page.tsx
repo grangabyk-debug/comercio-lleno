@@ -53,6 +53,7 @@ export default function LandingPage(){
       </nav>
       <div className={`${styles.headerActions} ${mobileFix.headerActions}`}>
         <Link href="/redesign/access" className={`${styles.login} ${mobileFix.login}`}>Ingresar</Link>
+        <Link href="/prueba-gratis" className={`${styles.tryButton} ${mobileFix.tryButton}`}>3 MESES GRATIS</Link>
       </div>
     </header>
 
