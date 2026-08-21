@@ -10,15 +10,14 @@ import FreeCareerTools from './FreeCareerTools'
 import FirstCvBridge from './FirstCvBridge'
 import CommentPolicyBridge from './CommentPolicyBridge'
 import AtsBridge from './AtsBridge'
-import CvPlatformJobPicker from './CvPlatformJobPicker'
 import CvUnifiedBridge from './CvUnifiedBridge'
 import {PlatformFooter,PlatformHeader,MobileNav} from '../postula-preview/PlatformChrome'
-import {getJobCatalog} from '../postula-preview/jobs'
 import './postula-mejor-polish.css'
 import './postula-flow-v2.css'
 import './ats-offer.css'
 import './landing-refinement-v2.css'
 import './cv-unified-v8.css'
+import './cv-visual-v9.css'
 
 export const metadata:Metadata={
  metadataBase:new URL('https://postulamejor.com'),
@@ -32,4 +31,4 @@ export const metadata:Metadata={
  icons:{icon:[{url:'/postula-mejor-favicon.svg',type:'image/svg+xml',sizes:'any'}],shortcut:'/postula-mejor-favicon.svg',apple:'/postula-mejor-favicon.svg'},
 }
 export const revalidate=300
-export default async function CvIaPage(){const jobs=await getJobCatalog();const pickerJobs=jobs.slice(0,80).map(j=>({slug:j.slug,title:j.title,company:j.company,location:j.location,summary:j.summary,requirements:j.requirements,external:j.external}));return <main className="pmcv-page pm7-page"><PlatformHeader/><section className="pmcv-intro"><div><span>CV + ATS + OPORTUNIDADES</span><h1>Tu CV viejo ahora vive dentro de <em>Postulá Mejor.</em></h1><p>Conservamos el motor que ya funcionaba: subís el CV, lo vemos desde ATS, selección y responsable del área, y te mostramos qué mejorar. La diferencia es que ahora también podés elegir una búsqueda real de la plataforma y hacer el análisis contra ese puesto.</p></div><aside className="pmcv-intro-side"><b>Empezá sin pagar.</b><p>El diagnóstico inicial sigue siendo gratuito. Pro+ y Búsqueda Activa son planes opcionales de 30 días; cuando vencen, tu cuenta y tu historial siguen existiendo.</p><div><span>ATS gratis</span><span>Primer CV</span><span>Test vocacional</span><span>Plantillas</span></div></aside></section><CvPlatformJobPicker jobs={pickerJobs}/><div className="pmcv-plan-note"><b>Dos caminos:</b> elegí una oferta publicada en Postulá Mejor y completamos puesto + descripción, o pegá una oferta externa como siempre. El análisis no modifica ni envía tu CV sin tu acción.</div><div className="pmcv-shell"><CvIaExperience/></div><FreeCareerTools/><ConsentBridge/><OrientationBridge/><CheckoutBridge/><PhotoPreserveBridge/><FirstCvBridge/><FunnelBridge/><CommentPolicyBridge/><AtsBridge/><OwnerTestBridge/><CvUnifiedBridge/><PlatformFooter/><MobileNav active="cv"/></main>}
+export default function CvIaPage(){return <main className="pmcv-page pm7-page"><PlatformHeader/><div className="pmcv-shell"><CvIaExperience/></div><FreeCareerTools/><ConsentBridge/><OrientationBridge/><CheckoutBridge/><PhotoPreserveBridge/><FirstCvBridge/><FunnelBridge/><CommentPolicyBridge/><AtsBridge/><OwnerTestBridge/><CvUnifiedBridge/><PlatformFooter/><MobileNav active="cv"/></main>}
