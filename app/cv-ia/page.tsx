@@ -11,6 +11,7 @@ import FirstCvBridge from './FirstCvBridge'
 import CommentPolicyBridge from './CommentPolicyBridge'
 import AtsBridge from './AtsBridge'
 import CvUnifiedBridge from './CvUnifiedBridge'
+import FlexPlanBenefitsBridge from '../postula-preview/FlexPlanBenefitsBridge'
 import {PlatformFooter,PlatformHeader,MobileNav} from '../postula-preview/PlatformChrome'
 import './postula-mejor-polish.css'
 import './postula-flow-v2.css'
@@ -32,4 +33,4 @@ export const metadata:Metadata={
  icons:{icon:[{url:'/postula-mejor-favicon.svg',type:'image/svg+xml',sizes:'any'}],shortcut:'/postula-mejor-favicon.svg',apple:'/postula-mejor-favicon.svg'},
 }
 export const revalidate=300
-export default function CvIaPage(){return <main className="pmcv-page pm7-page"><PlatformHeader/><div className="pmcv-shell"><CvIaExperience/></div><FreeCareerTools/><ConsentBridge/><OrientationBridge/><CheckoutBridge/><PhotoPreserveBridge/><FirstCvBridge/><FunnelBridge/><CommentPolicyBridge/><AtsBridge/><OwnerTestBridge/><CvUnifiedBridge/><PlatformFooter/><MobileNav active="cv"/></main>}
+export default function CvIaPage(){return <main className="pmcv-page pm7-page"><PlatformHeader/><div className="pmcv-shell"><CvIaExperience/></div><FreeCareerTools/><ConsentBridge/><OrientationBridge/><CheckoutBridge/><PhotoPreserveBridge/><FirstCvBridge/><FunnelBridge/><CommentPolicyBridge/><AtsBridge/><OwnerTestBridge/><CvUnifiedBridge/><FlexPlanBenefitsBridge/><PlatformFooter/><MobileNav active="cv"/></main>}
