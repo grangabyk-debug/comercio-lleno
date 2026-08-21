@@ -1,0 +1,36 @@
+/* Footer limpio V13 */
+.pm-postula-footer .pm-footer-wordmark{
+  display:inline-block;
+  color:#fff!important;
+  text-decoration:none!important;
+  font-size:clamp(24px,2.2vw,32px)!important;
+  line-height:1!important;
+  letter-spacing:-.045em!important;
+  font-weight:950!important;
+  margin:0 0 16px!important;
+}
+.pm-postula-footer .pm-footer-brand p{
+  max-width:560px!important;
+  font-size:14px!important;
+  line-height:1.6!important;
+}
+.pm-postula-footer .pm-footer-trust{display:none!important}
+.pm-postula-footer .pm-footer-links{
+  gap:14px 34px!important;
+}
+.pm-postula-footer .pm-footer-links a{
+  font-size:15px!important;
+  line-height:1.2!important;
+  font-weight:800!important;
+  letter-spacing:-.01em!important;
+  padding:4px 0!important;
+  transition:opacity .18s ease,transform .18s ease!important;
+}
+.pm-postula-footer .pm-footer-links a:hover{
+  opacity:.72!important;
+  transform:translateX(2px)!important;
+}
+@media(max-width:720px){
+  .pm-postula-footer .pm-footer-wordmark{font-size:27px!important}
+  .pm-postula-footer .pm-footer-links a{font-size:14px!important}
+}
