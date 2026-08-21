@@ -1,0 +1,84 @@
+/* Mejorar CV V10 — jerarquía final, contraste y alineación */
+
+/* Hero sin cortes visuales: todo sobre el mismo plano. */
+.pmcv-shell [class*="hero"]{
+  background:#fbfaf7!important;
+  border:0!important;
+  box-shadow:none!important;
+  border-radius:0!important;
+}
+.pmcv-shell [class*="heroCopy"]{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  border-radius:0!important;
+  max-width:1120px!important;
+  margin-bottom:44px!important;
+}
+.pmcv-shell [class*="heroCopy"]::before,.pmcv-shell [class*="heroCopy"]::after{display:none!important}
+.pmcv-shell [class*="hero"] h1{
+  font-size:clamp(68px,8.3vw,122px)!important;
+  line-height:.88!important;
+  max-width:1080px!important;
+}
+
+/* Cargador: CTA fuerte y textos auxiliares en negro. */
+.pmcv-shell [class*="primaryCta"]{
+  min-height:72px!important;
+  font-size:28px!important;
+  line-height:1!important;
+  font-weight:950!important;
+  letter-spacing:-.035em!important;
+  color:#fff!important;
+  -webkit-text-stroke:.45px #171822!important;
+  text-shadow:0 1px 0 #171822,0 2px 10px rgba(23,24,34,.16)!important;
+}
+.pmcv-shell [class*="microcopy"],
+.pmcv-shell [class*="privacyLine"],
+.pmcv-shell [class*="privacyLine"] span{
+  color:#111318!important;
+  font-size:13px!important;
+  font-weight:750!important;
+}
+.pmcv-shell [data-cv-consent-host]>div{
+  background:rgba(255,255,255,.76)!important;
+  border:1px solid rgba(20,22,28,.14)!important;
+  color:#111318!important;
+  box-shadow:none!important;
+}
+.pmcv-shell [data-cv-consent-host] label,
+.pmcv-shell [data-cv-consent-host] span,
+.pmcv-shell [data-cv-consent-host] div,
+.pmcv-shell [data-cv-consent-host] a,
+.pmcv-shell [data-cv-consent-host] b{
+  color:#111318!important;
+}
+.pmcv-shell [data-cv-consent-host] a{text-decoration:underline!important;text-underline-offset:2px!important;font-weight:950!important}
+
+/* Triple filtro: un poco más contenido y perfectamente centrado. */
+.pmcv-shell [class*="filterCard"]{
+  justify-content:center!important;
+  align-items:stretch!important;
+  text-align:left!important;
+}
+.pmcv-shell [class*="filterCard"] b{
+  align-self:center!important;
+  width:100%!important;
+  text-align:center!important;
+  font-size:clamp(30px,2.5vw,39px)!important;
+  line-height:.98!important;
+  margin:0 0 20px!important;
+  letter-spacing:-.05em!important;
+}
+.pmcv-shell [class*="filterCard"] p{
+  max-width:100%!important;
+  margin:0!important;
+}
+
+@media(max-width:760px){
+  .pmcv-shell [class*="hero"]{padding-top:48px!important}
+  .pmcv-shell [class*="hero"] h1{font-size:clamp(54px,15vw,76px)!important;line-height:.9!important}
+  .pmcv-shell [class*="primaryCta"]{min-height:64px!important;font-size:22px!important}
+  .pmcv-shell [class*="microcopy"],.pmcv-shell [class*="privacyLine"],.pmcv-shell [data-cv-consent-host]>div{font-size:12px!important}
+  .pmcv-shell [class*="filterCard"] b{font-size:32px!important}
+}
