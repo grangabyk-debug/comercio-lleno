@@ -1,0 +1,33 @@
+'use client'
+
+import {FormEvent,useEffect,useState} from 'react'
+import {cvAuthClient} from '../cv-ia/cvAuth'
+
+type Audience='candidate'|'employer'
+type Ticket={id:string;category:string;priority:number;subject:string;status:string;last_message_at:string}
+type Message={id:string;sender_kind:string;body:string;created_at:string}
+const categories=[
+ {id:'security_fraud',title:'Seguridad o posible estafa',copy:'Algo te resulta sospechoso, te pidieron dinero, claves o documentación.',tone:'urgent'},
+ {id:'user_problem',title:'Problema con otro usuario',copy:'Conducta inapropiada, acoso, engaño o conflicto en un chat.',tone:'urgent'},
+ {id:'payment',title:'Pago, plan o créditos',copy:'Cobros, planes, Mercado Pago o créditos de Trabajo Flex.',tone:'high'},
+ {id:'publishing',title:'Postulación o publicación',copy:'No podés postularte, publicar o gestionar una búsqueda.',tone:'high'},
+ {id:'technical',title:'Problema técnico',copy:'Algo de la plataforma no carga, falla o se ve mal.',tone:'normal'},
+ {id:'how_to',title:'Cómo usar Postulá Mejor',copy:'Necesitás orientación con alguna función.',tone:'normal'},
+]
+async function sessionHeader(){const {data}=await cvAuthClient().auth.getSession();return data.session?.access_token?{Authorization:`Bearer ${data.session.access_token}`}:{}}
+export default function SupportHelp({audience}:{audience:Audience}){
+ const [open,setOpen]=useState(false),[category,setCategory]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[notice,setNotice]=useState(''),[tickets,setTickets]=useState<Ticket[]>([]),[active,setActive]=useState<Ticket|null>(null),[messages,setMessages]=useState<Message[]>([]),[companyId,setCompanyId]=useState<string|null>(null)
+ useEffect(()=>{if(audience!=='employer')return;(async()=>{const h=await sessionHeader();if(!('Authorization' in h))return;const r=await fetch('/api/postula/company',{headers:h});const d=await r.json().catch(()=>({}));setCompanyId(d?.memberships?.[0]?.company_id||null)})()},[audience])
+ async function loadTickets(){const h=await sessionHeader();if(!('Authorization' in h))return;const r=await fetch('/api/postula/support',{headers:h});const d=await r.json().catch(()=>({}));if(r.ok&&d?.ok)setTickets(d.tickets||[])}
+ async function loadTicket(ticket:Ticket){const h=await sessionHeader();if(!('Authorization' in h))return;const r=await fetch(`/api/postula/support?ticket=${encodeURIComponent(ticket.id)}`,{headers:h});const d=await r.json().catch(()=>({}));if(r.ok&&d?.ok){setActive(d.ticket);setMessages(d.messages||[])}}
+ useEffect(()=>{if(open)void loadTickets()},[open])
+ async function create(e:FormEvent){e.preventDefault();if(!category||message.trim().length<5||busy)return;setBusy(true);setNotice('');try{const h=await sessionHeader();if(!('Authorization' in h)){location.assign(`/acceso?next=${encodeURIComponent(location.pathname)}`);return}const r=await fetch('/api/postula/support',{method:'POST',headers:{'Content-Type':'application/json',...h},body:JSON.stringify({action:'create',audience,category,message:message.trim(),company_id:companyId,page_path:location.pathname+location.search})});const d=await r.json().catch(()=>({}));if(!r.ok||!d?.ok)throw new Error(d?.error||'No pudimos abrir el caso.');setMessage('');setCategory('');setNotice(d.ticket.priority<=1?'Caso prioritario enviado. Ya quedó marcado para revisión urgente.':'Caso enviado. Quedó registrado en soporte.');await loadTickets();await loadTicket(d.ticket)}catch(e){setNotice(e instanceof Error?e.message:'No pudimos abrir el caso.')}finally{setBusy(false)}}
+ async function reply(e:FormEvent){e.preventDefault();if(!active||message.trim().length<2||busy)return;setBusy(true);try{const h=await sessionHeader();const r=await fetch('/api/postula/support',{method:'POST',headers:{'Content-Type':'application/json',...h},body:JSON.stringify({action:'message',ticket_id:active.id,message:message.trim()})});const d=await r.json().catch(()=>({}));if(!r.ok||!d?.ok)throw new Error(d?.error||'No pudimos enviar el mensaje.');setMessages(v=>[...v,d.message]);setMessage('')}catch(e){setNotice(e instanceof Error?e.message:'No pudimos enviar el mensaje.')}finally{setBusy(false)}}
+ return <>
+  <button type="button" className="pm21-help-fab" onClick={()=>setOpen(true)} aria-label="Abrir ayuda"><span>?</span><b>Ayuda</b></button>
+  {open&&<div className="pm21-help-backdrop" role="dialog" aria-modal="true"><section className="pm21-help-panel"><header><div><span>SOPORTE POSTULÁ MEJOR</span><h2>{active?'Tu caso':'¿En qué te ayudamos?'}</h2><p>{active?'Podés continuar la conversación desde acá.':'Elegí la opción que mejor describa el problema. Los casos de seguridad se priorizan automáticamente.'}</p></div><button type="button" onClick={()=>{setOpen(false);setActive(null);setMessages([])}}>×</button></header>
+   {!active?<><div className="pm21-help-cats">{categories.map(c=><button type="button" key={c.id} data-on={category===c.id} data-tone={c.tone} onClick={()=>setCategory(c.id)}><b>{c.title}</b><span>{c.copy}</span></button>)}</div><form onSubmit={create} className="pm21-help-compose"><textarea value={message} onChange={e=>setMessage(e.target.value)} placeholder="Contanos brevemente qué pasó…" maxLength={3000}/><button disabled={busy||!category||message.trim().length<5}>{busy?'Enviando…':'Abrir caso con soporte'}</button></form>{tickets.length>0&&<div className="pm21-help-history"><b>Casos anteriores</b>{tickets.slice(0,4).map(t=><button type="button" key={t.id} onClick={()=>void loadTicket(t)}><span>{t.subject}</span><small>{t.status==='open'?'Abierto':t.status}</small></button>)}</div>}</>:<><div className="pm21-help-ticket-meta"><span data-priority={active.priority}>{active.priority<=1?'Prioridad alta':'Caso de soporte'}</span><b>{active.subject}</b><small>{active.status==='open'?'Abierto':'Estado: '+active.status}</small></div><div className="pm21-help-thread">{messages.map(m=><article key={m.id} data-support={m.sender_kind!=='user'}><div><p>{m.body}</p><small>{new Date(m.created_at).toLocaleString('es-AR',{dateStyle:'short',timeStyle:'short'})}</small></div></article>)}</div><form onSubmit={reply} className="pm21-help-compose"><textarea value={message} onChange={e=>setMessage(e.target.value)} placeholder="Escribí una respuesta…" maxLength={3000}/><div><button type="button" className="secondary" onClick={()=>{setActive(null);setMessages([]);setMessage('')}}>Volver</button><button disabled={busy||message.trim().length<2}>{busy?'Enviando…':'Enviar'}</button></div></form></>}
+   {notice&&<div className="pm21-help-notice">{notice}</div>}
+  </section></div>}
+ </>
+}

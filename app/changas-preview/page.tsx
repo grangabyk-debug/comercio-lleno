@@ -4,6 +4,7 @@ import {gigCategories,previewGigs} from '../postula-preview/gigs'
 import ChangasExplorer from './ChangasExplorer'
 import '../postula-preview/premium-v6.css'
 import '../postula-preview/premium-v7.css'
+import './flex-credits-v21.css'
 
 export const metadata={title:{absolute:'Trabajos Flex | Postulá Mejor'},description:'Tareas puntuales, trabajos por hora y servicios concretos cerca tuyo, con contexto y chat antes de acordar.',robots:{index:true,follow:true},alternates:{canonical:'https://postulamejor.com/trabajos-flex'}}
 
