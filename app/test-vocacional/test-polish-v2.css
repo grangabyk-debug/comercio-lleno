@@ -1,0 +1,15 @@
+/* Ajustes finales de legibilidad del test vocacional */
+[class*="answers"]{gap:12px!important}
+[class*="answers"] button{min-height:132px!important;padding:20px 14px!important;border-radius:20px!important}
+[class*="answers"] b{width:48px!important;height:48px!important;font-size:20px!important;margin-bottom:12px!important}
+[class*="answers"] span{font-size:18px!important;line-height:1.15!important;font-weight:900!important;letter-spacing:-.02em!important}
+[class*="answers"] button:last-child span{font-size:0!important}
+[class*="answers"] button:last-child span::after{content:'Mucho';font-size:18px;line-height:1.15;font-weight:900;letter-spacing:-.02em}
+
+@media(max-width:760px){
+  [class*="answers"]{gap:10px!important}
+  [class*="answers"] button{min-height:72px!important;padding:14px 16px!important;border-radius:18px!important}
+  [class*="answers"] b{width:42px!important;height:42px!important;font-size:18px!important;margin-bottom:0!important}
+  [class*="answers"] span{font-size:16px!important}
+  [class*="answers"] button:last-child span::after{font-size:16px}
+}
