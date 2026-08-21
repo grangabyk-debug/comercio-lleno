@@ -91,16 +91,15 @@ export default function TrialSignup(){
 
     <section className={styles.layout}>
       <div className={styles.copy}>
-        <div className={styles.eyebrow}>PLAN IMPULSO · 3 MESES GRATIS · SIN TARJETA</div>
+        <div className={styles.eyebrow}>REGISTRO SIMPLE · SIN TARJETA</div>
         <h1>Tu comercio listo<br/><span>en menos de un minuto.</span></h1>
-        <p className={styles.lead}>Creá tu cuenta y usá Comercio Lleno completo durante 90 días por $0. Después, 3 meses a {monthlyPrice} por mes y luego {regularPrice} por mes.</p>
+        <p className={styles.lead}>Creá tu cuenta y empezá a usar Comercio Lleno en pocos pasos. Después podés completar los datos de tu comercio desde Configuración.</p>
         <div className={styles.simpleSteps}>
           <div><b>01</b><span><strong>Creá tu acceso</strong><small>Google o email. Sin formularios eternos.</small></span></div>
           <div><b>02</b><span><strong>Decinos cómo se llama tu comercio</strong><small>Nosotros preparamos el resto para arrancar.</small></span></div>
-          <div><b>03</b><span><strong>Usalo 90 días gratis</strong><small>ARCA, empleados, dirección y datos fiscales se completan después.</small></span></div>
+          <div><b>03</b><span><strong>Entrá y empezá a usarlo</strong><small>ARCA, empleados, dirección y datos fiscales se completan después.</small></span></div>
         </div>
         <div className={styles.mobilePromise}><span>DESDE CUALQUIER LUGAR</span><strong>También podés manejar tu comercio desde el celular.</strong><small>Ventas, productos, stock, caja y seguimiento del negocio con una experiencia pensada para pantalla chica.</small></div>
-        <div className={styles.price}><div><b>$0</b><span>/ 90 días</span></div><p>Después, 3 meses a {monthlyPrice}/mes. Luego {regularPrice}/mes. Cancelás cuando quieras.</p></div>
       </div>
 
       <div className={styles.card}>
