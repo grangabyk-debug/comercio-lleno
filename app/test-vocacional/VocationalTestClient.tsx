@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import styles from './vocational.module.css'
 import { trackCvEvent } from '../cv-ia/cvAuth'
 
 type Area='R'|'I'|'A'|'S'|'E'|'C'
-type Question={area:Area;text:string}
+type Question={area:Area,text:string}
 const questions:Question[]=[
  {area:'R',text:'Disfrutaría armar, reparar o mejorar algo con mis manos.'},{area:'I',text:'Me entusiasma investigar por qué ocurre un problema y encontrar una explicación.'},{area:'A',text:'Me gustaría crear piezas visuales, textos, música, videos o ideas originales.'},{area:'S',text:'Me hace bien acompañar a alguien para que aprenda, mejore o resuelva una dificultad.'},{area:'E',text:'Me atrae presentar una idea y lograr que otras personas se sumen.'},{area:'C',text:'Me siento cómodo ordenando información, registros, fechas o tareas.'},
  {area:'R',text:'Preferiría un trabajo donde pueda moverme, usar herramientas o trabajar sobre cosas concretas.'},{area:'I',text:'Me gusta comparar datos, detectar patrones y llegar a una conclusión.'},{area:'A',text:'Me importa que mi trabajo tenga espacio para expresar una mirada personal.'},{area:'S',text:'Podría disfrutar un trabajo con mucha escucha, atención o trato humano.'},{area:'E',text:'Me motiva negociar, vender, coordinar o impulsar un proyecto.'},{area:'C',text:'Me resulta satisfactorio que un proceso quede prolijo, completo y sin errores.'},
@@ -24,18 +24,21 @@ const info:Record<Area,{name:string,short:string,description:string,areas:string
 }
 
 export default function VocationalTestClient(){
- const [index,setIndex]=useState(0),[answers,setAnswers]=useState<number[]>(Array(questions.length).fill(0)),[done,setDone]=useState(false)
- useEffect(()=>{void trackCvEvent('vocational_test_started',{source:'direct'},'/test-vocacional')},[])
+ const [started,setStarted]=useState(false),[index,setIndex]=useState(0),[answers,setAnswers]=useState<number[]>(Array(questions.length).fill(0)),[done,setDone]=useState(false)
  const progress=Math.round(((done?questions.length:index)/questions.length)*100)
  const result=useMemo(()=>{const totals:Record<Area,number>={R:0,I:0,A:0,S:0,E:0,C:0};answers.forEach((v,i)=>{if(v)totals[questions[i].area]+=v});return (Object.keys(totals) as Area[]).map(area=>({area,score:totals[area]})).sort((a,b)=>b.score-a.score)},[answers])
+ function beginTest(){setStarted(true);void trackCvEvent('vocational_test_started',{source:'direct'},'/test-vocacional')}
  function answer(value:number){const next=[...answers];next[index]=value;setAnswers(next);if(index===questions.length-1){setDone(true);const top=resultFrom(next);localStorage.setItem('postula_vocational_result_v1',JSON.stringify(top));void trackCvEvent('vocational_test_completed',{source:'test',result_count:3,mode:top.slice(0,3).map(x=>x.area).join('')},'/test-vocacional')}else setIndex(index+1)}
  function resultFrom(values:number[]){const totals:Record<Area,number>={R:0,I:0,A:0,S:0,E:0,C:0};values.forEach((v,i)=>totals[questions[i].area]+=v);return (Object.keys(totals) as Area[]).map(area=>({area,score:totals[area],...info[area]})).sort((a,b)=>b.score-a.score)}
- function restart(){setAnswers(Array(questions.length).fill(0));setIndex(0);setDone(false)}
+ function restart(){setAnswers(Array(questions.length).fill(0));setIndex(0);setDone(false);setStarted(true)}
  const final=resultFrom(answers),top=final.slice(0,3),roles=Array.from(new Set(top.flatMap(x=>x.roles))).slice(0,10)
  function buildCv(){localStorage.setItem('postula_vocational_result_v1',JSON.stringify(final));localStorage.setItem('postula_first_cv_target_v1',roles[0]||'');void trackCvEvent('first_cv_started',{source:'vocational'},'/test-vocacional');location.href='/primer-cv'}
  return <main className={styles.page}>
   <header className={styles.top}><a href="/" className={styles.brand}><span>postula</span><strong>mejor</strong><span>.com</span></a><a href="/" className={styles.back}>Volver</a></header>
-  {!done?<section className={styles.test}>
+  {!started?<section className={styles.start}>
+   <div className={styles.startCopy}><span>TEST VOCACIONAL · GRATIS</span><h1>No hace falta tener todo claro para empezar.</h1><p>Te voy a mostrar 30 situaciones cortas. Elegí cuánto te representan y al final vas a ver qué tipos de trabajo, áreas y primeros puestos pueden tener más sentido para vos.</p><div className={styles.startMeta}><div><b>30</b><span>situaciones</span></div><div><b>5 min</b><span>aprox.</span></div><div><b>3</b><span>señales principales</span></div></div><button onClick={beginTest}>Empezar el test <i>→</i></button><small>Sin respuestas correctas. Sin decidir una carrera por vos.</small></div>
+   <div className={styles.startVisual} aria-hidden="true"><div className={styles.orbit}><span>CREAR</span><span>AYUDAR</span><span>ANALIZAR</span><span>HACER</span><span>IMPULSAR</span><span>ORDENAR</span></div><div className={styles.startCard}><small>UNA PISTA A LA VEZ</small><strong>¿Qué tipo de trabajo te daría ganas de probar?</strong><div><span>Curiosidad</span><span>Intereses</span><span>Experiencias</span></div></div></div>
+  </section>:!done?<section className={styles.test}>
    <div className={styles.testHead}><span>TEST GRATUITO · INTERESES VOCACIONALES Y LABORALES</span><h1>Busquemos pistas sobre el trabajo que podría hacerte bien.</h1><p>No hay respuestas correctas. Contestá pensando en lo que realmente te atrae, no en lo que creés que “deberías” elegir.</p></div>
    <div className={styles.progress}><div style={{width:`${progress}%`}}/><span>{index+1} de {questions.length}</span></div>
    <article className={styles.question}><small>IMAGINATE EN ESTA SITUACIÓN</small><h2>{questions[index].text}</h2><div className={styles.answers}>{labels.map(x=><button key={x.v} onClick={()=>answer(x.v)}><b>{x.v}</b><span>{x.t}</span></button>)}</div>{index>0&&<button className={styles.previous} onClick={()=>setIndex(index-1)}>← Volver a la anterior</button>}</article>
