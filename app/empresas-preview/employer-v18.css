@@ -63,3 +63,142 @@
   .pm7-employer-plan:nth-child(4){grid-column:2/span 2!important;margin-left:0!important}
   .pm7-employer-plan:nth-child(5){grid-column:4/span 2!important;margin-left:0!important}
 }
+
+/* Referencias V19 — separar claramente match con el puesto de señal verificable */
+.pm7-reference-stage{
+  align-items:stretch!important;
+  gap:22px!important;
+}
+.pm7-reference-score{
+  position:relative!important;
+  min-height:390px!important;
+  padding:30px 30px 28px!important;
+  border-radius:34px!important;
+  overflow:hidden!important;
+  display:grid!important;
+  grid-template-columns:112px minmax(0,1fr)!important;
+  grid-template-rows:auto auto 1fr auto!important;
+  column-gap:22px!important;
+  align-items:start!important;
+  background:
+    radial-gradient(circle at 90% 7%,rgba(217,255,89,.16),transparent 31%),
+    linear-gradient(145deg,#102d3d 0%,#0d2535 55%,#102637 100%)!important;
+  border:1px solid rgba(99,228,183,.22)!important;
+  box-shadow:0 30px 80px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.06)!important;
+  transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease!important;
+}
+.pm7-reference-score:hover{
+  transform:translateY(-7px)!important;
+  border-color:rgba(217,255,89,.48)!important;
+  box-shadow:0 42px 100px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.08)!important;
+}
+.pm7-reference-score:before{
+  content:''!important;
+  position:relative!important;
+  inset:auto!important;
+  grid-column:1!important;
+  grid-row:1/4!important;
+  width:112px!important;
+  height:136px!important;
+  border-radius:27px!important;
+  background:url('https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=420') center 18%/cover no-repeat!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  box-shadow:0 18px 36px rgba(0,0,0,.30),inset 0 1px 0 rgba(255,255,255,.12)!important;
+}
+.pm7-reference-score:after{
+  content:'94%\Aajuste con esta búsqueda'!important;
+  white-space:pre!important;
+  position:absolute!important;
+  top:30px!important;
+  right:30px!important;
+  min-width:138px!important;
+  padding:13px 15px 12px!important;
+  border-radius:19px!important;
+  background:linear-gradient(135deg,#d9ff59,#bff343)!important;
+  color:#071827!important;
+  font-size:10px!important;
+  line-height:1.25!important;
+  font-weight:950!important;
+  letter-spacing:-.01em!important;
+  text-align:left!important;
+  box-shadow:0 14px 34px rgba(183,226,55,.20),inset 0 1px 0 rgba(255,255,255,.65)!important;
+}
+.pm7-reference-score>span{
+  grid-column:2!important;
+  margin:6px 160px 0 0!important;
+  font-size:0!important;
+  line-height:1!important;
+  color:#d9ff59!important;
+  letter-spacing:.11em!important;
+  font-weight:950!important;
+}
+.pm7-reference-score>span:after{
+  content:'PERFIL ILUSTRATIVO · VENTAS'!important;
+  font-size:9px!important;
+}
+.pm7-reference-score>b{
+  grid-column:2!important;
+  align-self:end!important;
+  margin:62px 0 0!important;
+  font-size:68px!important;
+  line-height:.88!important;
+  letter-spacing:-.065em!important;
+  color:#fff!important;
+  text-shadow:0 8px 24px rgba(0,0,0,.22)!important;
+}
+.pm7-reference-score>p{
+  grid-column:2!important;
+  margin:9px 0 0!important;
+  max-width:260px!important;
+  font-size:16px!important;
+  line-height:1.25!important;
+  font-weight:850!important;
+  color:#f4f8fa!important;
+}
+.pm7-reference-score>small{
+  grid-column:1/-1!important;
+  align-self:end!important;
+  margin-top:24px!important;
+  padding:15px 17px!important;
+  border-radius:18px!important;
+  background:rgba(255,255,255,.065)!important;
+  border:1px solid rgba(255,255,255,.08)!important;
+  color:#b9c8d0!important;
+  font-size:11px!important;
+  line-height:1.5!important;
+}
+.pm7-reference-score>small:after{
+  content:' · El 94% mide ajuste al puesto; no es una reputación personal.'!important;
+  color:#d9ff59!important;
+  font-weight:850!important;
+}
+
+@media(max-width:760px){
+  .pm7-reference-score{
+    min-height:430px!important;
+    padding:22px!important;
+    grid-template-columns:86px minmax(0,1fr)!important;
+    column-gap:16px!important;
+    border-radius:28px!important;
+  }
+  .pm7-reference-score:before{width:86px!important;height:110px!important;border-radius:22px!important}
+  .pm7-reference-score:after{top:22px!important;right:22px!important;min-width:116px!important;padding:11px 12px!important;font-size:9px!important}
+  .pm7-reference-score>span{margin-right:126px!important;margin-top:3px!important}
+  .pm7-reference-score>b{font-size:58px!important;margin-top:58px!important}
+  .pm7-reference-score>p{font-size:15px!important}
+  .pm7-reference-score>small{font-size:10.5px!important;padding:14px!important}
+}
+
+@media(max-width:430px){
+  .pm7-reference-score{
+    min-height:455px!important;
+    grid-template-columns:72px minmax(0,1fr)!important;
+    padding:18px!important;
+    column-gap:13px!important;
+  }
+  .pm7-reference-score:before{width:72px!important;height:94px!important;border-radius:19px!important}
+  .pm7-reference-score:after{top:18px!important;right:18px!important;min-width:104px!important;font-size:8.5px!important;padding:10px!important}
+  .pm7-reference-score>span{margin-right:110px!important}
+  .pm7-reference-score>b{font-size:52px!important;margin-top:54px!important}
+  .pm7-reference-score>p{font-size:14px!important;line-height:1.3!important}
+}
