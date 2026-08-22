@@ -32,17 +32,19 @@ export async function POST(req:NextRequest){
   db.from('pm_profiles').select('*').eq('user_id',user.id).maybeSingle(),
   db.from('pm_candidate_profiles').select('*').eq('user_id',user.id).maybeSingle()
  ])
- const role=body?.role==='employer'?'employer':body?.role==='candidate'?'candidate':existingProfile?.primary_role==='employer'?'employer':'candidate'
+ const requestedRole=body?.role==='employer'?'employer':body?.role==='candidate'?'candidate':null
+ const primaryRole=existingProfile?.primary_role||requestedRole||'candidate'
+ const candidateWrite=requestedRole==='candidate'||body?.activate_candidate===true||body?.candidate_settings===true||Boolean(existingCandidate)
  const profile={
   user_id:user.id,
-  primary_role:role,
+  primary_role:primaryRole,
   display_name:textPatch(body,'display_name',existingProfile?.display_name,80),
   avatar_url:textPatch(body,'avatar_url',existingProfile?.avatar_url,500),
   onboarding_completed:has(body,'onboarding_completed')?Boolean(body?.onboarding_completed):Boolean(existingProfile?.onboarding_completed),
   updated_at:new Date().toISOString()
  }
  const {error:pErr}=await db.from('pm_profiles').upsert(profile,{onConflict:'user_id'});if(pErr)return NextResponse.json({ok:false,error:pErr.message},{status:400})
- if(role==='candidate'){
+ if(candidateWrite){
   const skills=arrayPatch(body,'skills',existingCandidate?.skills,60,25)
   const areas=arrayPatch(body,'preferred_areas',existingCandidate?.preferred_areas,60,12)
   const modes=arrayPatch(body,'work_modes',existingCandidate?.work_modes,30,5)
