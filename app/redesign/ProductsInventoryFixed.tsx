@@ -11,6 +11,7 @@ type DateMode='default'|'newest'|'oldest'
 
 function customKey(companyId:string){return`cl_product_categories_${companyId}`}
 function readCustom(companyId:string){if(typeof window==='undefined')return[] as string[];try{return JSON.parse(localStorage.getItem(customKey(companyId))||'[]') as string[]}catch{return[]}}
+function loadedAt(value:string|undefined){if(!value)return'Fecha no disponible';const date=new Date(value);return Number.isNaN(date.getTime())?'Fecha no disponible':date.toLocaleString('es-AR',{dateStyle:'short',timeStyle:'short'})}
 
 export default function ProductsInventoryFixed(props:Props){
   const[category,setCategory]=useState('Todas')
@@ -70,7 +71,6 @@ export default function ProductsInventoryFixed(props:Props){
     })
     return rows
   },[props.data.products,category,dateMode,dates])
-  const latest=useMemo(()=>[...props.data.products].filter(p=>dates[p.id]).sort((a,b)=>new Date(dates[b.id]).getTime()-new Date(dates[a.id]).getTime()).slice(0,5),[props.data.products,dates])
   const childData=useMemo(()=>({...props.data,products:filtered}),[props.data,filtered])
 
   function createCategory(){const raw=window.prompt('Nombre de la nueva categoría');const name=String(raw||'').trim();if(!name)return;if(categories.some(x=>x.toLocaleLowerCase('es')===name.toLocaleLowerCase('es'))){setCategory(categories.find(x=>x.toLocaleLowerCase('es')===name.toLocaleLowerCase('es'))||name);return}const next=[...custom,name];setCustom(next);localStorage.setItem(customKey(props.session.companyId),JSON.stringify(next));setCategory(name);props.message(`Categoría “${name}” creada. Ya podés asignarla a productos.`)}
@@ -84,7 +84,11 @@ export default function ProductsInventoryFixed(props:Props){
       {modules.fractional.enabled&&<span style={{fontSize:11,fontWeight:900,padding:'8px 11px',borderRadius:999,background:'#e7f7ef',color:'#116b43'}}>Venta fraccionada activa</span>}
       {modules.apparel.enabled&&<span style={{fontSize:11,fontWeight:900,padding:'8px 11px',borderRadius:999,background:'#f2eafa',color:'#624176'}}>Indumentaria activa</span>}
     </section>
-    {dateMode!=='default'&&latest.length>0&&<section style={{margin:'0 0 12px',padding:'11px 13px',borderRadius:14,background:'#f7faf8',border:'1px solid #e3ebe6'}}><b style={{fontSize:12}}>{dateMode==='newest'?'Últimos productos cargados':'Orden por fecha de carga activo'}</b><div style={{display:'flex',gap:7,flexWrap:'wrap',marginTop:8}}>{latest.map(p=><span key={p.id} title={new Date(dates[p.id]).toLocaleString('es-AR')} style={{fontSize:11,padding:'7px 9px',borderRadius:9,background:'#fff',border:'1px solid #e0e7e3'}}><b>{p.name}</b> · {new Date(dates[p.id]).toLocaleDateString('es-AR')}</span>)}</div></section>}
-    <ProductsInventory {...props} data={childData} message={relayMessage}/>
+
+    {dateMode!=='default'?<section style={{border:'1px solid #dfe7e2',borderRadius:16,overflow:'hidden',background:'#fff',marginBottom:14}}>
+      <div style={{padding:'12px 14px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,borderBottom:'1px solid #e7ede9',background:'#f7faf8'}}><div><b style={{fontSize:13}}>{dateMode==='newest'?'Productos más recientes':'Productos más antiguos'}</b><div style={{fontSize:11,color:'#68766f',marginTop:3}}>{filtered.length} producto{filtered.length===1?'':'s'} · orden real por fecha de carga</div></div><button type="button" onClick={()=>setDateMode('default')} style={{height:34,border:'1px solid #d5ded9',borderRadius:10,background:'#fff',fontWeight:850,padding:'0 11px',cursor:'pointer'}}>Volver a edición</button></div>
+      <div style={{maxHeight:520,overflow:'auto'}}>{filtered.map((p,index)=><div key={p.id} style={{display:'grid',gridTemplateColumns:'42px minmax(180px,1.6fr) minmax(130px,.8fr) minmax(130px,.8fr) 100px 95px',gap:10,alignItems:'center',padding:'10px 13px',borderBottom:index===filtered.length-1?0:'1px solid #edf1ef',minWidth:760}}><span style={{fontSize:10,fontWeight:900,color:'#87948d'}}>#{index+1}</span><span><b style={{display:'block',fontSize:12}}>{p.name}</b><small style={{display:'block',fontSize:10,color:'#728079',marginTop:2}}>{p.barcode||'Sin código'}</small></span><span style={{fontSize:11,fontWeight:750}}>{p.category||'General'}</span><span style={{fontSize:11,color:'#5e6e66'}}>{loadedAt(dates[p.id])}</span><span style={{fontSize:11,fontWeight:900}}>{new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(Number(p.price||0))}</span><span style={{fontSize:11,fontWeight:850}}>Stock {p.stock}</span></div>)}</div>
+      {!filtered.length&&<div style={{padding:26,textAlign:'center',color:'#6e7c75',fontSize:12}}>No hay productos para este filtro.</div>}
+    </section>:<ProductsInventory {...props} data={childData} message={relayMessage}/>} 
   </div>
 }
