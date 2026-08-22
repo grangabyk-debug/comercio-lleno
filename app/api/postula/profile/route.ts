@@ -64,12 +64,12 @@ export async function POST(req:NextRequest){
   candidate.profile_completion=Math.min(100,10+completeness*12)
   const {error:cErr}=await db.from('pm_candidate_profiles').upsert(candidate,{onConflict:'user_id'});if(cErr)return NextResponse.json({ok:false,error:cErr.message},{status:400})
  }
- if(body?.accept_legal===true){
+ if(body?.accept_legal===true||body?.activate_candidate===true){
   const version=cleanText(body?.terms_version,40)||'2026-08-21'
   const source=cleanText(body?.source,80)||'account'
-  const consentTypes=['terms','privacy',...(body?.responsibility_ack===true?['publisher_responsibility']:[])]
-  const rows=consentTypes.map(consent_type=>({user_id:user.id,consent_type,version,accepted:true,source}))
-  const {error:cns}=await db.from('pm_consents').upsert(rows,{onConflict:'user_id,consent_type,version'});if(cns)return NextResponse.json({ok:false,error:cns.message},{status:400})
+  const consentTypes=[...(body?.accept_legal===true?['terms','privacy']:[]),...(body?.responsibility_ack===true?['publisher_responsibility']:[]),...(body?.activate_candidate===true?['candidate_profile_activation']:[])]
+  const rows=Array.from(new Set(consentTypes)).map(consent_type=>({user_id:user.id,consent_type,version,accepted:true,source}))
+  if(rows.length){const {error:cns}=await db.from('pm_consents').upsert(rows,{onConflict:'user_id,consent_type,version'});if(cns)return NextResponse.json({ok:false,error:cns.message},{status:400})}
  }
  return NextResponse.json({ok:true})
 }
