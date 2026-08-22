@@ -28,6 +28,18 @@
   z-index:2!important;
 }
 
+/* La landing pública no necesita navegación interna del empleador.
+   Esos accesos siguen disponibles dentro de la cuenta/panel privado. */
+.pm7-employer:has(> .pm7-employer-hero) .pm-social-header-employer .pm-social-nav > a:nth-child(1),
+.pm7-employer:has(> .pm7-employer-hero) .pm-social-header-employer .pm-social-nav > a:nth-child(2){
+  display:none!important;
+}
+.pm7-employer:has(> .pm7-employer-hero) .pm-social-header-employer .pm-social-nav{
+  margin-left:auto!important;
+  justify-content:flex-end!important;
+  gap:12px!important;
+}
+
 @media(max-width:860px){
   .pm7-employer .pm-social-header-employer .pm-social-nav .pm-nav-new{
     min-width:112px!important;
@@ -41,6 +53,9 @@
     right:auto!important;
     font-size:6.5px!important;
     padding:4px 5px!important;
+  }
+  .pm7-employer:has(> .pm7-employer-hero) .pm-social-header-employer .pm-social-nav{
+    justify-content:flex-start!important;
   }
 }
 
