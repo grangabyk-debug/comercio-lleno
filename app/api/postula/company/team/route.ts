@@ -8,6 +8,8 @@ const txt=(v:unknown,n=180)=>String(v??'').trim().slice(0,n)
 async function hash(v:string){const raw=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));return Array.from(new Uint8Array(raw),x=>x.toString(16).padStart(2,'0')).join('')}
 function token(){const a=new Uint8Array(24);crypto.getRandomValues(a);return Array.from(a,x=>x.toString(16).padStart(2,'0')).join('')}
 function first<T>(value:T|T[]|null|undefined){return Array.isArray(value)?value[0]??null:value??null}
+const roleLabel:Record<string,string>={admin:'Administrador',recruiter:'Recursos Humanos',hiring_manager:'Responsable que entrevista',viewer:'Sólo lectura'}
+const esc=(v:string)=>v.replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'} as Record<string,string>)[c]||c)
 
 export async function GET(req:NextRequest){
  const c=db(req)
@@ -31,7 +33,20 @@ export async function POST(req:NextRequest){
  const raw=token(),tokenHash=await hash(raw)
  const {data,error}=await c.from('pm_company_invites').insert({company_id:company,email,role,token_hash:tokenHash,invited_by:user.id}).select('id,email,role,status,expires_at').single()
  if(error)return NextResponse.json({ok:false,error:error.message},{status:403})
- return NextResponse.json({ok:true,invite:data,invite_url:`/empresas/invitacion?token=${raw}`})
+ const invitePath=`/empresas/invitacion?token=${raw}`
+ let emailSent=false
+ const resend=process.env.RESEND_API_KEY
+ if(resend){
+  try{
+   const {data:companyRow}=await c.from('pm_companies').select('name').eq('id',company).maybeSingle()
+   const companyName=txt(companyRow?.name||'una empresa',120)
+   const inviteUrl=`https://postulamejor.com${invitePath}`
+   const html=`<!doctype html><html><body style="margin:0;background:#f4f6f8;font-family:Arial,sans-serif;color:#101820"><div style="max-width:600px;margin:0 auto;padding:30px 16px"><div style="background:#081d2b;color:#fff;padding:28px;border-radius:22px 22px 0 0"><div style="font-size:22px;font-weight:800">Postulá Mejor</div><div style="margin-top:7px;color:#c5d0d6">Invitación a un equipo de selección</div></div><div style="background:#fff;padding:30px;border-radius:0 0 22px 22px"><h1 style="font-size:27px;margin:0 0 14px">Te invitaron a ${esc(companyName)}.</h1><p style="font-size:15px;line-height:1.6;color:#4d5c65">Vas a sumarte con el rol <b>${esc(roleLabel[role]||role)}</b>. Tu acceso es personal: no necesitás compartir contraseñas con nadie de la empresa.</p><p style="margin:26px 0"><a href="${inviteUrl}" style="display:inline-block;background:#d7ff43;color:#071827;text-decoration:none;padding:14px 19px;border-radius:13px;font-weight:800">Aceptar invitación</a></p><p style="font-size:12px;line-height:1.55;color:#7a8790">Si no esperabas esta invitación, podés ignorar este correo. El enlace vence automáticamente.</p></div></div></body></html>`
+   const mail=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${resend}`,'Content-Type':'application/json'},body:JSON.stringify({from:'Postulá Mejor <no-reply@postulamejor.com>',to:[email],subject:`Invitación a ${companyName} en Postulá Mejor`,html})})
+   emailSent=mail.ok
+  }catch{}
+ }
+ return NextResponse.json({ok:true,invite:data,invite_url:invitePath,email_sent:emailSent})
 }
 
 export async function PATCH(req:NextRequest){
