@@ -1,0 +1,32 @@
+'use client'
+
+import Link from 'next/link'
+import {FormEvent,useState} from 'react'
+import {cvAuthClient} from '../cv-ia/cvAuth'
+import styles from '../postula-preview/platform.module.css'
+
+const SIGNUP_TICKET_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai-signup-ticket'
+const REGISTER_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai-register-verified'
+
+function strongPassword(value:string){return value.length>=10&&/[a-z]/.test(value)&&/[A-Z]/.test(value)&&/[0-9]/.test(value)}
+async function signupTicket(email:string){const r=await fetch(SIGNUP_TICKET_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});const d=await r.json().catch(()=>({}));if(!r.ok||!d?.ok)throw new Error(d?.error||'No pudimos preparar el registro.');return String(d.signup_token||'')}
+async function registerVerified(email:string,password:string,signup_token:string){const r=await fetch(REGISTER_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password,signup_token,role:'employer',next:'/empresas/registro'})});const d=await r.json().catch(()=>({}));if(!r.ok||!d?.ok)throw new Error(d?.error||'No pudimos crear tu cuenta.');return d}
+
+export default function EmployerAccessForm({mode}:{mode:'signup'|'login'}){
+ const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[accepted,setAccepted]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('')
+ async function submit(e:FormEvent){e.preventDefault();setBusy(true);setError('');setMessage('');try{const clean=email.trim().toLowerCase();if(mode==='signup'){if(!accepted)throw new Error('Para crear la cuenta necesitás aceptar los Términos y la Política de Privacidad.');if(!strongPassword(password))throw new Error('Usá al menos 10 caracteres, con mayúscula, minúscula y un número.');const ticket=await signupTicket(clean);await registerVerified(clean,password,ticket);setPassword('');setMessage(`Te enviamos un correo a ${clean}. Confirmalo y vas a volver acá para completar los datos de tu empresa.`)}else{const {data,error}=await cvAuthClient().auth.signInWithPassword({email:clean,password});if(error)throw error;if(!data.session)throw new Error('No pudimos iniciar la sesión.');const r=await fetch('/api/postula/company',{headers:{Authorization:`Bearer ${data.session.access_token}`}});const d=await r.json().catch(()=>({}));location.assign(Array.isArray(d?.memberships)&&d.memberships.length?'/empresas/panel':'/empresas/registro')}}catch(e){setError(e instanceof Error?e.message:'No pudimos completar el acceso.')}finally{setBusy(false)}}
+ return <div className={`${styles.authCard} pm-employer-auth-card`}>
+  <span className="pm-employer-auth-kicker">POSTULÁ MEJOR · EMPRESAS</span>
+  <h2>{mode==='signup'?'Creá tu acceso en segundos':'Entrá a tu cuenta empresa'}</h2>
+  <p>{mode==='signup'?'Usá tu email y una contraseña. Confirmás el correo y seguís con la empresa sin salir de este recorrido.':'Ingresá con el email asociado a la empresa. Puede ser el propietario, RRHH o cualquier miembro invitado.'}</p>
+  <form className="pm-employer-auth-form" onSubmit={submit}>
+   <label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="email" placeholder="nombre@empresa.com" required/></label>
+   <label>Contraseña<input type="password" value={password} onChange={e=>setPassword(e.target.value)} autoComplete={mode==='signup'?'new-password':'current-password'} placeholder={mode==='signup'?'10+ caracteres, mayúscula y número':'Tu contraseña'} required/></label>
+   {mode==='signup'&&<label className="pm-employer-auth-consent"><input type="checkbox" checked={accepted} onChange={e=>setAccepted(e.target.checked)}/><span>Acepto los <Link href="/terminos" target="_blank">Términos y Condiciones</Link> y la <Link href="/privacidad" target="_blank">Política de Privacidad</Link>. Si publico en nombre de una empresa, declaro estar autorizado para representarla y asumo la responsabilidad correspondiente.</span></label>}
+   <button className={styles.buttonDark} disabled={busy}>{busy?(mode==='signup'?'Preparando cuenta…':'Ingresando…'):(mode==='signup'?'Crear cuenta de empleador':'Ingresar a mi empresa')}</button>
+  </form>
+  {message&&<div className="pm-employer-auth-message">{message}</div>}
+  {error&&<div className="pm-employer-auth-error">{error}</div>}
+  <div className="pm-employer-auth-switch">{mode==='signup'?<>¿Ya tenés cuenta? <Link href="/empresas/login">Iniciar sesión</Link></>:<>¿Es tu primera vez? <Link href="/empresas/registro">Crear cuenta de empleador</Link></>}</div>
+ </div>
+}
