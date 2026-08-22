@@ -5,6 +5,11 @@ import BrandLogo from '../../BrandLogo'
 import styles from '../solution.module.css'
 import { solutions, solutionsBySlug } from '../solutions'
 
+const normalizeTrial=(text:string)=>text
+  .replace(/14\s+días/gi,'30 días')
+  .replace(/90\s+días/gi,'30 días')
+  .replace(/3\s+meses/gi,'30 días')
+
 export function generateStaticParams() {
   return solutions.map(({ slug }) => ({ slug }))
 }
@@ -16,13 +21,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const url = `https://comerciolleno.com/soluciones/${solution.slug}`
   return {
     title: `${solution.eyebrow.replace('SISTEMA PARA ', 'Sistema para ').replace('CONTROL DE ', 'Control de ').replace('PUNTO DE ', 'Punto de ')} | Comercio Lleno`,
-    description: solution.description,
+    description: `${normalizeTrial(solution.description)} Probalo 30 días gratis, sin tarjeta.`,
     keywords: solution.searchTerms,
     alternates: { canonical: url },
     robots: { index: true, follow: true },
     openGraph: {
       title: `${solution.eyebrow} | Comercio Lleno`,
-      description: solution.description,
+      description: `${normalizeTrial(solution.description)} 30 días gratis, sin tarjeta.`,
       url,
       siteName: 'Comercio Lleno',
       locale: 'es_AR',
@@ -39,10 +44,11 @@ export default async function SolutionPage({ params }: { params: Promise<{ slug:
 
   const url = `https://comerciolleno.com/soluciones/${solution.slug}`
   const related = solutions.filter((item) => item.slug !== solution.slug).slice(0, 3)
+  const faq = solution.faq.map(item=>({...item,answer:normalizeTrial(item.answer)}))
   const faqLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: solution.faq.map((item) => ({
+    mainEntity: faq.map((item) => ({
       '@type': 'Question',
       name: item.question,
       acceptedAnswer: { '@type': 'Answer', text: item.answer },
@@ -52,7 +58,7 @@ export default async function SolutionPage({ params }: { params: Promise<{ slug:
     '@context': 'https://schema.org',
     '@type': 'WebPage',
     name: solution.eyebrow,
-    description: solution.description,
+    description: `${normalizeTrial(solution.description)} Probalo 30 días gratis, sin tarjeta.`,
     url,
     primaryImageOfPage: { '@type': 'ImageObject', contentUrl: solution.heroImage },
     isPartOf: { '@type': 'WebSite', name: 'Comercio Lleno', url: 'https://comerciolleno.com' },
@@ -78,13 +84,13 @@ export default async function SolutionPage({ params }: { params: Promise<{ slug:
     <header className={styles.header}>
       <Link href="/" className={styles.brand} aria-label="Comercio Lleno"><BrandLogo size={40} /></Link>
       <nav className={styles.nav} aria-label="Navegación de soluciones">
-        <Link href="/">Producto</Link>
+        <Link href="/funcionalidades">Funcionalidades</Link>
         <Link href="/soluciones">Soluciones</Link>
         <Link href="/prueba-gratis">Prueba gratis</Link>
       </nav>
       <div className={styles.actions}>
         <Link href="/redesign/access" className={styles.login}>Ingresar</Link>
-        <Link href="/prueba-gratis" className={styles.try}>Probar 14 días</Link>
+        <Link href="/prueba-gratis" className={styles.try}>30 días gratis</Link>
       </div>
     </header>
 
@@ -94,10 +100,10 @@ export default async function SolutionPage({ params }: { params: Promise<{ slug:
         <h1>{solution.title}<br/><span>{solution.accent}</span></h1>
         <p className={styles.lead}>{solution.intro}</p>
         <div className={styles.ctaRow}>
-          <Link href="/prueba-gratis" className={styles.primary}>Empezar 14 días gratis</Link>
+          <Link href="/prueba-gratis" className={styles.primary}>Empezar 30 días gratis</Link>
           <Link href="#como-funciona" className={styles.secondary}>Ver cómo funciona</Link>
         </div>
-        <div className={styles.facts}><span>Sin tarjeta</span><span>Ventas + stock + caja</span><span>Web + celular</span></div>
+        <div className={styles.facts}><span>Sin tarjeta</span><span>Después $14.900/mes</span><span>Web + celular</span></div>
       </div>
 
       <div className={styles.heroMedia}>
@@ -169,14 +175,14 @@ export default async function SolutionPage({ params }: { params: Promise<{ slug:
 
     <section className={styles.band}>
       <div className={styles.bandInner}>
-        <div><h2>Probalo con tu comercio real.</h2><p>Cargá productos, hacé ventas y recorré el flujo completo durante 14 días. No necesitás tarjeta para empezar.</p></div>
+        <div><h2>Probalo con tu comercio real.</h2><p>Cargá productos, hacé ventas y recorré el flujo completo durante 30 días. No necesitás tarjeta para empezar. Después, $14.900 por mes.</p></div>
         <Link href="/prueba-gratis">Crear mi comercio</Link>
       </div>
     </section>
 
     <section className={`${styles.section} ${styles.faq}`}>
       <div><p className={styles.eyebrow}>PREGUNTAS FRECUENTES</p><h2>Antes de empezar.</h2></div>
-      <div className={styles.faqList}>{solution.faq.map((item)=><details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div>
+      <div className={styles.faqList}>{faq.map((item)=><details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div>
     </section>
 
     <section className={styles.section}>
@@ -186,7 +192,7 @@ export default async function SolutionPage({ params }: { params: Promise<{ slug:
 
     <footer className={styles.footer}>
       <span>Comercio Lleno · Software de gestión comercial de Llena Group</span>
-      <div className={styles.footerLinks}><Link href="/soluciones">Todas las soluciones</Link><Link href="/politica-de-privacidad">Privacidad</Link><Link href="/prueba-gratis">Probar gratis</Link></div>
+      <div className={styles.footerLinks}><Link href="/funcionalidades">Funcionalidades</Link><Link href="/soluciones">Todas las soluciones</Link><Link href="/terminos">Términos</Link><Link href="/politica-de-privacidad">Privacidad</Link><Link href="/prueba-gratis">Probar 30 días gratis</Link></div>
     </footer>
   </main>
 }
