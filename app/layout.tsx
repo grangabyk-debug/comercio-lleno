@@ -8,6 +8,7 @@ import FloatingWhatsApp from './FloatingWhatsApp'
 import PaidBranchPurchaseRuntime from './redesign/PaidBranchPurchaseRuntime'
 import PostulaClarity from './PostulaClarity'
 import PostulaProLabel from './PostulaProLabel'
+import PostulaCookieConsent from './postula-preview/PostulaCookieConsent'
 import './globals.css'
 import './prepaint.css'
 import './design-readability.css'
@@ -17,6 +18,7 @@ import './brand-global.css'
 import './mobile-targeted-fixes.css'
 import './landing-price-offer-boost.css'
 import './redesign/branch-contrast-fix.css'
+import './postula-preview/postula-cookie-v28.css'
 
 const faviconUrl='/comercio-lleno-favicon-v3.svg?v=20260815'
 
@@ -116,6 +118,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <PostulaProLabel />
         {!postula&&<MarketingScripts />}
         {children}
+        {postula&&<PostulaCookieConsent />}
         {!postula&&<FloatingWhatsApp />}
         {!postula&&<PaidBranchPurchaseRuntime />}
         {!postula&&<LegalServiceActions />}
