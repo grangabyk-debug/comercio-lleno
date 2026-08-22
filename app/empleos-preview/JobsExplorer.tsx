@@ -13,6 +13,7 @@ const motivators=[
 ]
 
 function initials(name:string){return name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()}
+function logoStyle(job:PreviewJob){return job.logoUrl?{backgroundImage:`url(${job.logoUrl})`,backgroundSize:'contain',backgroundRepeat:'no-repeat',backgroundPosition:'center',backgroundColor:'#fff'}:undefined}
 function compactLocation(value:string){
   const parts=value.split(' · ').map(x=>x.trim()).filter(Boolean)
   if(parts.length<=2)return value
@@ -74,7 +75,7 @@ export default function JobsExplorer({jobs}:{jobs:PreviewJob[]}){
         <div className="pm-results-head"><div><span>OPORTUNIDADES</span><strong>{filtered.length} resultados</strong></div><small>Buenos Aires primero · luego Argentina</small></div>
         <div className="pm-job-list">{filtered.length?filtered.map(job=><article key={job.slug} className="pm-job-card" data-selected={selected?.slug===job.slug} onClick={()=>setSelectedSlug(job.slug)}>
           <button className="pm-save" onClick={e=>{e.stopPropagation();toggleSaved(job.slug)}} aria-label={saved.includes(job.slug)?'Quitar de guardados':'Guardar oferta'} data-saved={saved.includes(job.slug)}>{saved.includes(job.slug)?'Guardado':'Guardar'}</button>
-          <div className="pm-company-row"><span className="pm-company-avatar">{initials(job.company)}</span><div><b>{job.company}</b><small>{job.area}</small></div></div>
+          <div className="pm-company-row"><span className="pm-company-avatar" style={logoStyle(job)}>{job.logoUrl?'':initials(job.company)}</span><div><b>{job.company}</b><small>{job.area}</small></div></div>
           <h3>{job.title}</h3>
           <div className="pm-job-tags"><span title={job.location}>{compactLocation(job.location)}</span><span>{job.mode}</span><span>{job.schedule}</span></div>
           <p>{job.summary}</p>
@@ -84,7 +85,7 @@ export default function JobsExplorer({jobs}:{jobs:PreviewJob[]}){
 
       <aside className="pm-preview">
         {selected?<div className="pm-preview-inner">
-          <div className="pm-preview-company"><span className="pm-company-avatar-lg">{initials(selected.company)}</span><div><span>{selected.company}</span><small>{selected.source}</small></div></div>
+          <div className="pm-preview-company"><span className="pm-company-avatar-lg" style={logoStyle(selected)}>{selected.logoUrl?'':initials(selected.company)}</span><div><span>{selected.company}</span><small>{selected.source}</small></div></div>
           <h2>{selected.title}</h2>
           <div className="pm-preview-meta"><span title={selected.location}>{compactLocation(selected.location)}</span><span>{selected.mode}</span><span>{selected.schedule}</span><span>{selected.area}</span></div>
           <div className="pm-match"><div><span>MATCH EXPLICABLE</span><b>Disponible con tu perfil</b></div><p>Al iniciar sesión comparamos requisitos explícitos con los datos que vos autorizaste. Sin descarte automático por características sensibles.</p></div>
