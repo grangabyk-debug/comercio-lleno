@@ -1,0 +1,14 @@
+'use client'
+import {useEffect,useState} from 'react'
+import {cvAuthClient} from '../cv-ia/cvAuth'
+import {flexCategoryImage} from '../changas-preview/flexVisuals'
+
+type Item={id:string;title:string;category:string;location_text:string;compensation_text:string;duration_text?:string|null;image_url?:string;publisher_display_name?:string|null;publisher_kind?:string|null}
+export default function FlexFavorites(){
+ const[ready,setReady]=useState(false),[authenticated,setAuthenticated]=useState(false),[items,setItems]=useState<Item[]>([]),[notice,setNotice]=useState('')
+ async function load(){const{data}=await cvAuthClient().auth.getSession();const token=data.session?.access_token;if(!token){setReady(true);return}setAuthenticated(true);const r=await fetch('/api/postula/flex?favorites=1',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const d=await r.json().catch(()=>({}));if(r.ok&&d?.ok)setItems(d.posts||[]);setReady(true)}
+ useEffect(()=>{void load()},[])
+ async function remove(id:string){const{data}=await cvAuthClient().auth.getSession();const token=data.session?.access_token;if(!token)return;setItems(v=>v.filter(x=>x.id!==id));const r=await fetch('/api/postula/flex',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({action:'favorite',post_id:id,saved:false})});if(!r.ok){setNotice('No pudimos quitarlo. Recargá la página para volver a intentarlo.');void load()}else setNotice('Quitado de favoritos.')}
+ if(!ready||!authenticated)return null
+ return <section className="pm33-favorites-wrap"><article className="pm33-favorites-card"><div className="pm33-favorites-head"><div><span>FAVORITOS · TRABAJO FLEX</span><h2>Lo que guardaste para mirar después.</h2><p>El corazón de cada publicación guarda la tarea en tu cuenta. Tus favoritos son privados.</p></div><a href="/trabajos-flex#explorar">Explorar Trabajos Flex</a></div>{items.length?<div className="pm33-favorites-grid">{items.map(item=><article key={item.id}><div className="pm33-favorite-photo" style={{backgroundImage:`url(${item.image_url||flexCategoryImage(item.category)})`}}><span>{item.category}</span></div><div><small>{item.publisher_display_name||(item.publisher_kind==='company'?'Empresa':'Persona')}</small><h3>{item.title}</h3><p>{item.location_text} · {item.duration_text||'A coordinar'}</p><b>{item.compensation_text}</b><div className="pm33-favorite-actions"><a href={`/trabajos-flex?tarea=${encodeURIComponent(item.id)}#explorar`}>Ver tarea</a><button type="button" onClick={()=>void remove(item.id)}>Quitar</button></div></div></article>)}</div>:<div className="pm33-favorites-empty"><b>Todavía no guardaste ningún Trabajo Flex.</b><p>Cuando veas una tarea que te interese, tocá el corazón. Va a aparecer acá para que la encuentres rápido.</p><a href="/trabajos-flex#explorar">Ver publicaciones</a></div>}{notice&&<small className="pm33-favorites-notice">{notice}</small>}</article></section>
+}
