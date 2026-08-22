@@ -18,7 +18,7 @@ export async function GET(req:NextRequest){
   if(pErr||rErr)return NextResponse.json({ok:false,error:pErr?.message||rErr?.message},{status:400})
   return NextResponse.json({ok:true,posts:posts||[],responses:responses||[]})
  }
- const {data,error}=await c.from('pm_flex_posts').select('id,title,category,description,location_text,compensation_text,duration_text,scheduled_for,verification_level,status,created_at,company_id').eq('status','published').order('created_at',{ascending:false}).limit(60)
+ const {data,error}=await c.from('pm_flex_posts').select('id,title,category,description,location_text,compensation_text,duration_text,scheduled_for,verification_level,status,created_at,company_id,publisher_user_id,pm_companies(name,logo_path)').eq('status','published').order('created_at',{ascending:false}).limit(60)
  if(error)return NextResponse.json({ok:false,error:'No pudimos cargar Trabajos Flex.'},{status:400})
  return NextResponse.json({ok:true,posts:data||[]})
 }
@@ -32,9 +32,14 @@ export async function POST(req:NextRequest){
   const {data:post}=await c.from('pm_flex_posts').select('id,publisher_user_id,status').eq('id',postId).eq('status','published').maybeSingle()
   if(!post)return NextResponse.json({ok:false,error:'Este Trabajo Flex ya no está disponible.'},{status:404})
   if(String(post.publisher_user_id)===user.id)return NextResponse.json({ok:false,error:'No podés responder a tu propia publicación.'},{status:400})
-  const {data,error}=await c.from('pm_flex_responses').insert({post_id:postId,candidate_user_id:user.id,message,status:'sent'}).select('id,status,created_at').single()
+  const {data:response,error}=await c.from('pm_flex_responses').insert({post_id:postId,candidate_user_id:user.id,message,status:'sent'}).select('id,status,created_at').single()
   if(error)return NextResponse.json({ok:false,error:error.message},{status:400})
-  return NextResponse.json({ok:true,response:data})
+  const {data:conversation,error:convErr}=await c.rpc('pm_ensure_flex_conversation',{p_response:response.id})
+  if(convErr||!conversation)return NextResponse.json({ok:false,error:convErr?.message||'No pudimos abrir la conversación.'},{status:400})
+  const {error:msgErr}=await c.from('pm_messages').insert({conversation_id:conversation,sender_user_id:user.id,body:message,message_type:'text',metadata:{source:'flex_first_contact'}})
+  if(msgErr)return NextResponse.json({ok:false,error:msgErr.message},{status:400})
+  await c.from('pm_conversations').update({last_message_at:new Date().toISOString()}).eq('id',conversation)
+  return NextResponse.json({ok:true,response,conversation_id:conversation})
  }
  if(action!=='create')return NextResponse.json({ok:false,error:'Acción inválida.'},{status:400})
  if(b?.responsibility_ack!==true)return NextResponse.json({ok:false,error:'Necesitás aceptar las reglas de publicación y asumir la responsabilidad de la publicación.'},{status:400})
