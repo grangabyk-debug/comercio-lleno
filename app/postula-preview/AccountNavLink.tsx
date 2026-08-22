@@ -38,7 +38,7 @@ export default function AccountNavLink({audience,className}:{audience:'candidate
    disabled={busy}
    aria-label="Cerrar sesión"
    title="Cerrar sesión"
-   style={{width:40,height:40,flex:'0 0 40px',display:'grid',placeItems:'center',padding:0,border:'1px solid rgba(122,16,16,.18)',borderRadius:12,background:busy?'#b91c1c':'#e53935',color:'#fff',boxShadow:'0 7px 18px rgba(194,35,35,.22)',cursor:busy?'wait':'pointer',opacity:busy?.72:1}}
+   style={{width:40,height:40,flex:'0 0 40px',display:'grid',placeItems:'center',padding:0,border:'1px solid rgba(122,16,16,.18)',borderRadius:12,background:busy?'#b91c1c':'#e53935',color:'#fff',boxShadow:'0 7px 18px rgba(194,35,35,.22)',cursor:busy?'wait':'pointer',opacity:busy?0.72:1}}
   >
    <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M10 4H5v16h5"/>
