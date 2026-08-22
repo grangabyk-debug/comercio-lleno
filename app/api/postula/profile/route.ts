@@ -3,12 +3,16 @@ import {createClient} from '@supabase/supabase-js'
 
 const URL='https://pejkycdttogpmmdntzuq.supabase.co'
 const KEY='sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I'
+const VISIBILITY=['discoverable','applications_only','private'] as const
+
+type Visibility=(typeof VISIBILITY)[number]
 
 function client(req:NextRequest){const auth=req.headers.get('authorization')||'';return createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{Authorization:auth}}})}
 function cleanText(v:unknown,max=180){return String(v??'').trim().slice(0,max)}
 function has(body:any,key:string){return Object.prototype.hasOwnProperty.call(body,key)}
 function textPatch(body:any,key:string,current:unknown,max=180){return has(body,key)?(cleanText(body?.[key],max)||null):(current??null)}
 function arrayPatch(body:any,key:string,current:unknown,max=60,limit=25){if(!has(body,key))return Array.isArray(current)?current:[];return Array.isArray(body?.[key])?body[key].map((x:unknown)=>cleanText(x,max)).filter(Boolean).slice(0,limit):[]}
+function visibilityPatch(body:any,current:unknown):Visibility{const incoming=cleanText(body?.profile_visibility,40) as Visibility;if(has(body,'profile_visibility')&&VISIBILITY.includes(incoming))return incoming;const saved=cleanText(current,40) as Visibility;return VISIBILITY.includes(saved)?saved:'applications_only'}
 
 export async function GET(req:NextRequest){
  const db=client(req);const {data:{user},error}=await db.auth.getUser();if(error||!user)return NextResponse.json({ok:false,error:'Iniciá sesión.'},{status:401})
@@ -42,6 +46,7 @@ export async function POST(req:NextRequest){
   const skills=arrayPatch(body,'skills',existingCandidate?.skills,60,25)
   const areas=arrayPatch(body,'preferred_areas',existingCandidate?.preferred_areas,60,12)
   const modes=arrayPatch(body,'work_modes',existingCandidate?.work_modes,30,5)
+  const profileVisibility=visibilityPatch(body,existingCandidate?.profile_visibility)
   const candidate={
    user_id:user.id,
    country:has(body,'country')?(cleanText(body?.country,80)||'Argentina'):(existingCandidate?.country||'Argentina'),
@@ -56,7 +61,12 @@ export async function POST(req:NextRequest){
    work_modes:modes,
    resume_path:textPatch(body,'resume_path',existingCandidate?.resume_path,500),
    resume_name:textPatch(body,'resume_name',existingCandidate?.resume_name,180),
-   searchable:has(body,'searchable')?Boolean(body?.searchable):Boolean(existingCandidate?.searchable),
+   profile_visibility:profileVisibility,
+   public_photo:has(body,'public_photo')?Boolean(body?.public_photo):existingCandidate?.public_photo!==false,
+   public_location:has(body,'public_location')?Boolean(body?.public_location):existingCandidate?.public_location!==false,
+   public_headline:has(body,'public_headline')?Boolean(body?.public_headline):existingCandidate?.public_headline!==false,
+   public_skills:has(body,'public_skills')?Boolean(body?.public_skills):existingCandidate?.public_skills!==false,
+   searchable:profileVisibility==='discoverable',
    profile_completion:0,
    updated_at:new Date().toISOString()
   }
