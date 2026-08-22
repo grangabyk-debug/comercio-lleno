@@ -32,7 +32,7 @@ export async function POST(req:NextRequest){
  const job=txt(b?.job_id,80),resume=txt(b?.resume_path,500),letter=txt(b?.cover_letter,5000)
  if(!job)return NextResponse.json({ok:false,error:'Oferta inválida.'},{status:400})
  if(resume&&!resume.startsWith(`${user.id}/`))return NextResponse.json({ok:false,error:'El CV no pertenece a esta cuenta.'},{status:403})
- const snapshot={display_name:txt(b?.name,100),phone:txt(b?.phone,60),city:txt(b?.city,120),availability:txt(b?.availability,120),experience:txt(b?.experience,180)}
+ const snapshot={display_name:txt(b?.name,100),phone:txt(b?.phone,60),city:txt(b?.city,120),availability:txt(b?.availability,120),experience:txt(b?.experience,180),expected_salary:txt(b?.expected_salary,80)}
  const {data,error}=await c.rpc('pm_submit_application',{p_job_id:job,p_resume_path:resume||null,p_cover_letter:letter||null,p_candidate_snapshot:snapshot})
  if(error){const message=/job unavailable/i.test(error.message)?'La oferta no está disponible.':error.message;return NextResponse.json({ok:false,error:message},{status:/job unavailable/i.test(error.message)?404:400})}
  return NextResponse.json({ok:true,application:first(data)})
