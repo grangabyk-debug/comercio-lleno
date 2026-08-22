@@ -3,6 +3,7 @@ import styles from './platform.module.css'
 import MobileChoicePrompt from './MobileChoicePrompt'
 import LandingConversationV12 from './LandingConversationV12'
 import NexoLauncher from './NexoLauncher'
+import MessageLauncher from './MessageLauncher'
 import './integration-v8.css'
 import './premium-v9.css'
 import './premium-v10.css'
@@ -14,6 +15,7 @@ import './trust-publish-v15.css'
 import './trust-strip-v16.css'
 import './header-account-v24.css'
 import './nexo-desktop-v25.css'
+import './messages-desktop-v32.css'
 
 export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'employer'}){
   const headerClass=`${styles.header} pm-social-header ${audience==='employer'?'pm-social-header-employer':'pm-social-header-candidate'}`
@@ -26,6 +28,7 @@ export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'em
         <Link href="/trabajos-flex" className="pm-nav-new">Trabajos Flex <small>NUEVO</small></Link>
         <Link href="/mejorar-cv">Mejorar CV</Link>
         <Link href="/test-vocacional">Test</Link>
+        <MessageLauncher/>
       </>:<>
         <Link href="/trabajos-flex" className="pm-nav-new">Trabajos Flex <small>NUEVO</small></Link>
         <NexoLauncher/>
