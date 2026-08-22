@@ -1,6 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import {usePathname} from 'next/navigation'
+import {useRef} from 'react'
 import styles from './home-companies.module.css'
 
 const companies=[
@@ -16,23 +18,29 @@ const companies=[
  {name:'EY',domain:'ey.com',initials:'EY'},
 ]
 
-function CompanyLogo({name,domain,initials}:{name:string;domain:string;initials:string}){
- const logo=`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`
+function CompanyLogo({domain,initials}:{domain:string;initials:string}){
+ const logo=`https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(`https://${domain}`)}&sz=128`
  return <span className={styles.mark} aria-hidden="true"><span className={styles.fallback}>{initials}</span><img src={logo} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display='none'}}/></span>
 }
 
 export default function HomeCompanyStrip(){
  const pathname=usePathname()
+ const rail=useRef<HTMLDivElement>(null)
  if(pathname!=='/')return null
+ const move=(direction:number)=>{const el=rail.current;if(!el)return;el.scrollBy({left:direction*Math.max(300,el.clientWidth*.78),behavior:'smooth'})}
  return <section className={styles.wrap} aria-label="Empresas con oportunidades públicas">
   <div className={styles.inner}>
    <div className={styles.copy}>
     <span>OPORTUNIDADES PÚBLICAS</span>
     <b>Empresas que hoy tienen búsquedas abiertas.</b>
-    <small>Mostramos marcas con avisos públicos visibles en nuestro catálogo. No implica patrocinio, alianza ni relación comercial.</small>
+    <small>Tocá una empresa para ver solamente sus oportunidades. Las marcas aparecen por sus avisos públicos; no implica patrocinio ni relación comercial.</small>
    </div>
-   <div className={styles.logos} role="list" aria-label="Empresas con oportunidades públicas disponibles">
-    {companies.map(c=><div className={styles.logo} key={c.name} title={c.name} role="listitem"><CompanyLogo {...c}/><b>{c.name}</b><small>Ver oportunidades</small></div>)}
+   <div className={styles.railShell}>
+    <button className={`${styles.arrow} ${styles.prev}`} type="button" onClick={()=>move(-1)} aria-label="Ver empresas anteriores">‹</button>
+    <div ref={rail} className={styles.logos} role="list" aria-label="Empresas con oportunidades públicas disponibles">
+     {companies.map(c=><Link className={styles.logo} key={c.name} title={`Ver oportunidades de ${c.name}`} role="listitem" href={`/empleos?empresa=${encodeURIComponent(c.name)}`}><CompanyLogo {...c}/><b>{c.name}</b><small>Ver empleos</small></Link>)}
+    </div>
+    <button className={`${styles.arrow} ${styles.next}`} type="button" onClick={()=>move(1)} aria-label="Ver más empresas">›</button>
    </div>
   </div>
  </section>

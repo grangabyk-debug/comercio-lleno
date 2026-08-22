@@ -18,6 +18,7 @@ import './trust-strip-v16.css'
 import './header-account-v24.css'
 import './nexo-desktop-v25.css'
 import './messages-desktop-v32.css'
+import './home-hero-diversity-v36.css'
 
 export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'employer'}){
   const headerClass=`${styles.header} pm-social-header ${audience==='employer'?'pm-social-header-employer':'pm-social-header-candidate'}`
