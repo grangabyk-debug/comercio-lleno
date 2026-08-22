@@ -24,12 +24,10 @@ export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'em
         <Link href="/mejorar-cv">Mejorar CV</Link>
         <Link href="/test-vocacional">Test</Link>
       </>:<>
-        <Link href="/empresas">Contratar</Link>
-        <Link href="/empresas/panel">Candidatos</Link>
         <Link href="/empresas/movil" className="pm-nav-new">Nexo <small>MÓVIL</small></Link>
       </>}
       {audience==='candidate'?<Link href="/empresas" className={`${styles.navPrimary} pm-role-switch`}>Soy empleador</Link>:<Link href="/" className={`${styles.navPrimary} pm-role-switch`}>Busco trabajo</Link>}
-      <Link href={audience==='candidate'?'/mi-cuenta':'/empresas/configuracion'} className={`${styles.navAccent} pm-social-account`}>Mi cuenta</Link>
+      <Link href={audience==='candidate'?'/login':'/empresas/login'} className={`${styles.navAccent} pm-social-account`}>Mi cuenta</Link>
     </nav>
   </header><LandingConversationV12/>{audience==='employer'?<MobileChoicePrompt/>:null}</>
 }
