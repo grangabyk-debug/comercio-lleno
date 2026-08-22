@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect,useMemo,useState,type CSSProperties } from 'react'
-import { readBusinessModules,saveBusinessModules,type BusinessModulesSettings,type FractionUnit } from '@/lib/comercio/business-modules'
+import { loadBusinessModules,readBusinessModules,saveBusinessModulesRemote,type BusinessModulesSettings,type FractionUnit } from '@/lib/comercio/business-modules'
 import type { TenantSession } from '@/lib/comercio/types'
 
 const card:CSSProperties={border:'1px solid #dfe7e2',borderRadius:20,padding:18,background:'#fff',boxShadow:'0 8px 30px rgba(20,45,34,.05)',display:'grid',gap:14}
@@ -14,9 +14,10 @@ function Toggle({checked,onChange}:{checked:boolean;onChange:(next:boolean)=>voi
 export default function BusinessModulesPanel({session,message}:{session:TenantSession;message:(text:string)=>void}){
   const[value,setValue]=useState<BusinessModulesSettings>(()=>readBusinessModules(session.companyId))
   const[serialState,setSerialState]=useState('Sin vincular')
-  useEffect(()=>{setValue(readBusinessModules(session.companyId))},[session.companyId])
+  const[saving,setSaving]=useState(false)
+  useEffect(()=>{let active=true;setValue(readBusinessModules(session.companyId));void loadBusinessModules(session).then(next=>{if(active)setValue(next)});return()=>{active=false}},[session.companyId,session.token])
   const webSerialAvailable=useMemo(()=>typeof navigator!=='undefined'&&'serial' in navigator,[])
-  function commit(){const next=saveBusinessModules(session.companyId,value);setValue(next);message('Módulos guardados para este comercio. Las funciones activadas ya quedan visibles en el sistema.')}
+  async function commit(){setSaving(true);try{const result=await saveBusinessModulesRemote(session,value);setValue(result.value);message(result.persisted?'Módulos guardados para este comercio. Se aplicarán también en otros dispositivos del mismo local.':'Módulos guardados en esta preview. La persistencia multi-dispositivo quedará activa al aplicar la migración preparada para esta versión.')}catch(error){message(error instanceof Error?error.message:String(error))}finally{setSaving(false)}}
   function list(text:string){return text.split(',').map(x=>x.trim()).filter(Boolean)}
   function toggleUnit(unit:FractionUnit){const current=value.fractional.units;setValue({...value,fractional:{...value.fractional,units:current.includes(unit)?current.filter(x=>x!==unit):[...current,unit]}})}
   async function connectScale(){
@@ -32,7 +33,7 @@ export default function BusinessModulesPanel({session,message}:{session:TenantSe
     }catch(error){setSerialState('Sin vincular');message(error instanceof Error?error.message:String(error))}
   }
   return <section style={{display:'grid',gap:16}}>
-    <div style={{display:'flex',justifyContent:'space-between',gap:20,alignItems:'flex-start',flexWrap:'wrap'}}><div><div style={{fontSize:10,fontWeight:950,letterSpacing:1.4,color:'#147f50'}}>CONFIGURACIÓN · MÓDULOS</div><h2 style={{margin:'5px 0 7px',fontSize:26}}>Funciones por tipo de negocio</h2><p style={{margin:0,maxWidth:760,color:'#617068',lineHeight:1.55,fontSize:13}}>Activá solamente lo que usa cada comercio. Si un módulo está apagado, el sistema conserva la experiencia actual sin botones ni campos extra.</p></div><button type="button" onClick={commit} style={{height:44,border:0,borderRadius:12,background:'#147f50',color:'#fff',fontWeight:900,padding:'0 18px',cursor:'pointer'}}>Guardar módulos</button></div>
+    <div style={{display:'flex',justifyContent:'space-between',gap:20,alignItems:'flex-start',flexWrap:'wrap'}}><div><div style={{fontSize:10,fontWeight:950,letterSpacing:1.4,color:'#147f50'}}>CONFIGURACIÓN · MÓDULOS</div><h2 style={{margin:'5px 0 7px',fontSize:26}}>Funciones por tipo de negocio</h2><p style={{margin:0,maxWidth:760,color:'#617068',lineHeight:1.55,fontSize:13}}>Activá solamente lo que usa cada comercio. Si un módulo está apagado, el sistema conserva la experiencia actual sin botones ni campos extra.</p></div><button type="button" disabled={saving} onClick={()=>void commit()} style={{height:44,border:0,borderRadius:12,background:'#147f50',color:'#fff',fontWeight:900,padding:'0 18px',cursor:saving?'wait':'pointer',opacity:saving?.7:1}}>{saving?'Guardando…':'Guardar módulos'}</button></div>
 
     <article style={card}>
       <div style={{display:'flex',justifyContent:'space-between',gap:16,alignItems:'center'}}><div><b style={{fontSize:18}}>Venta fraccionada</b><p style={{margin:'4px 0 0',fontSize:12,color:'#65756d'}}>Para verdulerías, dietéticas, perfumerías, limpieza, almacenes y cualquier producto vendido por peso o volumen.</p></div><Toggle checked={value.fractional.enabled} onChange={enabled=>setValue({...value,fractional:{...value.fractional,enabled}})}/></div>
