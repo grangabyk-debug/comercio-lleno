@@ -44,7 +44,6 @@ function postulaMejorRoute(request:NextRequest){
  const pathname=request.nextUrl.pathname,params=request.nextUrl.searchParams
  if(isWww)return redirectPostula(request,pathname)
 
- // URLs antiguas de acceso: se mantienen compatibles, pero ya no se muestran al usuario.
  if(pathname==='/acceso')return redirectPostulaClean(request,params.get('rol')==='empresa'?'/empresas/registro':'/login')
  if(pathname==='/cuenta'){
   const employer=params.get('role')==='employer'||params.get('rol')==='empresa'
@@ -54,7 +53,6 @@ function postulaMejorRoute(request:NextRequest){
   return redirectPostulaClean(request,signup?'/registro':'/login',reset?'?reset=1':'')
  }
 
- // Nunca exponer nombres internos *-preview.
  if(pathname==='/postula-preview')return redirectPostula(request,'/')
  if(pathname==='/postula-login-preview')return redirectPostulaClean(request,'/login')
  if(pathname==='/postula-registro-preview')return redirectPostulaClean(request,'/registro')
@@ -62,6 +60,7 @@ function postulaMejorRoute(request:NextRequest){
  if(pathname==='/empleos-preview')return redirectPostula(request,'/empleos')
  if(pathname==='/changas-preview')return redirectPostula(request,'/trabajos-flex')
  if(pathname==='/mi-postula-preview/chat')return redirectPostula(request,'/mensajes')
+ if(pathname==='/mi-postula-preview/preferences')return redirectPostula(request,'/mi-cuenta/preferencias')
  if(pathname==='/mi-postula-preview')return redirectPostula(request,'/mi-cuenta')
  if(pathname==='/plantillas-preview')return redirectPostula(request,'/plantillas')
  if(pathname==='/postula-acceso-preview')return redirectPostulaClean(request,'/login')
@@ -70,13 +69,13 @@ function postulaMejorRoute(request:NextRequest){
  if(pathname.startsWith('/empresas-preview/'))return redirectPostula(request,`/empresas/${pathname.slice('/empresas-preview/'.length)}`)
  if(pathname==='/cv-ia')return redirectPostula(request,'/mejorar-cv')
 
- // Rutas públicas limpias de Postulá Mejor.
  if(pathname==='/')return rewritePostula(request,'/postula-preview')
  if(pathname==='/registro')return rewritePostula(request,'/postula-registro-preview')
  if(pathname==='/login')return rewritePostula(request,'/postula-login-preview')
  if(pathname==='/empleos')return rewritePostula(request,'/empleos-preview')
  if(pathname.startsWith('/empleos/'))return rewritePostula(request,`/empleos-preview/${pathname.slice('/empleos/'.length)}`)
  if(pathname==='/trabajos-flex')return rewritePostula(request,'/changas-preview')
+ if(pathname==='/mi-cuenta/preferencias')return rewritePostula(request,'/mi-postula-preview/preferences')
  if(pathname==='/mi-cuenta')return rewritePostula(request,'/mi-postula-preview')
  if(pathname==='/mensajes')return rewritePostula(request,'/mi-postula-preview/chat')
  if(pathname==='/plantillas')return rewritePostula(request,'/plantillas-preview')
