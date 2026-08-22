@@ -8,6 +8,7 @@ import DesignSettingsPanel from './DesignSettingsPanel'
 import WholesalePricingSettingsPanel from './WholesalePricingSettingsPanel'
 import StockControlSettingsPanel from './StockControlSettingsPanel'
 import MercadoPagoPointSettings from './MercadoPagoPointSettings'
+import MercadoPagoPhysicalQrPanel from './MercadoPagoPhysicalQrPanel'
 import BusinessModulesPanel from './BusinessModulesPanel'
 import HumanSupportChat from './HumanSupportChat'
 import wrap from './settings-with-mobile.module.css'
@@ -67,7 +68,7 @@ export default function SettingsWithMobile(props:Props){
     {salesActive&&<StockControlSettingsPanel session={props.session} message={props.message}/>} 
     {salesActive&&<WholesalePricingSettingsPanel session={props.session} message={props.message}/>} 
     {owner&&special==='mobile'&&<div className={wrap.specialPanel}><MobileSettingsPanel session={props.session} message={props.message}/></div>}
-    {owner&&special==='mercadopago'&&<div className={wrap.specialPanel}><MercadoPagoPointSettings session={props.session} message={props.message}/></div>}
+    {owner&&special==='mercadopago'&&<div className={wrap.specialPanel}><MercadoPagoPointSettings session={props.session} message={props.message}/><MercadoPagoPhysicalQrPanel session={props.session} message={props.message}/></div>}
     {owner&&special==='modules'&&<div className={wrap.specialPanel}><BusinessModulesPanel session={props.session} message={props.message}/></div>}
     {owner&&special==='design'&&<div className={wrap.specialPanel}><DesignSettingsPanel session={props.session} message={props.message}/></div>}
     {owner&&special==='arca'&&<div className={wrap.specialPanel}><ArcaSetupPanel session={props.session} companyName={props.data.company.name} companyTaxId={props.data.company.tax_id} message={props.message}/></div>}
