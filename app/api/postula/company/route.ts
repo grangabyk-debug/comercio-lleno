@@ -38,7 +38,7 @@ export async function PATCH(req:NextRequest){
  const id=txt(b?.company_id,80)
  if(!id)return NextResponse.json({ok:false,error:'Empresa inválida.'},{status:400})
  const patch:Record<string,string|null>={}
- for(const [key,max] of [['name',120],['legal_name',180],['city',100],['province',100],['website',300],['work_email_domain',180],['phone',60],['description',2000],['industry',120],['responsible_role',100],['tax_id',40]] as const){
+ for(const [key,max] of [['name',120],['legal_name',180],['city',100],['province',100],['website',300],['work_email_domain',180],['phone',60],['description',2000],['industry',120],['responsible_role',100],['tax_id',40],['logo_path',500]] as const){
   if(key in b)patch[key]=txt(b[key],max)||null
  }
  if(!Object.keys(patch).length)return NextResponse.json({ok:false,error:'No hay cambios para guardar.'},{status:400})
