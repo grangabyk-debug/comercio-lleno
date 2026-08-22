@@ -2,6 +2,7 @@ import Link from 'next/link'
 import styles from './platform.module.css'
 import MobileChoicePrompt from './MobileChoicePrompt'
 import LandingConversationV12 from './LandingConversationV12'
+import NexoLauncher from './NexoLauncher'
 import './integration-v8.css'
 import './premium-v9.css'
 import './premium-v10.css'
@@ -12,6 +13,7 @@ import './readability-v14.css'
 import './trust-publish-v15.css'
 import './trust-strip-v16.css'
 import './header-account-v24.css'
+import './nexo-desktop-v25.css'
 
 export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'employer'}){
   const headerClass=`${styles.header} pm-social-header ${audience==='employer'?'pm-social-header-employer':'pm-social-header-candidate'}`
@@ -25,7 +27,8 @@ export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'em
         <Link href="/mejorar-cv">Mejorar CV</Link>
         <Link href="/test-vocacional">Test</Link>
       </>:<>
-        <Link href="/empresas/movil" className="pm-nav-new">Nexo <small>MÓVIL</small></Link>
+        <Link href="/trabajos-flex" className="pm-nav-new">Trabajos Flex <small>NUEVO</small></Link>
+        <NexoLauncher/>
       </>}
       {audience==='candidate'?<Link href="/empresas" className={`${styles.navPrimary} pm-role-switch`}>Soy empleador</Link>:<Link href="/" className={`${styles.navPrimary} pm-role-switch`}>Busco trabajo</Link>}
       <Link href={audience==='candidate'?'/login':'/empresas/login'} className={`${styles.navAccent} pm-social-account`}>Mi cuenta</Link>
