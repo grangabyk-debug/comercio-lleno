@@ -6,7 +6,7 @@ const KEY='sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I'
 const FLEX_PUBLIC=`${URL}/storage/v1/object/public/postula-flex-media/`
 const BRAND_PUBLIC=`${URL}/storage/v1/object/public/postula-branding/`
 const text=(v:unknown,n=900)=>String(v??'').trim().slice(0,n)
-function db(req:NextRequest){const auth=req.headers.get('authorization')||'';return createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{Authorization:auth}}})}
+function db(req:NextRequest){const auth=req.headers.get('authorization')||'';const options:any={auth:{persistSession:false,autoRefreshToken:false}};if(auth)options.global={headers:{Authorization:auth}};return createClient(URL,KEY,options)}
 function objectUrl(base:string,path:string){return base+path.split('/').map(encodeURIComponent).join('/')}
 function firstName(v:string){return v.split(/\s+/).filter(Boolean)[0]||'Persona'}
 function external(v:unknown){const s=text(v,800);return /^https?:\/\//i.test(s)?s:''}
