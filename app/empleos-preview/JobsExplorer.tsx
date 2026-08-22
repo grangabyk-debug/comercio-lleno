@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import {useEffect,useMemo,useState} from 'react'
+import {useSearchParams} from 'next/navigation'
+import {cvAuthClient} from '../cv-ia/cvAuth'
 import type {PreviewJob} from '../postula-preview/jobs'
 import styles from '../postula-preview/platform.module.css'
 
@@ -11,90 +13,61 @@ const motivators=[
   'Una postulación bien elegida vale más que veinte enviadas sin mirar.',
   'Tu experiencia no es una lista de palabras: es contexto. Mostrala con claridad.',
 ]
+const provinces=['CABA','Buenos Aires','Catamarca','Chaco','Chubut','Córdoba','Corrientes','Entre Ríos','Formosa','Jujuy','La Pampa','La Rioja','Mendoza','Misiones','Neuquén','Río Negro','Salta','San Juan','San Luis','Santa Cruz','Santa Fe','Santiago del Estero','Tierra del Fuego','Tucumán']
+type ProfileMatch={city?:string;province?:string;skills?:string[];preferred_areas?:string[];work_modes?:string[];availability?:string;headline?:string}
 
+function norm(value:string){return value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()}
 function initials(name:string){return name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()}
 function logoStyle(job:PreviewJob){return job.logoUrl?{backgroundImage:`url(${job.logoUrl})`,backgroundSize:'contain',backgroundRepeat:'no-repeat',backgroundPosition:'center',backgroundColor:'#fff'}:undefined}
-function compactLocation(value:string){
-  const parts=value.split(' · ').map(x=>x.trim()).filter(Boolean)
-  if(parts.length<=2)return value
-  const local=parts.filter(x=>/argentina|buenos aires|caba|capital federal/i.test(x))
-  const chosen=(local.length?local:parts).slice(0,2)
-  const hidden=Math.max(0,parts.length-chosen.length)
-  return hidden?`${chosen.join(' · ')} · +${hidden} ubic.`:chosen.join(' · ')
-}
+function compactLocation(value:string){const parts=value.split(' · ').map(x=>x.trim()).filter(Boolean);if(parts.length<=2)return value;const local=parts.filter(x=>/argentina|buenos aires|caba|capital federal/i.test(x));const chosen=(local.length?local:parts).slice(0,2);const hidden=Math.max(0,parts.length-chosen.length);return hidden?`${chosen.join(' · ')} · +${hidden} ubic.`:chosen.join(' · ')}
+function inferProvince(location:string){const n=norm(location);if(/\bcaba\b|capital federal/.test(n))return'CABA';const found=provinces.filter(p=>p!=='CABA').sort((a,b)=>b.length-a.length).find(p=>n.includes(norm(p)));return found||''}
+function inferCity(location:string,province:string){const parts=location.split(/[·|,]/).map(x=>x.trim()).filter(Boolean);const candidate=parts.find(x=>{const n=norm(x);return n&&n!=='argentina'&&n!==norm(province)&&!/^provincia de /.test(n)&&!/otras ubicaciones/.test(n)&&!/^gba$/.test(n)});return candidate||''}
+function words(value:string){return norm(value).split(/[^a-z0-9]+/).filter(x=>x.length>2)}
+function matchScore(job:PreviewJob,profile:ProfileMatch){let score=0;const hay=norm(`${job.title} ${job.area} ${job.tags.join(' ')} ${job.summary}`);for(const area of profile.preferred_areas||[]){const a=norm(area);if(a&&hay.includes(a))score+=8;else if(words(a).some(w=>hay.includes(w)))score+=4}for(const skill of profile.skills||[]){const s=norm(skill);if(s&&hay.includes(s))score+=3;else if(words(s).some(w=>hay.includes(w)))score+=1}if(profile.headline){for(const w of words(profile.headline)){if(hay.includes(w))score+=1}}if(profile.province&&norm(job.location).includes(norm(profile.province)))score+=4;if(profile.city&&norm(job.location).includes(norm(profile.city)))score+=5;if((profile.work_modes||[]).some(m=>norm(m)===norm(job.mode)))score+=3;if(profile.availability&&words(profile.availability).some(w=>norm(job.schedule).includes(w)))score+=2;return score}
+function jobVisual(job:PreviewJob){const t=norm(`${job.title} ${job.area} ${job.tags.join(' ')}`);if(/cocin|gastronom|barista|chef|panader|pasteler|mozo|camarer|vajilla/.test(t))return'https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg?auto=compress&cs=tinysrgb&w=900';if(/pintor|pintura|pintar/.test(t))return'https://images.pexels.com/photos/5691549/pexels-photo-5691549.jpeg?auto=compress&cs=tinysrgb&w=900';if(/limpieza|maestranza|mucama|housekeeping/.test(t))return'https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&cs=tinysrgb&w=900';if(/deposit|logistic|almacen|operario|produccion|repositor|abastecimiento/.test(t))return'https://images.pexels.com/photos/4481326/pexels-photo-4481326.jpeg?auto=compress&cs=tinysrgb&w=900';if(/venta|comercial|cajer|retail|salon/.test(t))return'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=900';if(/administr|finanz|contab|asistente|secretar|office/.test(t))return'https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=900';if(/atencion|customer|soporte|call center|recepcion/.test(t))return'https://images.pexels.com/photos/7709087/pexels-photo-7709087.jpeg?auto=compress&cs=tinysrgb&w=900';if(/hotel|turismo|reservas|viajes/.test(t))return'https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg?auto=compress&cs=tinysrgb&w=900';if(/tecnolog|developer|software|data|qa|ingenier|sistemas/.test(t))return'https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=900';if(/salud|medical|enfermer|odont|clinica/.test(t))return'https://images.pexels.com/photos/5452201/pexels-photo-5452201.jpeg?auto=compress&cs=tinysrgb&w=900';if(/constru|obra|electric|plomer|mantenim/.test(t))return'https://images.pexels.com/photos/159306/construction-site-build-construction-work-159306.jpeg?auto=compress&cs=tinysrgb&w=900';if(/chofer|repart|delivery|conductor/.test(t))return'https://images.pexels.com/photos/4391470/pexels-photo-4391470.jpeg?auto=compress&cs=tinysrgb&w=900';return''}
 
 export default function JobsExplorer({jobs}:{jobs:PreviewJob[]}){
-  const [query,setQuery]=useState('')
-  const [location,setLocation]=useState('')
-  const [mode,setMode]=useState('Todos')
-  const [area,setArea]=useState('Todas')
-  const [schedule,setSchedule]=useState('Todos')
-  const [selectedSlug,setSelectedSlug]=useState(jobs[0]?.slug||'')
-  const [saved,setSaved]=useState<string[]>([])
-
-  useEffect(()=>{try{setSaved(JSON.parse(localStorage.getItem('pm_saved_jobs')||'[]'))}catch{}},[])
+  const searchParams=useSearchParams()
+  const [query,setQuery]=useState(''),[location,setLocation]=useState(''),[mode,setMode]=useState('Todos'),[area,setArea]=useState('Todas'),[schedule,setSchedule]=useState('Todos'),[province,setProvince]=useState('Todas'),[city,setCity]=useState('Todas')
+  const [selectedSlug,setSelectedSlug]=useState(jobs[0]?.slug||''),[saved,setSaved]=useState<string[]>([]),[profile,setProfile]=useState<ProfileMatch|null>(null),[profileOrder,setProfileOrder]=useState(searchParams.get('orden')==='perfil'),[profileNotice,setProfileNotice]=useState('')
+  useEffect(()=>{try{setSaved(JSON.parse(localStorage.getItem('pm_saved_jobs')||'[]'))}catch{};(async()=>{const {data}=await cvAuthClient().auth.getSession();if(!data.session)return;const r=await fetch('/api/postula/profile',{headers:{Authorization:`Bearer ${data.session.access_token}`},cache:'no-store'});const d=await r.json().catch(()=>({}));if(r.ok&&d?.candidate)setProfile(d.candidate)})().catch(()=>{})},[])
 
   const areas=useMemo(()=>Array.from(new Set(jobs.map(j=>j.area))).sort((a,b)=>a.localeCompare(b)),[jobs])
-  const filtered=useMemo(()=>jobs.filter(j=>{
-    const q=query.trim().toLowerCase()
-    const loc=location.trim().toLowerCase()
-    const haystack=`${j.title} ${j.company} ${j.location} ${j.area} ${j.tags.join(' ')}`.toLowerCase()
-    return (!q||haystack.includes(q))&&(!loc||j.location.toLowerCase().includes(loc)||(loc==='remoto'&&j.mode==='Remoto'))&&(mode==='Todos'||j.mode===mode)&&(area==='Todas'||j.area===area)&&(schedule==='Todos'||j.schedule.toLowerCase().includes(schedule.toLowerCase()))
-  }),[jobs,query,location,mode,area,schedule])
-
+  const jobPlaces=useMemo(()=>jobs.map(j=>{const p=inferProvince(j.location);return{job:j,province:p,city:inferCity(j.location,p)}}),[jobs])
+  const provinceOptions=useMemo(()=>Array.from(new Set(jobPlaces.map(x=>x.province).filter(Boolean))).sort((a,b)=>a.localeCompare(b)),[jobPlaces])
+  const cityOptions=useMemo(()=>Array.from(new Set(jobPlaces.filter(x=>province==='Todas'||x.province===province).map(x=>x.city).filter(Boolean))).sort((a,b)=>a.localeCompare(b)),[jobPlaces,province])
+  const filtered=useMemo(()=>{
+    const q=query.trim().toLowerCase(),loc=location.trim().toLowerCase()
+    const list=jobPlaces.filter(({job:j,province:p,city:c})=>{const haystack=`${j.title} ${j.company} ${j.location} ${j.area} ${j.tags.join(' ')}`.toLowerCase();return(!q||haystack.includes(q))&&(!loc||j.location.toLowerCase().includes(loc)||(loc==='remoto'&&j.mode==='Remoto'))&&(mode==='Todos'||j.mode===mode)&&(area==='Todas'||j.area===area)&&(schedule==='Todos'||j.schedule.toLowerCase().includes(schedule.toLowerCase()))&&(province==='Todas'||p===province)&&(city==='Todas'||c===city)}).map(x=>x.job)
+    if(profileOrder&&profile)return [...list].sort((a,b)=>matchScore(b,profile)-matchScore(a,profile)||a.title.localeCompare(b.title))
+    return list
+  },[jobPlaces,query,location,mode,area,schedule,province,city,profileOrder,profile])
   useEffect(()=>{if(filtered.length&&!filtered.some(j=>j.slug===selectedSlug))setSelectedSlug(filtered[0].slug)},[filtered,selectedSlug])
   const selected=filtered.find(j=>j.slug===selectedSlug)||filtered[0]
-
   function toggleSaved(slug:string){const next=saved.includes(slug)?saved.filter(x=>x!==slug):[...saved,slug];setSaved(next);try{localStorage.setItem('pm_saved_jobs',JSON.stringify(next))}catch{}}
-  function clear(){setMode('Todos');setArea('Todas');setSchedule('Todos');setLocation('');setQuery('')}
+  function clear(){setMode('Todos');setArea('Todas');setSchedule('Todos');setLocation('');setQuery('');setProvince('Todas');setCity('Todas');setProfileOrder(false);setProfileNotice('')}
+  async function orderByProfile(){if(profile){setProfileOrder(v=>!v);setProfileNotice(profileOrder?'Orden personalizado desactivado.':'Listo: priorizamos las oportunidades más parecidas a tu perfil.');return}const {data}=await cvAuthClient().auth.getSession();if(!data.session){location.assign('/login?next=/empleos?orden=perfil');return}setProfileNotice('Completá al menos área, zona o habilidades en tu perfil para poder ordenar mejor.');setTimeout(()=>location.assign('/mi-cuenta'),900)}
 
   return <div className="pm-jobs">
-    <div className="pm-searchbar">
-      <label className="pm-search-field"><span>Puesto o palabra clave</span><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Ej. ventas, administración, soporte"/></label>
-      <label className="pm-search-field"><span>Ubicación</span><input value={location} onChange={e=>setLocation(e.target.value)} placeholder="Ej. CABA, Rosario, remoto"/></label>
-      <button className="pm-search-button" type="button">Buscar <small>{filtered.length}</small></button>
-    </div>
-
-    <div className="pm-area-rail" aria-label="Áreas de empleo">
-      <button data-active={area==='Todas'} onClick={()=>setArea('Todas')}>Todas las áreas</button>
-      {areas.slice(0,10).map(a=><button key={a} data-active={area===a} onClick={()=>setArea(a)}>{a}</button>)}
-    </div>
-
-    <div className="pm-motivation"><span>PARA VOS</span><p>{motivators[(query.length+area.length)%motivators.length]}</p><Link href="/mi-cuenta">Ordenar mi búsqueda</Link></div>
+    <div className="pm-searchbar"><label className="pm-search-field"><span>Puesto o palabra clave</span><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Ej. ventas, cocina, depósito"/></label><label className="pm-search-field"><span>Ubicación</span><input value={location} onChange={e=>setLocation(e.target.value)} placeholder="Ej. CABA, Rosario, remoto"/></label><button className="pm-search-button" type="button">Buscar <small>{filtered.length}</small></button></div>
+    <div className="pm-area-rail" aria-label="Áreas de empleo"><button data-active={area==='Todas'} onClick={()=>setArea('Todas')}>Todas las áreas</button>{areas.slice(0,10).map(a=><button key={a} data-active={area===a} onClick={()=>setArea(a)}>{a}</button>)}</div>
+    <div className="pm-motivation"><span>PARA VOS</span><p>{profileOrder&&profile?'Tus resultados ahora están ordenados según lo que cargaste en tu perfil.':motivators[(query.length+area.length)%motivators.length]}</p><button type="button" data-on={profileOrder} onClick={()=>void orderByProfile()}>{profileOrder?'✓ Ordenado por mi perfil':'Ordenar con mi perfil'}</button></div>{profileNotice&&<div className="pm-profile-order-notice">{profileNotice}</div>}
 
     <div className="pm-workspace">
-      <aside className="pm-filters">
-        <div className="pm-filter-heading"><span>Filtros</span><button onClick={clear}>Limpiar</button></div>
+      <aside className="pm-filters"><div className="pm-filter-heading"><span>Filtros</span><button onClick={clear}>Limpiar</button></div>
+        <div className="pm-filter-block pm-zone-filter"><strong>Zona</strong><label><span>Provincia</span><select value={province} onChange={e=>{setProvince(e.target.value);setCity('Todas')}}><option>Todas</option>{provinceOptions.map(x=><option key={x}>{x}</option>)}</select></label><label><span>Ciudad / localidad</span><select value={city} onChange={e=>setCity(e.target.value)}><option>Todas</option>{cityOptions.map(x=><option key={x}>{x}</option>)}</select></label></div>
         <div className="pm-filter-block"><strong>Modalidad</strong>{['Todos','Presencial','Híbrido','Remoto'].map(x=><label key={x}><input type="radio" name="mode" checked={mode===x} onChange={()=>setMode(x)}/><span>{x}</span></label>)}</div>
         <div className="pm-filter-block"><strong>Jornada</strong>{['Todos','Full time','Part time','Pasantía','Contrato'].map(x=><label key={x}><input type="radio" name="schedule" checked={schedule===x} onChange={()=>setSchedule(x)}/><span>{x}</span></label>)}</div>
         <div className="pm-filter-block"><strong>Área</strong><select value={area} onChange={e=>setArea(e.target.value)}><option>Todas</option>{areas.map(x=><option key={x}>{x}</option>)}</select></div>
-        <div className="pm-discovery"><i/><div><b>Catálogo vivo</b><p>Consultamos fuentes públicas oficiales y renovamos oportunidades cada seis horas. La publicación original siempre tiene prioridad.</p></div></div>
+        <div className="pm-discovery"><i/><div><b>Catálogo vivo</b><p>Consultamos fuentes públicas trazables y renovamos oportunidades cada seis horas. La publicación original siempre tiene prioridad.</p></div></div>
       </aside>
 
-      <section className="pm-results" aria-live="polite">
-        <div className="pm-results-head"><div><span>OPORTUNIDADES</span><strong>{filtered.length} resultados</strong></div><small>Buenos Aires primero · luego Argentina</small></div>
-        <div className="pm-job-list">{filtered.length?filtered.map(job=><article key={job.slug} className="pm-job-card" data-selected={selected?.slug===job.slug} onClick={()=>setSelectedSlug(job.slug)}>
+      <section className="pm-results" aria-live="polite"><div className="pm-results-head"><div><span>OPORTUNIDADES</span><strong>{filtered.length} resultados</strong></div><small>{profileOrder&&profile?'Ordenados por afinidad con tu perfil':'Buenos Aires primero · luego Argentina'}</small></div><div className="pm-job-list">{filtered.length?filtered.map(job=>{const visual=jobVisual(job),score=profile?matchScore(job,profile):0;return <article key={job.slug} className="pm-job-card" data-selected={selected?.slug===job.slug} onClick={()=>setSelectedSlug(job.slug)}>
+          <div className="pm-job-visual" data-generic={!visual} style={visual?{backgroundImage:`url(${visual})`}:undefined}><span>{visual?job.area:'PostuláMejor.com'}</span>{profileOrder&&profile&&score>0&&<b>{score>=12?'Muy afín':score>=6?'Buen match':'Relacionado'}</b>}</div>
           <button className="pm-save" onClick={e=>{e.stopPropagation();toggleSaved(job.slug)}} aria-label={saved.includes(job.slug)?'Quitar de guardados':'Guardar oferta'} data-saved={saved.includes(job.slug)}>{saved.includes(job.slug)?'Guardado':'Guardar'}</button>
-          <div className="pm-company-row"><span className="pm-company-avatar" style={logoStyle(job)}>{job.logoUrl?'':initials(job.company)}</span><div><b>{job.company}</b><small>{job.area}</small></div></div>
-          <h3>{job.title}</h3>
-          <div className="pm-job-tags"><span title={job.location}>{compactLocation(job.location)}</span><span>{job.mode}</span><span>{job.schedule}</span></div>
-          <p>{job.summary}</p>
-          <div className="pm-job-foot"><span><i/>{job.external?'Fuente oficial':'Publicada en Postulá Mejor'}</span><Link href={`/empleos/${job.slug}`} onClick={e=>e.stopPropagation()}>Abrir detalle</Link></div>
-        </article>):<div className="pm-empty">No encontramos ofertas con estos filtros. Probá otra área, una zona más amplia o modalidad remota.</div>}</div>
-      </section>
+          <div className="pm-company-row"><span className="pm-company-avatar" style={logoStyle(job)}>{job.logoUrl?'':initials(job.company)}</span><div><b>{job.company}</b><small>{job.area}</small></div></div><h3>{job.title}</h3><div className="pm-job-tags"><span title={job.location}>{compactLocation(job.location)}</span><span>{job.mode}</span><span>{job.schedule}</span></div><p>{job.summary}</p><div className="pm-job-foot"><span><i/>{job.external?'Fuente pública':'Publicada en Postulá Mejor'}</span><Link href={`/empleos/${job.slug}`} onClick={e=>e.stopPropagation()}>Abrir detalle</Link></div></article>}):<div className="pm-empty">No encontramos ofertas con estos filtros. Probá otra zona, un área más amplia o modalidad remota.</div>}</div></section>
 
-      <aside className="pm-preview">
-        {selected?<div className="pm-preview-inner">
-          <div className="pm-preview-company"><span className="pm-company-avatar-lg" style={logoStyle(selected)}>{selected.logoUrl?'':initials(selected.company)}</span><div><span>{selected.company}</span><small>{selected.source}</small></div></div>
-          <h2>{selected.title}</h2>
-          <div className="pm-preview-meta"><span title={selected.location}>{compactLocation(selected.location)}</span><span>{selected.mode}</span><span>{selected.schedule}</span><span>{selected.area}</span></div>
-          <div className="pm-match"><div><span>MATCH EXPLICABLE</span><b>Disponible con tu perfil</b></div><p>Al iniciar sesión comparamos requisitos explícitos con los datos que vos autorizaste. Sin descarte automático por características sensibles.</p></div>
-          <div className="pm-preview-section"><strong>Resumen</strong><p>{selected.summary}</p></div>
-          <div className="pm-preview-section"><strong>Antes de postularte</strong><ul>{selected.requirements.map(r=><li key={r}>{r}</li>)}</ul></div>
-          <div className="pm-preview-actions"><Link href={`/postular/${selected.slug}`} className={styles.button}>{selected.external?'Preparar postulación':'Postularme ahora'}</Link>{selected.external&&<a href={selected.sourceUrl} target="_blank" rel="noopener noreferrer" className={styles.buttonDark}>Ver fuente oficial</a>}</div>
-          <div className="pm-safety">Postularse es gratis. CV Pro+ y Búsqueda Activa son opcionales: mejoran presentación, seguimiento y automatizaciones con confirmación del usuario.</div>
-        </div>:<div className="pm-empty">Elegí una oportunidad para ver el detalle.</div>}
-      </aside>
+      <aside className="pm-preview">{selected?<div className="pm-preview-inner"><div className="pm-preview-company"><span className="pm-company-avatar-lg" style={logoStyle(selected)}>{selected.logoUrl?'':initials(selected.company)}</span><div><span>{selected.company}</span><small>{selected.source}</small></div></div><h2>{selected.title}</h2><div className="pm-preview-meta"><span title={selected.location}>{compactLocation(selected.location)}</span><span>{selected.mode}</span><span>{selected.schedule}</span><span>{selected.area}</span></div>{profile&&<div className="pm-match"><div><span>COINCIDENCIA EXPLICABLE</span><b>{matchScore(selected,profile)>7?'Se parece bastante a tu perfil':matchScore(selected,profile)>0?'Tiene algunos puntos en común':'Revisala por tus propios criterios'}</b></div><p>Comparamos únicamente datos laborales que vos cargaste —área, habilidades, zona, modalidad y disponibilidad— para ordenar resultados. No decide si una empresa debe contratarte.</p></div>}<div className="pm-preview-section"><strong>Resumen</strong><p>{selected.summary}</p></div><div className="pm-preview-section"><strong>Antes de postularte</strong><ul>{selected.requirements.map(r=><li key={r}>{r}</li>)}</ul></div><div className="pm-preview-actions"><Link href={`/postular/${selected.slug}`} className={styles.button}>{selected.external?'Preparar postulación':'Postularme ahora'}</Link>{selected.external&&<a href={selected.sourceUrl} target="_blank" rel="noopener noreferrer" className={styles.buttonDark}>Ver fuente original</a>}</div><div className="pm-safety">Postularse es gratis. La fuente original tiene prioridad sobre cualquier resumen mostrado acá.</div></div>:<div className="pm-empty">Elegí una oportunidad para ver el detalle.</div>}</aside>
     </div>
   </div>
 }

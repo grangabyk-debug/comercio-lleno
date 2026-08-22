@@ -13,6 +13,7 @@ function has(body:any,key:string){return Object.prototype.hasOwnProperty.call(bo
 function textPatch(body:any,key:string,current:unknown,max=180){return has(body,key)?(cleanText(body?.[key],max)||null):(current??null)}
 function arrayPatch(body:any,key:string,current:unknown,max=60,limit=25){if(!has(body,key))return Array.isArray(current)?current:[];return Array.isArray(body?.[key])?body[key].map((x:unknown)=>cleanText(x,max)).filter(Boolean).slice(0,limit):[]}
 function visibilityPatch(body:any,current:unknown):Visibility{const incoming=cleanText(body?.profile_visibility,40) as Visibility;if(has(body,'profile_visibility')&&VISIBILITY.includes(incoming))return incoming;const saved=cleanText(current,40) as Visibility;return VISIBILITY.includes(saved)?saved:'applications_only'}
+function linkedinPatch(body:any,current:unknown){if(!has(body,'linkedin_url'))return current??null;const value=cleanText(body?.linkedin_url,500);if(!value)return null;try{const parsed=new URL(/^https?:\/\//i.test(value)?value:`https://${value}`);if(!/(^|\.)linkedin\.com$/i.test(parsed.hostname))return current??null;return parsed.toString()}catch{return current??null}}
 
 export async function GET(req:NextRequest){
  const db=client(req);const {data:{user},error}=await db.auth.getUser();if(error||!user)return NextResponse.json({ok:false,error:'Iniciá sesión.'},{status:401})
@@ -57,6 +58,7 @@ export async function POST(req:NextRequest){
    neighborhood:textPatch(body,'neighborhood',existingCandidate?.neighborhood,100),
    headline:textPatch(body,'headline',existingCandidate?.headline,180),
    phone:textPatch(body,'phone',existingCandidate?.phone,60),
+   linkedin_url:linkedinPatch(body,existingCandidate?.linkedin_url),
    skills,
    preferred_areas:areas,
    availability:textPatch(body,'availability',existingCandidate?.availability,180),
@@ -72,8 +74,8 @@ export async function POST(req:NextRequest){
    profile_completion:0,
    updated_at:new Date().toISOString()
   }
-  const completeness=[profile.display_name,candidate.province,candidate.city,candidate.headline,skills.length,candidate.availability,candidate.resume_name].filter(Boolean).length
-  candidate.profile_completion=Math.min(100,10+completeness*12)
+  const completeness=[profile.display_name,candidate.province,candidate.city,candidate.headline,skills.length,candidate.availability,candidate.resume_name,candidate.linkedin_url].filter(Boolean).length
+  candidate.profile_completion=Math.min(100,10+completeness*11)
   const {error:cErr}=await db.from('pm_candidate_profiles').upsert(candidate,{onConflict:'user_id'});if(cErr)return NextResponse.json({ok:false,error:cErr.message},{status:400})
  }
  if(body?.accept_legal===true||body?.activate_candidate===true){
