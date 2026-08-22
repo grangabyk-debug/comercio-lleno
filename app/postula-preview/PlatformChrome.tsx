@@ -11,6 +11,7 @@ import './footer-v13.css'
 import './readability-v14.css'
 import './trust-publish-v15.css'
 import './trust-strip-v16.css'
+import './header-account-v24.css'
 
 export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'employer'}){
   const headerClass=`${styles.header} pm-social-header ${audience==='employer'?'pm-social-header-employer':'pm-social-header-candidate'}`
