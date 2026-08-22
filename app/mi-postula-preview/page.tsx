@@ -3,6 +3,7 @@ import {PlatformHeader,PlatformFooter,MobileNav} from '../postula-preview/Platfo
 import NotificationSettings from '../postula-preview/NotificationSettings'
 import {getJobCatalog} from '../postula-preview/jobs'
 import CandidateActivationGate from './CandidateActivationGate'
+import CandidatePrivacyPanel from './CandidatePrivacyPanel'
 import NativeApplications from './NativeApplications'
 import '../postula-preview/premium-v5.css'
 import '../postula-preview/premium-v6.css'
@@ -13,6 +14,7 @@ import '../postula-preview/notifications-v16.css'
 import './account-v8.css'
 import './native-apps.css'
 import './role-activation-v26.css'
+import './privacy-v31.css'
 export const metadata={title:{absolute:'Mi perfil | Postulá Mejor'},robots:{index:false,follow:false},alternates:{canonical:'https://postulamejor.com/mi-cuenta'}}
 export const revalidate=300
-export default async function CandidatePage(){const jobs=await getJobCatalog();return <main className={`${styles.page} pm7-page`}><PlatformHeader/><CandidateActivationGate jobCount={jobs.length}/><NotificationSettings audience="candidate"/><NativeApplications/><PlatformFooter/><MobileNav active="cuenta"/></main>}
+export default async function CandidatePage(){const jobs=await getJobCatalog();return <main className={`${styles.page} pm7-page`}><PlatformHeader/><CandidateActivationGate jobCount={jobs.length}/><CandidatePrivacyPanel/><NotificationSettings audience="candidate"/><NativeApplications/><PlatformFooter/><MobileNav active="cuenta"/></main>}
