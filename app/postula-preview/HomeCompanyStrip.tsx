@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import {usePathname} from 'next/navigation'
-import {useRef} from 'react'
+import {useRef,useState} from 'react'
 import styles from './home-companies.module.css'
 
-const companies=[
+type Company={name:string;domain:string;logoDomain?:string;initials:string}
+const companies:Company[]=[
  {name:'Cencosud',domain:'cencosud.com',initials:'CE'},
- {name:'PedidosYa',domain:'pedidosya.com',initials:'PY'},
- {name:'Despegar',domain:'despegar.com',initials:'D'},
+ {name:'PedidosYa',domain:'pedidosya.com',logoDomain:'pedidosya.com.ar',initials:'PY'},
+ {name:'Despegar',domain:'despegar.com',logoDomain:'despegar.com.ar',initials:'D'},
  {name:'Coca-Cola FEMSA',domain:'coca-colafemsa.com',initials:'CF'},
  {name:'Marriott',domain:'marriott.com',initials:'M'},
  {name:'Minor Hotels',domain:'minorhotels.com',initials:'MH'},
@@ -18,16 +19,26 @@ const companies=[
  {name:'EY',domain:'ey.com',initials:'EY'},
 ]
 
-function CompanyLogo({domain,initials}:{domain:string;initials:string}){
- const logo=`https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(`https://${domain}`)}&sz=128`
- return <span className={styles.mark} aria-hidden="true"><span className={styles.fallback}>{initials}</span><img src={logo} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e=>{e.currentTarget.style.display='none'}}/></span>
+function CompanyLogo({domain,logoDomain,initials}:{domain:string;logoDomain?:string;initials:string}){
+ const resolved=logoDomain||domain
+ const sources=[
+  `https://unavatar.io/${resolved}?fallback=false`,
+  `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(`https://${resolved}`)}&sz=256`,
+  `https://icons.duckduckgo.com/ip3/${resolved}.ico`,
+ ]
+ const [sourceIndex,setSourceIndex]=useState(0)
+ const src=sources[sourceIndex]
+ return <span className={styles.mark} aria-hidden="true">
+  <span className={styles.fallback}>{initials}</span>
+  {src?<img src={src} alt="" referrerPolicy="no-referrer" onError={()=>setSourceIndex(i=>i<sources.length-1?i+1:sources.length)}/>:null}
+ </span>
 }
 
 export default function HomeCompanyStrip(){
  const pathname=usePathname()
  const rail=useRef<HTMLDivElement>(null)
  if(pathname!=='/')return null
- const move=(direction:number)=>{const el=rail.current;if(!el)return;el.scrollBy({left:direction*Math.max(300,el.clientWidth*.78),behavior:'smooth'})}
+ const move=(direction:number)=>{const el=rail.current;if(!el)return;el.scrollBy({left:direction*Math.max(280,el.clientWidth*.76),behavior:'smooth'})}
  return <section className={styles.wrap} aria-label="Empresas con oportunidades públicas">
   <div className={styles.inner}>
    <div className={styles.copy}>
