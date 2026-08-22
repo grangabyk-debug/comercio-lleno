@@ -1,5 +1,6 @@
 import {createClient} from '@supabase/supabase-js'
 import {currentJobBoost} from './publicJobBoost'
+import {publicJobExtras} from './publicJobExtras'
 
 export type PreviewJob={
   slug:string;title:string;company:string;location:string;mode:'Presencial'|'Híbrido'|'Remoto';schedule:string;area:string;source:string;sourceUrl:string;checkedAt:string;summary:string;requirements:string[];tags:string[];external:boolean;internalJobId?:string;compensation?:string;confidential?:boolean;logoUrl?:string
@@ -23,17 +24,25 @@ const brandDomains:Record<string,string>={
  'coca-cola femsa':'https://coca-colafemsa.com/favicon.ico',
  'cencosud':'https://www.cencosud.com/favicon.ico',
  'givaudan':'https://www.givaudan.com/favicon.ico',
- 'emi labs':'https://www.emilabs.ai/favicon.ico'
+ 'emi labs':'https://www.emilabs.ai/favicon.ico',
+ 'pedidosya':'https://www.pedidosya.com/favicon.ico',
+ 'dlocal':'https://www.dlocal.com/favicon.ico',
+ 'aleph':'https://www.alephholding.com/favicon.ico',
+ 'binance':'https://www.binance.com/favicon.ico',
+ 'monks':'https://www.monks.com/favicon.ico',
+ 'hogarth worldwide':'https://www.hogarth.com/favicon.ico',
+ 'appsflyer':'https://www.appsflyer.com/favicon.ico'
 }
 function brandLogo(company:string){return brandDomains[company.trim().toLowerCase()]||''}
 function normalizeMode(v:string):'Presencial'|'Híbrido'|'Remoto'{const s=v.toLowerCase();if(s.includes('remot'))return'Remoto';if(s.includes('híbr')||s.includes('hibr'))return'Híbrido';return'Presencial'}
+function semanticKey(job:PreviewJob){if(job.internalJobId)return`internal:${job.internalJobId}`;const url=job.sourceUrl.toLowerCase();if(/jobs\.lever\.co|greenhouse\.io|boards\.greenhouse|\/viewjob\?|\/job\//.test(url))return`url:${url}`;return`semantic:${job.company}|${job.title}|${job.location}`.toLowerCase()}
 async function nativeJobs():Promise<PreviewJob[]>{try{const db=createClient('https://pejkycdttogpmmdntzuq.supabase.co','sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I',{auth:{persistSession:false,autoRefreshToken:false}});const {data,error}=await db.rpc('pm_public_job_catalog');if(error||!Array.isArray(data))return[];return data.map((r:any)=>({slug:`pm-${r.id}`,title:String(r.title),company:String(r.company_name),location:String(r.location_text||'Argentina'),mode:normalizeMode(String(r.work_mode||'')),schedule:String(r.schedule||'A confirmar'),area:String(r.area||'Otros rubros'),source:`Publicada en Postulá Mejor · ${r.employer_visibility==='confidential'?'identidad del empleador reservada':r.company_verification==='verified'?'empresa verificada':'validación básica'}`,sourceUrl:`/postular/pm-${r.id}`,checkedAt:new Date().toISOString().slice(0,10),summary:String(r.description||'').slice(0,1000),requirements:Array.isArray(r.requirements)?r.requirements.map(String):[],tags:[String(r.area||'Trabajo'),String(r.work_mode||''),r.employer_visibility==='confidential'?'Empleador reservado':''].filter(Boolean),external:false,internalJobId:String(r.id),compensation:String(r.compensation_text||''),confidential:r.employer_visibility==='confidential',logoUrl:r.company_logo_path?`${brandingBucket}${String(r.company_logo_path)}`:''}))}catch{return[]}}
 
 export async function getJobCatalog(){
-  const [{discoverPublicJobs},native]=await Promise.all([import('./publicJobSources'),nativeJobs()])
-  const live=await discoverPublicJobs()
+  const [{discoverPublicJobs},{discoverOverflowJobs},native]=await Promise.all([import('./publicJobSources'),import('./publicJobOverflow'),nativeJobs()])
+  const [live,overflow]=await Promise.all([discoverPublicJobs(),discoverOverflowJobs()])
   const seen=new Set<string>()
-  return [...native,...currentJobBoost,...live,...previewJobs].filter(job=>{const key=(job.internalJobId||job.sourceUrl).toLowerCase();if(seen.has(key))return false;seen.add(key);return true}).map(job=>({...job,logoUrl:job.confidential?'':job.logoUrl||brandLogo(job.company)}))
+  return [...native,...publicJobExtras,...currentJobBoost,...live,...overflow,...previewJobs].filter(job=>{const key=semanticKey(job);if(seen.has(key))return false;seen.add(key);return true}).map(job=>({...job,logoUrl:job.confidential?'':job.logoUrl||brandLogo(job.company)}))
 }
 
-export function getPreviewJob(slug:string){const job=[...currentJobBoost,...previewJobs].find(job=>job.slug===slug);return job?{...job,logoUrl:job.logoUrl||brandLogo(job.company)}:undefined}
+export function getPreviewJob(slug:string){const job=[...publicJobExtras,...currentJobBoost,...previewJobs].find(job=>job.slug===slug);return job?{...job,logoUrl:job.logoUrl||brandLogo(job.company)}:undefined}
