@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import {usePathname} from 'next/navigation'
-import {useRef,useState} from 'react'
+import {useEffect,useRef,useState} from 'react'
+import {createPortal} from 'react-dom'
 import styles from './home-companies.module.css'
 
 type Company={name:string;domain:string;logoDomain?:string;initials:string}
@@ -37,14 +38,28 @@ function CompanyLogo({domain,logoDomain,initials}:{domain:string;logoDomain?:str
 export default function HomeCompanyStrip(){
  const pathname=usePathname()
  const rail=useRef<HTMLDivElement>(null)
- if(pathname!=='/')return null
+ const [host,setHost]=useState<HTMLElement|null>(null)
+
+ useEffect(()=>{
+  if(pathname!=='/')return
+  const target=document.querySelector<HTMLElement>('.pm7-stories')
+  if(!target)return
+  const original=target.querySelector<HTMLElement>('.pm7-stories-inner')
+  const previousDisplay=original?.style.display||''
+  if(original)original.style.display='none'
+  setHost(target)
+  return ()=>{if(original)original.style.display=previousDisplay}
+ },[pathname])
+
+ if(pathname!=='/'||!host)return null
  const move=(direction:number)=>{const el=rail.current;if(!el)return;el.scrollBy({left:direction*Math.max(280,el.clientWidth*.76),behavior:'smooth'})}
- return <section className={styles.wrap} aria-label="Empresas con oportunidades públicas">
+ const strip=<div className={styles.wrap} aria-label="Empresas con oportunidades públicas">
   <div className={styles.inner}>
    <div className={styles.copy}>
     <span>OPORTUNIDADES PÚBLICAS</span>
     <b>Empresas que hoy tienen búsquedas abiertas.</b>
-    <small>Tocá una empresa para ver solamente sus oportunidades. Las marcas aparecen por sus avisos públicos; no implica patrocinio ni relación comercial.</small>
+    <p className={styles.action}>Tocá una empresa para ver solamente sus oportunidades.</p>
+    <small className={styles.disclaimer}>Las marcas aparecen por sus avisos públicos; no implica patrocinio ni relación comercial.</small>
    </div>
    <div className={styles.railShell}>
     <button className={`${styles.arrow} ${styles.prev}`} type="button" onClick={()=>move(-1)} aria-label="Ver empresas anteriores">‹</button>
@@ -54,5 +69,6 @@ export default function HomeCompanyStrip(){
     <button className={`${styles.arrow} ${styles.next}`} type="button" onClick={()=>move(1)} aria-label="Ver más empresas">›</button>
    </div>
   </div>
- </section>
+ </div>
+ return createPortal(strip,host)
 }
