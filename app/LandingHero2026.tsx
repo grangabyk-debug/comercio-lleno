@@ -1,8 +1,54 @@
 import Link from 'next/link'
 import styles from './LandingHero2026.module.css'
 
-function MiniSale(){return <div className={styles.miniSale}><div className={styles.miniHead}><span>NUEVA VENTA</span><b>● Caja abierta</b></div><div className={styles.search}>⌕ Buscar producto o escanear código</div><div className={styles.item}><span><b>Café molido 500 g</b><small>2 × $8.450</small></span><strong>$16.900</strong></div><div className={styles.item}><span><b>Leche entera 1 L</b><small>1 × $1.890</small></span><strong>$1.890</strong></div><div className={styles.total}><span>Total</span><strong>$18.790</strong></div><div className={styles.payments}><i>Efectivo</i><i>Mercado Pago</i><i className={styles.quote}>Presupuesto</i></div><button type="button">Cobrar y facturar</button></div>}
+const retailPhoto='https://images.pexels.com/photos/12935050/pexels-photo-12935050.jpeg?auto=compress&cs=tinysrgb&w=1400'
 
-function Phone(){return <div className={styles.phone} aria-label="Comercio Lleno funcionando en un teléfono"><div className={styles.phoneTop}><span>9:41</span><span>● ● ●</span></div><div className={styles.appTop}><b>Comercio<span>Lleno</span></b><i>IA</i></div><div className={styles.status}><span>ARCA conectado</span><b>CAJA ACTIVA</b></div><div className={styles.mobileStats}><div><small>VENTAS HOY</small><b>$428.650</b><span>36 operaciones</span></div><div><small>STOCK</small><b>811</b><span>productos activos</span></div></div><button className={styles.saleButton}><b>+</b><span><strong>Nueva venta</strong><small>Vendé y facturá desde acá</small></span></button><div className={styles.mobileList}><span><i>◫</i><b>Productos</b><small>Categorías, stock y precios</small></span><span><i>◎</i><b>Mercado Pago</b><small>Point y QR físico</small></span><span><i>✦</i><b>Asistente IA</b><small>Consultá tu negocio</small></span></div><div className={styles.bottomNav}><b>Inicio</b><span>Venta</span><span>Productos</span><span>Más</span></div></div>}
+function SaleScreen({compact=false}:{compact?:boolean}){
+  return <div className={`${styles.saleScreen} ${compact?styles.compact:''}`}>
+    <div className={styles.saleTop}><span><i/> CAJA ABIERTA</span><b>ARCA conectado</b></div>
+    <div className={styles.saleSearch}>⌕ Buscar producto o escanear código</div>
+    <div className={styles.saleLine}><span><b>Café molido 500 g</b><small>2 × $8.450</small></span><strong>$16.900</strong></div>
+    <div className={styles.saleLine}><span><b>Leche entera 1 L</b><small>1 × $1.890</small></span><strong>$1.890</strong></div>
+    {!compact&&<div className={styles.saleLine}><span><b>Pan lactal</b><small>1 × $3.200</small></span><strong>$3.200</strong></div>}
+    <div className={styles.saleTotal}><span>Total</span><strong>{compact?'$18.790':'$21.990'}</strong></div>
+    <div className={styles.salePayments}><span>Efectivo</span><span>Mercado Pago</span><span>Presupuesto</span></div>
+    <button>Cobrar y facturar</button>
+  </div>
+}
 
-export default function LandingHero2026(){return <section className={styles.hero} id="inicio"><div className={styles.noise}/><div className={styles.glowA}/><div className={styles.glowB}/><div className={styles.copy}><div className={styles.eyebrow}><span>30 DÍAS GRATIS</span><i/>SIN TARJETA · DESPUÉS $14.900/MES</div><h1>Tu comercio,<br/><em>más simple de manejar.</em></h1><p className={styles.lead}>Vendé, facturá con ARCA, controlá stock y caja, cobrá con Mercado Pago y consultá tu negocio con IA. Todo online, desde el celular o la PC.</p><div className={styles.actions}><Link href="/prueba-gratis" className={styles.primary}>PROBAR 30 DÍAS GRATIS <span>→</span></Link><Link href="/funcionalidades" className={styles.secondary}>Ver funcionalidades</Link></div><div className={styles.proof}><span><b>✓</b> Sin tarjeta</span><span><b>✓</b> Configuración rápida</span><span><b>✓</b> 100% online</span></div><div className={styles.trust}><div><small>FACTURACIÓN</small><b>ARCA integrada</b></div><div><small>COBROS</small><b>Mercado Pago</b></div><div><small>DISPOSITIVOS</small><b>Celular + PC</b></div></div></div><div className={styles.visual}><div className={styles.orbit}>30 días<br/><b>$0</b></div><Phone/><div className={styles.desktop}><div className={styles.deskBar}><span>comerciolleno.com</span><i>● ● ●</i></div><div className={styles.deskSide}><b>CL</b><span>Inicio</span><span className={styles.active}>Nueva venta</span><span>Productos</span><span>Ventas</span><span>Reportes</span></div><div className={styles.deskBody}><div className={styles.deskTitle}><span><small>COMERCIO LLENO</small><b>Vendé sin perder tiempo.</b></span><i>ARCA ● conectado</i></div><MiniSale/></div></div><div className={`${styles.floating} ${styles.floatOne}`}><b>Stock en vivo</b><span>↓ 4 productos por reponer</span></div><div className={`${styles.floating} ${styles.floatTwo}`}><b>Mercado Pago</b><span>Point + QR físico</span></div></div><div className={styles.mobileFoot}><span>ARCA</span><span>Mercado Pago</span><span>Stock</span><span>IA</span></div></section>}
+function Phone(){return <div className={styles.phone} aria-label="Comercio Lleno funcionando en celular">
+  <div className={styles.phoneNotch}/>
+  <div className={styles.phoneStatus}><span>9:41</span><span>● ● ●</span></div>
+  <div className={styles.phoneBrand}><b>Comercio<span>Lleno</span></b><i>IA</i></div>
+  <div className={styles.phoneHello}><small>HOY EN TU COMERCIO</small><strong>$428.650</strong><span>36 ventas · caja activa</span></div>
+  <div className={styles.phoneActions}><button><b>＋</b><span>Nueva venta<small>Vendé y facturá</small></span></button><button><b>▦</b><span>Productos<small>Stock y precios</small></span></button></div>
+  <div className={styles.phoneCard}><span><b>ARCA</b><small>Conectado</small></span><i>✓</i></div>
+  <div className={styles.phoneCard}><span><b>Mercado Pago</b><small>Point + QR físico</small></span><i>→</i></div>
+  <div className={styles.phoneNav}><b>Inicio</b><span>Venta</span><span>Stock</span><span>Más</span></div>
+</div>}
+
+export default function LandingHero2026(){return <section className={styles.hero} id="inicio">
+  <div className={styles.mesh}/><div className={styles.grain}/>
+  <div className={styles.copy}>
+    <div className={styles.eyebrow}><span>NUEVO</span><b>El sistema de gestión que llevás en el bolsillo.</b></div>
+    <h1>Tu comercio.<br/><em>Más rápido.</em><br/><span>Más simple.</span></h1>
+    <p className={styles.lead}>Vendé, controlá stock y caja, cobrá con Mercado Pago y <strong>facturá con ARCA</strong> desde el celular o la compu. Sin instalaciones raras. Sin aprender un sistema eterno.</p>
+    <div className={styles.actions}><Link href="/prueba-gratis" className={styles.primary}>PROBAR 30 DÍAS GRATIS <span>↗</span></Link><Link href="#pc" className={styles.secondary}>Ver cómo funciona</Link></div>
+    <div className={styles.micro}><span>Sin tarjeta</span><i/> <span>100% online</span><i/> <span>Después $14.900/mes</span></div>
+    <div className={styles.trust}><div><small>FACTURACIÓN</small><b>ARCA integrada</b></div><div><small>COBROS</small><b>Mercado Pago</b></div><div><small>DISPOSITIVOS</small><b>Celular + PC</b></div><div><small>AYUDA</small><b>Asistente IA</b></div></div>
+  </div>
+
+  <div className={styles.visual}>
+    <div className={styles.photo}><img src={retailPhoto} alt="Cajero usando tecnología en un comercio"/><div className={styles.photoFade}/><span className={styles.photoTag}>HECHO PARA EL MOSTRADOR</span></div>
+    <div className={styles.laptop}>
+      <div className={styles.laptopLid}><div className={styles.browser}><span>● ● ●</span><b>comerciolleno.com</b></div><div className={styles.desktopApp}><aside><b>CL</b><span>Inicio</span><strong>Nueva venta</strong><span>Productos</span><span>Ventas</span><span>Reportes</span><span>IA</span></aside><main><div className={styles.desktopTitle}><span><small>NUEVA VENTA</small><b>Vendé sin perder tiempo.</b></span><i>ARCA ●</i></div><SaleScreen/></main></div></div>
+      <div className={styles.laptopBase}/>
+    </div>
+    <Phone/>
+    <div className={`${styles.floatCard} ${styles.floatArca}`}><span>✓</span><div><small>FACTURACIÓN</small><b>ARCA listo</b></div></div>
+    <div className={`${styles.floatCard} ${styles.floatStock}`}><small>STOCK EN VIVO</small><b>811 productos</b><span>4 por reponer</span></div>
+    <div className={styles.trial}><small>PROBALO</small><strong>30</strong><b>DÍAS GRATIS</b><span>sin tarjeta</span></div>
+  </div>
+
+  <div className={styles.mobileProof}><span>ARCA</span><span>Mercado Pago</span><span>Stock</span><span>IA</span></div>
+</section>}
