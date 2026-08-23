@@ -116,7 +116,10 @@ export default function MobileProductionSalesBridgeV2() {
       saleOnly.style.setProperty('cursor', 'pointer', 'important')
       saleOnly.style.setProperty('vertical-align', 'top', 'important')
 
-      const hasItems = Boolean(document.querySelector('[class*="cartLines"] > [class*="cartLine"]'))
+      const cartLines = document.querySelector('[class*="cartLines"]') as HTMLElement | null
+      const totalNode = document.querySelector('[class*="totalRow"] b')
+      const cartTitle = document.querySelector('[class*="cartTitle"]')
+      const hasItems = Boolean(cartLines?.children.length) || numberFrom(text(totalNode)) > 0 || /\b\d+\s+ítem/i.test(text(cartTitle))
       const blocked = cashMode === 'manual' && cashOpen === false
       const disabled = busy || !hasItems || blocked
       invoice.disabled = disabled
