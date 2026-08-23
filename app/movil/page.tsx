@@ -30,8 +30,25 @@ export const metadata: Metadata={
 }
 export const dynamic='force-dynamic'
 
+const pwaInstallCapture=`
+(function(){
+  if(window.__clPwaCaptureReady)return;
+  window.__clPwaCaptureReady=true;
+  window.addEventListener('beforeinstallprompt',function(event){
+    event.preventDefault();
+    window.__clInstallPrompt=event;
+    window.dispatchEvent(new Event('comercio:pwa-install-ready'));
+  });
+  window.addEventListener('appinstalled',function(){
+    window.__clInstallPrompt=null;
+    window.__clInstallInstalled=true;
+    window.dispatchEvent(new Event('comercio:pwa-installed'));
+  });
+})();`
+
 export default function MobilePage(){
   return <>
+    <script id="cl-pwa-install-capture" dangerouslySetInnerHTML={{__html:pwaInstallCapture}}/>
     <MobileRevolutionTheme/>
     <MobileDarkTheme/>
     <SessionFetchGuard/>

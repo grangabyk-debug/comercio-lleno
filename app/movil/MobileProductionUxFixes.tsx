@@ -7,6 +7,11 @@ type InstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
 }
 
+type InstallWindow = Window & {
+  __clInstallPrompt?: InstallPromptEvent | null
+  __clInstallInstalled?: boolean
+}
+
 function cleanText(node: Element | null) {
   return (node?.textContent || '').replace(/\s+/g, ' ').trim()
 }
@@ -30,6 +35,7 @@ export default function MobileProductionUxFixes() {
     let disposed = false
     let syncFrame = 0
     const timers = new Set<number>()
+    const installWindow = window as InstallWindow
 
     const later = (fn: () => void, ms: number) => {
       const id = window.setTimeout(() => {
@@ -39,8 +45,16 @@ export default function MobileProductionUxFixes() {
       timers.add(id)
     }
 
+    function capturedPrompt() {
+      const prompt = installWindow.__clInstallPrompt || null
+      if (prompt) installPromptRef.current = prompt
+      return installPromptRef.current
+    }
+
+    if (installWindow.__clInstallPrompt) installPromptRef.current = installWindow.__clInstallPrompt
+
     if ('serviceWorker' in navigator) {
-      void navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {})
+      void navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(() => navigator.serviceWorker.ready).then(() => scheduleSync()).catch(() => {})
     }
 
     function saleSection() {
@@ -125,6 +139,11 @@ export default function MobileProductionUxFixes() {
       later(() => addScannedProduct(name), 100)
     }
 
+    function installLabel() {
+      if (standaloneMode()) return 'Comercio Lleno instalado'
+      return 'Instalar Comercio Lleno'
+    }
+
     function injectInstallButton() {
       const heading = Array.from(document.querySelectorAll('h2')).find(node => cleanText(node) === 'Aplicación')
       const card = heading?.closest('section') as HTMLElement | null
@@ -139,12 +158,33 @@ export default function MobileProductionUxFixes() {
         grid.appendChild(button)
       }
       const installed = standaloneMode()
-      const label = installed ? 'Aplicación instalada' : installPromptRef.current ? 'Instalar Comercio Lleno' : 'Agregar a pantalla principal'
-      const title = installed ? 'Comercio Lleno ya está instalado en este teléfono.' : 'Instalar la aplicación web de Comercio Lleno en el teléfono.'
+      const label = installLabel()
+      const title = installed ? 'Comercio Lleno ya está instalado en este teléfono.' : 'Instalar Comercio Lleno como aplicación en este teléfono.'
       if (button.disabled !== installed) button.disabled = installed
       if (button.textContent !== label) button.textContent = label
       if (button.title !== title) button.title = title
       if (button.style.fontWeight !== '900') button.style.fontWeight = '900'
+    }
+
+    function removeReadyInstallButton() {
+      document.querySelector('[data-pwa-ready-install="1"]')?.remove()
+    }
+
+    function injectReadyInstallButton() {
+      if (standaloneMode()) {
+        removeReadyInstallButton()
+        return
+      }
+      if (sessionStorage.getItem('cl_pwa_install_pending') !== '1' || !capturedPrompt()) return
+      if (document.querySelector('[data-pwa-ready-install="1"]')) return
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.dataset.pwaReadyInstall = '1'
+      button.dataset.pwaInstall = '1'
+      button.textContent = '↓ Instalar Comercio Lleno'
+      button.setAttribute('aria-label', 'Instalar Comercio Lleno')
+      button.style.cssText = 'position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:10050;width:min(calc(100% - 28px),470px);min-height:54px;padding:12px 18px;border:0;border-radius:16px;background:linear-gradient(100deg,#6d36d8,#ff641d);color:white;font:900 15px/1.1 Inter,system-ui,sans-serif;box-shadow:0 16px 36px rgba(50,28,62,.28);cursor:pointer;'
+      document.body.appendChild(button)
     }
 
     function sync() {
@@ -152,6 +192,7 @@ export default function MobileProductionUxFixes() {
       injectSaleScannerButton()
       consumeScannerResult()
       injectInstallButton()
+      injectReadyInstallButton()
     }
 
     function scheduleSync() {
@@ -162,15 +203,95 @@ export default function MobileProductionUxFixes() {
       })
     }
 
-    const beforeInstall = (event: Event) => {
+    function rememberPrompt(event: Event) {
       event.preventDefault()
-      installPromptRef.current = event as InstallPromptEvent
+      const prompt = event as InstallPromptEvent
+      installPromptRef.current = prompt
+      installWindow.__clInstallPrompt = prompt
       scheduleSync()
     }
 
+    const beforeInstall = (event: Event) => rememberPrompt(event)
+    const earlyInstallReady = () => {
+      capturedPrompt()
+      scheduleSync()
+    }
     const appInstalled = () => {
       installPromptRef.current = null
+      installWindow.__clInstallPrompt = null
+      sessionStorage.removeItem('cl_pwa_install_pending')
+      sessionStorage.removeItem('cl_pwa_install_refreshed')
+      removeReadyInstallButton()
       scheduleSync()
+    }
+
+    async function runNativeInstall(prompt: InstallPromptEvent) {
+      installPromptRef.current = null
+      installWindow.__clInstallPrompt = null
+      sessionStorage.removeItem('cl_pwa_install_pending')
+      removeReadyInstallButton()
+      try {
+        await prompt.prompt()
+        await prompt.userChoice.catch(() => null)
+      } catch {}
+      scheduleSync()
+    }
+
+    async function waitForPrompt(ms: number) {
+      const existing = capturedPrompt()
+      if (existing) return existing
+      return await new Promise<InstallPromptEvent | null>(resolve => {
+        let done = false
+        const finish = (value: InstallPromptEvent | null) => {
+          if (done) return
+          done = true
+          window.removeEventListener('comercio:pwa-install-ready', onReady)
+          window.clearTimeout(timeout)
+          resolve(value)
+        }
+        const onReady = () => finish(capturedPrompt())
+        const timeout = window.setTimeout(() => finish(capturedPrompt()), ms)
+        window.addEventListener('comercio:pwa-install-ready', onReady, { once: true })
+      })
+    }
+
+    async function prepareInstallation() {
+      let prompt = capturedPrompt()
+      if (prompt) {
+        await runNativeInstall(prompt)
+        return
+      }
+
+      if ('serviceWorker' in navigator) {
+        try {
+          await navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          await Promise.race([
+            navigator.serviceWorker.ready,
+            new Promise(resolve => window.setTimeout(resolve, 900)),
+          ])
+        } catch {}
+      }
+
+      prompt = await waitForPrompt(900)
+      if (prompt) {
+        await runNativeInstall(prompt)
+        return
+      }
+
+      if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+        window.alert('En iPhone/iPad, Apple no permite abrir el instalador desde un botón web. Tocá Compartir y luego “Agregar a pantalla de inicio”.')
+        return
+      }
+
+      if (sessionStorage.getItem('cl_pwa_install_refreshed') !== '1') {
+        sessionStorage.setItem('cl_pwa_install_pending', '1')
+        sessionStorage.setItem('cl_pwa_install_refreshed', '1')
+        window.location.reload()
+        return
+      }
+
+      sessionStorage.setItem('cl_pwa_install_pending', '1')
+      window.alert('Chrome todavía no habilitó el instalador automático. Cerrá esta pestaña, volvé a entrar a Comercio Lleno y vas a ver un botón “Instalar Comercio Lleno” listo para tocar. No hace falta buscar nada en el menú de Chrome.')
     }
 
     const click = async (event: MouseEvent) => {
@@ -202,27 +323,13 @@ export default function MobileProductionUxFixes() {
       if (!install || install.disabled) return
       event.preventDefault()
       event.stopPropagation()
-      const prompt = installPromptRef.current
-      if (prompt) {
-        installPromptRef.current = null
-        try {
-          await prompt.prompt()
-          await prompt.userChoice.catch(() => null)
-        } catch {}
-        scheduleSync()
-        return
-      }
-
-      const ua = navigator.userAgent
-      if (/iphone|ipad|ipod/i.test(ua)) {
-        window.alert('En iPhone/iPad: tocá Compartir y elegí “Agregar a pantalla de inicio”.')
-      } else {
-        window.alert('En Chrome: tocá el menú ⋮ y elegí “Instalar aplicación” o “Agregar a pantalla principal”. Si acabás de habilitar la app, cerrá y volvé a abrir esta pantalla y probá de nuevo.')
-      }
+      await prepareInstallation()
     }
 
     window.addEventListener('beforeinstallprompt', beforeInstall)
     window.addEventListener('appinstalled', appInstalled)
+    window.addEventListener('comercio:pwa-install-ready', earlyInstallReady)
+    window.addEventListener('comercio:pwa-installed', appInstalled)
     document.addEventListener('click', click, true)
 
     const observer = new MutationObserver(scheduleSync)
@@ -244,6 +351,8 @@ export default function MobileProductionUxFixes() {
       observer.disconnect()
       window.removeEventListener('beforeinstallprompt', beforeInstall)
       window.removeEventListener('appinstalled', appInstalled)
+      window.removeEventListener('comercio:pwa-install-ready', earlyInstallReady)
+      window.removeEventListener('comercio:pwa-installed', appInstalled)
       document.removeEventListener('click', click, true)
       viewport?.removeEventListener('resize', scheduleSync)
       viewport?.removeEventListener('scroll', scheduleSync)

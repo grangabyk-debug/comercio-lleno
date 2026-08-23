@@ -3,18 +3,27 @@
   "name": "Comercio Lleno",
   "short_name": "Comercio Lleno",
   "description": "Ventas, productos, stock y facturación desde el celular.",
+  "lang": "es-AR",
   "start_url": "/movil",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#f7f3fa",
   "theme_color": "#6d36d8",
+  "prefer_related_applications": false,
+  "categories": ["business", "productivity"],
   "icons": [
     {
-      "src": "/comercio-lleno-favicon-v3.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/pwa-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
