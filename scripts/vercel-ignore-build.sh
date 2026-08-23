@@ -1,19 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+BRANCH="${VERCEL_GIT_COMMIT_REF:-}"
 BASE_SHA="${VERCEL_GIT_PREVIOUS_SHA:-}"
 
-# En el primer deploy sin referencia previa, compilamos por seguridad.
+# Regla de ahorro: Vercel no debe compilar ramas de trabajo/preview.
+# Sólo main y staging pueden consumir un build automático.
+if [ -n "$BRANCH" ] && [ "$BRANCH" != "main" ] && [ "$BRANCH" != "staging" ]; then
+  echo "Rama $BRANCH no habilitada para deploy automático: omitir build."
+  exit 0
+fi
+
+# En main/staging, si no existe una referencia previa confiable, compilamos
+# por seguridad para no perder una publicación real.
 if [ -z "$BASE_SHA" ]; then
-  echo "Sin VERCEL_GIT_PREVIOUS_SHA: ejecutar build."
+  echo "Sin VERCEL_GIT_PREVIOUS_SHA en rama deployable: ejecutar build."
   exit 1
 fi
 
-# Si Vercel apunta a un commit previo que ya no está disponible en este checkout
-# (por ejemplo, después de rearmar la rama staging), no podemos comparar con
-# seguridad. En ese caso hacemos el build en vez de omitirlo por error.
 if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
-  echo "El commit previo no está disponible: ejecutar build."
+  echo "El commit previo no está disponible en rama deployable: ejecutar build."
   exit 1
 fi
 
@@ -31,7 +37,6 @@ echo "Archivos modificados:"
 printf '%s\n' "$CHANGED_FILES"
 
 # Estos cambios no afectan la aplicación web desplegada en Vercel.
-# Si todos los cambios están dentro de estas rutas, ahorramos el build.
 WEB_RELEVANT="$(printf '%s\n' "$CHANGED_FILES" | grep -Ev '^(native-app/|docs/|\.github/)|\.md$' || true)"
 
 if [ -z "$WEB_RELEVANT" ]; then
