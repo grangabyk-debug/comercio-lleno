@@ -63,7 +63,9 @@ export default function PosScaleEnhanced(props:Props){
   const[busy,setBusy]=useState(false)
   const[input,setInput]=useState('')
   const[entryUnit,setEntryUnit]=useState<EntryUnit>('g')
+  const[panelOpen,setPanelOpen]=useState(false)
   const portRef=useRef<SerialPort|null>(null)
+  const suppressNextOpen=useRef(false)
 
   useEffect(()=>{
     const sync=(event:Event)=>{const next=(event as CustomEvent<BusinessModulesSettings>).detail;if(next)setModules(next)}
@@ -76,7 +78,19 @@ export default function PosScaleEnhanced(props:Props){
     const unit=fractionUnit(line)
     return !!unit&&modules.fractional.units.includes(unit)
   }),[props.cart,modules])
-  useEffect(()=>{if(!fractional.length)setSelectedId('');else if(!fractional.some(line=>line.id===selectedId))setSelectedId(fractional[fractional.length-1].id)},[fractional,selectedId])
+  const fractionalSignature=useMemo(()=>fractional.map(line=>`${line.id}:${line.qty}`).join('|'),[fractional])
+
+  useEffect(()=>{
+    if(!fractional.length){setSelectedId('');setPanelOpen(false);return}
+    if(!fractional.some(line=>line.id===selectedId))setSelectedId(fractional[fractional.length-1].id)
+  },[fractional,selectedId])
+
+  useEffect(()=>{
+    if(!fractional.length)return
+    if(suppressNextOpen.current){suppressNextOpen.current=false;return}
+    setPanelOpen(true)
+  },[fractionalSignature])
+
   const selected=fractional.find(line=>line.id===selectedId)||fractional[fractional.length-1]
   const baseUnit=selected?fractionUnit(selected):null
   const options=baseUnit?entryOptions(baseUnit):[]
@@ -94,10 +108,12 @@ export default function PosScaleEnhanced(props:Props){
     if(!selected||!baseUnit||!Number.isFinite(next)||next<=0)return
     const factor=10**Math.max(0,Math.min(4,modules.fractional.decimals))
     const rounded=Math.round(next*factor)/factor
+    suppressNextOpen.current=true
     props.changeQty(selected.id,rounded-selected.qty)
     const displayValue=messageValue??rounded
     const displayUnit=messageUnit??baseUnit
     setState(`Aplicado: ${displayValue} ${unitLabel(displayUnit)} · ${money.format(selected.price*rounded)}`)
+    setPanelOpen(false)
   }
 
   function applyManual(){
@@ -134,13 +150,13 @@ export default function PosScaleEnhanced(props:Props){
     finally{try{await reader?.cancel?.()}catch{};try{reader?.releaseLock?.()}catch{};setBusy(false)}
   }
 
-  const show=modules.fractional.enabled&&fractional.length>0
+  const show=modules.fractional.enabled&&fractional.length>0&&panelOpen
   const currentDisplay=selected&&baseUnit?`${selected.qty.toLocaleString('es-AR',{maximumFractionDigits:modules.fractional.decimals})} ${unitLabel(baseUnit)}`:''
   const lineTotal=selected?selected.price*selected.qty:0
 
   return <>
     <PosPaymentsEnhanced {...props}/>
-    {show&&<aside style={{position:'fixed',right:18,bottom:74,zIndex:9800,width:'min(410px,calc(100vw - 28px))',background:'#fff',border:'1px solid #cfe0d7',borderRadius:18,boxShadow:'0 18px 48px rgba(20,45,34,.18)',padding:15,display:'grid',gap:11}} aria-label="Cantidad fraccionada">
+    {show&&<aside style={{position:'fixed',left:'50%',top:'50%',transform:'translate(-50%,-50%)',zIndex:9800,width:'min(410px,calc(100vw - 28px))',maxHeight:'calc(100vh - 32px)',overflowY:'auto',background:'#fff',border:'1px solid #cfe0d7',borderRadius:18,boxShadow:'0 18px 48px rgba(20,45,34,.18)',padding:15,display:'grid',gap:11}} aria-label="Cantidad fraccionada">
       <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'center'}}><div><div style={{fontSize:9,fontWeight:950,letterSpacing:1.2,color:'#147f50'}}>VENTA FRACCIONADA</div><b style={{fontSize:15}}>Ingresá peso o volumen</b></div><span style={{fontSize:10,fontWeight:900,padding:'6px 9px',borderRadius:999,background:'#e7f7ef',color:'#147f50'}}>ACTIVO</span></div>
       {fractional.length>1&&<select value={selected?.id||''} onChange={e=>setSelectedId(e.target.value)} style={{height:38,border:'1px solid #d2ddd7',borderRadius:10,padding:'0 10px',fontWeight:800}}>{fractional.map(line=><option key={line.id} value={line.id}>{line.name}</option>)}</select>}
       <div style={{padding:'10px 11px',borderRadius:11,background:'#f6faf8',display:'grid',gap:3,fontSize:11,color:'#53665d'}}><b style={{color:'#1d352a',fontSize:12}}>{selected?.name}</b><span>{money.format(selected?.price||0)} por {unitLabel(baseUnit)}</span><span>Actual: <b>{currentDisplay}</b> · Subtotal: <b>{money.format(lineTotal)}</b></span></div>
