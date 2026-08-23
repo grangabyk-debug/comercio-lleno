@@ -24,20 +24,6 @@ function LaptopMock(){return <div className={`${styles.laptop} ${upgrade.laptop}
   </main>
 </div></div><div className={styles.base}/></div>}
 
-function HumanPosScreen(){return <div className={upgrade.humanPosScreen} aria-hidden="true">
-  <div className={upgrade.humanPosTop}><BrandLogo size={17}/><span>Nueva venta</span><b>$145.300</b></div>
-  <div className={upgrade.humanPosBody}>
-    <aside><strong>+</strong><i>Inicio</i><b>Venta</b><i>Productos</i><i>Caja</i></aside>
-    <main>
-      <div className={upgrade.humanPosSearch}>Buscar producto o escanear código…</div>
-      <div className={upgrade.humanPosGrid}>
-        <section><span><b>Yerba mate 1 kg</b><em>2 × $8.900</em><strong>$17.800</strong></span><span><b>Detergente 750 ml</b><em>3 × $4.500</em><strong>$13.500</strong></span><span><b>Perfumería</b><em>4 artículos</em><strong>$62.000</strong></span><span><b>Limpieza</b><em>5 artículos</em><strong>$52.000</strong></span></section>
-        <div><small>MEDIO DE PAGO</small><p><b>Efectivo</b><b>Débito</b><b>Mercado Pago</b><b>Presupuesto</b></p><button>Cobrar y facturar</button></div>
-      </div>
-    </main>
-  </div>
-</div>}
-
 export default function LandingExperience2026(){return <>
   <section className={`${styles.devices} ${upgrade.devices}`}>
     <div className={styles.deviceHeading}><p>EL MISMO NEGOCIO · EN TODOS TUS DISPOSITIVOS</p><h2>De la caja al bolsillo.<br/><em>Sin perder el hilo.</em></h2><span>Entrá desde una notebook en el mostrador o desde el celular caminando por el local. Los datos siguen siendo los mismos, en tiempo real.</span></div>
@@ -55,7 +41,7 @@ export default function LandingExperience2026(){return <>
   </section>
 
   <section className={styles.human}>
-    <article className={`${styles.humanMain} ${upgrade.humanMain}`}><img src={cashierPhoto} alt="Persona atendiendo un comercio con Comercio Lleno"/><HumanPosScreen/><div className={styles.humanShade}/><div><p>HECHO PARA EL MOMENTO REAL</p><h2>Cuando hay gente esperando, el sistema tiene que acompañar.</h2><span>Botones grandes, información clara y un flujo pensado para vender sin fricción.</span></div></article>
+    <article className={styles.humanMain}><img src={cashierPhoto} alt="Persona atendiendo un comercio"/><div className={styles.humanShade}/><div><p>HECHO PARA EL MOMENTO REAL</p><h2>Cuando hay gente esperando, el sistema tiene que acompañar.</h2><span>Botones grandes, información clara y un flujo pensado para vender sin fricción.</span></div></article>
     <div className={styles.humanSide}><article><img src={stockPhoto} alt="Persona controlando mercadería"/><div><small>INVENTARIO</small><b>Controlá productos desde donde están.</b></div></article><article><img src={fashionPhoto} alt="Local de indumentaria moderno"/><div><small>MÓDULOS</small><b>Adaptalo a tu tipo de comercio.</b></div></article></div>
   </section>
 
