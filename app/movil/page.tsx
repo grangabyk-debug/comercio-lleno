@@ -3,7 +3,6 @@ import MobileSimpleApp from './MobileSimpleAppV2'
 import MobileScanner from './MobileScanner'
 import MobileAiAssistant from './MobileAiAssistant'
 import MobileSupportChat from './MobileSupportChat'
-import MobilePcNotice from './MobilePcNotice'
 import MobileCashModeController from './MobileCashModeControllerV3'
 import MobileCashDailyAccess from './MobileCashDailyAccess'
 import MobileSaleUiFix from './MobileSaleUiFix'
@@ -66,7 +65,6 @@ export default function MobilePage(){
     <MobileAiAssistant/>
     <MobileSaleUiFix/>
     <MobileSupportChat/>
-    <MobilePcNotice/>
     <MobileSettingsOverlay/>
     <MobileLegalLinks/>
     <MobilePermissionsGate/>

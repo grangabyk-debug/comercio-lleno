@@ -36,6 +36,7 @@ export default function MobileProductionUxFixes() {
     let syncFrame = 0
     const timers = new Set<number>()
     const installWindow = window as InstallWindow
+    const guideId = 'cl-pwa-install-guide'
 
     const later = (fn: () => void, ms: number) => {
       const id = window.setTimeout(() => {
@@ -43,6 +44,7 @@ export default function MobileProductionUxFixes() {
         if (!disposed) fn()
       }, ms)
       timers.add(id)
+      return id
     }
 
     function capturedPrompt() {
@@ -139,11 +141,6 @@ export default function MobileProductionUxFixes() {
       later(() => addScannedProduct(name), 100)
     }
 
-    function installLabel() {
-      if (standaloneMode()) return 'Comercio Lleno instalado'
-      return 'Instalar Comercio Lleno'
-    }
-
     function injectInstallButton() {
       const heading = Array.from(document.querySelectorAll('h2')).find(node => cleanText(node) === 'Aplicación')
       const card = heading?.closest('section') as HTMLElement | null
@@ -158,33 +155,64 @@ export default function MobileProductionUxFixes() {
         grid.appendChild(button)
       }
       const installed = standaloneMode()
-      const label = installLabel()
-      const title = installed ? 'Comercio Lleno ya está instalado en este teléfono.' : 'Instalar Comercio Lleno como aplicación en este teléfono.'
+      const ready = Boolean(capturedPrompt())
+      const label = installed ? 'Comercio Lleno instalado' : ready ? 'Instalar ahora' : 'Instalar Comercio Lleno'
+      const title = installed ? 'Comercio Lleno ya está instalado en este teléfono.' : ready ? 'Abrir el instalador de Android.' : 'Preparar la instalación de Comercio Lleno.'
       if (button.disabled !== installed) button.disabled = installed
       if (button.textContent !== label) button.textContent = label
       if (button.title !== title) button.title = title
       if (button.style.fontWeight !== '900') button.style.fontWeight = '900'
     }
 
-    function removeReadyInstallButton() {
-      document.querySelector('[data-pwa-ready-install="1"]')?.remove()
+    function removeInstallGuide() {
+      document.getElementById(guideId)?.remove()
     }
 
-    function injectReadyInstallButton() {
+    function ensureInstallGuide() {
+      let overlay = document.getElementById(guideId) as HTMLElement | null
+      if (overlay) return overlay
+      overlay = document.createElement('div')
+      overlay.id = guideId
+      overlay.setAttribute('role', 'dialog')
+      overlay.setAttribute('aria-modal', 'true')
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:12000;background:rgba(20,14,24,.56);backdrop-filter:blur(8px);display:flex;align-items:flex-end;justify-content:center;padding:16px;'
+      overlay.innerHTML = `
+        <div style="width:min(100%,480px);background:#fff;color:#251c2a;border-radius:22px;padding:20px 18px 18px;box-shadow:0 26px 70px rgba(28,17,34,.34);font-family:Inter,system-ui,sans-serif">
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <div style="width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#6d36d8,#ff641d);color:#fff;display:grid;place-items:center;font-weight:950;font-size:18px;flex:0 0 46px">CL</div>
+            <div style="min-width:0;flex:1"><b style="display:block;font-size:18px;line-height:1.15">Instalar Comercio Lleno</b><span data-pwa-guide-status style="display:block;margin-top:7px;color:#706773;font-size:13px;line-height:1.45" aria-live="polite"></span></div>
+            <button type="button" data-pwa-guide-close aria-label="Cerrar" style="width:38px;height:38px;border:1px solid #e4dde7;background:#fff;border-radius:12px;font-size:22px;color:#6b616f">×</button>
+          </div>
+          <button type="button" data-pwa-guide-action style="width:100%;min-height:54px;margin-top:18px;border:0;border-radius:15px;background:linear-gradient(100deg,#6d36d8,#ff641d);color:#fff;font:900 15px/1.1 Inter,system-ui,sans-serif;box-shadow:0 12px 24px rgba(91,48,140,.18)"></button>
+          <small style="display:block;text-align:center;margin-top:10px;color:#928895;font-size:11px;line-height:1.35">No es una APK. Se instala como aplicación web y después aparece con su icono entre las apps del teléfono.</small>
+        </div>`
+      document.body.appendChild(overlay)
+      return overlay
+    }
+
+    function renderInstallGuide() {
       if (standaloneMode()) {
-        removeReadyInstallButton()
+        removeInstallGuide()
         return
       }
-      if (sessionStorage.getItem('cl_pwa_install_pending') !== '1' || !capturedPrompt()) return
-      if (document.querySelector('[data-pwa-ready-install="1"]')) return
-      const button = document.createElement('button')
-      button.type = 'button'
-      button.dataset.pwaReadyInstall = '1'
-      button.dataset.pwaInstall = '1'
-      button.textContent = '↓ Instalar Comercio Lleno'
-      button.setAttribute('aria-label', 'Instalar Comercio Lleno')
-      button.style.cssText = 'position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:10050;width:min(calc(100% - 28px),470px);min-height:54px;padding:12px 18px;border:0;border-radius:16px;background:linear-gradient(100deg,#6d36d8,#ff641d);color:white;font:900 15px/1.1 Inter,system-ui,sans-serif;box-shadow:0 16px 36px rgba(50,28,62,.28);cursor:pointer;'
-      document.body.appendChild(button)
+      const overlay = ensureInstallGuide()
+      const status = overlay.querySelector('[data-pwa-guide-status]') as HTMLElement | null
+      const action = overlay.querySelector('[data-pwa-guide-action]') as HTMLButtonElement | null
+      if (!status || !action) return
+      const prompt = capturedPrompt()
+      if (prompt) {
+        const readyText = 'Listo. Chrome ya habilitó la instalación en este teléfono.'
+        if (status.textContent !== readyText) status.textContent = readyText
+        if (action.disabled) action.disabled = false
+        if (action.textContent !== 'Instalar ahora') action.textContent = 'Instalar ahora'
+        if (action.style.opacity !== '1') action.style.opacity = '1'
+        return
+      }
+      const waitingText = 'Chrome está preparando el instalador. La primera vez puede tardar hasta unos 30 segundos de uso. No hace falta recargar ni buscar opciones en el menú.'
+      if (status.textContent !== waitingText) status.textContent = waitingText
+      if (!action.disabled) action.disabled = true
+      if (action.textContent !== 'Preparando instalación…') action.textContent = 'Preparando instalación…'
+      if (action.style.opacity !== '.58') action.style.opacity = '.58'
     }
 
     function sync() {
@@ -192,7 +220,7 @@ export default function MobileProductionUxFixes() {
       injectSaleScannerButton()
       consumeScannerResult()
       injectInstallButton()
-      injectReadyInstallButton()
+      if (document.getElementById(guideId)) renderInstallGuide()
     }
 
     function scheduleSync() {
@@ -209,53 +237,44 @@ export default function MobileProductionUxFixes() {
       installPromptRef.current = prompt
       installWindow.__clInstallPrompt = prompt
       scheduleSync()
+      if (document.getElementById(guideId)) renderInstallGuide()
     }
 
     const beforeInstall = (event: Event) => rememberPrompt(event)
     const earlyInstallReady = () => {
       capturedPrompt()
       scheduleSync()
+      if (document.getElementById(guideId)) renderInstallGuide()
     }
+
     const appInstalled = () => {
       installPromptRef.current = null
       installWindow.__clInstallPrompt = null
-      sessionStorage.removeItem('cl_pwa_install_pending')
-      sessionStorage.removeItem('cl_pwa_install_refreshed')
-      removeReadyInstallButton()
+      removeInstallGuide()
       scheduleSync()
     }
 
     async function runNativeInstall(prompt: InstallPromptEvent) {
-      installPromptRef.current = null
-      installWindow.__clInstallPrompt = null
-      sessionStorage.removeItem('cl_pwa_install_pending')
-      removeReadyInstallButton()
       try {
         await prompt.prompt()
-        await prompt.userChoice.catch(() => null)
+        const choice = await prompt.userChoice.catch(() => null)
+        if (choice?.outcome === 'accepted') {
+          installPromptRef.current = null
+          installWindow.__clInstallPrompt = null
+          removeInstallGuide()
+        }
       } catch {}
       scheduleSync()
     }
 
-    async function waitForPrompt(ms: number) {
-      const existing = capturedPrompt()
-      if (existing) return existing
-      return await new Promise<InstallPromptEvent | null>(resolve => {
-        let done = false
-        const finish = (value: InstallPromptEvent | null) => {
-          if (done) return
-          done = true
-          window.removeEventListener('comercio:pwa-install-ready', onReady)
-          window.clearTimeout(timeout)
-          resolve(value)
-        }
-        const onReady = () => finish(capturedPrompt())
-        const timeout = window.setTimeout(() => finish(capturedPrompt()), ms)
-        window.addEventListener('comercio:pwa-install-ready', onReady, { once: true })
-      })
-    }
-
     async function prepareInstallation() {
+      if (standaloneMode()) return
+      const ua = navigator.userAgent
+      if (/iphone|ipad|ipod/i.test(ua)) {
+        window.alert('En iPhone/iPad Apple no permite abrir el instalador desde un botón web. Usá Compartir → Agregar a pantalla de inicio.')
+        return
+      }
+
       let prompt = capturedPrompt()
       if (prompt) {
         await runNativeInstall(prompt)
@@ -267,31 +286,21 @@ export default function MobileProductionUxFixes() {
           await navigator.serviceWorker.register('/sw.js', { scope: '/' })
           await Promise.race([
             navigator.serviceWorker.ready,
-            new Promise(resolve => window.setTimeout(resolve, 900)),
+            new Promise(resolve => window.setTimeout(resolve, 700)),
           ])
         } catch {}
       }
 
-      prompt = await waitForPrompt(900)
+      prompt = capturedPrompt()
       if (prompt) {
         await runNativeInstall(prompt)
         return
       }
 
-      if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
-        window.alert('En iPhone/iPad, Apple no permite abrir el instalador desde un botón web. Tocá Compartir y luego “Agregar a pantalla de inicio”.')
-        return
-      }
-
-      if (sessionStorage.getItem('cl_pwa_install_refreshed') !== '1') {
-        sessionStorage.setItem('cl_pwa_install_pending', '1')
-        sessionStorage.setItem('cl_pwa_install_refreshed', '1')
-        window.location.reload()
-        return
-      }
-
-      sessionStorage.setItem('cl_pwa_install_pending', '1')
-      window.alert('Chrome todavía no habilitó el instalador automático. Cerrá esta pestaña, volvé a entrar a Comercio Lleno y vas a ver un botón “Instalar Comercio Lleno” listo para tocar. No hace falta buscar nada en el menú de Chrome.')
+      renderInstallGuide()
+      later(() => {
+        if (document.getElementById(guideId)) renderInstallGuide()
+      }, 31000)
     }
 
     const click = async (event: MouseEvent) => {
@@ -317,6 +326,22 @@ export default function MobileProductionUxFixes() {
         const sheet = target.closest('[class*="sheet"]')
         const headClose = target.closest('[class*="head"] button')
         if (sheet && headClose && cleanText(sheet).includes('Escáner de productos')) saleScanPendingRef.current = false
+      }
+
+      if (target.closest('[data-pwa-guide-close]')) {
+        event.preventDefault()
+        event.stopPropagation()
+        removeInstallGuide()
+        return
+      }
+
+      const guideAction = target.closest('[data-pwa-guide-action]') as HTMLButtonElement | null
+      if (guideAction) {
+        event.preventDefault()
+        event.stopPropagation()
+        const prompt = capturedPrompt()
+        if (prompt) await runNativeInstall(prompt)
+        return
       }
 
       const install = target.closest('button[data-pwa-install="1"]') as HTMLButtonElement | null
@@ -349,6 +374,7 @@ export default function MobileProductionUxFixes() {
       timers.forEach(id => window.clearTimeout(id))
       timers.clear()
       observer.disconnect()
+      removeInstallGuide()
       window.removeEventListener('beforeinstallprompt', beforeInstall)
       window.removeEventListener('appinstalled', appInstalled)
       window.removeEventListener('comercio:pwa-install-ready', earlyInstallReady)
