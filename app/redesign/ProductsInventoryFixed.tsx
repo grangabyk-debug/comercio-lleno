@@ -52,23 +52,30 @@ export default function ProductsInventoryFixed(props:Props){
       applying=true
       try{
         root.querySelectorAll('label').forEach(label=>{
-          const text=(label.textContent||'').trim().toLocaleLowerCase('es')
-          if(text.startsWith('categoría'))label.querySelector('input')?.setAttribute('list',datalistId)
+          const text=(label.childNodes[0]?.textContent||label.textContent||'').trim().toLocaleLowerCase('es')
+          if(!text.startsWith('categoría'))return
+          const input=label.querySelector<HTMLInputElement>('input')
+          if(!input)return
+          input.setAttribute('list',datalistId)
+          if(!label.querySelector('[data-category-picker]')){
+            const picker=document.createElement('select')
+            picker.setAttribute('data-category-picker','1')
+            picker.style.marginTop='6px';picker.style.width='100%';picker.style.border='1px solid #d7e0db';picker.style.borderRadius='8px';picker.style.padding='7px 8px';picker.style.background='#fff';picker.style.fontSize='11px'
+            const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Elegir una categoría existente…';picker.appendChild(placeholder)
+            categories.forEach(name=>{const option=document.createElement('option');option.value=name;option.textContent=name;picker.appendChild(option)})
+            picker.addEventListener('change',()=>{if(!picker.value)return;const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')?.set;setter?.call(input,picker.value);input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}))})
+            label.appendChild(picker)
+          }
         })
         const checkbox=root.querySelector<HTMLInputElement>('input[type="checkbox"]')
         const firstRow=checkbox?.parentElement?.parentElement as HTMLElement|null
         const table=firstRow?.parentElement as HTMLElement|null
         if(!table)return
         const dataRows=Array.from(table.children).filter(node=>(node as HTMLElement).querySelector?.('input[type="checkbox"]')) as HTMLElement[]
-        dataRows.forEach(row=>{
-          const cells=Array.from(row.children) as HTMLElement[]
-          const categoryInput=cells[3]?.querySelector('input')
-          if(categoryInput)categoryInput.setAttribute('list',datalistId)
-          row.querySelectorAll('[data-load-date]').forEach(node=>node.remove())
-        })
+        dataRows.forEach(row=>{const cells=Array.from(row.children) as HTMLElement[];const categoryInput=cells[3]?.querySelector('input');if(categoryInput)categoryInput.setAttribute('list',datalistId)})
         if(dateMode==='default'){
           table.style.removeProperty('display');table.style.removeProperty('flex-direction')
-          dataRows.forEach(row=>row.style.removeProperty('order'))
+          dataRows.forEach(row=>{row.style.removeProperty('order');row.querySelectorAll('[data-load-date]').forEach(node=>node.remove())})
           return
         }
         table.style.display='flex';table.style.flexDirection='column'
@@ -83,7 +90,10 @@ export default function ProductsInventoryFixed(props:Props){
           const rank=id?(dateRank.get(id)??rowIndex):rowIndex
           row.style.order=String(rank+1)
           if(id&&cells[3]){
-            const small=document.createElement('small');small.setAttribute('data-load-date','1');small.textContent=`Cargado: ${loadedAt(dates[id])}`;small.style.marginTop='3px';small.style.opacity='.75';cells[3].appendChild(small)
+            const text=`Cargado: ${loadedAt(dates[id])}`
+            let small=cells[3].querySelector<HTMLElement>('[data-load-date]')
+            if(!small){small=document.createElement('small');small.setAttribute('data-load-date','1');small.style.marginTop='3px';small.style.opacity='.75';cells[3].appendChild(small)}
+            if(small.textContent!==text)small.textContent=text
           }
         })
       }finally{applying=false}
@@ -91,11 +101,11 @@ export default function ProductsInventoryFixed(props:Props){
     decorate()
     observer=new MutationObserver(()=>window.requestAnimationFrame(decorate));observer.observe(root,{childList:true,subtree:true})
     return()=>observer?.disconnect()
-  },[dateMode,dateRank,barcodeToId,nameToIds,dates,datalistId,filtered.length])
+  },[dateMode,dateRank,barcodeToId,nameToIds,dates,datalistId,filtered.length,categories])
 
   function createCategory(){const raw=window.prompt('Nombre de la nueva categoría');const name=canonicalCategory(raw);if(!raw||!String(raw).trim())return;if(categories.some(x=>x.toLocaleLowerCase('es')===name.toLocaleLowerCase('es'))){setCategory(categories.find(x=>x.toLocaleLowerCase('es')===name.toLocaleLowerCase('es'))||name);return}const next=Array.from(new Set([...custom,name]));setCustom(next);localStorage.setItem(customKey(props.session.companyId),JSON.stringify(next));setCategory(name);props.message(`Categoría “${name}” creada. Ya podés asignarla a productos nuevos o existentes.`)}
   function relayMessage(text:string){const match=text.match(/^(\d+) productos procesados correctamente\.$/i);props.message(match?`✓ Se importaron ${match[1]} productos correctamente.`:text)}
-  function blockColumnSortWhileDateMode(event:React.MouseEvent<HTMLDivElement>){if(dateMode==='default')return;const button=(event.target as HTMLElement).closest('button');if(!button)return;const label=(button.textContent||'').toLocaleLowerCase('es');if(['producto','costo','minorista','mayorista','stock'].some(x=>label.includes(x))){event.preventDefault();event.stopPropagation()}}
+  function blockColumnSortWhileDateMode(event:any){if(dateMode==='default')return;const button=(event.target as HTMLElement).closest('button');if(!button)return;const label=(button.textContent||'').toLocaleLowerCase('es');if(['producto','costo','minorista','mayorista','stock'].some(x=>label.includes(x))){event.preventDefault();event.stopPropagation()}}
 
   return <div ref={rootRef} onClickCapture={blockColumnSortWhileDateMode}>
     <datalist id={datalistId}>{categories.map(name=><option key={name} value={name}/>)}</datalist>
