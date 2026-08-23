@@ -7,8 +7,6 @@ import { readTenantSession } from '@/lib/comercio/session'
 import { readCachedSalesSettings, saveSalesSettings, type CashMode } from '@/lib/comercio/sales-settings'
 import PosEnhanced from './PosEnhanced'
 
-const WHOLESALE_MIN_QTY = 3
-
 type Props = ComponentProps<typeof PosEnhanced>
 type PriceableProduct = { price: number; wholesale_price?: number | null }
 type CheckoutMode = 'fiscal' | 'internal'
@@ -39,10 +37,11 @@ const ui: Record<string, CSSProperties> = {
   pointHint:{fontSize:12,lineHeight:1.55,color:'#65716b',margin:0},
 }
 
-function unitPriceForQty(product: PriceableProduct, qty: number, enabled: boolean) {
+function unitPriceForQty(product: PriceableProduct, qty: number, enabled: boolean, minQty: number) {
   const retail = Number(product.price || 0)
   const wholesale = Number(product.wholesale_price || 0)
-  return enabled && qty >= WHOLESALE_MIN_QTY && wholesale > 0 ? wholesale : retail
+  const threshold = Math.max(2, Math.trunc(Number(minQty || 3)))
+  return enabled && qty >= threshold && wholesale > 0 ? wholesale : retail
 }
 
 export default function PosWholesale(props: Props) {
@@ -60,11 +59,11 @@ export default function PosWholesale(props: Props) {
     return readCachedSalesSettings(props.data.company.id)
   }
 
-  function preparePrice(id: string, nextQty: number, enabled: boolean) {
+  function preparePrice(id: string, nextQty: number, enabled: boolean, minQty: number) {
     const line = props.cart.find(item => item.id === id)
     const product = props.data.products.find(item => item.id === id)
     if (!line || !product) return
-    line.price = unitPriceForQty(product, nextQty, enabled)
+    line.price = unitPriceForQty(product, nextQty, enabled, minQty)
   }
 
   function addProduct(id: string) {
@@ -75,7 +74,7 @@ export default function PosWholesale(props: Props) {
       const nextQty = settings.allowNegativeStock
         ? line.qty + 1
         : Math.min(line.qty + 1, Number(product.stock || 0))
-      preparePrice(id, nextQty, settings.wholesalePricingEnabled)
+      preparePrice(id, nextQty, settings.wholesalePricingEnabled, settings.wholesaleMinQuantity)
     }
     props.addProduct(id)
   }
@@ -91,7 +90,7 @@ export default function PosWholesale(props: Props) {
           ? line.qty + delta
           : Math.min(Number(product.stock || 0), line.qty + delta),
       )
-      preparePrice(id, nextQty, settings.wholesalePricingEnabled)
+      preparePrice(id, nextQty, settings.wholesalePricingEnabled, settings.wholesaleMinQuantity)
     }
     props.changeQty(id, delta)
   }

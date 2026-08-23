@@ -6,12 +6,12 @@ import { solutions } from './solutions'
 
 export const metadata: Metadata = {
   title: 'Soluciones para comercios | Comercio Lleno',
-  description: 'Sistemas de ventas, stock, caja y facturación para kioscos, almacenes, ferreterías, locales de ropa, dietéticas, pet shops y otros comercios.',
+  description: 'Sistemas de ventas, stock, caja y facturación para kioscos, almacenes, ferreterías, locales de ropa, dietéticas, pet shops y otros comercios. 30 días gratis, sin tarjeta.',
   alternates: { canonical: 'https://comerciolleno.com/soluciones' },
   robots: { index: true, follow: true },
   openGraph: {
     title: 'Soluciones para comercios | Comercio Lleno',
-    description: 'Encontrá la solución de Comercio Lleno que mejor coincide con tu tipo de negocio.',
+    description: 'Encontrá la solución de Comercio Lleno que mejor coincide con tu tipo de negocio. Probalo 30 días gratis, sin tarjeta.',
     url: 'https://comerciolleno.com/soluciones',
     siteName: 'Comercio Lleno',
     locale: 'es_AR',
@@ -37,8 +37,8 @@ export default function SolutionsPage() {
     <div className={styles.topLine} />
     <header className={styles.header}>
       <Link href="/" className={styles.brand} aria-label="Comercio Lleno"><BrandLogo size={40} /></Link>
-      <nav className={styles.nav} aria-label="Navegación de soluciones"><Link href="/">Producto</Link><Link href="/soluciones">Soluciones</Link><Link href="/prueba-gratis">Prueba gratis</Link></nav>
-      <div className={styles.actions}><Link href="/redesign/access" className={styles.login}>Ingresar</Link><Link href="/prueba-gratis" className={styles.try}>Probar 14 días</Link></div>
+      <nav className={styles.nav} aria-label="Navegación de soluciones"><Link href="/funcionalidades">Funcionalidades</Link><Link href="/soluciones">Soluciones</Link><Link href="/prueba-gratis">Prueba gratis</Link></nav>
+      <div className={styles.actions}><Link href="/redesign/access" className={styles.login}>Ingresar</Link><Link href="/prueba-gratis" className={styles.try}>30 días gratis</Link></div>
     </header>
 
     <section className={styles.hubHero}>
@@ -50,7 +50,7 @@ export default function SolutionsPage() {
     <section className={styles.hubIntroBand} aria-label="Qué vas a encontrar">
       <div><b>Por rubro</b><span>Kioscos, almacenes, ferreterías, ropa, dietéticas, pet shops y perfumerías.</span></div>
       <div><b>Por necesidad</b><span>Punto de venta, stock y caja para quien busca resolver un problema puntual.</span></div>
-      <div><b>Siempre el mismo producto</b><span>No son versiones distintas: es Comercio Lleno explicado con el contexto correcto.</span></div>
+      <div><b>30 días gratis</b><span>Probalo sin tarjeta. Después cuesta $14.900 por mes.</span></div>
     </section>
 
     <section className={styles.hubGrid} aria-label="Soluciones disponibles">
@@ -67,11 +67,11 @@ export default function SolutionsPage() {
 
     <section className={styles.band}>
       <div className={styles.bandInner}>
-        <div><h2>¿Tu rubro no aparece?</h2><p>Comercio Lleno no está limitado a estas categorías. Podés probar el sistema completo y ver cómo encaja con tu operación real.</p></div>
-        <Link href="/prueba-gratis">Probar Comercio Lleno</Link>
+        <div><h2>¿Tu rubro no aparece?</h2><p>Comercio Lleno no está limitado a estas categorías. Probalo 30 días gratis con tu operación real, sin tarjeta; después $14.900 por mes.</p></div>
+        <Link href="/prueba-gratis">Empezar 30 días gratis</Link>
       </div>
     </section>
 
-    <footer className={styles.footer}><span>Comercio Lleno · Software de gestión comercial de Llena Group</span><div className={styles.footerLinks}><Link href="/">Inicio</Link><Link href="/politica-de-privacidad">Privacidad</Link><Link href="/prueba-gratis">Probar gratis</Link></div></footer>
+    <footer className={styles.footer}><span>Comercio Lleno · Software de gestión comercial de Llena Group</span><div className={styles.footerLinks}><Link href="/funcionalidades">Funcionalidades</Link><Link href="/">Inicio</Link><Link href="/terminos">Términos</Link><Link href="/politica-de-privacidad">Privacidad</Link><Link href="/prueba-gratis">Probar 30 días gratis</Link></div></footer>
   </main>
 }

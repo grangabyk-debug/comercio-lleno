@@ -10,6 +10,7 @@ export type SalesSettings = {
   timeFormat: '24' | '12'
   maxDiscount: number
   wholesalePricingEnabled: boolean
+  wholesaleMinQuantity: number
   whatsappAutoTicket: boolean
   cashMode: CashMode
   cashDiscountPercent: number
@@ -20,6 +21,7 @@ export const DEFAULT_SALES_SETTINGS: SalesSettings = {
   timeFormat: '24',
   maxDiscount: 100,
   wholesalePricingEnabled: true,
+  wholesaleMinQuantity: 3,
   whatsappAutoTicket: false,
   cashMode: 'ask',
   cashDiscountPercent: 0,
@@ -35,6 +37,7 @@ function normalize(value: Partial<SalesSettings> | null | undefined): SalesSetti
     timeFormat: value?.timeFormat === '12' ? '12' : '24',
     maxDiscount: Math.max(0, Math.min(100, Number(value?.maxDiscount ?? 100) || 0)),
     wholesalePricingEnabled: value?.wholesalePricingEnabled !== false,
+    wholesaleMinQuantity: Math.max(2, Math.min(9999, Math.trunc(Number(value?.wholesaleMinQuantity ?? 3) || 3))),
     whatsappAutoTicket: value?.whatsappAutoTicket === true,
     cashMode,
     cashDiscountPercent: Math.max(0, Math.min(99, Number(value?.cashDiscountPercent ?? 0) || 0)),
@@ -52,6 +55,7 @@ function legacySettings(): Partial<SalesSettings> | null {
       timeFormat: sales.timeFormat === false ? '12' : '24',
       maxDiscount: Number(sales.maxDiscount ?? 100),
       wholesalePricingEnabled: sales.wholesalePricingEnabled !== false,
+      wholesaleMinQuantity: Number(sales.wholesaleMinQuantity ?? 3),
       whatsappAutoTicket: Boolean(sales.whatsappAutoTicket),
       cashMode: sales.cashMode === 'manual' || sales.cashMode === 'automatic' ? sales.cashMode : 'ask',
       cashDiscountPercent: Number(sales.cashDiscountPercent ?? 0),

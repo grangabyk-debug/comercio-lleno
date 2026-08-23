@@ -1,6 +1,6 @@
 export { default as DashboardEnhanced } from './DashboardEnhanced'
-export { default as PosEnhanced } from './PosPaymentsEnhanced'
+export { default as PosEnhanced } from './PosScaleEnhanced'
 export { default as CashEnhanced } from './CashEnhanced'
-export { default as SalesEnhanced } from './SalesEnhanced'
+export { default as SalesEnhanced } from './SalesWithQuotes'
 export { default as ReportsEnhanced } from './ReportsEnhanced'
 export { dayKey, money } from './operationalShared'

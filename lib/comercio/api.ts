@@ -107,7 +107,7 @@ export async function loadCommerceSnapshot(session: TenantSession): Promise<Comm
   const companyId = companyFilter(session)
   const [companyRows, products, saleRows, customers, cashRows, cashMovements] = await Promise.all([
     rest<CompanyProfile[]>(session, `companies?select=id,name,legal_name,tax_id&id=eq.${companyId}&limit=1`),
-    rest<Product[]>(session, `products?select=id,name,barcode,category,price,cost,wholesale_price,stock,min_stock,target_stock,unit,supplier_id,active&company_id=eq.${companyId}&active=eq.true&order=name.asc&limit=5000`),
+    rest<Product[]>(session, `products?select=id,name,barcode,category,price,cost,wholesale_price,stock,min_stock,target_stock,unit,supplier_id,active,created_at&company_id=eq.${companyId}&active=eq.true&order=name.asc&limit=5000`),
     rest<any[]>(session, `sales?select=id,sold_at,total,payment_method,items_count,customer_id,receipt_type,fiscal_status,cae,receipt_number,details&company_id=eq.${companyId}&order=sold_at.desc&limit=1000`),
     rest<Customer[]>(session, `customers?select=id,name,phone,email,tax_id&company_id=eq.${companyId}&order=created_at.desc&limit=1000`),
     rest<CashRegister[]>(session, `cash_registers?select=id,status,opening_amount,opened_at,closed_at&company_id=eq.${companyId}&limit=1`),
