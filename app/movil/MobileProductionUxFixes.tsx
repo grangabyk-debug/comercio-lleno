@@ -28,6 +28,7 @@ export default function MobileProductionUxFixes() {
 
   useEffect(() => {
     let disposed = false
+    let syncFrame = 0
     const timers = new Set<number>()
 
     const later = (fn: () => void, ms: number) => {
@@ -138,10 +139,12 @@ export default function MobileProductionUxFixes() {
         grid.appendChild(button)
       }
       const installed = standaloneMode()
-      button.disabled = installed
-      button.textContent = installed ? 'Aplicación instalada' : installPromptRef.current ? 'Instalar Comercio Lleno' : 'Agregar a pantalla principal'
-      button.title = installed ? 'Comercio Lleno ya está instalado en este teléfono.' : 'Instalar la aplicación web de Comercio Lleno en el teléfono.'
-      button.style.fontWeight = '900'
+      const label = installed ? 'Aplicación instalada' : installPromptRef.current ? 'Instalar Comercio Lleno' : 'Agregar a pantalla principal'
+      const title = installed ? 'Comercio Lleno ya está instalado en este teléfono.' : 'Instalar la aplicación web de Comercio Lleno en el teléfono.'
+      if (button.disabled !== installed) button.disabled = installed
+      if (button.textContent !== label) button.textContent = label
+      if (button.title !== title) button.title = title
+      if (button.style.fontWeight !== '900') button.style.fontWeight = '900'
     }
 
     function sync() {
@@ -151,15 +154,23 @@ export default function MobileProductionUxFixes() {
       injectInstallButton()
     }
 
+    function scheduleSync() {
+      if (disposed || syncFrame) return
+      syncFrame = window.requestAnimationFrame(() => {
+        syncFrame = 0
+        if (!disposed) sync()
+      })
+    }
+
     const beforeInstall = (event: Event) => {
       event.preventDefault()
       installPromptRef.current = event as InstallPromptEvent
-      sync()
+      scheduleSync()
     }
 
     const appInstalled = () => {
       installPromptRef.current = null
-      sync()
+      scheduleSync()
     }
 
     const click = async (event: MouseEvent) => {
@@ -198,7 +209,7 @@ export default function MobileProductionUxFixes() {
           await prompt.prompt()
           await prompt.userChoice.catch(() => null)
         } catch {}
-        sync()
+        scheduleSync()
         return
       }
 
@@ -214,29 +225,30 @@ export default function MobileProductionUxFixes() {
     window.addEventListener('appinstalled', appInstalled)
     document.addEventListener('click', click, true)
 
-    const observer = new MutationObserver(sync)
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true })
+    const observer = new MutationObserver(scheduleSync)
+    observer.observe(document.body, { childList: true, subtree: true })
 
     const viewport = window.visualViewport
-    viewport?.addEventListener('resize', sync)
-    viewport?.addEventListener('scroll', sync)
-    window.addEventListener('resize', sync)
-    window.addEventListener('scroll', sync, { passive: true })
+    viewport?.addEventListener('resize', scheduleSync)
+    viewport?.addEventListener('scroll', scheduleSync)
+    window.addEventListener('resize', scheduleSync)
+    window.addEventListener('scroll', scheduleSync, { passive: true })
 
     sync()
 
     return () => {
       disposed = true
+      if (syncFrame) window.cancelAnimationFrame(syncFrame)
       timers.forEach(id => window.clearTimeout(id))
       timers.clear()
       observer.disconnect()
       window.removeEventListener('beforeinstallprompt', beforeInstall)
       window.removeEventListener('appinstalled', appInstalled)
       document.removeEventListener('click', click, true)
-      viewport?.removeEventListener('resize', sync)
-      viewport?.removeEventListener('scroll', sync)
-      window.removeEventListener('resize', sync)
-      window.removeEventListener('scroll', sync)
+      viewport?.removeEventListener('resize', scheduleSync)
+      viewport?.removeEventListener('scroll', scheduleSync)
+      window.removeEventListener('resize', scheduleSync)
+      window.removeEventListener('scroll', scheduleSync)
     }
   }, [])
 
