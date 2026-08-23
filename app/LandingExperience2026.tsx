@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import BrandLogo from './BrandLogo'
 import styles from './LandingExperience2026.module.css'
+import upgrade from './LandingExperienceDeviceUpgrade.module.css'
 
 const cashierPhoto='https://images.pexels.com/photos/4348404/pexels-photo-4348404.jpeg?auto=compress&cs=tinysrgb&w=1400'
 const stockPhoto='https://images.pexels.com/photos/4483608/pexels-photo-4483608.jpeg?auto=compress&cs=tinysrgb&w=1400'
@@ -9,23 +10,23 @@ const storePhoto='https://images.pexels.com/photos/12935045/pexels-photo-1293504
 const arcaLogo='https://arca.gob.ar/frameworkAFIP/img/logo_arca_blanco.svg'
 const mpLogo='https://cdn.simpleicons.org/mercadopago/009EE3'
 
-function PhoneMock(){return <div className={styles.phone} aria-label="Comercio Lleno en celular"><div className={styles.phoneIsland}/><div className={styles.phoneHead}><b>Comercio<span>Lleno</span></b><i>IA</i></div><div className={styles.phoneGreeting}><small>HOY EN TU COMERCIO</small><strong>$ 428.650</strong><span>36 ventas · ARCA conectado</span></div><button className={styles.phoneSale}><b>+</b><span>Nueva venta<small>Vendé y facturá</small></span></button><div className={styles.phoneCards}><div><small>STOCK BAJO</small><b>4</b><span>revisar ahora</span></div><div><small>PRODUCTOS</small><b>813</b><span>sincronizados</span></div></div><div className={styles.phoneRows}><span><i>⌁</i><b>Productos</b><small>Stock y precios</small></span><span><i>◉</i><b>Mercado Pago</b><small>Point + QR</small></span><span><i>✦</i><b>Asistente IA</b><small>Preguntale al negocio</small></span></div></div>}
+function PhoneMock(){return <div className={`${styles.phone} ${upgrade.phone}`} aria-label="Comercio Lleno en celular"><div className={styles.phoneIsland}/><div className={styles.phoneHead}><b>Comercio<span>Lleno</span></b><i>IA</i></div><div className={styles.phoneGreeting}><small>HOY EN TU COMERCIO</small><strong>$ 428.650</strong><span>36 ventas · ARCA conectado</span></div><button className={styles.phoneSale}><b>+</b><span>Nueva venta<small>Vendé y facturá</small></span></button><div className={styles.phoneCards}><div><small>STOCK BAJO</small><b>4</b><span>revisar ahora</span></div><div><small>PRODUCTOS</small><b>813</b><span>sincronizados</span></div></div><div className={styles.phoneRows}><span><i>⌁</i><b>Productos</b><small>Stock y precios</small></span><span><i>◉</i><b>Mercado Pago</b><small>Point + QR</small></span><span><i>✦</i><b>Asistente IA</b><small>Preguntale al negocio</small></span></div></div>}
 
-function LaptopMock(){return <div className={styles.laptop}><div className={styles.screen}><div className={styles.browser}><i/><i/><i/><span>comerciolleno.com · Nueva venta</span></div><div className={styles.app}><aside><BrandLogo size={27}/><b>Inicio</b><strong>Nueva venta</strong><b>Productos</b><b>Caja</b><b>Reportes</b><b>IA</b></aside><section><div className={styles.appTop}><div><small>VENTA ACTUAL</small><b>4 artículos</b></div><div><small>TOTAL</small><strong>$ 28.450</strong></div></div><div className={styles.search}>Buscar producto o escanear código...</div><div className={styles.saleGrid}><div className={styles.productList}><span><b>Café molido</b><i>2 × $8.450</i><strong>$16.900</strong></span><span><b>Leche 1 L</b><i>1 × $1.890</i><strong>$1.890</strong></span><span><b>Galletitas</b><i>2 × $4.830</i><strong>$9.660</strong></span></div><div className={styles.pay}><small>MEDIO DE PAGO</small><div><b>Efectivo</b><b>Débito</b><b>Mercado Pago</b><b>Presupuesto</b></div><button>Cobrar y facturar</button></div></div></section></div></div><div className={styles.base}/></div>}
+function LaptopMock(){return <div className={`${styles.laptop} ${upgrade.laptop}`}><div className={styles.screen}><div className={styles.browser}><i/><i/><i/><span>comerciolleno.com · Nueva venta</span></div><div className={styles.app}><aside><BrandLogo size={27}/><b>Inicio</b><strong>Nueva venta</strong><b>Productos</b><b>Caja</b><b>Reportes</b><b>IA</b></aside><section><div className={styles.appTop}><div><small>VENTA ACTUAL</small><b>4 artículos</b></div><div><small>TOTAL</small><strong>$ 28.450</strong></div></div><div className={styles.search}>Buscar producto o escanear código...</div><div className={styles.saleGrid}><div className={styles.productList}><span><b>Café molido</b><i>2 × $8.450</i><strong>$16.900</strong></span><span><b>Leche 1 L</b><i>1 × $1.890</i><strong>$1.890</strong></span><span><b>Galletitas</b><i>2 × $4.830</i><strong>$9.660</strong></span></div><div className={styles.pay}><small>MEDIO DE PAGO</small><div><b>Efectivo</b><b>Débito</b><b>Mercado Pago</b><b>Presupuesto</b></div><button>Cobrar y facturar</button></div></div></section></div></div><div className={styles.base}/></div>}
 
 export default function LandingExperience2026(){return <>
-  <section className={styles.devices}>
+  <section className={`${styles.devices} ${upgrade.devices}`}>
     <div className={styles.deviceHeading}><p>EL MISMO NEGOCIO · EN TODOS TUS DISPOSITIVOS</p><h2>De la caja al bolsillo.<br/><em>Sin perder el hilo.</em></h2><span>Entrá desde una notebook en el mostrador o desde el celular caminando por el local. Los datos siguen siendo los mismos, en tiempo real.</span></div>
-    <div className={styles.deviceStage}>
+    <div className={`${styles.deviceStage} ${upgrade.deviceStage}`}>
       <div className={styles.deviceOrbOne}/><div className={styles.deviceOrbTwo}/>
-      <div className={styles.storeBackdrop}><img src={storePhoto} alt="Cajero trabajando en un comercio"/><div/></div>
-      <div className={styles.humanBadge}><img src={cashierPhoto} alt="Persona atendiendo en un comercio"/><span><small>EN EL MOSTRADOR</small><b>Vendé con gente esperando.</b><em>El sistema acompaña el ritmo real del negocio.</em></span></div>
+      <div className={upgrade.storeBackdrop}><img src={storePhoto} alt="Cajero trabajando en un comercio"/><div/></div>
+      <div className={upgrade.humanBadge}><img src={cashierPhoto} alt="Persona atendiendo en un comercio"/><span><small>EN EL MOSTRADOR</small><b>Vendé con gente esperando.</b><em>El sistema acompaña el ritmo real del negocio.</em></span></div>
       <LaptopMock/><PhoneMock/>
-      <div className={`${styles.deviceChip} ${styles.chipOne}`}><span>ARCA</span><b>Factura integrada</b></div>
-      <div className={`${styles.deviceChip} ${styles.chipTwo}`}><span>STOCK</span><b>Actualización en vivo</b></div>
-      <div className={`${styles.deviceChip} ${styles.chipThree}`}><span>IA</span><b>Consultas instantáneas</b></div>
-      <div className={styles.liveSale}><span>VENTA EN CURSO</span><strong>$ 28.450</strong><small>Mercado Pago · 4 artículos</small></div>
-      <div className={styles.syncRibbon}><b>● Todo sincronizado</b><span>Celular · PC · stock · caja · ARCA</span></div>
+      <div className={`${styles.deviceChip} ${styles.chipOne} ${upgrade.chipOne}`}><span>ARCA</span><b>Factura integrada</b></div>
+      <div className={`${styles.deviceChip} ${styles.chipTwo} ${upgrade.chipTwo}`}><span>STOCK</span><b>Actualización en vivo</b></div>
+      <div className={`${styles.deviceChip} ${styles.chipThree} ${upgrade.chipThree}`}><span>IA</span><b>Consultas instantáneas</b></div>
+      <div className={upgrade.liveSale}><span>VENTA EN CURSO</span><strong>$ 28.450</strong><small>Mercado Pago · 4 artículos</small></div>
+      <div className={upgrade.syncRibbon}><b>● Todo sincronizado</b><span>Celular · PC · stock · caja · ARCA</span></div>
     </div>
   </section>
 
