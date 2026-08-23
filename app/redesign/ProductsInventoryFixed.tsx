@@ -1,13 +1,16 @@
 'use client'
 
-import { useEffect,useMemo,useState,type ComponentProps } from 'react'
+import { useEffect,useLayoutEffect,useMemo,useState,type ComponentProps } from 'react'
 import ProductsInventory,{type ProductDateMode} from './ProductsInventory'
 import ApparelVariantsManager from './ApparelVariantsManager'
 import { readBusinessModules,type BusinessModulesSettings } from '@/lib/comercio/business-modules'
+import type { Product } from '@/lib/comercio/types'
 
 type Props=ComponentProps<typeof ProductsInventory>
 function customKey(companyId:string){return`cl_product_categories_${companyId}`}
+function overrideKey(companyId:string){return`cl_product_preview_overrides_${companyId}`}
 function readCustom(companyId:string){if(typeof window==='undefined')return[] as string[];try{return JSON.parse(localStorage.getItem(customKey(companyId))||'[]') as string[]}catch{return[]}}
+function readOverrides(companyId:string){if(typeof window==='undefined')return{} as Record<string,Partial<Product>>;try{return JSON.parse(sessionStorage.getItem(overrideKey(companyId))||'{}') as Record<string,Partial<Product>>}catch{return{}}}
 function categoryToken(value:string|undefined|null){return String(value||'General').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim()}
 function canonicalCategory(value:string|undefined|null){
   const raw=String(value||'').trim()
@@ -26,15 +29,47 @@ export default function ProductsInventoryFixed(props:Props){
   const[custom,setCustom]=useState<string[]>(()=>readCustom(props.session.companyId))
   const[dateMode,setDateMode]=useState<ProductDateMode>('default')
   const[modules,setModules]=useState<BusinessModulesSettings>(()=>readBusinessModules(props.session.companyId))
+  const[overrides,setOverrides]=useState<Record<string,Partial<Product>>>(()=>readOverrides(props.session.companyId))
 
   useEffect(()=>{
     setCustom(readCustom(props.session.companyId).map(canonicalCategory))
+    setOverrides(readOverrides(props.session.companyId))
     const onModules=(event:Event)=>{const next=(event as CustomEvent<BusinessModulesSettings>).detail;if(next)setModules(next)}
     window.addEventListener('comercio:business-modules',onModules)
     return()=>window.removeEventListener('comercio:business-modules',onModules)
   },[props.session.companyId])
 
-  const canonicalProducts=useMemo(()=>props.data.products.map(p=>({...p,category:canonicalCategory(p.category)})),[props.data.products])
+  useLayoutEffect(()=>{
+    const original=window.fetch.bind(window)
+    window.fetch=(async(input:RequestInfo|URL,init?:RequestInit)=>{
+      const raw=typeof input==='string'?input:input instanceof URL?input.toString():input.url
+      const method=(init?.method||(input instanceof Request?input.method:'GET')).toUpperCase()
+      const isProductPatch=method==='PATCH'&&/\/rest\/v1\/products(?:\?|$)/.test(raw)
+      const response=await original(input,init)
+      if(isProductPatch&&response.ok){
+        try{
+          const url=new URL(raw,window.location.origin)
+          const idFilter=url.searchParams.get('id')||''
+          const id=idFilter.startsWith('eq.')?decodeURIComponent(idFilter.slice(3)):''
+          const body=typeof init?.body==='string'?JSON.parse(init.body):null
+          if(id&&body&&typeof body==='object'){
+            setOverrides(current=>{
+              const next={...current,[id]:{...(current[id]||{}),...body}}
+              try{sessionStorage.setItem(overrideKey(props.session.companyId),JSON.stringify(next))}catch{}
+              return next
+            })
+          }
+        }catch{}
+      }
+      return response
+    }) as typeof window.fetch
+    return()=>{window.fetch=original as typeof window.fetch}
+  },[props.session.companyId])
+
+  const canonicalProducts=useMemo(()=>props.data.products.map(p=>{
+    const merged={...p,...(overrides[p.id]||{})}
+    return {...merged,category:canonicalCategory(merged.category)}
+  }),[props.data.products,overrides])
   const categories=useMemo(()=>Array.from(new Set(['General',...canonicalProducts.map(p=>canonicalCategory(p.category)),...custom.map(canonicalCategory)])).sort((a,b)=>{
     const preferred=['Art limpieza','Art perfumería','Art varios','General']
     const ai=preferred.indexOf(a),bi=preferred.indexOf(b)
