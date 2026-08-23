@@ -54,6 +54,7 @@ import UnifiedAssistant from './UnifiedAssistant'
 import BrandLogo from '../BrandLogo'
 
 function createId() { return typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}` }
+function isFractionalLine(line: Pick<CartLine,'unit'|'fraction_unit'>) { return ['kg','g','litro','ml'].includes(String(line.fraction_unit || line.unit || '').toLowerCase()) }
 
 function canView(session: TenantSession, view: ViewKey) {
   if (session.role === 'owner') return true
@@ -318,7 +319,7 @@ export default function CommerceApp({ buildVersion }: { buildVersion: string }) 
   function go(next:ViewKey){if(canView(tenant,next))setView(next);else setNotice('Tu rol no tiene permiso para abrir esa sección.')}
   function resetSaleForm(){setCart([]);setCustomerId('');setDiscountValue(0);setDiscountKind('percent');setPayment('Efectivo');setPaymentParts([])}
   function addProduct(id:string){const p=data?.products.find(x=>x.id===id);if(!p)return;if(!salesSettings.allowNegativeStock&&p.stock<=0){setNotice('Ese producto está sin stock. Activá “Permitir vender sin stock” en Configuración > Ventas y caja si necesitás venderlo igual.');return}setCart(rows=>{const f=rows.find(x=>x.id===id);return f?rows.map(x=>x.id===id?{...x,qty:salesSettings.allowNegativeStock?x.qty+1:Math.min(x.qty+1,p.stock)}:x):[...rows,{...p,qty:1}]});setQuery('')}
-  function changeQty(id:string,delta:number){setCart(rows=>rows.map(x=>x.id===id?{...x,qty:Math.max(1,salesSettings.allowNegativeStock?x.qty+delta:Math.min(x.stock,x.qty+delta))}:x))}
+  function changeQty(id:string,delta:number){setCart(rows=>rows.map(x=>{if(x.id!==id)return x;const minimum=isFractionalLine(x)?0.001:1;const next=salesSettings.allowNegativeStock?x.qty+delta:Math.min(Number(x.stock||0),x.qty+delta);return {...x,qty:Math.max(minimum,next)}}))}
   function removeProduct(id:string){setCart(rows=>rows.filter(x=>x.id!==id))}
 
   async function storeOfflineSale(base:Sale,reason:string){
