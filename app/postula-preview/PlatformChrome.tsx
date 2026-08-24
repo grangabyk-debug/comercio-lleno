@@ -20,6 +20,10 @@ import './nexo-desktop-v25.css'
 import './messages-desktop-v32.css'
 import './home-hero-diversity-v36.css'
 
+function MobileNavIcon({kind}:{kind:'home'|'search'|'bolt'|'person'}){
+  return <span className="pm-mobile-nav-icon"><i className={`pm-nav-i ${kind}`}/></span>
+}
+
 export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'employer'}){
   const headerClass=`${styles.header} pm-social-header ${audience==='employer'?'pm-social-header-employer':'pm-social-header-candidate'}`
   return <><header className={headerClass}>
@@ -44,11 +48,11 @@ export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'em
 
 export function MobileNav({active='inicio'}:{active?:'inicio'|'empleos'|'cuenta'|'cv'|'changas'|'mensajes'}){
   return <nav className={`${styles.mobileNav} pm-social-mobile-nav`} aria-label="Navegación móvil">
-    <Link href="/" data-active={active==='inicio'}><i className="pm-nav-i home"/>Inicio</Link>
-    <Link href="/empleos" data-active={active==='empleos'}><i className="pm-nav-i search"/>Empleos</Link>
-    <Link href="/trabajos-flex" data-active={active==='changas'}><i className="pm-nav-i bolt"/>Flex</Link>
-    <Link href="/mensajes" data-active={active==='mensajes'}><i className="pm-nav-i chat"/>Mensajes</Link>
-    <Link href="/mi-cuenta" data-active={active==='cuenta'}><i className="pm-nav-i person"/>Perfil</Link>
+    <Link href="/" data-active={active==='inicio'}><MobileNavIcon kind="home"/><span>Inicio</span></Link>
+    <Link href="/empleos" data-active={active==='empleos'}><MobileNavIcon kind="search"/><span>Empleos</span></Link>
+    <Link href="/trabajos-flex" className="pm-mobile-nav-flex" data-active={active==='changas'}><MobileNavIcon kind="bolt"/><span>Flex</span></Link>
+    <MessageLauncher variant="mobile-nav" active={active==='mensajes'}/>
+    <Link href="/mi-cuenta" data-active={active==='cuenta'}><MobileNavIcon kind="person"/><span>Perfil</span></Link>
   </nav>
 }
 
