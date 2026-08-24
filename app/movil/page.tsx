@@ -16,6 +16,7 @@ import MobileArcaStatus from './MobileArcaStatus'
 import MobilePermissionsGate from './MobilePermissionsGate'
 import MobileProductionSalesBridge from './MobileProductionSalesBridgeV2'
 import MobileProductionUxFixes from './MobileProductionUxFixes'
+import MobilePwaInstallBridge from './MobilePwaInstallBridge'
 import SaleSearchGuard from './SaleSearchGuard'
 import SessionFetchGuard from '../redesign/SessionFetchGuard'
 import SubscriptionGate from '../redesign/SubscriptionGate'
@@ -24,7 +25,7 @@ import './mobile-modern-v4.css'
 export const metadata: Metadata={
   title:'Comercio Lleno · Móvil',
   description:'Experiencia simple de Comercio Lleno para vender y consultar productos desde el celular',
-  manifest:'/manifest.webmanifest',
+  manifest:'/manifest-v2.webmanifest',
   robots:{index:false,follow:false},
 }
 export const dynamic='force-dynamic'
@@ -56,6 +57,7 @@ export default function MobilePage(){
     <MobileSimpleApp/>
     <MobileProductionSalesBridge/>
     <MobileProductionUxFixes/>
+    <MobilePwaInstallBridge/>
     <MobileArcaStatus/>
     <MobileGoogleAccess/>
     <MobileBrandHeaderOverride/>

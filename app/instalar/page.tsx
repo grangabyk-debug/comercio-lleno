@@ -4,7 +4,7 @@ import InstallClient from './InstallClient'
 export const metadata:Metadata={
   title:'Instalar Comercio Lleno',
   description:'Instalá Comercio Lleno en tu teléfono.',
-  manifest:'/manifest.webmanifest?v=20260823-2',
+  manifest:'/manifest-v2.webmanifest',
   robots:{index:false,follow:false},
 }
 
