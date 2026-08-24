@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import {FormEvent,useEffect,useMemo,useState} from 'react'
+import {createPortal} from 'react-dom'
 import {cvAuthClient} from '../cv-ia/cvAuth'
 
 type Thread={id:string;conversation_kind?:'application'|'flex';pm_companies?:{name?:string}|null;pm_applications?:{status?:string;pm_jobs?:{title?:string}|null}|null;pm_flex_posts?:{title?:string;location_text?:string;compensation_text?:string}|null}
@@ -60,10 +61,8 @@ export default function MessageLauncher({variant='header',active=false}:{variant
   ?<button type="button" className="pm-mobile-message-link" data-active={active} aria-current={active?'page':undefined} onClick={()=>void launch()}><span className="pm-mobile-nav-icon"><ChatIcon/></span><span>Mensajes</span></button>
   :<button type="button" className="pm-message-launcher" onClick={()=>void launch()}><span aria-hidden="true"><ChatIcon/></span><b>Mensajes</b></button>
 
- return <>
-  {launcher}
-  {open&&<div className="pm-msg-modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setOpen(false)}}>
-   <section className={`pm-msg-modal ${logged===false?'pm-msg-modal-auth':''}`} role="dialog" aria-modal="true" aria-label="Mensajes de Postulá Mejor">
+ const modal=open?<div className="pm-msg-modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setOpen(false)}}>
+   <section className={`pm-msg-modal ${logged===false?'pm-msg-modal-auth':''}`} style={variant==='mobile-nav'&&logged===false?{transform:'translateY(-9vh)'}:undefined} role="dialog" aria-modal="true" aria-label="Mensajes de Postulá Mejor">
     <header><div><span>PM</span><div><b>Mensajes</b><small>Empleos y Trabajo Flex</small></div></div><button onClick={()=>setOpen(false)} aria-label="Cerrar">×</button></header>
     {loading?<div className="pm-msg-state"><b>Cargando mensajes…</b></div>:
      logged===false?<div className="pm-msg-state"><b>Ingresá para ver tus mensajes.</b><p>Usás la misma cuenta para empleos y Trabajo Flex.</p><div className="pm-msg-auth-actions"><Link href="/login?next=%2Fmensajes">Iniciar sesión</Link><Link href="/registro?next=%2Fmensajes" className="secondary">Crear cuenta</Link></div></div>:
@@ -71,6 +70,7 @@ export default function MessageLauncher({variant='header',active=false}:{variant
      <div className="pm-msg-shell"><aside>{threads.map(t=><button key={t.id} data-on={t.id===activeThread} onClick={()=>void loadMessages(t.id)}><i>{counterpart(t).slice(0,2).toUpperCase()}</i><span><b>{counterpart(t)}</b><small>{title(t)}</small></span></button>)}</aside><div className="pm-msg-chat">{thread&&<div className="pm-msg-chat-head"><b>{counterpart(thread)}</b><span>{title(thread)}</span></div>}<div className="pm-msg-messages">{messages.map(m=><div key={m.id} data-mine={m.sender_user_id===me}><p>{m.body}</p><small>{new Date(m.created_at).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}</small></div>)}</div><form onSubmit={send}><input value={text} onChange={e=>setText(e.target.value)} placeholder="Escribí un mensaje…" maxLength={4000}/><button disabled={busy||!text.trim()}>{busy?'…':'Enviar'}</button></form></div></div>}
     <footer><span>También podés abrir la bandeja completa.</span><Link href="/mensajes">Abrir pantalla completa</Link></footer>
    </section>
-  </div>}
- </>
+  </div>:null
+
+ return <>{launcher}{modal&&typeof document!=='undefined'?createPortal(modal,document.body):null}</>
 }
