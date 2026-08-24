@@ -14,6 +14,6 @@ function postulaRoute(pathname:string){
 
 export default function LegacyScripts() {
   const pathname = usePathname()
-  if (pathname.startsWith('/redesign') || pathname.startsWith('/movil') || postulaRoute(pathname)) return null
+  if (pathname.startsWith('/redesign') || pathname.startsWith('/movil') || pathname.startsWith('/instalar') || postulaRoute(pathname)) return null
   return <>{legacyScripts.map((src) => <Script key={src} src={src} strategy="afterInteractive" />)}</>
 }
