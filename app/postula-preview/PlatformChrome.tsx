@@ -25,26 +25,40 @@ function MobileNavIcon({kind}:{kind:'home'|'search'|'bolt'|'person'}){
   return <span className="pm-mobile-nav-icon"><i className={`pm-nav-i ${kind}`}/></span>
 }
 
+function EmployerHeader(){
+  return <header className="pm-employer-topbar">
+    <div className="pm-employer-topbar-inner">
+      <Link href="/empresas" className="pm-employer-wordmark" aria-label="Postulá Mejor Empresas">
+        <span className="pm-employer-logo">PM</span>
+        <span className="pm-employer-brand-copy"><strong>Postulá Mejor</strong><small>EMPRESAS</small></span>
+      </Link>
+      <nav className="pm-employer-topbar-nav" aria-label="Navegación de empresas">
+        <Link href="/trabajos-flex" className="pm-employer-flex-link">Trabajos Flex</Link>
+        <NexoLauncher/>
+        <Link href="/" className="pm-employer-switch">Busco trabajo</Link>
+        <AccountNavLink audience="employer" className="pm-employer-account"/>
+      </nav>
+    </div>
+  </header>
+}
+
 export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'employer'}){
-  const headerClass=`${styles.header} pm-social-header ${audience==='employer'?'pm-social-header-employer':'pm-social-header-candidate'}`
+  if(audience==='employer')return <><EmployerHeader/><LandingConversationV12/><MobileChoicePrompt/></>
+
+  const headerClass=`${styles.header} pm-social-header pm-social-header-candidate`
   return <><header className={headerClass}>
     <Link href="/" className={`${styles.brand} pm-social-brand`}><span className={`${styles.mark} pm-social-mark`}>PM</span><span>Postulá Mejor</span></Link>
     <nav className={`${styles.nav} pm-social-nav`} aria-label="Navegación Postulá Mejor">
-      {audience==='candidate'?<>
-        <Link href="/">Inicio</Link>
-        <Link href="/empleos">Empleos</Link>
-        <Link href="/trabajos-flex" className="pm-nav-new">Trabajos Flex <small>NUEVO</small></Link>
-        <Link href="/mejorar-cv">Mejorar CV</Link>
-        <Link href="/test-vocacional">Test</Link>
-        <MessageLauncher/>
-      </>:<>
-        <Link href="/trabajos-flex" className="pm-nav-new">Trabajos Flex <small>NUEVO</small></Link>
-        <NexoLauncher/>
-      </>}
-      {audience==='candidate'?<Link href="/empresas" className={`${styles.navPrimary} pm-role-switch`}>Soy empleador</Link>:<Link href="/" className={`${styles.navPrimary} pm-role-switch`}>Busco trabajo</Link>}
-      <AccountNavLink audience={audience} className={`${styles.navAccent} pm-social-account`}/>
+      <Link href="/">Inicio</Link>
+      <Link href="/empleos">Empleos</Link>
+      <Link href="/trabajos-flex" className="pm-nav-new">Trabajos Flex <small>NUEVO</small></Link>
+      <Link href="/mejorar-cv">Mejorar CV</Link>
+      <Link href="/test-vocacional">Test</Link>
+      <MessageLauncher/>
+      <Link href="/empresas" className={`${styles.navPrimary} pm-role-switch`}>Soy empleador</Link>
+      <AccountNavLink audience="candidate" className={`${styles.navAccent} pm-social-account`}/>
     </nav>
-  </header>{audience==='candidate'?<><HomeJobVisualSync/><HomeCompanyStrip/></>:null}<LandingConversationV12/>{audience==='employer'?<MobileChoicePrompt/>:null}</>
+  </header><HomeJobVisualSync/><HomeCompanyStrip/><LandingConversationV12/></>
 }
 
 export function MobileNav({active='inicio'}:{active?:'inicio'|'empleos'|'cuenta'|'cv'|'changas'|'mensajes'}){
