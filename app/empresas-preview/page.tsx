@@ -1,12 +1,14 @@
 import Link from 'next/link'
 import styles from '../postula-preview/platform.module.css'
 import {PlatformFooter,PlatformHeader} from '../postula-preview/PlatformChrome'
+import EmployerReputationShowcase from './EmployerReputationShowcase'
 import '../postula-preview/premium-v4.css'
 import '../postula-preview/premium-v5.css'
 import '../postula-preview/premium-v6.css'
 import '../postula-preview/premium-v7.css'
 import '../postula-preview/premium-v7-extra.css'
 import './employer-v17.css'
+import './employer-reputation-v37.css'
 
 export const metadata={
  title:{absolute:'Postulá Mejor Empresas | Contratá mejor'},
@@ -26,9 +28,9 @@ const plans=[
 ]
 
 const profiles=[
- {name:'Perfil A',role:'Ventas · caja · retail',match:'94%',signal:'3 referencias verificables',image:'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=600'},
- {name:'Perfil B',role:'Atención · POS',match:'87%',signal:'sin señal suficiente',image:'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=600'},
- {name:'Perfil C',role:'Ventas · comercial',match:'84%',signal:'2 referencias verificables',image:'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=600'},
+ {name:'Perfil A',role:'Ventas · caja · retail',match:'94%',reputation:'4,7 / 5',repState:'ready',signal:'3 evaluaciones verificadas',image:'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=600'},
+ {name:'Perfil B',role:'Atención · POS',match:'87%',reputation:'Sin datos',repState:'empty',signal:'Todavía sin evaluaciones verificadas',image:'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=600'},
+ {name:'Perfil C',role:'Ventas · comercial',match:'84%',reputation:'Señal inicial',repState:'forming',signal:'2 evaluaciones verificadas',image:'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=600'},
 ]
 
 export default function EmployerLanding(){return <main className={`${styles.page} pm7-page pm7-employer`}>
@@ -39,9 +41,9 @@ export default function EmployerLanding(){return <main className={`${styles.page
 
  <section className="pm7-employer-section dark"><div className="pm7-employer-section-inner"><div className="pm7-employer-social"><div className="pm7-employer-photo"/><div className="pm7-employer-social-copy"><span className="pm7-eyebrow lime">NEXO · PC + MÓVIL</span><h2>Tu búsqueda, donde estés.</h2><p>En la computadora Nexo se abre como una ventana de chat centrada para trabajar sin abandonar el panel. En el celular se transforma en una experiencia de pantalla completa con candidatos, dudas, respuestas rápidas y órdenes simples.</p><div className="pm7-employer-command-list"><div><span>1</span><b>“Mostrame los perfiles con mejor ajuste y explicame por qué.”</b></div><div><span>2</span><b>“¿Quién puede trabajar sábados y domingos?”</b></div><div><span>3</span><b>“Compará estos dos perfiles en dos líneas.”</b></div><div><span>4</span><b>“Prepará una shortlist para Recursos Humanos.”</b></div><div><span>5</span><b>“Preparame preguntas para entrevistar a estos tres.”</b></div></div><Link href="/empresas/movil" className="pm17-nexo-cta">Abrir Nexo <span>→</span></Link></div></div></div></section>
 
- <section className="pm7-employer-section"><div className="pm7-employer-section-inner"><div className="pm7-section-head"><div><span className="pm7-eyebrow coral">EJEMPLOS DE INTERFAZ</span><h2>La shortlist también puede sentirse humana.</h2></div><p>Estos perfiles son ilustrativos. Foto y nombre pueden humanizar la interfaz, pero no participan del cálculo de compatibilidad. El orden se explica con evidencia del puesto.</p></div><div className="pm7-employer-candidates">{profiles.map(p=><article key={p.name}><div className="pm7-employer-candidate-photo" style={{backgroundImage:`url(${p.image})`}}><span>{p.match} match de ejemplo</span></div><div className="pm7-employer-candidate-body"><h3>{p.name}</h3><p>{p.role}</p><div><span>Referencia general</span><b>{p.signal}</b></div><button type="button" disabled aria-disabled="true">Perfil ilustrativo</button></div></article>)}</div></div></section>
+ <section className="pm7-employer-section"><div className="pm7-employer-section-inner"><div className="pm7-section-head"><div><span className="pm7-eyebrow coral">EJEMPLOS DE INTERFAZ</span><h2>La shortlist también puede sentirse humana.</h2></div><p>Estos perfiles son ilustrativos. Foto y nombre pueden humanizar la interfaz, pero no participan del cálculo de compatibilidad. El orden se explica con evidencia del puesto.</p></div><div className="pm7-employer-candidates">{profiles.map(p=><article key={p.name}><div className="pm7-employer-candidate-photo" style={{backgroundImage:`url(${p.image})`}}><span>{p.match} match de ejemplo</span></div><div className="pm7-employer-candidate-body"><h3>{p.name}</h3><p>{p.role}</p><div className={`pm37-candidate-reputation ${p.repState}`}><span>Reputación laboral</span><b>{p.reputation}</b><small>{p.signal}</small></div><button type="button" disabled aria-disabled="true">Perfil ilustrativo</button></div></article>)}</div></div></section>
 
- <section className="pm7-employer-section dark"><div className="pm7-employer-section-inner"><div className="pm7-section-head"><div><span className="pm7-eyebrow lime">REFERENCIAS CON LÍMITES · EJEMPLO</span><h2>Una referencia puede sumar contexto. Nunca transformarse en una lista negra.</h2></div><p>La señal general sólo tiene sentido con relaciones verificadas, cantidad de referencias visible y derecho de la persona a conocerla y pedir revisión.</p></div><div className="pm7-reference-stage"><div className="pm7-reference-score"><span>EJEMPLO DE SEÑAL</span><b>3</b><p>relaciones laborales verificables</p><small>sin puntaje oculto de reputación</small></div><div className="pm7-reference-rules"><article><b>No decide el ranking</b><p>La compatibilidad con el puesto se calcula por experiencia y requisitos, no por reputación.</p></article><article><b>Visible y cuestionable</b><p>La persona puede ver la señal y solicitar revisión si una referencia no corresponde.</p></article><article><b>Sin acusaciones abiertas</b><p>No se habilita un muro de comentarios ofensivos ni texto libre que pueda transformarse en represalia.</p></article></div></div></div></section>
+ <EmployerReputationShowcase/>
 
  <section className="pm7-employer-section"><div className="pm7-employer-section-inner"><div className="pm7-section-head"><div><span className="pm7-eyebrow blue">PLANES EN EVALUACIÓN</span><h2>Empezá gratis. Escalá cuando el volumen lo justifique.</h2></div><p>Los valores que ves hoy son orientativos de esta etapa y pueden cambiar antes de una oferta comercial definitiva. Siempre vas a ver el precio vigente antes de contratar.</p></div><div className="pm7-employer-plans">{plans.map(plan=><article className={`pm7-employer-plan ${plan.featured?'featured':''}`} key={plan.name}><span>{plan.name.toUpperCase()}</span><h3>{plan.copy}</h3><div className="price">{plan.price}{plan.price.startsWith('$')&&plan.price!=='$0'?<small> / mes · valor orientativo</small>:null}</div><ul>{plan.items.map(i=><li key={i}>{i}</li>)}</ul><Link href={plan.name==='Gratis'?'/empresas/registro':'/empresas/panel'}>{plan.name==='Gratis'?'Crear cuenta':'Ver funcionamiento'}</Link></article>)}</div></div></section>
 
