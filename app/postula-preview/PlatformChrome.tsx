@@ -6,6 +6,7 @@ import NexoLauncher from './NexoLauncher'
 import MessageLauncher from './MessageLauncher'
 import AccountNavLink from './AccountNavLink'
 import HomeCompanyStrip from './HomeCompanyStrip'
+import HomeJobVisualSync from './HomeJobVisualSync'
 import './integration-v8.css'
 import './premium-v9.css'
 import './premium-v10.css'
@@ -43,7 +44,7 @@ export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'em
       {audience==='candidate'?<Link href="/empresas" className={`${styles.navPrimary} pm-role-switch`}>Soy empleador</Link>:<Link href="/" className={`${styles.navPrimary} pm-role-switch`}>Busco trabajo</Link>}
       <AccountNavLink audience={audience} className={`${styles.navAccent} pm-social-account`}/>
     </nav>
-  </header>{audience==='candidate'?<HomeCompanyStrip/>:null}<LandingConversationV12/>{audience==='employer'?<MobileChoicePrompt/>:null}</>
+  </header>{audience==='candidate'?<><HomeJobVisualSync/><HomeCompanyStrip/></>:null}<LandingConversationV12/>{audience==='employer'?<MobileChoicePrompt/>:null}</>
 }
 
 export function MobileNav({active='inicio'}:{active?:'inicio'|'empleos'|'cuenta'|'cv'|'changas'|'mensajes'}){
