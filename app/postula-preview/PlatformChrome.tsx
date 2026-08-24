@@ -28,8 +28,8 @@ function MobileNavIcon({kind}:{kind:'home'|'search'|'bolt'|'person'}){
 function EmployerHeader(){
   return <header className="pm-employer-topbar">
     <div className="pm-employer-topbar-inner">
-      <Link href="/empresas" className="pm-employer-wordmark" aria-label="PostulaMejor.com">
-        <span className="pm-employer-brand-copy"><strong>PostulaMejor.com</strong></span>
+      <Link href="/empresas" className="pm-employer-wordmark" aria-label="PostulaMejor.com Empresas">
+        <span className="pm-employer-brand-copy"><strong>PostulaMejor.com</strong><small>EMPRESAS</small></span>
       </Link>
       <nav className="pm-employer-topbar-nav" aria-label="Navegación de empresas">
         <Link href="/trabajos-flex" className="pm-employer-flex-link">Trabajos Flex</Link>
