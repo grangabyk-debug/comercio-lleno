@@ -1,0 +1,21 @@
+{
+  "id": "/comercio-lleno-app-v2",
+  "name": "Comercio Lleno",
+  "short_name": "Comercio",
+  "description": "Ventas, productos, stock y facturación desde el celular.",
+  "lang": "es-AR",
+  "start_url": "/movil?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#f7f3fa",
+  "theme_color": "#6d36d8",
+  "prefer_related_applications": false,
+  "categories": ["business", "productivity"],
+  "icons": [
+    {"src":"/pwa-icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"/pwa-icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"/pwa-icon-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+  ]
+}
