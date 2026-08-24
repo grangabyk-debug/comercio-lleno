@@ -6,6 +6,7 @@ import MobileSupportChat from './MobileSupportChat'
 import MobileCashModeController from './MobileCashModeControllerV3'
 import MobileCashDailyAccess from './MobileCashDailyAccess'
 import MobileSaleUiFix from './MobileSaleUiFix'
+import MobileReliabilityFix from './MobileReliabilityFix'
 import MobileSettingsOverlay from './MobileSettingsOverlay'
 import MobileLegalLinks from './MobileLegalLinks'
 import MobileRevolutionTheme from './MobileRevolutionTheme'
@@ -66,6 +67,7 @@ export default function MobilePage(){
     <MobileScanner/>
     <MobileAiAssistant/>
     <MobileSaleUiFix/>
+    <MobileReliabilityFix/>
     <MobileSupportChat/>
     <MobileSettingsOverlay/>
     <MobileLegalLinks/>
