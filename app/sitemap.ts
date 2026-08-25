@@ -19,7 +19,6 @@ export default async function sitemap():Promise<MetadataRoute.Sitemap>{
       {url:`${base}/mejorar-cv`,changeFrequency:'weekly',priority:.9},
       {url:`${base}/primer-cv`,changeFrequency:'monthly',priority:.75},
       {url:`${base}/test-vocacional`,changeFrequency:'monthly',priority:.75},
-      {url:`${base}/plantillas`,changeFrequency:'monthly',priority:.75},
       {url:`${base}/legales`,changeFrequency:'monthly',priority:.3},
       {url:`${base}/privacidad`,changeFrequency:'monthly',priority:.3},
       {url:`${base}/terminos`,changeFrequency:'monthly',priority:.3},
