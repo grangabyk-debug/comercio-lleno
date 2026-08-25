@@ -1,0 +1,3 @@
+.pm-job-card{cursor:pointer}
+.pm-job-card:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.pm-job-card .pm-save,.pm-job-card a{cursor:pointer}
