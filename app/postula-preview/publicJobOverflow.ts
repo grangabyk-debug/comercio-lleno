@@ -7,7 +7,7 @@ type LeverSource={site:string;company:string;locations:string[]}
 const leverSources:LeverSource[]=[
  {site:'despegar',company:'Despegar',locations:['Buenos Aires']},
  {site:'emilabs',company:'Emi Labs',locations:['Buenos Aires','Provincia de Buenos Aires']},
- {site:'RyzLabs',company:'RYZ Labs',locations:['Buenos Aires']},
+ {site:'RyzLabs',company:'RYZ Labs',locations:['Buenos Aires','Argentina']},
  {site:'getwingapp',company:'Wing Assistant',locations:['Argentina','Buenos Aires']},
  {site:'assist-world',company:'Assist World',locations:['Argentina']},
  {site:'1840&Company',company:'1840 & Company',locations:['Buenos Aires, Buenos Aires','Argentina']},
@@ -18,8 +18,23 @@ const leverSources:LeverSource[]=[
  {site:'dlocal',company:'dLocal',locations:['Buenos Aires']},
  {site:'binance',company:'Binance',locations:['Argentina, Buenos Aires']},
  {site:'handoff',company:'Handoff',locations:['Buenos Aires']},
+ {site:'tryjeeves',company:'Jeeves',locations:['Argentina']},
+ {site:'yuno',company:'Yuno',locations:['Buenos Aires','Argentina']},
+ {site:'bluelightconsulting',company:'Bluelight Consulting',locations:['Buenos Aires Province, Argentina','Argentina']},
+ {site:'redbee',company:'redbee',locations:['Buenos Aires','Argentina']},
 ]
-const greenhouseSources=[['monks','Monks'],['hogarthworldwide','Hogarth Worldwide'],['appsflyer','AppsFlyer']] as const
+const greenhouseSources=[
+ ['monks','Monks'],
+ ['hogarthworldwide','Hogarth Worldwide'],
+ ['appsflyer','AppsFlyer'],
+ ['santex','Santex'],
+ ['oliverargentina','OLIVER Agency Argentina'],
+ ['invgate','InvGate'],
+ ['gympass','Wellhub'],
+ ['sofitechsolutions','SoFi Tech Solutions'],
+ ['growetalents','Growe Talents'],
+ ['utt','UniTriTeam'],
+] as const
 const arHints=/argentina|buenos aires|caba|capital federal|cordoba|córdoba|rosario|mendoza|mar del plata|la plata|tucuman|tucumán|salta|neuquen|neuquén|santa fe|bariloche|pilar|tigre|san isidro|quilmes|avellaneda|vicente lopez|vicente lópez/i
 function clean(v:string){return v.replace(/\s+/g,' ').replace(/\s*[\[(]?copy(?:\s*\d+)?[\])]?\s*$/i,'').trim()}
 function slug(v:string){return clean(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,82)}
