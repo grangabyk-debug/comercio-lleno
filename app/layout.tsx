@@ -20,6 +20,7 @@ import './mobile-targeted-fixes.css'
 import './landing-price-offer-boost.css'
 import './redesign/branch-contrast-fix.css'
 import './postula-preview/postula-cookie-v28.css'
+import './postula-cv-end-v13.css'
 
 const faviconUrl='/comercio-lleno-favicon-v3.svg?v=20260815'
 
