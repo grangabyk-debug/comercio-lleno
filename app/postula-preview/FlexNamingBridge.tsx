@@ -19,18 +19,17 @@ function processNode(root:Node){
  let node=walker.nextNode();while(node){const value=node.nodeValue||'';const next=replaceTextValue(value);if(next!==value)node.nodeValue=next;node=walker.nextNode()}
  const links=[...(el.matches?.('a[href]')?[el]:[]),...Array.from(el.querySelectorAll('a[href]'))] as HTMLAnchorElement[]
  for(const a of links){const raw=a.getAttribute('href')||'';if(!raw.includes('trabajos-flex')&&!raw.includes('publicar%3D1'))continue;let next=raw.replaceAll('/trabajos-flex','/servicios-flex').replaceAll('trabajos-flex','servicios-flex');if(next.includes('servicios-flex')&&next.includes('publicar%3D1'))next=next.replaceAll('publicar%3D1','clasificar%3D1');if(next.includes('/servicios-flex?publicar=1'))next=next.replace('/servicios-flex?publicar=1','/servicios-flex?clasificar=1');if(next!==raw)a.setAttribute('href',next)}
- if(location.pathname==='/servicios-flex'){
-  el.querySelectorAll('option').forEach(option=>{if((option.textContent||'').trim()==='Repartos y mensajería'){option.setAttribute('disabled','true');option.textContent='Repartos y mensajería — no disponible'}})
- }
+ if(location.pathname==='/servicios-flex')el.querySelectorAll('option').forEach(option=>{if((option.textContent||'').trim()==='Repartos y mensajería'){option.setAttribute('disabled','true');option.textContent='Repartos y mensajería — no disponible'}})
 }
 
 export default function FlexNamingBridge(){
  useEffect(()=>{
+  const w=window as typeof window&{__pmFlexNamingBridge?:boolean};if(w.__pmFlexNamingBridge)return;w.__pmFlexNamingBridge=true
   const apply=()=>{processNode(document.body);document.title=replaceTextValue(document.title);document.querySelectorAll('meta[content]').forEach(meta=>{const content=meta.getAttribute('content')||'';const next=replaceTextValue(content).replaceAll('https://postulamejor.com/trabajos-flex','https://postulamejor.com/servicios-flex');if(next!==content)meta.setAttribute('content',next)})}
   apply()
   const observer=new MutationObserver(records=>{for(const record of records)record.addedNodes.forEach(processNode)})
   observer.observe(document.body,{childList:true,subtree:true})
-  return()=>observer.disconnect()
+  return()=>{observer.disconnect();w.__pmFlexNamingBridge=false}
  },[])
  return null
 }
