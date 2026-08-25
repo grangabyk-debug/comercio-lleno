@@ -59,7 +59,8 @@ function postulaMejorRoute(request:NextRequest){
  if(pathname==='/postula-registro-preview')return redirectPostulaClean(request,'/registro')
  if(pathname.startsWith('/empleos-preview/'))return redirectPostula(request,`/empleos/${pathname.slice('/empleos-preview/'.length)}`)
  if(pathname==='/empleos-preview')return redirectPostula(request,'/empleos')
- if(pathname==='/changas-preview')return redirectPostula(request,'/trabajos-flex')
+ if(pathname==='/changas-preview')return redirectPostula(request,'/servicios-flex')
+ if(pathname==='/trabajos-flex')return redirectPostula(request,'/servicios-flex')
  if(pathname==='/mi-postula-preview/chat')return redirectPostula(request,'/mensajes')
  if(pathname==='/mi-postula-preview/preferences')return redirectPostula(request,'/mi-cuenta/preferencias')
  if(pathname==='/mi-postula-preview')return redirectPostula(request,'/mi-cuenta')
@@ -75,7 +76,7 @@ function postulaMejorRoute(request:NextRequest){
  if(pathname==='/login')return rewritePostula(request,'/postula-login-preview')
  if(pathname==='/empleos')return rewritePostula(request,'/empleos-preview')
  if(pathname.startsWith('/empleos/'))return rewritePostula(request,`/empleos-preview/${pathname.slice('/empleos/'.length)}`)
- if(pathname==='/trabajos-flex')return rewritePostula(request,'/changas-preview')
+ if(pathname==='/servicios-flex')return rewritePostula(request,'/changas-preview')
  if(pathname==='/mi-cuenta/preferencias')return rewritePostula(request,'/mi-postula-preview/preferences')
  if(pathname==='/mi-cuenta')return rewritePostula(request,'/mi-postula-preview')
  if(pathname==='/mensajes')return rewritePostula(request,'/mi-postula-preview/chat')
@@ -86,6 +87,7 @@ function postulaMejorRoute(request:NextRequest){
  if(pathname==='/mejorar-cv')return rewritePostula(request,'/cv-ia')
  if(pathname==='/privacidad')return rewritePostula(request,'/cv-ia/privacidad')
  if(pathname==='/terminos')return rewritePostula(request,'/cv-ia/terminos')
+ if(pathname==='/terminos/servicios-flex')return rewritePostula(request,'/cv-ia/terminos/servicios-flex')
  return secure(NextResponse.next(),request)
 }
 
