@@ -2,7 +2,7 @@
 
 import {useEffect,useMemo,useState,type CSSProperties} from 'react'
 import {cvTemplates,freeTemplateCount,proTemplateCount,type CvTemplate} from './templates'
-import {downloadPdfTemplate,downloadWordTemplate} from './templateEngineV3'
+import {downloadPdfTemplate,downloadWordTemplate} from './templateEngineV4'
 
 const CV_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai'
 const SESSION_KEY='cv_ai_session_token_v1'
