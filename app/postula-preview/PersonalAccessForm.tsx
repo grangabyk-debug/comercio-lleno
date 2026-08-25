@@ -1,13 +1,20 @@
 'use client'
 
 import Link from 'next/link'
-import {FormEvent,useEffect,useState} from 'react'
+import {FormEvent,useEffect,useRef,useState} from 'react'
 import {useSearchParams} from 'next/navigation'
 import {cvAuthClient} from '../cv-ia/cvAuth'
 import styles from './platform.module.css'
 
 const SIGNUP_TICKET_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai-signup-ticket'
 const REGISTER_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai-register-verified'
+const GOOGLE_CLIENT_ID='81299544241-uoe8h1mi94ccos1i4prmjpc8oth9h188.apps.googleusercontent.com'
+
+type GoogleCredentialResponse={credential?:string}
+type GoogleIdentity={accounts:{id:{initialize:(options:{client_id:string;callback:(response:GoogleCredentialResponse)=>void;context?:'signin'|'signup';use_fedcm_for_prompt?:boolean})=>void;renderButton:(element:HTMLElement,options:{type:'standard';theme:'outline';size:'large';text:'signin_with'|'signup_with';shape:'rectangular';logo_alignment:'left';width:number})=>void}}}
+
+function googleIdentityFromWindow(){return (window as Window & {google?:GoogleIdentity}).google}
+function loadGoogleIdentity(){return new Promise<GoogleIdentity>((resolve,reject)=>{const ready=googleIdentityFromWindow();if(ready){resolve(ready);return}const existing=document.querySelector<HTMLScriptElement>('script[data-postula-google-identity="1"]');const done=()=>{const google=googleIdentityFromWindow();google?resolve(google):reject(new Error('Google Identity no quedó disponible.'))};if(existing){existing.addEventListener('load',done,{once:true});existing.addEventListener('error',()=>reject(new Error('No pudimos cargar Google Identity.')),{once:true});return}const script=document.createElement('script');script.src='https://accounts.google.com/gsi/client';script.async=true;script.defer=true;script.dataset.postulaGoogleIdentity='1';script.addEventListener('load',done,{once:true});script.addEventListener('error',()=>reject(new Error('No pudimos cargar Google Identity.')),{once:true});document.head.appendChild(script)})}
 
 function strongPassword(value:string){return value.length>=10&&/[a-z]/.test(value)&&/[A-Z]/.test(value)&&/[0-9]/.test(value)}
 function safeNext(value:string|null){return value&&value.startsWith('/')&&!value.startsWith('//')?value:''}
@@ -26,8 +33,38 @@ export default function PersonalAccessForm({mode}:{mode:'signup'|'login'}){
  const signupHref=requestedNext?`/registro?next=${encodeURIComponent(requestedNext)}`:'/registro'
  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirmPassword,setConfirmPassword]=useState(''),[newPassword,setNewPassword]=useState(''),[accepted,setAccepted]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('')
  const [showPassword,setShowPassword]=useState(false),[showConfirm,setShowConfirm]=useState(false),[showNewPassword,setShowNewPassword]=useState(false)
+ const googleButtonRef=useRef<HTMLDivElement>(null)
 
  useEffect(()=>{if(reset)return;let cancelled=false;cvAuthClient().auth.getSession().then(async({data})=>{if(!data.session||cancelled)return;if(mode==='login'||verified||oauth){if(mode==='signup')void welcome(data.session.access_token);const next=requestedNext||await personalDestination(data.session.access_token);if(!cancelled)location.replace(next)}});return()=>{cancelled=true}},[mode,reset,verified,oauth,requestedNext])
+
+ useEffect(()=>{
+  if(reset||(mode==='signup'&&!accepted))return
+  let cancelled=false
+  void loadGoogleIdentity().then(google=>{
+   const holder=googleButtonRef.current
+   if(cancelled||!holder)return
+   holder.innerHTML=''
+   google.accounts.id.initialize({
+    client_id:GOOGLE_CLIENT_ID,
+    context:mode==='signup'?'signup':'signin',
+    use_fedcm_for_prompt:true,
+    callback:async(response)=>{
+     if(!response.credential){setError('Google no devolvió una credencial válida.');return}
+     setBusy(true);setError('');setMessage('')
+     try{
+      const {data,error}=await cvAuthClient().auth.signInWithIdToken({provider:'google',token:response.credential})
+      if(error)throw error
+      if(!data.session)throw new Error('No pudimos iniciar la sesión con Google.')
+      if(mode==='signup')void welcome(data.session.access_token)
+      location.assign(requestedNext||await personalDestination(data.session.access_token))
+     }catch(e){setError(e instanceof Error?e.message:'No pudimos continuar con Google.');setBusy(false)}
+    },
+   })
+   const width=Math.max(220,Math.min(400,Math.floor(holder.getBoundingClientRect().width||360)))
+   google.accounts.id.renderButton(holder,{type:'standard',theme:'outline',size:'large',text:mode==='signup'?'signup_with':'signin_with',shape:'rectangular',logo_alignment:'left',width})
+  }).catch(()=>{if(!cancelled)setError('No pudimos cargar el acceso directo de Google. Recargá la página e intentá nuevamente.')})
+  return()=>{cancelled=true}
+ },[mode,accepted,requestedNext,reset])
 
  async function submit(e:FormEvent){
   e.preventDefault();setBusy(true);setError('');setMessage('')
@@ -47,17 +84,6 @@ export default function PersonalAccessForm({mode}:{mode:'signup'|'login'}){
     location.assign(requestedNext||await personalDestination(data.session.access_token))
    }
   }catch(e){setError(e instanceof Error?e.message:'No pudimos completar el acceso.')}finally{setBusy(false)}
- }
-
- async function googleAccess(){
-  setBusy(true);setError('');setMessage('')
-  try{
-   if(mode==='signup'&&!accepted)throw new Error('Para continuar con Google también necesitás aceptar los Términos y la Política de Privacidad.')
-   const base=mode==='signup'?'/registro?oauth=google':'/login?oauth=google'
-   const redirectTo=`https://postulamejor.com${base}${requestedNext?`&next=${encodeURIComponent(requestedNext)}`:''}`
-   const {error}=await cvAuthClient().auth.signInWithOAuth({provider:'google',options:{redirectTo}})
-   if(error){if(/provider|unsupported|enabled/i.test(error.message))throw new Error('El acceso con Google todavía no está habilitado en el proveedor de autenticación.');throw error}
-  }catch(e){setError(e instanceof Error?e.message:'No pudimos continuar con Google.');setBusy(false)}
  }
 
  async function forgot(){
@@ -87,7 +113,7 @@ export default function PersonalAccessForm({mode}:{mode:'signup'|'login'}){
    {mode==='login'&&<button type="button" onClick={forgot} className="pm-employer-forgot" disabled={busy}>Olvidé mi contraseña</button>}
    <button className={styles.buttonDark} disabled={busy}>{busy?(mode==='signup'?'Preparando cuenta…':'Ingresando…'):(mode==='signup'?'Crear mi cuenta':'Ingresar')}</button>
    <div className="pm-employer-auth-divider"><span>o</span></div>
-   <button type="button" className="pm-google-auth-button" onClick={googleAccess} disabled={busy}><span className="pm-google-g">G</span>{mode==='signup'?'Crear cuenta con Google':'Ingresar con Google'}</button>
+   {mode==='signup'&&!accepted?<button type="button" className="pm-google-auth-button" disabled><span className="pm-google-g">G</span>Crear cuenta con Google</button>:<div ref={googleButtonRef} style={{width:'100%',minHeight:44,display:'flex',justifyContent:'center',pointerEvents:busy?'none':'auto',opacity:busy?.65:1}} aria-label={mode==='signup'?'Crear cuenta con Google':'Ingresar con Google'}/>} 
   </form>
   {message&&<div className="pm-employer-auth-message">{message}</div>}
   {error&&<div className="pm-employer-auth-error">{error}</div>}
