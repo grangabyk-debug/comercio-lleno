@@ -4,6 +4,7 @@ import MobileChoicePrompt from './MobileChoicePrompt'
 import LandingConversationV12 from './LandingConversationV12'
 import NexoLauncher from './NexoLauncher'
 import MessageLauncher from './MessageLauncher'
+import PushDevicePrompt from './PushDevicePrompt'
 import AccountNavLink from './AccountNavLink'
 import HomeCompanyStrip from './HomeCompanyStrip'
 import HomeJobVisualSync from './HomeJobVisualSync'
@@ -20,6 +21,7 @@ import './header-account-v24.css'
 import './nexo-desktop-v25.css'
 import './messages-desktop-v32.css'
 import './home-hero-diversity-v36.css'
+import './push-device-v38.css'
 
 function MobileNavIcon({kind}:{kind:'home'|'search'|'bolt'|'person'}){
   return <span className="pm-mobile-nav-icon"><i className={`pm-nav-i ${kind}`}/></span>
@@ -57,7 +59,7 @@ export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'em
       <Link href="/empresas" className={`${styles.navPrimary} pm-role-switch`}>Soy empleador</Link>
       <AccountNavLink audience="candidate" className={`${styles.navAccent} pm-social-account`}/>
     </nav>
-  </header><HomeJobVisualSync/><HomeCompanyStrip/><LandingConversationV12/></>
+  </header><PushDevicePrompt/><HomeJobVisualSync/><HomeCompanyStrip/><LandingConversationV12/></>
 }
 
 export function MobileNav({active='inicio'}:{active?:'inicio'|'empleos'|'cuenta'|'cv'|'changas'|'mensajes'}){
