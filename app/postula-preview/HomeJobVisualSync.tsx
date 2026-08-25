@@ -1,66 +1,39 @@
 'use client'
 
 import {useEffect} from 'react'
-import {jobVisual} from '../empleos-preview/jobVisualCatalog'
-import type {PreviewJob} from './jobs'
 
-function text(root:Element,selector:string){
-  return root.querySelector(selector)?.textContent?.trim()||''
-}
+const img=(id:number)=>`https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=1200`
 
-function normalizeMode(value:string):PreviewJob['mode']{
-  const v=value.toLowerCase()
-  if(v.includes('remot'))return'Remoto'
-  if(v.includes('híbr')||v.includes('hibr'))return'Híbrido'
-  return'Presencial'
-}
-
-function syncHomeJobVisuals(){
-  document.querySelectorAll<HTMLElement>('.pm7-social-job').forEach(card=>{
-    const cover=card.querySelector<HTMLElement>('.pm7-social-job-cover')
-    if(!cover)return
-
-    const title=text(card,'.pm7-social-job-body>h3')
-    const company=text(card,'.pm7-social-company b')
-    const location=text(card,'.pm7-social-company small')
-    const summary=text(card,'.pm7-social-job-body>p')
-    const tags=Array.from(card.querySelectorAll('.pm7-social-tags span')).map(node=>node.textContent?.trim()||'').filter(Boolean)
-    const area=tags[0]||''
-    const schedule=tags[1]||''
-    const href=card.querySelector<HTMLAnchorElement>('.pm7-social-job-foot a')?.getAttribute('href')||''
-    const slug=href.split('/').filter(Boolean).pop()||title
-
-    if(!title||!slug)return
-
-    const job:PreviewJob={
-      slug,
-      title,
-      company,
-      location,
-      mode:normalizeMode(text(card,'.pm7-social-job-cover>span')),
-      schedule,
-      area,
-      source:'',
-      sourceUrl:href,
-      checkedAt:'',
-      summary,
-      requirements:[],
-      tags,
-      external:false,
-    }
-
-    cover.style.backgroundImage=`url(${jobVisual(job)})`
-    cover.style.backgroundSize='cover'
-    cover.style.backgroundPosition='center'
-    cover.dataset.pmJobVisual='synced'
-  })
+function visualFor(title:string){
+ const t=title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+ if(/agente de viajes|travel|turismo/.test(t))return img(7820326)
+ if(/strategy|performance|consultor|consultoria|analyst|auditor/.test(t))return img(8062280)
+ if(/customer support|customer service|soporte|call center/.test(t))return img(7709290)
+ if(/back-end|backend|front-end|frontend|developer|software|programador/.test(t))return img(7988114)
+ if(/cajer|cajas|checkout/.test(t))return img(36772947)
+ if(/fruta|verdura|frescos/.test(t))return img(16154014)
+ if(/repositor|reposicion|gondola/.test(t))return img(5380920)
+ if(/deposit|almacen|logistic|operario|picking/.test(t))return img(36552175)
+ if(/carnic|despost|depost|fiambr/.test(t))return img(7883930)
+ if(/cocin|chef|barista|gastronom|camarer|mozo/.test(t))return img(36473250)
+ if(/recepcion.*hotel|hotel.*recepcion|front desk/.test(t))return img(5371676)
+ if(/limpieza|mucama|housekeeping/.test(t))return img(4239146)
+ if(/venta|vendedor|comercial|retail/.test(t))return img(4199490)
+ return ''
 }
 
 export default function HomeJobVisualSync(){
-  useEffect(()=>{
-    syncHomeJobVisuals()
-    const frame=requestAnimationFrame(syncHomeJobVisuals)
-    return()=>cancelAnimationFrame(frame)
-  },[])
-  return null
+ useEffect(()=>{
+  const sync=()=>document.querySelectorAll<HTMLElement>('.pm7-social-job').forEach(card=>{
+   const title=card.querySelector('h3')?.textContent?.trim()||''
+   const cover=card.querySelector<HTMLElement>('.pm7-social-job-cover')
+   const visual=visualFor(title)
+   if(cover&&visual)cover.style.backgroundImage=`url(${visual})`
+  })
+  sync()
+  const observer=new MutationObserver(sync)
+  observer.observe(document.body,{childList:true,subtree:true})
+  return()=>observer.disconnect()
+ },[])
+ return null
 }
