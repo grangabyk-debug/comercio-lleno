@@ -1,18 +1,17 @@
-import Link from 'next/link'
-import styles from './templates.module.css'
-import platform from '../postula-preview/platform.module.css'
-import {PlatformHeader,PlatformFooter,MobileNav} from '../postula-preview/PlatformChrome'
-import TemplatesClient from './TemplatesClient'
-import '../postula-preview/premium-v6.css'
-import '../postula-preview/premium-v7.css'
+import type {Metadata} from 'next'
+import TemplateGallery from '../plantillas/TemplateGallery'
+import {PlatformFooter,PlatformHeader,MobileNav} from '../postula-preview/PlatformChrome'
+import '../plantillas/template-gallery.css'
 
-export const metadata={
- title:{absolute:'Plantillas de CV | Postulá Mejor'},
- description:'Elegí plantillas de CV gratuitas y diseños Pro+ visibles antes de pagar. Editá, personalizá y prepará un CV claro para tu búsqueda laboral.',
- robots:{index:true,follow:true},
+export const metadata:Metadata={
+ metadataBase:new URL('https://postulamejor.com'),
+ title:{absolute:'Plantillas de CV gratis y CV Pro+ | Postulá Mejor'},
+ description:'30 plantillas de currículum originales. Seis gratuitas y 24 incluidas con CV Pro+. Descargá Word editable y volvé a analizarlo sin perder el modelo.',
  alternates:{canonical:'https://postulamejor.com/plantillas'},
- openGraph:{title:'Plantillas de CV | Postulá Mejor',description:'Plantillas gratuitas y Pro+ visibles antes de pagar para preparar un CV claro y profesional.',url:'https://postulamejor.com/plantillas'},
- twitter:{card:'summary',title:'Plantillas de CV | Postulá Mejor',description:'Plantillas gratuitas y Pro+ visibles antes de pagar para preparar un CV claro y profesional.'},
+ robots:{index:true,follow:true},
+ openGraph:{title:'30 plantillas de CV | Postulá Mejor',description:'Modelos gratuitos y diseños CV Pro+ para descargar y editar en Word.',url:'https://postulamejor.com/plantillas',siteName:'Postulá Mejor',type:'website',locale:'es_AR'},
+ twitter:{card:'summary',title:'30 plantillas de CV | Postulá Mejor',description:'Seis modelos gratis y 24 diseños incluidos con CV Pro+.'},
+ icons:{icon:[{url:'/postula-mejor-favicon.svg',type:'image/svg+xml',sizes:'any'}],shortcut:'/postula-mejor-favicon.svg',apple:'/postula-mejor-favicon.svg'},
 }
 
-export default function TemplatesPage(){return <main className={`${platform.page} ${styles.page} pm7-page`}><PlatformHeader/><div className={styles.wrap}><Link className={styles.back} href="/mi-cuenta">Volver a mi cuenta</Link><div className={styles.head}><div><span className={styles.label}>Biblioteca de CV</span><h1>Diseños que se ven bien antes de pedirte pagar.</h1></div><p>Tenés tres plantillas gratuitas completas, editables y descargables. Las Pro+ se muestran sin blur ni tapas para que puedas elegir con criterio, pero la edición y exportación premium sólo se habilitan con un plan válido.</p></div><TemplatesClient/></div><PlatformFooter/><MobileNav active="cv"/></main>}
+export default function TemplatesPage(){return <main className="pmt-page"><PlatformHeader/><TemplateGallery/><PlatformFooter/><MobileNav active="cv"/></main>}
