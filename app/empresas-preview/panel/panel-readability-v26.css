@@ -53,9 +53,9 @@
  .pmed-inbox-list button{min-height:72px;padding:14px}
  .pmed-inbox-list b{font-size:13px}
  .pmed-inbox-list small{font-size:10px}
- .pmed-detail-actions-v2{display:grid!important;grid-template-columns:1fr 1fr;gap:9px!important}
- .pmed-detail-actions-v2 button{width:100%;min-height:50px!important;padding:0 12px!important;font-size:12px!important}
- .pmed-detail-actions-v2 button.reject{grid-column:1/-1}
+ .pmed-detail-actions-v2{gap:9px!important}
+ .pmed-detail-actions-v2 button{flex:1 1 44%!important;min-height:50px!important;padding:0 12px!important;font-size:12px!important}
+ .pmed-detail-actions-v2 button.reject{flex-basis:100%!important}
  .pmed-notes label{font-size:15px}
  .pmed-notes textarea{font-size:14px}
 }
@@ -63,6 +63,5 @@
 @media(max-width:430px){
  .pmed-inbox{padding:17px 15px}
  .pmed-inbox-head h2{font-size:26px}
- .pmed-detail-actions-v2{grid-template-columns:1fr 1fr}
  .pmed-detail-actions-v2 button{font-size:11.5px!important}
 }
