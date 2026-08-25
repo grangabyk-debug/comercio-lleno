@@ -22,7 +22,7 @@ function safety(text:string){
 async function ensureConversation(db:any,body:any){
  let conversation=clean(body?.conversation_id,80);if(conversation)return conversation
  const application=clean(body?.application_id,80),flexResponse=clean(body?.flex_response_id,80)
- if(application){const {data,error}=await db.rpc('pm_ensure_conversation',{p_application:application});if(error||!data)throw new Error(error?.message||'No pudimos abrir el chat.');return String(data)}
+ if(application){const {data,error}=await db.rpc('pm_ensure_conversation',{p_application:application});if(error||!data){if(/employer must start/i.test(error?.message||''))throw new Error('La empresa tiene que iniciar el primer mensaje. Cuando te contacte, vas a poder responder desde acá.');throw new Error(error?.message||'No pudimos abrir el chat.')}return String(data)}
  if(flexResponse){const {data,error}=await db.rpc('pm_ensure_flex_conversation',{p_response:flexResponse});if(error||!data)throw new Error(error?.message||'No pudimos abrir el chat de Trabajo Flex.');return String(data)}
  throw new Error('Falta la conversación.')
 }
@@ -37,12 +37,19 @@ export async function GET(req:NextRequest){
    db.from('pm_interviews').select('id,conversation_id,proposed_by,scheduled_for,duration_minutes,mode,location_text,notes,status,responded_by,responded_at,created_at').eq('conversation_id',id).order('created_at',{ascending:true}).limit(40)
   ])
   if(mErr||iErr)return NextResponse.json({ok:false,error:mErr?.message||iErr?.message},{status:400})
-  await db.rpc('pm_mark_conversation_read',{p_conversation:id})
+  await Promise.all([
+   db.rpc('pm_mark_conversation_read',{p_conversation:id}),
+   db.from('pm_notifications').update({read_at:new Date().toISOString()}).eq('user_id',user.id).eq('notification_type','message').contains('payload',{conversation_id:id}).is('read_at',null)
+  ])
   const masked=maskConversation(conversation,user.id)
   return NextResponse.json({ok:true,conversation:masked,messages:messages||[],interviews:interviews||[],me:user.id,audience:String(conversation.candidate_user_id)===user.id?'candidate':'employer'})
  }
  const {data,error}=await db.from('pm_conversations').select(conversationSelect).order('last_message_at',{ascending:false}).limit(80);if(error)return NextResponse.json({ok:false,error:error.message},{status:400})
- return NextResponse.json({ok:true,conversations:(data||[]).map(x=>maskConversation(x,user.id)),me:user.id})
+ const conversations=data||[],ids=conversations.map((x:any)=>x.id)
+ let unreadRows:any[]=[]
+ if(ids.length){const {data:u}=await db.from('pm_messages').select('conversation_id,sender_user_id,read_at').in('conversation_id',ids).neq('sender_user_id',user.id).is('read_at',null);unreadRows=u||[]}
+ const counts=new Map<string,number>();for(const row of unreadRows)counts.set(String(row.conversation_id),(counts.get(String(row.conversation_id))||0)+1)
+ return NextResponse.json({ok:true,conversations:conversations.map((x:any)=>({...maskConversation(x,user.id),unread_count:counts.get(String(x.id))||0})),me:user.id,counts:{employment:conversations.filter((x:any)=>x.conversation_kind!=='flex').reduce((n:number,x:any)=>n+(counts.get(String(x.id))||0),0),flex:conversations.filter((x:any)=>x.conversation_kind==='flex').reduce((n:number,x:any)=>n+(counts.get(String(x.id))||0),0)}})
 }
 
 export async function POST(req:NextRequest){
@@ -53,16 +60,16 @@ export async function POST(req:NextRequest){
  if(action==='schedule_interview'){
   const scheduled=new Date(String(body?.scheduled_for||''));if(Number.isNaN(scheduled.getTime())||scheduled.getTime()<Date.now()+5*60000)return NextResponse.json({ok:false,error:'Elegí una fecha y hora futura para la entrevista.'},{status:400})
   const mode=['presencial','virtual','telefonica','a_coordinar'].includes(String(body?.mode))?String(body.mode):'a_coordinar',duration=Math.max(10,Math.min(480,Number(body?.duration_minutes)||30)),location=clean(body?.location_text,240),notes=clean(body?.notes,1000)
-  const {data:conv}=await db.from('pm_conversations').select('conversation_kind,application_id').eq('id',conversation).maybeSingle();if(!conv)return NextResponse.json({ok:false,error:'Conversación no disponible.'},{status:404});if(conv.conversation_kind!=='application')return NextResponse.json({ok:false,error:'La agenda de entrevistas está disponible para procesos de empleo. En Trabajo Flex coordiná horario y encuentro por el chat.'},{status:400})
+  const {data:conv}=await db.from('pm_conversations').select('conversation_kind,application_id,candidate_user_id').eq('id',conversation).maybeSingle();if(!conv)return NextResponse.json({ok:false,error:'Conversación no disponible.'},{status:404});if(conv.conversation_kind!=='application')return NextResponse.json({ok:false,error:'La agenda de entrevistas está disponible para procesos de empleo. En Trabajo Flex coordiná horario y encuentro por el chat.'},{status:400});if(String(conv.candidate_user_id)===user.id)return NextResponse.json({ok:false,error:'La propuesta de entrevista la inicia la empresa.'},{status:403})
   const {data:interview,error}=await db.from('pm_interviews').insert({conversation_id:conversation,proposed_by:user.id,scheduled_for:scheduled.toISOString(),duration_minutes:duration,mode,location_text:location||null,notes:notes||null}).select('*').single();if(error)return NextResponse.json({ok:false,error:error.message},{status:403})
   const when=scheduled.toLocaleString('es-AR',{dateStyle:'short',timeStyle:'short',timeZone:'America/Argentina/Buenos_Aires'}),{data:message,error:mErr}=await db.from('pm_messages').insert({conversation_id:conversation,sender_user_id:user.id,body:`Entrevista propuesta para ${when}.`,message_type:'interview',metadata:{interview_id:interview.id,status:'proposed'}}).select('id,body,message_type,metadata,created_at,sender_user_id').single();if(mErr)return NextResponse.json({ok:false,error:mErr.message},{status:403})
   await db.from('pm_conversations').update({last_message_at:new Date().toISOString()}).eq('id',conversation);return NextResponse.json({ok:true,interview,message})
  }
  if(action==='respond_interview'){
   const id=clean(body?.interview_id,80),status=body?.status==='accepted'?'accepted':body?.status==='declined'?'declined':'';if(!id||!status)return NextResponse.json({ok:false,error:'Respuesta de entrevista inválida.'},{status:400})
+  const {data:conv}=await db.from('pm_conversations').select('candidate_user_id').eq('id',conversation).maybeSingle();if(!conv||String(conv.candidate_user_id)!==user.id)return NextResponse.json({ok:false,error:'La respuesta a la entrevista corresponde al postulante.'},{status:403})
   const {data:interview,error:iErr}=await db.from('pm_interviews').update({status,responded_by:user.id,responded_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',id).eq('conversation_id',conversation).eq('status','proposed').select('*').maybeSingle();if(iErr||!interview)return NextResponse.json({ok:false,error:iErr?.message||'La propuesta ya fue respondida o no está disponible.'},{status:400})
   const label=status==='accepted'?'Entrevista confirmada':'Entrevista rechazada',{data:message}=await db.from('pm_messages').insert({conversation_id:conversation,sender_user_id:user.id,body:label,message_type:'system',metadata:{interview_id:id,status}}).select('id,body,message_type,metadata,created_at,sender_user_id').single()
-  if(status==='accepted'){const {data:conv}=await db.from('pm_conversations').select('application_id').eq('id',conversation).maybeSingle();if(conv?.application_id)await db.from('pm_applications').update({status:'interview',updated_at:new Date().toISOString()}).eq('id',conv.application_id)}
   await db.from('pm_conversations').update({last_message_at:new Date().toISOString()}).eq('id',conversation);return NextResponse.json({ok:true,interview,message})
  }
  if(action!=='send')return NextResponse.json({ok:false,error:'Acción inválida.'},{status:400})
