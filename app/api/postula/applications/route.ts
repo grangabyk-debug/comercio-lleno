@@ -6,6 +6,7 @@ const KEY='sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I'
 function db(req:NextRequest){const auth=req.headers.get('authorization')||'';return createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{Authorization:auth}}})}
 const txt=(v:unknown,n=4000)=>String(v??'').trim().slice(0,n)
 function first<T>(value:T|T[]|null|undefined){return Array.isArray(value)?value[0]??null:value??null}
+const revealStatuses=new Set(['shortlist','interview','hired'])
 
 export async function GET(req:NextRequest){
  const c=db(req)
@@ -14,9 +15,16 @@ export async function GET(req:NextRequest){
  const company=req.nextUrl.searchParams.get('company')||''
  const mine=req.nextUrl.searchParams.get('mine')==='1'
  if(mine){
-  const {data,error}=await c.from('pm_applications').select('id,job_id,status,cover_letter,candidate_snapshot,submitted_at,created_at,updated_at,pm_jobs(title,company_id)').eq('candidate_user_id',user.id).order('created_at',{ascending:false})
+  const {data,error}=await c.from('pm_applications').select('id,job_id,status,cover_letter,candidate_snapshot,submitted_at,created_at,updated_at,pm_jobs(title,area,location_text,work_mode,schedule,compensation_text,description,requirements,status,company_id,employer_visibility,pm_companies(name))').eq('candidate_user_id',user.id).order('created_at',{ascending:false})
   if(error)return NextResponse.json({ok:false,error:error.message},{status:400})
-  return NextResponse.json({ok:true,applications:data||[]})
+  const rows=(data||[]).map((row:any)=>{
+   const job=first(row.pm_jobs) as any,companyRow=first(job?.pm_companies) as any
+   if(job?.employer_visibility==='confidential'&&!revealStatuses.has(String(row.status||''))){
+    return {...row,pm_jobs:{...job,pm_companies:{name:`Empresa · ${job?.area||'identidad reservada'}`},identity_revealed:false}}
+   }
+   return {...row,pm_jobs:{...job,pm_companies:companyRow,identity_revealed:true}}
+  })
+  return NextResponse.json({ok:true,applications:rows})
  }
  if(!company)return NextResponse.json({ok:false,error:'Empresa inválida.'},{status:400})
  const {data,error}=await c.from('pm_applications').select('id,job_id,candidate_user_id,resume_path,cover_letter,status,candidate_snapshot,submitted_at,created_at,updated_at,pm_jobs!inner(id,title,company_id),pm_candidate_matches(score,reasons,missing_evidence,model_version)').eq('pm_jobs.company_id',company).order('created_at',{ascending:false}).limit(500)
