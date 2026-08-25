@@ -9,6 +9,7 @@ import PaidBranchPurchaseRuntime from './redesign/PaidBranchPurchaseRuntime'
 import PostulaClarity from './PostulaClarity'
 import PostulaProLabel from './PostulaProLabel'
 import PostulaCookieConsent from './postula-preview/PostulaCookieConsent'
+import FlexNamingBridge from './postula-preview/FlexNamingBridge'
 import './globals.css'
 import './prepaint.css'
 import './design-readability.css'
@@ -41,14 +42,14 @@ const commerceMetadata:Metadata={
 const postulaMetadata:Metadata={
   metadataBase:new URL('https://postulamejor.com'),
   title:{default:'Postulá Mejor',template:'%s | Postulá Mejor'},
-  description:'Empleos, perfil laboral, CV y herramientas para buscar trabajo mejor, en un solo lugar.',
+  description:'Empleos, Servicios Flex, perfil laboral, CV y herramientas para buscar trabajo mejor, en un solo lugar.',
   applicationName:'Postulá Mejor',
   openGraph:{
     siteName:'Postulá Mejor',
     type:'website',
     locale:'es_AR',
     title:'Postulá Mejor',
-    description:'Empleos, perfil laboral, CV y herramientas para buscar trabajo mejor, en un solo lugar.',
+    description:'Empleos, Servicios Flex, perfil laboral, CV y herramientas para buscar trabajo mejor, en un solo lugar.',
     url:'https://postulamejor.com',
   },
   alternates:{canonical:'https://postulamejor.com'},
@@ -117,6 +118,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <PostulaClarity />
         <PostulaProLabel />
         {!postula&&<MarketingScripts />}
+        {postula&&<FlexNamingBridge />}
         {children}
         {postula&&<PostulaCookieConsent />}
         {!postula&&<FloatingWhatsApp />}
