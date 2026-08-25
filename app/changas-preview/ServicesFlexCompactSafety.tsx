@@ -11,9 +11,9 @@ const INFO=[
 ] as const
 
 const PACKS=[
- {code:'flex1',credits:1,amount:1990,label:'1 crédito'},
- {code:'flex5',credits:5,amount:7900,label:'5 créditos',featured:true},
- {code:'flex10',credits:10,amount:13900,label:'10 créditos'},
+ {code:'flex1',credits:1,amount:995,oldAmount:1990,label:'1 crédito'},
+ {code:'flex5',credits:5,amount:3950,oldAmount:7900,label:'5 créditos',featured:true},
+ {code:'flex10',credits:10,amount:6950,oldAmount:13900,label:'10 créditos'},
 ] as const
 
 export default function ServicesFlexCompactSafety(){
@@ -65,14 +65,15 @@ export default function ServicesFlexCompactSafety(){
 
    <div className="pmsf-pack-shell">
     <div className="pmsf-pack-copy">
-     <span>¿NECESITÁS PUBLICAR MÁS?</span>
+     <span>PROMO LANZAMIENTO · 50% OFF</span>
      <h3>Comprá créditos extra cuando los necesites.</h3>
-     <p>Son pagos únicos. Los créditos comprados quedan disponibles en tu cuenta y no reemplazan la renovación gratuita.</p>
+     <p>Por el momento, los packs de Servicios Flex están a mitad de precio. Son pagos únicos y los créditos comprados quedan disponibles en tu cuenta.</p>
     </div>
     <div className="pmsf-pack-grid">
      {PACKS.map(pack=><button type="button" key={pack.code} className="pmsf-pack" data-featured={'featured' in pack&&pack.featured?'true':'false'} disabled={Boolean(busy)} onClick={()=>void buy(pack.code)}>
        {'featured' in pack&&pack.featured&&<em>MÁS ELEGIDO</em>}
        <strong>{pack.label}</strong>
+       <del>${pack.oldAmount.toLocaleString('es-AR')}</del>
        <b>${pack.amount.toLocaleString('es-AR')}</b>
        <small>{pack.credits>1?`$${Math.round(pack.amount/pack.credits).toLocaleString('es-AR')} por crédito`:'pago único'}</small>
        <span>{busy===pack.code?'Abriendo Mercado Pago…':'Comprar'}</span>
