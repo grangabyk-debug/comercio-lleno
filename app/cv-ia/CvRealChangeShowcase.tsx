@@ -14,7 +14,7 @@ export default function CvRealChangeShowcase(){
      <li><i>✓</i><span>No agrega métricas, cargos ni logros que no estén respaldados.</span></li>
     </ul>
     <div className="pmcv-real-actions">
-     <button type="button" onClick={()=>document.getElementById('analisis')?.scrollIntoView({behavior:'smooth',block:'start'})}>Analizar mi CV gratis</button>
+     <button type="button" onClick={()=>document.getElementById('analisis')?.scrollIntoView({behavior:'smooth',block:'center'})}>Analizar mi CV gratis</button>
      <a href="#pmcv-ejemplo">Ver un cambio realista</a>
     </div>
     <small>La vista de la derecha es una demostración del tipo de sugerencia que devuelve el sistema. Tu diagnóstico usa únicamente tu CV y, si lo cargás, el aviso laboral.</small>
@@ -24,7 +24,7 @@ export default function CvRealChangeShowcase(){
     <div className="pmcv-demo-label">EJEMPLO VISUAL · NO ES UN CV REAL</div>
     <div className="pmcv-scan-status"><span className="pmcv-scan-dot"/><b>Analizando claridad y compatibilidad</b><em>IA</em></div>
     <article className="pmcv-demo-cv">
-     <header><div className="pmcv-demo-avatar">VG</div><div><h2>Valeria Gómez</h2><p>Administración · Atención al cliente</p></div></header>
+     <header><div className="pmcv-demo-avatar"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=160&q=82" alt="" loading="eager"/></div><div><h2>Valeria Gómez</h2><p>Administración · Atención al cliente</p></div></header>
      <div className="pmcv-demo-meta"><span>Buenos Aires</span><span>valeria@ejemplo.com</span></div>
      <section><b>PERFIL</b><p>Experiencia en tareas administrativas y atención al público. Responsable y organizada.</p></section>
      <section><b>EXPERIENCIA</b><h3>Asistente administrativa</h3><small>Empresa ejemplo · 2023 — Actualidad</small><p className="pmcv-demo-highlight">Atención al cliente y manejo de reclamos.</p><p>Gestión de documentación y coordinación con distintas áreas.</p></section>
