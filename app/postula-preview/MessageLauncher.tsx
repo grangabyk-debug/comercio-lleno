@@ -9,8 +9,8 @@ type Thread={id:string;conversation_kind?:'application'|'flex';unread_count?:num
 type Msg={id:string;sender_user_id:string;body:string;message_type:string;created_at:string}
 type LauncherVariant='header'|'mobile-nav'
 
-function title(t:Thread){return t.conversation_kind==='flex'?t.pm_flex_posts?.title||'Trabajo Flex':t.pm_applications?.pm_jobs?.title||'Conversación laboral'}
-function counterpart(t:Thread){return t.conversation_kind==='flex'?(t.pm_companies?.name||'Trabajo Flex'):(t.pm_companies?.name||'Empresa')}
+function title(t:Thread){return t.conversation_kind==='flex'?t.pm_flex_posts?.title||'Servicio Flex':t.pm_applications?.pm_jobs?.title||'Conversación laboral'}
+function counterpart(t:Thread){return t.conversation_kind==='flex'?(t.pm_companies?.name||'Servicios Flex'):(t.pm_companies?.name||'Empresa')}
 async function token(){const {data}=await cvAuthClient().auth.getSession();return data.session?.access_token||''}
 function ChatIcon(){return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 5.5h13v9.2h-7.1L7.2 18v-3.3H5.5z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg>}
 function unreadOf(list:Thread[]){return list.reduce((total,item)=>total+Number(item.unread_count||0),0)}
@@ -76,10 +76,10 @@ export default function MessageLauncher({variant='header',active=false}:{variant
 
  const modal=open?<div className="pm-msg-modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setOpen(false)}}>
    <section className={`pm-msg-modal ${logged===false?'pm-msg-modal-auth':''}`} style={variant==='mobile-nav'&&logged===false?{transform:'translateY(-9vh)'}:undefined} role="dialog" aria-modal="true" aria-label="Mensajes de Postulá Mejor">
-    <header><div><span>PM</span><div><b>Mensajes</b><small>Empleos y Trabajo Flex</small></div></div><button onClick={()=>setOpen(false)} aria-label="Cerrar">×</button></header>
+    <header><div><span>PM</span><div><b>Mensajes</b><small>Empleos y Servicios Flex</small></div></div><button onClick={()=>setOpen(false)} aria-label="Cerrar">×</button></header>
     {loading?<div className="pm-msg-state"><b>Cargando mensajes…</b></div>:
-     logged===false?<div className="pm-msg-state"><b>Ingresá para ver tus mensajes.</b><p>Usás la misma cuenta para empleos y Trabajo Flex.</p><div className="pm-msg-auth-actions"><Link href="/login?next=%2Fmensajes">Iniciar sesión</Link><Link href="/registro?next=%2Fmensajes" className="secondary">Crear cuenta</Link></div></div>:
-     threads.length===0?<div className="pm-msg-state"><b>Todavía no hay conversaciones.</b><p>Cuando una empresa te escriba o contactes una publicación de Trabajo Flex, aparecerá acá.</p><Link href="/empleos">Buscar empleos</Link></div>:
+     logged===false?<div className="pm-msg-state"><b>Ingresá para ver tus mensajes.</b><p>Usás la misma cuenta para empleos y Servicios Flex.</p><div className="pm-msg-auth-actions"><Link href="/login?next=%2Fmensajes">Iniciar sesión</Link><Link href="/registro?next=%2Fmensajes" className="secondary">Crear cuenta</Link></div></div>:
+     threads.length===0?<div className="pm-msg-state"><b>Todavía no hay conversaciones.</b><p>Cuando una empresa te escriba o contactes una publicación de Servicios Flex, aparecerá acá.</p><Link href="/empleos">Buscar empleos</Link></div>:
      <div className="pm-msg-shell"><aside>{threads.map(t=><button key={t.id} data-on={t.id===activeThread} onClick={()=>void loadMessages(t.id)}><i>{counterpart(t).slice(0,2).toUpperCase()}</i><span><b>{counterpart(t)}</b><small>{title(t)}</small></span>{Number(t.unread_count||0)>0&&<strong className="pm-msg-thread-unread">{t.unread_count}</strong>}</button>)}</aside><div className="pm-msg-chat">{thread&&<div className="pm-msg-chat-head"><b>{counterpart(thread)}</b><span>{title(thread)}</span></div>}<div className="pm-msg-messages">{messages.map(m=><div key={m.id} data-mine={m.sender_user_id===me}><p>{m.body}</p><small>{new Date(m.created_at).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}</small></div>)}</div><form onSubmit={send}><input value={text} onChange={e=>setText(e.target.value)} placeholder="Escribí un mensaje…" maxLength={4000}/><button disabled={busy||!text.trim()}>{busy?'…':'Enviar'}</button></form></div></div>}
     <footer><span>También podés abrir la bandeja completa.</span><Link href="/mensajes">Abrir pantalla completa</Link></footer>
    </section>
