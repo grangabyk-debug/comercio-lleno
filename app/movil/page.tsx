@@ -16,6 +16,7 @@ import MobileGoogleAccess from './MobileGoogleAccess'
 import MobileArcaStatus from './MobileArcaStatus'
 import MobilePermissionsGate from './MobilePermissionsGate'
 import MobileProductionSalesBridge from './MobileProductionSalesBridgeV2'
+import MobileInvoiceExperience from './MobileInvoiceExperience'
 import MobileProductionUxFixes from './MobileProductionUxFixes'
 import MobilePwaInstallBridge from './MobilePwaInstallBridge'
 import SaleSearchGuard from './SaleSearchGuard'
@@ -57,6 +58,7 @@ export default function MobilePage(){
     <SubscriptionGate/>
     <MobileSimpleApp/>
     <MobileProductionSalesBridge/>
+    <MobileInvoiceExperience/>
     <MobileProductionUxFixes/>
     <MobilePwaInstallBridge/>
     <MobileArcaStatus/>

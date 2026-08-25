@@ -227,6 +227,9 @@ export default function MobileProductionSalesBridgeV2() {
         if (kind === 'internal') {
           await persistUninvoicedSale(session, sale, [], 'Cobro registrado sin emisión fiscal inmediata')
           setMessage(`Venta cobrada por $${Math.round(total).toLocaleString('es-AR')} · quedó pendiente de facturación.`)
+          const clear = Array.from(document.querySelectorAll('button')).find(node => text(node) === 'Vaciar' && node.closest('[class*="cartCard"]')) as HTMLButtonElement | undefined
+          clear?.click()
+          window.setTimeout(() => window.location.reload(), 900)
         } else {
           try {
             const invoice = await authorizeFiscalInvoice(session, total, sale.id)
@@ -234,17 +237,24 @@ export default function MobileProductionSalesBridgeV2() {
             sale.receiptNumber = invoice.receipt_number
             sale.caeExpiration = invoice.cae_expiration || null
             sale.fiscalEnvironment = 'produccion'
+            sale.fiscal_status = 'authorized'
             await persistAuthorizedSale(session, sale, [])
-            setMessage(`Venta registrada y facturada por $${Math.round(total).toLocaleString('es-AR')}.`)
+            setMessage('')
           } catch (fiscalError) {
             const unavailable = Boolean((fiscalError as { arcaUnavailable?: boolean })?.arcaUnavailable)
             if (!unavailable) throw fiscalError
-            await persistUninvoicedSale(session, sale, [], fiscalError instanceof Error ? fiscalError.message : 'ARCA no disponible')
-            setMessage(`Venta registrada por $${Math.round(total).toLocaleString('es-AR')}. La factura quedó pendiente porque ARCA no respondió.`)
+            const reason = fiscalError instanceof Error ? fiscalError.message : 'ARCA no disponible'
+            sale.receipt_type = 'ticket'
+            sale.fiscal_status = 'pending'
+            sale.details = { ...(sale.details || {}), fiscal_pending_reason: reason, fiscal_pending_since: new Date().toISOString() }
+            await persistUninvoicedSale(session, sale, [], reason)
+            setMessage('')
           }
-        }
 
-        window.setTimeout(() => window.location.reload(), 1050)
+          const clear = Array.from(document.querySelectorAll('button')).find(node => text(node) === 'Vaciar' && node.closest('[class*="cartCard"]')) as HTMLButtonElement | undefined
+          clear?.click()
+          window.dispatchEvent(new CustomEvent('comercio:mobile-sale-completed', { detail: { sale, company: snapshot.company } }))
+        }
       } catch (error) {
         setMessage(error instanceof Error ? error.message : 'No se pudo registrar la venta.')
       } finally {
