@@ -23,7 +23,7 @@ export async function GET(req:NextRequest){
    companies.push(companyResult.data)
   }
 
-  return NextResponse.json({ok:true,personal,companies,packs:[{code:'flex1',credits:1,amount:1990,label:'1 publicación'},{code:'flex5',credits:5,amount:7900,label:'5 publicaciones'},{code:'flex10',credits:10,amount:13900,label:'10 publicaciones'}]})
+  return NextResponse.json({ok:true,personal,companies,packs:[{code:'flex1',credits:1,amount:995,old_amount:1990,label:'1 publicación'},{code:'flex5',credits:5,amount:3950,old_amount:7900,label:'5 publicaciones'},{code:'flex10',credits:10,amount:6950,old_amount:13900,label:'10 publicaciones'}]})
  }catch(error){
   console.error('flex_credits_load_failed',error)
   return NextResponse.json({ok:false,error:'No pudimos consultar tus créditos ahora. Reintentá en unos segundos.'},{status:500})
