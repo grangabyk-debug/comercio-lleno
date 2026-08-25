@@ -1,6 +1,7 @@
 import {createClient} from '@supabase/supabase-js'
 import {currentJobBoost} from './publicJobBoost'
 import {publicJobExtras} from './publicJobExtras'
+import {commonPublicJobs} from './publicJobCommon'
 
 export type PreviewJob={
   slug:string;title:string;company:string;location:string;mode:'Presencial'|'Híbrido'|'Remoto';schedule:string;area:string;source:string;sourceUrl:string;checkedAt:string;summary:string;requirements:string[];tags:string[];external:boolean;internalJobId?:string;compensation?:string;confidential?:boolean;logoUrl?:string
@@ -38,7 +39,16 @@ const brandDomains:Record<string,string>={
  'binance':'https://www.binance.com/favicon.ico',
  'monks':'https://www.monks.com/favicon.ico',
  'hogarth worldwide':'https://www.hogarth.com/favicon.ico',
- 'appsflyer':'https://www.appsflyer.com/favicon.ico'
+ 'appsflyer':'https://www.appsflyer.com/favicon.ico',
+ 'grido':'https://www.gridohelado.com/favicon.ico',
+ 'carrefour':'https://www.carrefour.com.ar/favicon.ico',
+ 'coto':'https://www.coto.com.ar/favicon.ico',
+ 'supermercados dia':'https://diaonline.supermercadosdia.com.ar/favicon.ico',
+ 'changomás':'https://www.masonline.com.ar/favicon.ico',
+ 'farmacity':'https://www.farmacity.com/favicon.ico',
+ 'frávega':'https://www.fravega.com/favicon.ico',
+ 'pedidosya':'https://www.pedidosya.com/favicon.ico',
+ 'mercado libre':'https://www.mercadolibre.com.ar/favicon.ico'
 }
 function brandLogo(company:string){return brandDomains[company.trim().toLowerCase()]||''}
 function normalizeMode(v:string):'Presencial'|'Híbrido'|'Remoto'{const s=v.toLowerCase();if(s.includes('remot'))return'Remoto';if(s.includes('híbr')||s.includes('hibr'))return'Híbrido';return'Presencial'}
@@ -49,7 +59,7 @@ export async function getJobCatalog(){
   const [{discoverPublicJobs},{discoverOverflowJobs},native]=await Promise.all([import('./publicJobSources'),import('./publicJobOverflow'),nativeJobs()])
   const [live,overflow]=await Promise.all([discoverPublicJobs(),discoverOverflowJobs()])
   const seen=new Set<string>()
-  return [...previewJobs,...native,...publicJobExtras,...currentJobBoost,...live,...overflow].filter(job=>{const key=semanticKey(job);if(seen.has(key))return false;seen.add(key);return true}).map(job=>({...job,logoUrl:job.confidential?'':job.logoUrl||brandLogo(job.company)}))
+  return [...commonPublicJobs,...previewJobs,...native,...publicJobExtras,...currentJobBoost,...live,...overflow].filter(job=>{const key=semanticKey(job);if(seen.has(key))return false;seen.add(key);return true}).map(job=>({...job,logoUrl:job.confidential?'':job.logoUrl||brandLogo(job.company)}))
 }
 
-export function getPreviewJob(slug:string){const job=[...previewJobs,...publicJobExtras,...currentJobBoost].find(job=>job.slug===slug);return job?{...job,logoUrl:job.logoUrl||brandLogo(job.company)}:undefined}
+export function getPreviewJob(slug:string){const job=[...commonPublicJobs,...previewJobs,...publicJobExtras,...currentJobBoost].find(job=>job.slug===slug);return job?{...job,logoUrl:job.logoUrl||brandLogo(job.company)}:undefined}
