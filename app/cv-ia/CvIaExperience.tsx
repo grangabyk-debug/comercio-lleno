@@ -71,7 +71,7 @@ export default function CvIaExperience(){
  const [activeBusy,setActiveBusy]=useState(false)
  const [activeResult,setActiveResult]=useState<any>(null)
 
- const ready=useMemo(()=>Boolean(file&&targetRole.trim().length>2&&jobText.trim().length>35),[file,targetRole,jobText])
+ const ready=useMemo(()=>Boolean(file&&targetRole.trim().length>2),[file,targetRole])
  const isPaid=session?.plan==='pro'||session?.plan==='active'
  const activeValid=session?.plan==='active'&&(!session.entitlement_until||new Date(session.entitlement_until).getTime()>Date.now())
  const remaining=Math.max(0,10-(session?.active_searches_used||0))
@@ -142,9 +142,9 @@ export default function CvIaExperience(){
     <div className={styles.stepLabel}><span>1</span><b>Subí tu CV</b><small>PDF, DOC, DOCX o TXT · máximo 6 MB</small></div>
     <input ref={fileRef} className={styles.fileInput} type="file" accept=".pdf,.doc,.docx,.txt" onChange={e=>setFile(e.target.files?.[0]||null)}/>
     <button className={`${styles.dropzone} ${file?styles.dropzoneReady:''}`} type="button" onClick={()=>fileRef.current?.click()}><span className={styles.uploadIcon}>↑</span><b>{file?.name||'Elegir mi CV'}</b><small>{file?'Archivo listo':'Tocá acá para buscarlo en tu celular'}</small></button>
-    <div className={styles.stepLabel}><span>2</span><b>Decinos el puesto</b><small>Cuanto más específico, mejor</small></div>
+    <div className={styles.stepLabel}><span>2</span><b>Decinos el puesto</b><small>El aviso laboral es opcional</small></div>
     <div className={styles.field}><label>Puesto al que querés postularte</label><input value={targetRole} onChange={e=>setTargetRole(e.target.value)} placeholder="Ej: Analista Comercial" maxLength={180}/></div>
-    <div className={styles.field}><label>Pegá la oferta o descripción del trabajo</label><textarea value={jobText} onChange={e=>setJobText(e.target.value)} placeholder="Ej: Buscamos Analista Comercial para gestionar cuentas, seguimiento de clientes, Excel..." rows={5}/></div>
+    <div className={styles.field}><label>Pegá la oferta o descripción del trabajo <strong>(opcional)</strong></label><textarea value={jobText} onChange={e=>setJobText(e.target.value)} placeholder="Si tenés un aviso, copiá y pegalo acá para medir la coincidencia con ese empleo." rows={5}/><small>Podés dejarlo vacío. Si pegás el aviso, comparamos tu CV contra ese puesto; si no, hacemos un análisis general de tu perfil.</small></div>
     <button className={styles.primaryCta} type="submit" disabled={!ready||analyzing}>{analyzing?'Analizando de verdad…':'Analizar mi CV gratis'}</button>
     {analyzing&&<div className={styles.progress}><div className={`${styles.progressItem} ${progress>=1?styles.progressItemActive:''}`}><i className={styles.progressDot}/>Extrayendo únicamente hechos del CV</div><div className={`${styles.progressItem} ${progress>=2?styles.progressItemActive:''}`}><i className={styles.progressDot}/>Filtro automático + compatibilidad</div><div className={`${styles.progressItem} ${progress>=3?styles.progressItemActive:''}`}><i className={styles.progressDot}/>Recruiter + responsable del área</div><div className={`${styles.progressItem} ${progress>=4?styles.progressItemActive:''}`}><i className={styles.progressDot}/>Armando el diagnóstico</div></div>}
     <p className={styles.microcopy}>Sin tarjeta. Tu archivo se usa para el análisis y no publicamos su contenido.</p><div className={styles.privacyLine}><span>🔒</span><span>No usamos tu CV para inventar datos: si algo no está en la fuente, el sistema debe omitirlo o marcarlo como faltante.</span></div>
