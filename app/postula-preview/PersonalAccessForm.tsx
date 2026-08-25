@@ -113,7 +113,7 @@ export default function PersonalAccessForm({mode}:{mode:'signup'|'login'}){
    {mode==='login'&&<button type="button" onClick={forgot} className="pm-employer-forgot" disabled={busy}>Olvidé mi contraseña</button>}
    <button className={styles.buttonDark} disabled={busy}>{busy?(mode==='signup'?'Preparando cuenta…':'Ingresando…'):(mode==='signup'?'Crear mi cuenta':'Ingresar')}</button>
    <div className="pm-employer-auth-divider"><span>o</span></div>
-   {mode==='signup'&&!accepted?<button type="button" className="pm-google-auth-button" disabled><span className="pm-google-g">G</span>Crear cuenta con Google</button>:<div ref={googleButtonRef} style={{width:'100%',minHeight:44,display:'flex',justifyContent:'center',pointerEvents:busy?'none':'auto',opacity:busy?.65:1}} aria-label={mode==='signup'?'Crear cuenta con Google':'Ingresar con Google'}/>} 
+   {mode==='signup'&&!accepted?<button type="button" className="pm-google-auth-button" disabled><span className="pm-google-g">G</span>Crear cuenta con Google</button>:<div ref={googleButtonRef} style={{width:'100%',minHeight:44,display:'flex',justifyContent:'center',pointerEvents:busy?'none':'auto',opacity:busy?0.65:1}} aria-label={mode==='signup'?'Crear cuenta con Google':'Ingresar con Google'}/>} 
   </form>
   {message&&<div className="pm-employer-auth-message">{message}</div>}
   {error&&<div className="pm-employer-auth-error">{error}</div>}
