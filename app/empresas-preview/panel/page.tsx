@@ -1,6 +1,5 @@
 import styles from '../../postula-preview/platform.module.css'
 import {PlatformHeader,PlatformFooter} from '../../postula-preview/PlatformChrome'
-import NotificationSettings from '../../postula-preview/NotificationSettings'
 import SupportHelp from '../../postula-preview/SupportHelp'
 import EmployerDashboardLive from './EmployerDashboardLive'
 import EmployerSetupOnboarding from './EmployerSetupOnboarding'
@@ -9,9 +8,9 @@ import '../../postula-preview/premium-v6.css'
 import '../../postula-preview/premium-v7.css'
 import '../../postula-preview/premium-v7-employer-dashboard.css'
 import '../../postula-preview/inner-v5.css'
-import '../../postula-preview/notifications-v16.css'
 import '../../postula-preview/support-help-v21.css'
 import './dashboard-live.css'
 import './dashboard-onboarding-v18.css'
-export const metadata={title:{absolute:'Panel de empresa | Postulá Mejor'},robots:{index:false,follow:false},alternates:{canonical:'https://postulamejor.com/empresas/panel'}}
-export default function EmployerPanel(){return <main className={`${styles.page} pm7-page pm7-employer`}><PlatformHeader audience="employer"/><EmployerDashboardLive/><EmployerSetupOnboarding/><NotificationSettings audience="employer"/><PlatformFooter/><SupportHelp audience="employer"/></main>}
+import './panel-organization.css'
+export const metadata={title:{absolute:'Panel de selección | Postulá Mejor'},robots:{index:false,follow:false},alternates:{canonical:'https://postulamejor.com/empresas/panel'}}
+export default function EmployerPanel(){return <main className={`${styles.page} pm7-page pm7-employer`}><PlatformHeader audience="employer"/><EmployerDashboardLive/><EmployerSetupOnboarding/><PlatformFooter/><SupportHelp audience="employer"/></main>}

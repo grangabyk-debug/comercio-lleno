@@ -10,6 +10,7 @@ export default function AccountNavLink({audience,className}:{audience:'candidate
  const [href,setHref]=useState(loginHref)
  const [authed,setAuthed]=useState(false)
  const [busy,setBusy]=useState(false)
+ const label=audience==='employer'?(authed?'Panel':'Ingresar'):'Mi cuenta'
 
  useEffect(()=>{
   let alive=true
@@ -31,7 +32,7 @@ export default function AccountNavLink({audience,className}:{audience:'candidate
  }
 
  return <>
-  <Link href={href} className={className}>Mi cuenta</Link>
+  <Link href={href} className={className}>{label}</Link>
   {authed&&<button
    type="button"
    onClick={()=>void logout()}
