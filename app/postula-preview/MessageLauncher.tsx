@@ -47,17 +47,17 @@ export default function MessageLauncher({variant='header',active=false}:{variant
   try{
    const r=await fetch('/api/postula/messages',{headers:{Authorization:`Bearer ${t}`},cache:'no-store'})
    const d=await r.json().catch(()=>({}))
-   const list=Array.isArray(d?.conversations)?d.conversations:[]
+   const list:Thread[]=Array.isArray(d?.conversations)?d.conversations:[]
    applyThreads(list);setMe(String(d?.me||''))
-   if(list.length){setActiveThread(String(list[0].id));await loadMessages(String(list[0].id),t)}
+   if(list.length){const firstId=String(list[0].id);setActiveThread(firstId);await loadMessages(firstId,t,list)}
   }finally{setLoading(false)}
  }
- async function loadMessages(id:string,knownToken?:string){
+ async function loadMessages(id:string,knownToken?:string,baseThreads?:Thread[]){
   setActiveThread(id)
   const t=knownToken||await token();if(!t)return
   const r=await fetch(`/api/postula/messages?conversation=${encodeURIComponent(id)}`,{headers:{Authorization:`Bearer ${t}`},cache:'no-store'})
   const d=await r.json().catch(()=>({}))
-  if(r.ok&&d?.ok){setMessages(d.messages||[]);setMe(String(d.me||''));const next=threads.map(item=>item.id===id?{...item,unread_count:0}:item);applyThreads(next);window.dispatchEvent(new CustomEvent('pm:messages-read',{detail:{conversation:id}}))}
+  if(r.ok&&d?.ok){setMessages(d.messages||[]);setMe(String(d.me||''));const source=baseThreads||threads;const next=source.map(item=>item.id===id?{...item,unread_count:0}:item);applyThreads(next);window.dispatchEvent(new CustomEvent('pm:messages-read',{detail:{conversation:id}}))}
  }
  async function send(e:FormEvent){
   e.preventDefault();const clean=text.trim();if(!clean||!activeThread||busy)return
