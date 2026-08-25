@@ -12,7 +12,8 @@ function secure(response:NextResponse,request:NextRequest){
  response.headers.set('X-Permitted-Cross-Domain-Policies','none')
  response.headers.set('X-DNS-Prefetch-Control','off')
  response.headers.set('Strict-Transport-Security','max-age=31536000; includeSubDomains')
- response.headers.set('Cross-Origin-Opener-Policy','same-origin')
+ const authPopupAllowed=request.nextUrl.pathname==='/login'||request.nextUrl.pathname==='/registro'||request.nextUrl.pathname==='/empresas/login'||request.nextUrl.pathname==='/empresas/registro'
+ response.headers.set('Cross-Origin-Opener-Policy',authPopupAllowed?'same-origin-allow-popups':'same-origin')
  response.headers.set('Origin-Agent-Cluster','?1')
  response.headers.set('Content-Security-Policy',"base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; upgrade-insecure-requests")
  return response
