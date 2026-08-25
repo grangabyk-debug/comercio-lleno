@@ -48,7 +48,7 @@ export async function GET(req:NextRequest){
   return NextResponse.json({ok:true,posts:await decoratePosts(c,posts),favorites:favoriteIds})
  }
  const{data,error}=await c.from('pm_flex_posts').select(PUBLIC_FIELDS).eq('status','published').order('created_at',{ascending:false}).limit(60)
- if(error)return NextResponse.json({ok:false,error:'No pudimos cargar Trabajos Flex.'},{status:400})
+ if(error)return NextResponse.json({ok:false,error:'No pudimos cargar Servicios Flex.'},{status:400})
  return NextResponse.json({ok:true,posts:await decoratePosts(c,data||[]),favorites:favoriteIds})
 }
 
@@ -57,7 +57,7 @@ export async function POST(req:NextRequest){
  const b=await req.json().catch(()=>({}));const action=text(b?.action,30)||'create'
  if(action==='favorite'){
   const postId=text(b?.post_id,80),saved=b?.saved===true;if(!postId)return NextResponse.json({ok:false,error:'Publicación inválida.'},{status:400})
-  const{data:post}=await c.from('pm_flex_posts').select('id').eq('id',postId).eq('status','published').maybeSingle();if(!post)return NextResponse.json({ok:false,error:'Este Trabajo Flex ya no está disponible.'},{status:404})
+  const{data:post}=await c.from('pm_flex_posts').select('id').eq('id',postId).eq('status','published').maybeSingle();if(!post)return NextResponse.json({ok:false,error:'Este Servicio Flex ya no está disponible.'},{status:404})
   const{error}=saved?await c.from('pm_flex_favorites').upsert({user_id:user.id,post_id:postId},{onConflict:'user_id,post_id'}):await c.from('pm_flex_favorites').delete().eq('user_id',user.id).eq('post_id',postId)
   if(error)return NextResponse.json({ok:false,error:'No pudimos actualizar favoritos.'},{status:400});return NextResponse.json({ok:true,saved})
  }
@@ -65,21 +65,29 @@ export async function POST(req:NextRequest){
   const postId=text(b?.post_id,80),message=text(b?.message,1200)
   if(!postId||message.length<3)return NextResponse.json({ok:false,error:'Escribí un mensaje para contactar a quien publicó.'},{status:400})
   const{data:post}=await c.from('pm_flex_posts').select('id,publisher_user_id,status').eq('id',postId).eq('status','published').maybeSingle()
-  if(!post)return NextResponse.json({ok:false,error:'Este Trabajo Flex ya no está disponible.'},{status:404})
+  if(!post)return NextResponse.json({ok:false,error:'Este Servicio Flex ya no está disponible.'},{status:404})
   if(String(post.publisher_user_id)===user.id)return NextResponse.json({ok:false,error:'No podés responder a tu propia publicación.'},{status:400})
   const{data:response,error}=await c.from('pm_flex_responses').insert({post_id:postId,candidate_user_id:user.id,message,status:'sent'}).select('id,status,created_at').single()
   if(error)return NextResponse.json({ok:false,error:error.message},{status:400})
   const{data:conversation,error:convErr}=await c.rpc('pm_ensure_flex_conversation',{p_response:response.id})
   if(convErr||!conversation)return NextResponse.json({ok:false,error:convErr?.message||'No pudimos abrir la conversación.'},{status:400})
-  const{error:msgErr}=await c.from('pm_messages').insert({conversation_id:conversation,sender_user_id:user.id,body:message,message_type:'text',metadata:{source:'flex_first_contact'}})
+  const{error:msgErr}=await c.from('pm_messages').insert({conversation_id:conversation,sender_user_id:user.id,body:message,message_type:'text',metadata:{source:'services_flex_first_contact'}})
   if(msgErr)return NextResponse.json({ok:false,error:msgErr.message},{status:400})
   await c.from('pm_conversations').update({last_message_at:new Date().toISOString()}).eq('id',conversation)
   return NextResponse.json({ok:true,response,conversation_id:conversation})
  }
  if(action!=='create')return NextResponse.json({ok:false,error:'Acción inválida.'},{status:400})
  if(b?.responsibility_ack!==true)return NextResponse.json({ok:false,error:'Necesitás aceptar las reglas de publicación y asumir la responsabilidad de la publicación.'},{status:400})
+
+ const now=new Date().toISOString()
+ const{data:legalCheck,error:legalErr}=await c.from('pm_flex_legal_checks').select('id,result,answers,policy_version,expires_at').eq('user_id',user.id).eq('result','allowed').gt('expires_at',now).order('created_at',{ascending:false}).limit(1).maybeSingle()
+ if(legalErr||!legalCheck)return NextResponse.json({ok:false,code:'legal_check_required',error:'Antes de publicar completá el encuadre de Servicios Flex. Cerrá este formulario y volvé a tocar Publicar servicio.'},{status:400})
+ const legalAnswers=(legalCheck.answers||{}) as Record<string,unknown>
+ if(legalAnswers.adult!==true||legalAnswers.one_off!==true||legalAnswers.recurring===true||legalAnswers.supervised===true||legalAnswers.role_replacement===true||legalAnswers.private_home===true||legalAnswers.platform_transport===true)return NextResponse.json({ok:false,code:'legal_check_required',error:'El encuadre de esta publicación no corresponde a Servicios Flex. Revisá la clasificación antes de continuar.'},{status:400})
+
  const title=text(b?.title,140),category=text(b?.category,80),description=text(b?.description,1800),location=text(b?.location_text,180),compensation=text(b?.compensation_text,120),duration=text(b?.duration_text,100),scheduled=text(b?.scheduled_for,80),companyId=text(b?.company_id,80),imagePath=text(b?.image_path,600)
  if(title.length<5||category.length<2||description.length<15||location.length<2||compensation.length<2)return NextResponse.json({ok:false,error:'Completá título, categoría, descripción, zona e importe.'},{status:400})
+ if(/repart|delivery|mensajer[ií]a|movilidad|traslado\s+de\s+personas/i.test(category))return NextResponse.json({ok:false,code:'restricted_category',error:'Reparto y movilidad no están habilitados dentro de Servicios Flex porque tienen un régimen específico para plataformas.'},{status:400})
  let company:any=null
  if(companyId){
   const{data:member}=await c.from('pm_company_members').select('role').eq('company_id',companyId).eq('user_id',user.id).eq('status','active').in('role',['owner','admin','recruiter']).maybeSingle();if(!member)return NextResponse.json({ok:false,error:'No tenés permiso para publicar por esa empresa.'},{status:403})
@@ -90,12 +98,12 @@ export async function POST(req:NextRequest){
  let rawName='',avatar=''
  if(company){rawName=text(company.name,100)||'Empresa';avatar=text(company.logo_path,600)}else{const{data:profile}=await c.from('pm_profiles').select('display_name,avatar_url').eq('user_id',user.id).maybeSingle();rawName=text(profile?.display_name||user.user_metadata?.full_name||user.user_metadata?.name||user.email?.split('@')[0],100)||'Persona';avatar=text(profile?.avatar_url||user.user_metadata?.avatar_url||user.user_metadata?.picture,800)}
  const publisherKind=company?'company':'person';const displayName=publicIdentity?rawName:(company?'Empresa':firstName(rawName));const publisherAvatar=publicIdentity?avatar:''
- const version=text(b?.policy_version,40)||'2026-08-21';const consentRows=['terms','privacy','flex_publish_rules'].map(consent_type=>({user_id:user.id,consent_type,version,accepted:true,source:'flex_publish'}));const{error:consentErr}=await c.from('pm_consents').upsert(consentRows,{onConflict:'user_id,consent_type,version'});if(consentErr)return NextResponse.json({ok:false,error:'No pudimos registrar la aceptación de las reglas. Intentá nuevamente.'},{status:400})
- const scopeKey=companyId?`company:${companyId}`:`user:${user.id}`
+ const version=text(b?.policy_version,40)||'services-flex-2026-08-25';const consentRows=['terms','privacy','flex_publish_rules'].map(consent_type=>({user_id:user.id,consent_type,version,accepted:true,source:'services_flex_publish'}));const{error:consentErr}=await c.from('pm_consents').upsert(consentRows,{onConflict:'user_id,consent_type,version'});if(consentErr)return NextResponse.json({ok:false,error:'No pudimos registrar la aceptación de las reglas. Intentá nuevamente.'},{status:400})
+ const scopeKey=`user:${user.id}`
  const{data,error}=await c.rpc('pm_publish_flex_with_credit',{p_scope_key:scopeKey,p_company_id:companyId||null,p_title:title,p_category:category,p_description:description,p_location_text:location,p_compensation_text:compensation,p_duration_text:duration,p_scheduled_for:scheduled?new Date(scheduled).toISOString():null})
- if(error){const noCredits=/no_flex_credits|wallet_not_found/i.test(error.message);return NextResponse.json({ok:false,code:noCredits?'no_credits':'publish_failed',error:noCredits?'No te quedan créditos para publicar. Podés usar un crédito incluido en tu plan o comprar un pack de Trabajo Flex.':error.message},{status:noCredits?402:400})}
+ if(error){const noCredits=/no_flex_credits|wallet_not_found/i.test(error.message);return NextResponse.json({ok:false,code:noCredits?'no_credits':'publish_failed',error:noCredits?'No te quedan créditos para publicar. Podés usar un crédito incluido en tu cuenta o comprar un pack de Servicios Flex.':error.message},{status:noCredits?402:400})}
  const postId=text((data as any)?.id,80);let post:any=data
- if(postId){const{data:updated,error:updateErr}=await c.from('pm_flex_posts').update({image_path:imagePath||null,image_source:imagePath?'custom':'category',image_status:imagePath?'approved':'default',public_identity:publicIdentity,publisher_kind:publisherKind,publisher_display_name:displayName,publisher_avatar_url:publisherAvatar||null}).eq('id',postId).select(PUBLIC_FIELDS).single();if(!updateErr&&updated)post=updated}
+ if(postId){const{data:updated,error:updateErr}=await c.from('pm_flex_posts').update({image_path:imagePath||null,image_source:imagePath?'custom':'category',image_status:imagePath?'approved':'default',public_identity:publicIdentity,publisher_kind:publisherKind,publisher_display_name:displayName,publisher_avatar_url:publisherAvatar||null,legal_check_id:legalCheck.id}).eq('id',postId).select(PUBLIC_FIELDS).single();if(!updateErr&&updated)post=updated}
  const decorated=await decoratePosts(c,[post])
  return NextResponse.json({ok:true,post:decorated[0]||post})
 }
