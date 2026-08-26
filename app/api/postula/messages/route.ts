@@ -10,6 +10,13 @@ const revealStatuses=new Set(['shortlist','interview','hired'])
 function first(v:any){return Array.isArray(v)?v[0]||null:v||null}
 function privacyMeta(conv:any){const app=first(conv?.pm_applications),job=first(app?.pm_jobs);return{app,job,confidential:job?.employer_visibility==='confidential',revealed:revealStatuses.has(String(app?.status||''))}}
 function maskConversation(conv:any,userId:string){if(String(conv?.candidate_user_id)!==userId||conv?.conversation_kind!=='application')return conv;const meta=privacyMeta(conv);if(meta.confidential&&!meta.revealed)return{...conv,pm_companies:{name:`Empresa · ${meta.job?.area||'información reservada'}`},identity_revealed:false};return{...conv,identity_revealed:true}}
+function requestAudience(req:NextRequest){
+ const explicit=clean(req.nextUrl.searchParams.get('audience'),20)
+ if(explicit==='candidate'||explicit==='employer')return explicit
+ try{const ref=req.headers.get('referer');if(ref&&new URL(ref).pathname.startsWith('/empresas'))return'employer'}catch{}
+ return'candidate'
+}
+function candidateEmploymentAllowed(conv:any,userId:string){return conv?.conversation_kind!=='application'||String(conv?.candidate_user_id)===userId}
 function safety(text:string){
  const hard=[/contraseñ[ao]/i,/c[oó]digo\s+(?:de\s+)?verificaci[oó]n/i,/\bcvv\b/i,/clave\s+(?:de\s+)?(?:home\s*banking|bancaria|token)/i,/token\s+bancari/i,/mandame\s+(?:foto\s+de\s+)?(?:tu\s+)?tarjeta/i,/pag[aá]\s+(?:primero|antes)\s+(?:para|y)/i,/transfer[ií]\s+.*(?:para\s+empezar|para\s+ingresar)/i]
  if(hard.some(r=>r.test(text)))return {blocked:true,flags:['sensitive_or_payment_request'],error:'Por seguridad, no envíes ni pidas contraseñas, códigos de verificación, datos de tarjeta ni pagos previos para continuar. Reformulá el mensaje y mantené esos datos fuera del chat.'}
@@ -29,9 +36,10 @@ async function ensureConversation(db:any,body:any){
 
 export async function GET(req:NextRequest){
  const db=client(req);const {data:{user}}=await db.auth.getUser();if(!user)return NextResponse.json({ok:false,error:'Iniciá sesión.'},{status:401})
- const id=req.nextUrl.searchParams.get('conversation')||''
+ const audience=requestAudience(req),id=req.nextUrl.searchParams.get('conversation')||''
  if(id){
   const {data:conversation,error:cErr}=await db.from('pm_conversations').select(conversationSelect).eq('id',id).maybeSingle();if(cErr||!conversation)return NextResponse.json({ok:false,error:'Conversación no disponible.'},{status:404})
+  if(audience==='candidate'&&!candidateEmploymentAllowed(conversation,user.id))return NextResponse.json({ok:false,error:'Esta conversación pertenece a tu perfil de empresa y no está disponible en la bandeja del postulante.'},{status:404})
   const [{data:messages,error:mErr},{data:interviews,error:iErr}]=await Promise.all([
    db.from('pm_messages').select('id,sender_user_id,body,message_type,metadata,read_at,created_at').eq('conversation_id',id).order('created_at',{ascending:true}).limit(300),
    db.from('pm_interviews').select('id,conversation_id,proposed_by,scheduled_for,duration_minutes,mode,location_text,notes,status,responded_by,responded_at,created_at').eq('conversation_id',id).order('created_at',{ascending:true}).limit(40)
@@ -44,8 +52,10 @@ export async function GET(req:NextRequest){
   const masked=maskConversation(conversation,user.id)
   return NextResponse.json({ok:true,conversation:masked,messages:messages||[],interviews:interviews||[],me:user.id,audience:String(conversation.candidate_user_id)===user.id?'candidate':'employer'})
  }
- const {data,error}=await db.from('pm_conversations').select(conversationSelect).order('last_message_at',{ascending:false}).limit(80);if(error)return NextResponse.json({ok:false,error:error.message},{status:400})
- const conversations=data||[],ids=conversations.map((x:any)=>x.id)
+ let query=db.from('pm_conversations').select(conversationSelect).order('last_message_at',{ascending:false}).limit(80)
+ if(audience==='candidate')query=query.or(`conversation_kind.eq.flex,candidate_user_id.eq.${user.id}`)
+ const {data,error}=await query;if(error)return NextResponse.json({ok:false,error:error.message},{status:400})
+ const conversations=(data||[]).filter((x:any)=>audience!=='candidate'||candidateEmploymentAllowed(x,user.id)),ids=conversations.map((x:any)=>x.id)
  let unreadRows:any[]=[]
  if(ids.length){const {data:u}=await db.from('pm_messages').select('conversation_id,sender_user_id,read_at').in('conversation_id',ids).neq('sender_user_id',user.id).is('read_at',null);unreadRows=u||[]}
  const counts=new Map<string,number>();for(const row of unreadRows)counts.set(String(row.conversation_id),(counts.get(String(row.conversation_id))||0)+1)
@@ -54,8 +64,12 @@ export async function GET(req:NextRequest){
 
 export async function POST(req:NextRequest){
  const db=client(req);const {data:{user}}=await db.auth.getUser();if(!user)return NextResponse.json({ok:false,error:'Iniciá sesión.'},{status:401})
- const body=await req.json().catch(()=>({}));const action=clean(body?.action,40)||'send';let conversation=''
+ const body=await req.json().catch(()=>({}));const action=clean(body?.action,40)||'send',audience=clean(body?.audience,20)||requestAudience(req);let conversation=''
  try{conversation=await ensureConversation(db,body)}catch(e){return NextResponse.json({ok:false,error:e instanceof Error?e.message:'No pudimos abrir el chat.'},{status:403})}
+ if(audience==='candidate'){
+  const {data:scopeConv}=await db.from('pm_conversations').select('candidate_user_id,conversation_kind').eq('id',conversation).maybeSingle()
+  if(!scopeConv||!candidateEmploymentAllowed(scopeConv,user.id))return NextResponse.json({ok:false,error:'Esta conversación pertenece a tu perfil de empresa y no se puede usar desde la bandeja del postulante.'},{status:403})
+ }
  if(action==='ensure')return NextResponse.json({ok:true,conversation_id:conversation})
  if(action==='schedule_interview'){
   const scheduled=new Date(String(body?.scheduled_for||''));if(Number.isNaN(scheduled.getTime())||scheduled.getTime()<Date.now()+5*60000)return NextResponse.json({ok:false,error:'Elegí una fecha y hora futura para la entrevista.'},{status:400})
