@@ -50,9 +50,14 @@ export async function GET(req:NextRequest){
   const order=new Map(favoriteIds.map((id,i)=>[id,i]));const posts=[...(data||[])].sort((a:any,b:any)=>(order.get(String(a.id))??999)-(order.get(String(b.id))??999))
   return NextResponse.json({ok:true,posts:await decoratePosts(c,posts,true),favorites:favoriteIds})
  }
+ if(!user){
+  const{data,error}=await c.from('pm_flex_posts_public').select('*').order('created_at',{ascending:false}).limit(60)
+  if(error)return NextResponse.json({ok:false,error:'No pudimos cargar Servicios Flex.'},{status:400})
+  return NextResponse.json({ok:true,posts:await decoratePosts(c,data||[],false),favorites:[]})
+ }
  const{data,error}=await c.from('pm_flex_posts').select(PUBLIC_FIELDS).eq('status','published').order('created_at',{ascending:false}).limit(60)
  if(error)return NextResponse.json({ok:false,error:'No pudimos cargar Servicios Flex.'},{status:400})
- return NextResponse.json({ok:true,posts:await decoratePosts(c,data||[],Boolean(user)),favorites:favoriteIds})
+ return NextResponse.json({ok:true,posts:await decoratePosts(c,data||[],true),favorites:favoriteIds})
 }
 
 export async function POST(req:NextRequest){
