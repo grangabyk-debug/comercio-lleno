@@ -18,13 +18,13 @@ export const metadata={
 }
 export const revalidate=21600
 
-const people=[
- {name:'Diseño',role:'Perfil ilustrativo',image:'https://images.pexels.com/photos/3769021/pexels-photo-3769021.jpeg?auto=compress&cs=tinysrgb&w=500'},
- {name:'Ventas',role:'Perfil ilustrativo',image:'https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=500'},
- {name:'Gastro',role:'Perfil ilustrativo',image:'https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=500'},
- {name:'Logística',role:'Perfil ilustrativo',image:'https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg?auto=compress&cs=tinysrgb&w=500'},
- {name:'Social',role:'Perfil ilustrativo',image:'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=500'},
- {name:'Admin',role:'Perfil ilustrativo',image:'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=500'},
+const homeCompanies=[
+ {name:'Coca-Cola FEMSA',logo:'https://coca-colafemsa.com/favicon.ico'},
+ {name:'Despegar',logo:'https://www.despegar.com/favicon.ico'},
+ {name:'PedidosYa',logo:'https://www.pedidosya.com/favicon.ico'},
+ {name:'EY',logo:'https://www.ey.com/favicon.ico'},
+ {name:'Emi Labs',logo:'https://www.emilabs.ai/favicon.ico'},
+ {name:'Cencosud',logo:'https://www.cencosud.com/favicon.ico'},
 ]
 const categoryCards=[
  {title:'Gastronomía',copy:'Bar, cocina, salón, café',image:'https://images.pexels.com/photos/3771118/pexels-photo-3771118.jpeg?auto=compress&cs=tinysrgb&w=900'},
@@ -45,7 +45,7 @@ export default async function PostulaPreview(){
    <div className="pm7-hero-visual"><div className="pm7-main-photo"><div className="pm7-main-photo-image"/><div className="pm7-photo-caption"><span>EJEMPLO DE INTERFAZ</span><b>Barista · Café de especialidad</b><small>Presencial · Turno mañana</small></div></div><div className="pm7-float-job"><span className="pm7-float-logo">PM</span><div><small>EJEMPLO DE OPORTUNIDAD</small><b>Vendedor/a · Shopping</b><span>Ubicación y distancia al abrir el aviso</span></div><strong>→</strong></div><div className="pm7-float-msg"><div className="pm7-chat-avatar">PM</div><p><b>Ejemplo de mensaje</b><span>Una empresa puede escribirte desde una postulación real.</span></p><small>vista demo</small></div><div className="pm7-float-match"><b>IA</b><span>Match explicable</span><small>te mostramos por qué</small></div></div>
   </div></section>
 
-  <section className="pm7-stories"><div className="pm7-stories-inner"><div className="pm7-stories-label"><span>VISTA ILUSTRATIVA</span><b>Rubros y perfiles que podés explorar</b></div><div className="pm7-story-row">{people.map((p,i)=><Link href="/empleos" key={p.name} className="pm7-story"><span className={`pm7-story-ring r${i%4}`}><i style={{backgroundImage:`url(${p.image})`}}/></span><b>{p.name}</b><small>{p.role}</small></Link>)}</div><Link className="pm7-story-more" href="/empleos">Ver empleos →</Link></div></section>
+  <section id="pm44-company-strip-static" className="pm44-company-strip" aria-label="Empresas con oportunidades visibles"><div className="pm44-company-strip-inner"><div className="pm44-company-strip-copy"><span>EMPRESAS CON AVISOS</span><b>Oportunidades publicadas en nuestro catálogo</b></div><div className="pm44-company-list">{homeCompanies.map(company=><Link className="pm44-company-item" href={`/empleos?empresa=${encodeURIComponent(company.name)}`} title={`Ver oportunidades de ${company.name}`} key={company.name}><span className="pm44-company-logo"><img src={company.logo} alt="" loading="lazy" referrerPolicy="no-referrer"/><b>{initials(company.name)}</b></span><span>{company.name}</span></Link>)}</div><Link className="pm44-company-more" href="/empleos">Ver empleos →</Link><p className="pm44-company-note"><b>Aclaración:</b> estas marcas aparecen porque existen avisos laborales públicos vinculados a ellas dentro del catálogo. Esto no implica relación comercial, representación, patrocinio, afiliación ni vínculo laboral con Postulá Mejor.</p></div></section>
 
   <section className="pm8-tools"><div className="pm8-tools-head"><div><span className="pm7-eyebrow coral">HERRAMIENTAS GRATIS</span><h2>Tu perfil también se puede entrenar.</h2></div><p>No tenés que comprar nada para empezar. Creá una cuenta simple y usá el diagnóstico ATS, el test vocacional, el creador de primer CV y la biblioteca de plantillas.</p></div><div className="pm8-tool-grid">
    <Link href="/mejorar-cv" className="pm8-tool"><i/><span>ATS + diagnóstico</span><h3>Mejorá el CV que ya tenés.</h3><p>Subilo, elegí un puesto y entendé qué ve un sistema ATS, un recruiter y quien contrata.</p><b>Analizar gratis →</b></Link>
