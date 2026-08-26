@@ -1,39 +1,89 @@
+import Link from 'next/link'
+
+const employeeSignals=[
+  ['Cumplimiento de lo acordado','Consistente'],
+  ['Comunicación','Muy buena señal'],
+  ['Colaboración profesional','Consistente'],
+  ['Organización','Buena señal'],
+]
+
+const employerSignals=[
+  ['Claridad de condiciones','Muy buena señal'],
+  ['Cumplimiento de pago y acuerdos','Consistente'],
+  ['Trato y comunicación','Muy buena señal'],
+  ['Organización','Buena señal'],
+]
+
+function SignalRows({items}:{items:string[][]}){
+  return <div className="pm40-signal-list">{items.map(([label,value],index)=><div key={label}>
+    <span>{label}</span>
+    <div className="pm40-signal-track" aria-hidden="true"><i style={{width:`${[92,86,89,78][index]}%`}}/></div>
+    <b>{value}</b>
+  </div>)}</div>
+}
+
 export default function EmployerReputationShowcase(){
- const employeeMetrics=['Cumplimiento de tareas','Puntualidad y asistencia','Comunicación','Volvería a contratar']
- const employerMetrics=['Pago y condiciones','Respeto de horarios','Trato y comunicación','Volvería a trabajar ahí']
- const scoreDots=(active:number)=><span className="pm37-score-dots" aria-hidden="true">{[1,2,3,4,5].map(n=><i key={n} data-on={n<=active}/>)}</span>
- return <section className="pm7-employer-section dark pm37-reputation-section">
-   <div className="pm7-employer-section-inner">
-    <div className="pm37-reputation-head">
-      <div><span className="pm7-eyebrow lime">REPUTACIÓN LABORAL · DE LOS DOS LADOS</span><h2>Una señal útil, sin convertir a nadie en una etiqueta.</h2></div>
-      <p>Empleado y empleador pueden calificarse solamente después de una relación laboral verificada. El resultado aparece separado del match con el puesto y nunca define por sí solo a quién contratar.</p>
-    </div>
-
-    <div className="pm37-reputation-grid">
-      <article className="pm37-profile-preview">
-        <div className="pm37-profile-top"><div className="pm37-profile-avatar">PM</div><div><span>PERFIL DE EJEMPLO</span><b>Reputación laboral</b><small>Visible para la persona y para empresas autorizadas</small></div><em>VERIFICADA</em></div>
-        <div className="pm37-profile-score"><div><strong>4,7</strong><span>/ 5</span></div><p><b>12 evaluaciones verificadas</b><small>4 relaciones laborales confirmadas</small></p></div>
-        <div className="pm37-profile-breakdown"><div><span>Cumplimiento</span>{scoreDots(5)}</div><div><span>Puntualidad</span>{scoreDots(4)}</div><div><span>Comunicación</span>{scoreDots(5)}</div></div>
-        <div className="pm37-reputation-note"><b>Esto no es el match.</b><span>El porcentaje de compatibilidad con una búsqueda se calcula aparte, según experiencia, requisitos, zona y disponibilidad.</span></div>
-      </article>
-
-      <div className="pm37-rating-flows">
-        <article className="pm37-rating-card worker"><header><span>01</span><div><small>AL CERRAR UNA RELACIÓN VERIFICADA</small><b>El empleador califica al trabajador</b></div></header><div className="pm37-rating-list">{employeeMetrics.map((m,i)=><div key={m}><span>{m}</span>{scoreDots([5,4,5,5][i])}</div>)}</div><footer><b>Sin texto libre público.</b><span>Se usan preguntas estructuradas para reducir insultos, represalias y acusaciones difíciles de verificar.</span></footer></article>
-        <article className="pm37-rating-card company"><header><span>02</span><div><small>EL MISMO DERECHO PARA LA OTRA PARTE</small><b>El trabajador califica al empleador</b></div></header><div className="pm37-rating-list">{employerMetrics.map((m,i)=><div key={m}><span>{m}</span>{scoreDots([5,4,5,4][i])}</div>)}</div><footer><b>La empresa también construye reputación.</b><span>Una persona puede saber si otras experiencias laborales verificadas fueron claras y respetuosas.</span></footer></article>
+ return <section className="pm7-employer-section dark pm40-trust-section">
+   <div className="pm40-orb one" aria-hidden="true"/><div className="pm40-orb two" aria-hidden="true"/>
+   <div className="pm7-employer-section-inner pm40-trust-inner">
+    <div className="pm40-trust-head">
+      <div>
+        <span className="pm7-eyebrow lime">CONFIANZA CON CONTEXTO · DE LOS DOS LADOS</span>
+        <h2>Experiencias verificadas.<br/><em>No etiquetas.</em></h2>
+      </div>
+      <div className="pm40-head-copy">
+        <p>La idea no es crear una “lista negra” ni un puntaje que decida quién merece un trabajo. Las señales aparecen únicamente vinculadas a experiencias laborales verificadas y siempre con contexto.</p>
+        <div className="pm40-head-pills"><span>Sin ranking secreto</span><span>Sin datos sensibles</span><span>Con revisión</span></div>
       </div>
     </div>
 
-    <div className="pm37-reputation-states">
-      <article className="empty"><span>0 evaluaciones</span><b>Sin datos</b><p>Si nunca recibió una calificación verificada, no se inventa una señal ni se muestra un cero.</p></article>
-      <article className="forming"><span>1–2 evaluaciones</span><b>Señal inicial</b><p>Se informa cuántas experiencias hay, pero la reputación todavía se muestra como “en formación”.</p></article>
-      <article className="ready"><span>3+ evaluaciones</span><b>Reputación visible</b><p>Se muestra promedio, cantidad de evaluaciones y desglose por criterios, siempre con contexto.</p></article>
+    <div className="pm40-how">
+      <article><span>01</span><div><b>Se verifica el vínculo</b><p>La evaluación se habilita cuando existe una relación laboral que la plataforma puede vincular con ambas partes.</p></div></article>
+      <article><span>02</span><div><b>Cada parte responde</b><p>Empresa y trabajador usan criterios estructurados. La respuesta de la otra parte no se muestra mientras todavía puede influir en la propia.</p></div></article>
+      <article><span>03</span><div><b>Se muestra contexto, no sentencia</b><p>Con suficiente historial se presenta un resumen explicable. Nunca reemplaza una entrevista ni una decisión humana.</p></div></article>
     </div>
 
-    <div className="pm37-reputation-rules">
-      <div><b>Una relación, una evaluación por parte.</b><span>No se puede puntuar repetidas veces el mismo vínculo.</span></div>
-      <div><b>Sin represalia inmediata.</b><span>La calificación de la otra parte se revela cuando ambos enviaron la suya o vence el plazo.</span></div>
-      <div><b>Derecho a revisión.</b><span>Si el vínculo no corresponde o hay un dato incorrecto, se puede pedir revisión.</span></div>
-      <div><b>No ordena candidatos.</b><span>La reputación aporta contexto; no reemplaza experiencia, requisitos ni decisión humana.</span></div>
+    <div className="pm40-review-grid">
+      <article className="pm40-review-card employee">
+        <header><div className="pm40-review-icon">E→P</div><div><span>EMPRESA → PERSONA</span><h3>La empresa cuenta cómo fue trabajar con esa persona.</h3></div></header>
+        <SignalRows items={employeeSignals}/>
+        <footer><b>Lo visible es estructurado.</b><p>No usamos un campo abierto para publicar acusaciones, insultos o datos privados sobre una persona.</p></footer>
+      </article>
+
+      <article className="pm40-summary-card">
+        <div className="pm40-summary-glow" aria-hidden="true"/>
+        <header><span>RESUMEN DE EJEMPLO</span><b>Señales verificadas</b><small>Basadas en experiencias laborales confirmadas</small></header>
+        <div className="pm40-summary-state"><div className="pm40-shield" aria-hidden="true">✓</div><div><span>HISTORIAL SUFICIENTE</span><strong>Resumen disponible</strong><small>12 evaluaciones · 4 vínculos verificados</small></div></div>
+        <div className="pm40-summary-signals"><span><i/>Cumplimiento consistente</span><span><i/>Comunicación destacada</span><span><i/>Organización consistente</span></div>
+        <div className="pm40-summary-context"><b>No es un antecedente laboral.</b><p>No certifica hechos externos, no define aptitud general y no se usa como único motivo automático para ordenar o excluir candidatos.</p></div>
+      </article>
+
+      <article className="pm40-review-card employer">
+        <header><div className="pm40-review-icon">P→E</div><div><span>PERSONA → EMPRESA</span><h3>La persona también cuenta cómo fue trabajar con esa empresa.</h3></div></header>
+        <SignalRows items={employerSignals}/>
+        <footer><b>La regla es simétrica.</b><p>La empresa también construye señales con experiencias verificadas y puede pedir revisión si detecta un dato incorrecto.</p></footer>
+      </article>
+    </div>
+
+    <div className="pm40-states" aria-label="Cómo cambia la señal según la cantidad de evaluaciones">
+      <article><span>0–2</span><div><b>Señal en formación</b><p>No mostramos un promedio fuerte con una muestra demasiado chica.</p></div></article>
+      <article><span>3+</span><div><b>Resumen con contexto</b><p>Se informa cantidad de evaluaciones y criterios, no sólo un número aislado.</p></div></article>
+      <article><span>!</span><div><b>En revisión</b><p>Si una señal es cuestionada, puede marcarse y revisarse antes de seguir utilizándola.</p></div></article>
+    </div>
+
+    <div className="pm40-guardrails">
+      <div className="pm40-guardrail-title"><span>REGLAS DE DISEÑO</span><h3>La confianza sirve sólo si no se transforma en castigo automático.</h3></div>
+      <div className="pm40-guardrail-grid">
+        <article><i>01</i><b>Una experiencia, una evaluación por parte.</b><p>Reduce duplicados, campañas coordinadas y manipulación del historial.</p></article>
+        <article><i>02</i><b>Publicación diferida.</b><p>Las respuestas se revelan cuando ambos evaluaron o vence el plazo, para reducir represalias.</p></article>
+        <article><i>03</i><b>Derecho a acceso y revisión.</b><p>La persona o empresa puede conocer qué señal le corresponde y pedir corrección cuando exista un error.</p></article>
+        <article><i>04</i><b>Incidentes graves van por otro canal.</b><p>Denuncias, delitos, discriminación o conflictos legales no se resuelven con una estrella: requieren soporte y revisión.</p></article>
+      </div>
+    </div>
+
+    <div className="pm40-legal-callout">
+      <div><span>PRIVACIDAD + REPUTACIÓN</span><b>Diseñado para aportar contexto sin convertir una opinión en una condena digital.</b><p>La política específica explica qué se muestra, qué no, cómo se modera y cómo pedir acceso, rectificación, supresión o revisión según corresponda.</p></div>
+      <Link href="/politica-evaluaciones">Ver política de evaluaciones <span>→</span></Link>
     </div>
    </div>
  </section>
