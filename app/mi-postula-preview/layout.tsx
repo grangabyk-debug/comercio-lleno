@@ -1,11 +1,10 @@
 import {postulaProductMetadata} from '../postulaProductMetadata'
 import SupportHelp from '../postula-preview/SupportHelp'
 import '../postula-preview/support-help-v21.css'
+import './account-readable-v35.css'
+
 export const metadata=postulaProductMetadata
 
-const photoCss=`
-.pm34-profile-actions button.pm-photo-save{border-color:#138a55!important;background:linear-gradient(135deg,#15945a,#20b76f)!important;color:#fff!important;box-shadow:0 10px 24px rgba(21,148,90,.24);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}.pm34-profile-actions button.pm-photo-save:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(21,148,90,.31);filter:saturate(1.08)}.pm34-photo-toast{position:fixed;z-index:4000;left:50%;top:92px;display:flex;align-items:center;gap:11px;min-width:245px;padding:12px 16px;border:1px solid rgba(15,137,82,.2);border-radius:16px;background:rgba(248,255,251,.98);color:#10291d;box-shadow:0 18px 55px rgba(11,58,36,.2);backdrop-filter:blur(12px);opacity:0;transform:translate(-50%,-10px) scale(.98);transition:opacity .2s ease,transform .2s ease;pointer-events:none}.pm34-photo-toast.show{opacity:1;transform:translate(-50%,0) scale(1)}.pm34-photo-toast>span{width:30px;height:30px;display:grid;place-items:center;border-radius:999px;background:#1aa763;color:#fff;font-size:15px;font-weight:950}.pm34-photo-toast b,.pm34-photo-toast small{display:block}.pm34-photo-toast b{font-size:12px}.pm34-photo-toast small{margin-top:2px;color:#5d7066;font-size:9px}@media(max-width:680px){.pm34-photo-toast{top:70px;width:min(88vw,320px)}}`
-
-const photoScript=`(()=>{if(window.__pmPhotoFeedback)return;window.__pmPhotoFeedback=true;let timer;const toast=()=>{document.querySelector('.pm34-photo-toast')?.remove();const el=document.createElement('div');el.className='pm34-photo-toast';el.setAttribute('role','status');el.innerHTML='<span>✓</span><div><b>Cambio guardado</b><small>La foto ya quedó en tu perfil.</small></div>';document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add('show'));clearTimeout(timer);timer=setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),220)},2000)};const apply=()=>{document.querySelectorAll('.pm34-profile-actions button').forEach(b=>b.classList.toggle('pm-photo-save',(b.textContent||'').trim()==='Guardar foto'));document.querySelectorAll('.pm34-notice').forEach(n=>{const t=(n.textContent||'').trim();if(t.startsWith('Foto guardada.')){if(n.dataset.photoDone!=='1'){n.dataset.photoDone='1';n.style.display='none';toast()}}else{delete n.dataset.photoDone;n.style.removeProperty('display')}})};const start=()=>{apply();new MutationObserver(apply).observe(document.body,{childList:true,subtree:true,characterData:true})};document.readyState==='loading'?document.addEventListener('DOMContentLoaded',start,{once:true}):start()})()`
-
-export default function Layout({children}:{children:React.ReactNode}){return <>{children}<style dangerouslySetInnerHTML={{__html:photoCss}}/><script dangerouslySetInnerHTML={{__html:photoScript}}/><SupportHelp audience="candidate"/></>}
+export default function Layout({children}:{children:React.ReactNode}){
+ return <>{children}<SupportHelp audience="candidate"/></>
+}

@@ -1,10 +1,12 @@
 'use client'
 
 import Link from 'next/link'
+import {useRouter} from 'next/navigation'
 import {useEffect,useState} from 'react'
 import {cvAuthClient} from '../cv-ia/cvAuth'
 
 export default function AccountNavLink({audience,className}:{audience:'candidate'|'employer';className?:string}){
+ const router=useRouter()
  const loginHref=audience==='candidate'?'/login':'/empresas/login'
  const accountHref=audience==='candidate'?'/mi-cuenta':'/empresas/panel'
  const [href,setHref]=useState(loginHref)
@@ -14,11 +16,17 @@ export default function AccountNavLink({audience,className}:{audience:'candidate
 
  useEffect(()=>{
   let alive=true
-  const sync=(session:unknown)=>{if(!alive)return;const active=Boolean(session);setAuthed(active);setHref(active?accountHref:loginHref)}
+  const sync=(session:unknown)=>{
+   if(!alive)return
+   const active=Boolean(session)
+   setAuthed(active)
+   setHref(active?accountHref:loginHref)
+   if(active)router.prefetch(accountHref)
+  }
   cvAuthClient().auth.getSession().then(({data})=>sync(data.session)).catch(()=>sync(null))
   const {data:listener}=cvAuthClient().auth.onAuthStateChange((_event,session)=>sync(session))
   return()=>{alive=false;listener.subscription.unsubscribe()}
- },[accountHref,loginHref])
+ },[accountHref,loginHref,router])
 
  async function logout(){
   if(busy)return
@@ -32,7 +40,7 @@ export default function AccountNavLink({audience,className}:{audience:'candidate
  }
 
  return <>
-  <Link href={href} className={className}>{label}</Link>
+  <Link href={href} prefetch={authed} className={className} onMouseEnter={()=>router.prefetch(href)} onFocus={()=>router.prefetch(href)}>{label}</Link>
   {authed&&<button
    type="button"
    onClick={()=>void logout()}
