@@ -49,9 +49,8 @@ function logoSources(company:string){
  const domain=companyDomains[company.trim().toLowerCase()]
  if(!domain)return []
  return [
-  `https://unavatar.io/${domain}?fallback=false`,
+  `https://${domain}/favicon.ico`,
   `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(`https://${domain}`)}&sz=256`,
-  `https://icons.duckduckgo.com/ip3/${domain}.ico`,
  ]
 }
 
@@ -93,29 +92,15 @@ function syncCompanyLogos(){
   const mark=row.firstElementChild
   if(mark instanceof HTMLElement)installLogo(mark,company)
  })
- document.querySelectorAll<HTMLAnchorElement>('a[href^="/empleos?empresa="]').forEach(link=>{
-  const company=link.querySelector('b')?.textContent?.trim()||''
-  const mark=link.querySelector<HTMLElement>('span')
-  if(mark)installLogo(mark,company)
- })
 }
 
 export default function HomeJobVisualSync(){
  useEffect(()=>{
-  let scheduled=false
-  const sync=()=>{
-   if(scheduled)return
-   scheduled=true
-   requestAnimationFrame(()=>{
-    scheduled=false
-    syncJobVisuals()
-    syncCompanyLogos()
-   })
-  }
-  sync()
-  const observer=new MutationObserver(sync)
-  observer.observe(document.body,{childList:true,subtree:true})
-  return()=>observer.disconnect()
+  const frame=requestAnimationFrame(()=>{
+   syncJobVisuals()
+   syncCompanyLogos()
+  })
+  return()=>cancelAnimationFrame(frame)
  },[])
  return <HomeCompanyStrip/>
 }

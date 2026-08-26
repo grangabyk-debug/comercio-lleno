@@ -25,7 +25,7 @@ const companies:Company[]=[
 function CompanyLogo({domain,logoDomain,initials}:{domain?:string;logoDomain?:string;initials:string}){
  const resolved=logoDomain||domain
  const sources=resolved?[
-  `https://unavatar.io/${resolved}?fallback=false`,
+  `https://${resolved}/favicon.ico`,
   `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(`https://${resolved}`)}&sz=256`,
   `https://icons.duckduckgo.com/ip3/${resolved}.ico`,
  ]:[]
@@ -33,7 +33,7 @@ function CompanyLogo({domain,logoDomain,initials}:{domain?:string;logoDomain?:st
  const src=sources[sourceIndex]
  return <span className={styles.mark} aria-hidden="true">
   <span className={styles.fallback}>{initials}</span>
-  {src?<img src={src} alt="" referrerPolicy="no-referrer" onError={()=>setSourceIndex(i=>i<sources.length-1?i+1:sources.length)}/>:null}
+  {src?<img src={src} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={()=>setSourceIndex(i=>i<sources.length-1?i+1:sources.length)}/>:null}
  </span>
 }
 
@@ -41,16 +41,24 @@ export default function HomeCompanyStrip(){
  const pathname=usePathname()
  const rail=useRef<HTMLDivElement>(null)
  const [host,setHost]=useState<HTMLElement|null>(null)
+ const ownsMount=useRef(false)
 
  useEffect(()=>{
   if(pathname!=='/')return
   const target=document.querySelector<HTMLElement>('.pm7-stories')
-  if(!target)return
+  if(!target||target.dataset.pmCompanyStripMounted==='1')return
+  target.dataset.pmCompanyStripMounted='1'
+  ownsMount.current=true
   const original=target.querySelector<HTMLElement>('.pm7-stories-inner')
   const previousDisplay=original?.style.display||''
   if(original)original.style.display='none'
   setHost(target)
-  return ()=>{if(original)original.style.display=previousDisplay}
+  return ()=>{
+   if(!ownsMount.current)return
+   ownsMount.current=false
+   delete target.dataset.pmCompanyStripMounted
+   if(original)original.style.display=previousDisplay
+  }
  },[pathname])
 
  if(pathname!=='/'||!host)return null
