@@ -1,10 +1,10 @@
 'use client'
 
-import {useState} from 'react'
+import {useEffect,useState} from 'react'
 import {cvAuthClient} from '../cv-ia/cvAuth'
 
 const INFO=[
- {key:'pay',title:'Importe claro',text:'El importe estimado y la unidad —por hora, tarea o jornada puntual— quedan visibles antes de contactar. El pago del servicio se realiza directamente entre las partes.'},
+ {key:'pay',title:'Importe claro',text:'Si el importe ya está definido, queda visible antes de contactar. Si todavía no lo sabés, puede quedar a acordar entre las partes.'},
  {key:'identity',title:'Identidad y contexto',text:'Mostramos señales verificables e historial cuando exista, siempre con contexto y posibilidad de pedir ayuda ante una conducta sospechosa.'},
  {key:'employment',title:'No encubre empleo',text:'Si hay continuidad, dependencia, supervisión permanente o cobertura de un puesto habitual, la publicación debe ir por Empleos y no por Servicios Flex.'},
  {key:'chat',title:'Chat primero',text:'Podés preguntar y acordar condiciones antes de realizar cualquier servicio. No compartas claves, códigos ni documentación sensible sin necesidad legítima.'},
@@ -16,10 +16,39 @@ const PACKS=[
  {code:'flex10',credits:10,amount:6950,oldAmount:13900,label:'10 créditos'},
 ] as const
 
+function formatPesoInput(value:string){
+ const raw=value.trim()
+ if(!raw)return''
+ if(/(?:usd|u\$s|ars|€|£)/i.test(raw))return raw
+ const body=raw.replace(/^\$\s*/,'')
+ const match=body.match(/^([\d.\s]+)(.*)$/)
+ if(!match)return raw.startsWith('$')?raw:`$ ${raw}`
+ const digits=match[1].replace(/\D/g,'')
+ if(!digits)return''
+ const amount=Number(digits).toLocaleString('es-AR')
+ return `$ ${amount}${match[2]||''}`
+}
+
 export default function ServicesFlexCompactSafety(){
  const[open,setOpen]=useState<string>('')
  const[busy,setBusy]=useState<string>('')
  const[notice,setNotice]=useState('')
+
+ useEffect(()=>{
+  const format=(event:Event)=>{
+   const input=event.target
+   if(!(input instanceof HTMLInputElement))return
+   const label=input.closest('label.pm34-field')
+   const title=label?.querySelector(':scope > span')?.textContent?.trim()||''
+   if(title!=='Importe del servicio')return
+   const formatted=formatPesoInput(input.value)
+   if(formatted===input.value)return
+   input.value=formatted
+   requestAnimationFrame(()=>{try{input.setSelectionRange(input.value.length,input.value.length)}catch{}})
+  }
+  document.addEventListener('input',format,true)
+  return()=>document.removeEventListener('input',format,true)
+ },[])
 
  async function buy(code:string){
   if(busy)return
@@ -36,6 +65,7 @@ export default function ServicesFlexCompactSafety(){
  }
 
  return <section className="pmsf-compact-section" aria-labelledby="pmsf-safe-title">
+  <style>{`.pm34-preview-help{display:none!important}`}</style>
   <div className="pmsf-compact-inner">
    <div className="pmsf-compact-head">
     <span>ANTES DE ACORDAR</span>
