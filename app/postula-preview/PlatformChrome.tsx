@@ -21,6 +21,7 @@ import './nexo-desktop-v25.css'
 import './messages-desktop-v32.css'
 import './home-hero-diversity-v36.css'
 import './push-device-v38.css'
+import './security-ux-v41.css'
 
 function MobileNavIcon({kind}:{kind:'home'|'search'|'bolt'|'person'}){
   return <span className="pm-mobile-nav-icon"><i className={`pm-nav-i ${kind}`}/></span>
