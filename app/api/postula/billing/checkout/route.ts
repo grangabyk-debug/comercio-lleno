@@ -4,6 +4,7 @@ import {createClient} from '@supabase/supabase-js'
 const URL='https://pejkycdttogpmmdntzuq.supabase.co'
 const KEY='sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I'
 const BILLING_API='https://wtcntclzcubkbtcsqkzc.supabase.co/functions/v1/postula-company-purchase'
+const SYNC_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/postula-company-billing-sync'
 const PLAN={
  impulso:{label:'Impulso',amount:18900},
  seleccion:{label:'Selección IA',amount:34900},
@@ -12,7 +13,6 @@ const PLAN={
 
 type PaidPlan=keyof typeof PLAN
 function db(req:NextRequest){const auth=req.headers.get('authorization')||'';return createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{Authorization:auth}}})}
-function adminDb(){const key=process.env.SUPABASE_SERVICE_ROLE_KEY;return key?createClient(URL,key,{auth:{persistSession:false,autoRefreshToken:false}}):null}
 
 export async function POST(req:NextRequest){
  const client=db(req)
@@ -25,8 +25,6 @@ export async function POST(req:NextRequest){
  if(error)return NextResponse.json({ok:false,error:error.message},{status:400})
  const companyId=members?.[0]?.company_id
  if(!companyId)return NextResponse.json({ok:false,code:'needs_company',error:'Primero completá la configuración de tu empresa.'},{status:409})
- const admin=adminDb()
- if(!admin)return NextResponse.json({ok:false,code:'billing_not_configured',error:'No pudimos preparar el cambio de plan ahora. Probá nuevamente en unos instantes.'},{status:503})
 
  const chosen=PLAN[plan]
  const response=await fetch(`${BILLING_API}?action=checkout`,{
@@ -39,18 +37,15 @@ export async function POST(req:NextRequest){
  if(!response.ok||!payload?.init_point||!payload?.preapproval_id)return NextResponse.json({ok:false,error:payload?.error||'No pudimos iniciar el pago del plan.'},{status:502})
  if(Number(payload?.price)!==chosen.amount)return NextResponse.json({ok:false,error:'No pudimos validar el importe del plan.'},{status:502})
 
- const {data:existing}=await admin.from('pm_company_subscriptions').select('plan,status,provider_subscription_id').eq('company_id',companyId).maybeSingle()
- const {error:saveError}=await admin.from('pm_company_subscriptions').upsert({
-  company_id:companyId,
-  plan:existing?.plan||'gratis',
-  status:existing?.status||'inactive',
-  provider:'mercadopago',
-  provider_subscription_id:existing?.provider_subscription_id||null,
-  pending_plan:plan,
-  pending_provider_subscription_id:String(payload.preapproval_id),
-  pending_started_at:new Date().toISOString(),
-  updated_at:new Date().toISOString(),
- },{onConflict:'company_id'})
- if(saveError)return NextResponse.json({ok:false,error:'No pudimos guardar el cambio de plan. No se realizó ningún cargo desde Postulá Mejor.'},{status:500})
+ const syncResponse=await fetch(SYNC_API,{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({id:String(payload.preapproval_id)}),
+  cache:'no-store',
+ })
+ const syncPayload=await syncResponse.json().catch(()=>({}))
+ if(!syncResponse.ok||!syncPayload?.ok)return NextResponse.json({ok:false,error:syncPayload?.error||'No pudimos preparar el plan para el pago. No se realizó ningún cargo desde Postulá Mejor.'},{status:502})
+ if(String(syncPayload.company_id||'')!==String(companyId)||String(syncPayload.plan||'')!==plan)return NextResponse.json({ok:false,error:'No pudimos validar la suscripción creada.'},{status:409})
+
  return NextResponse.json({ok:true,plan,init_point:String(payload.init_point),preapproval_id:String(payload.preapproval_id)})
 }
