@@ -10,6 +10,17 @@ const revealStatuses=new Set(['shortlist','interview','hired'])
 function first(v:any){return Array.isArray(v)?v[0]||null:v||null}
 function privacyMeta(conv:any){const app=first(conv?.pm_applications),job=first(app?.pm_jobs);return{app,job,confidential:job?.employer_visibility==='confidential',revealed:revealStatuses.has(String(app?.status||''))}}
 function maskConversation(conv:any,userId:string){if(String(conv?.candidate_user_id)!==userId||conv?.conversation_kind!=='application')return conv;const meta=privacyMeta(conv);if(meta.confidential&&!meta.revealed)return{...conv,pm_companies:{name:`Empresa · ${meta.job?.area||'información reservada'}`},identity_revealed:false};return{...conv,identity_revealed:true}}
+function otherUserId(conv:any,userId:string){const candidate=String(conv?.candidate_user_id||''),publisher=String(conv?.publisher_user_id||'');return candidate===userId?publisher:candidate}
+async function addCounterpartProfiles(db:any,rows:any[],userId:string){
+ const ids=Array.from(new Set(rows.map(row=>otherUserId(row,userId)).filter(Boolean))) as string[]
+ if(!ids.length)return rows
+ const [{data:profiles},{data:candidates}]=await Promise.all([
+  db.from('pm_profiles').select('user_id,display_name').in('user_id',ids),
+  db.from('pm_candidate_profiles').select('user_id,city,province,headline,profile_completion,public_location,public_headline').in('user_id',ids)
+ ])
+ const profileMap=new Map((profiles||[]).map((row:any)=>[String(row.user_id),row])),candidateMap=new Map((candidates||[]).map((row:any)=>[String(row.user_id),row]))
+ return rows.map(row=>{const id=otherUserId(row,userId),profile:any=profileMap.get(id)||null,candidate:any=candidateMap.get(id)||null;return{...row,counterpart_profile:id?{user_id:id,display_name:clean(profile?.display_name,80)||null,headline:candidate?.public_headline===false?null:(clean(candidate?.headline,180)||null),location:candidate?.public_location===false?null:([clean(candidate?.city,100),clean(candidate?.province,100)].filter(Boolean).join(', ')||null),profile_completion:Number.isFinite(Number(candidate?.profile_completion))?Number(candidate.profile_completion):null}:null}})
+}
 function requestAudience(req:NextRequest){
  const explicit=clean(req.nextUrl.searchParams.get('audience'),20)
  if(explicit==='candidate'||explicit==='employer')return explicit
@@ -49,8 +60,8 @@ export async function GET(req:NextRequest){
    db.rpc('pm_mark_conversation_read',{p_conversation:id}),
    db.from('pm_notifications').update({read_at:new Date().toISOString()}).eq('user_id',user.id).eq('notification_type','message').contains('payload',{conversation_id:id}).is('read_at',null)
   ])
-  const masked=maskConversation(conversation,user.id)
-  return NextResponse.json({ok:true,conversation:masked,messages:messages||[],interviews:interviews||[],me:user.id,audience:String(conversation.candidate_user_id)===user.id?'candidate':'employer'})
+  const masked=maskConversation(conversation,user.id),[enriched]=await addCounterpartProfiles(db,[masked],user.id)
+  return NextResponse.json({ok:true,conversation:enriched,messages:messages||[],interviews:interviews||[],me:user.id,audience:String(conversation.candidate_user_id)===user.id?'candidate':'employer'})
  }
  let query=db.from('pm_conversations').select(conversationSelect).order('last_message_at',{ascending:false}).limit(80)
  if(audience==='candidate')query=query.or(`conversation_kind.eq.flex,candidate_user_id.eq.${user.id}`)
@@ -59,7 +70,8 @@ export async function GET(req:NextRequest){
  let unreadRows:any[]=[]
  if(ids.length){const {data:u}=await db.from('pm_messages').select('conversation_id,sender_user_id,read_at').in('conversation_id',ids).neq('sender_user_id',user.id).is('read_at',null);unreadRows=u||[]}
  const counts=new Map<string,number>();for(const row of unreadRows)counts.set(String(row.conversation_id),(counts.get(String(row.conversation_id))||0)+1)
- return NextResponse.json({ok:true,conversations:conversations.map((x:any)=>({...maskConversation(x,user.id),unread_count:counts.get(String(x.id))||0})),me:user.id,counts:{employment:conversations.filter((x:any)=>x.conversation_kind!=='flex').reduce((n:number,x:any)=>n+(counts.get(String(x.id))||0),0),flex:conversations.filter((x:any)=>x.conversation_kind==='flex').reduce((n:number,x:any)=>n+(counts.get(String(x.id))||0),0)}})
+ const masked=conversations.map((x:any)=>({...maskConversation(x,user.id),unread_count:counts.get(String(x.id))||0})),enriched=await addCounterpartProfiles(db,masked,user.id)
+ return NextResponse.json({ok:true,conversations:enriched,me:user.id,counts:{employment:conversations.filter((x:any)=>x.conversation_kind!=='flex').reduce((n:number,x:any)=>n+(counts.get(String(x.id))||0),0),flex:conversations.filter((x:any)=>x.conversation_kind==='flex').reduce((n:number,x:any)=>n+(counts.get(String(x.id))||0),0)}})
 }
 
 export async function POST(req:NextRequest){
