@@ -6,27 +6,29 @@ import {useEffect,useRef,useState} from 'react'
 import {createPortal} from 'react-dom'
 import styles from './home-companies.module.css'
 
-type Company={name:string;domain:string;logoDomain?:string;initials:string}
+type Company={name:string;domain?:string;logoDomain?:string;initials:string}
 const companies:Company[]=[
- {name:'Cencosud',domain:'cencosud.com',initials:'CE'},
- {name:'PedidosYa',domain:'pedidosya.com',logoDomain:'pedidosya.com.ar',initials:'PY'},
- {name:'Despegar',domain:'despegar.com',logoDomain:'despegar.com.ar',initials:'D'},
  {name:'Coca-Cola FEMSA',domain:'coca-colafemsa.com',initials:'CF'},
- {name:'Marriott',domain:'marriott.com',initials:'M'},
- {name:'Minor Hotels',domain:'minorhotels.com',initials:'MH'},
- {name:'Wyndham',domain:'wyndhamhotels.com',initials:'WH'},
- {name:'Givaudan',domain:'givaudan.com',initials:'G'},
- {name:'dLocal',domain:'dlocal.com',initials:'dL'},
- {name:'EY',domain:'ey.com',initials:'EY'},
+ {name:'Cencosud',domain:'cencosud.com',initials:'CE'},
+ {name:'Fleni',domain:'fleni.org.ar',initials:'FL'},
+ {name:'Rex',domain:'pintureriasrex.com',initials:'RX'},
+ {name:'Taranto',domain:'taranto.com.ar',initials:'TA'},
+ {name:'Prodental',initials:'PD'},
+ {name:'ITSM Consulting',initials:'IT'},
+ {name:'El Precio Mayorista',initials:'EM'},
+ {name:'Pop Store',initials:'PS'},
+ {name:'Clarks',initials:'CL'},
+ {name:'PedidosYa',domain:'pedidosya.com',logoDomain:'pedidosya.com.ar',initials:'PY'},
+ {name:'Minor Hotels Europe & Americas',domain:'minorhotels.com',initials:'MH'},
 ]
 
-function CompanyLogo({domain,logoDomain,initials}:{domain:string;logoDomain?:string;initials:string}){
+function CompanyLogo({domain,logoDomain,initials}:{domain?:string;logoDomain?:string;initials:string}){
  const resolved=logoDomain||domain
- const sources=[
+ const sources=resolved?[
   `https://unavatar.io/${resolved}?fallback=false`,
   `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(`https://${resolved}`)}&sz=256`,
   `https://icons.duckduckgo.com/ip3/${resolved}.ico`,
- ]
+ ]:[]
  const [sourceIndex,setSourceIndex]=useState(0)
  const src=sources[sourceIndex]
  return <span className={styles.mark} aria-hidden="true">
@@ -57,14 +59,14 @@ export default function HomeCompanyStrip(){
   <div className={styles.inner}>
    <div className={styles.copy}>
     <span>OPORTUNIDADES PÚBLICAS</span>
-    <b>Empresas que hoy tienen búsquedas abiertas.</b>
-    <p className={styles.action}>Tocá una empresa para ver solamente sus oportunidades.</p>
-    <small className={styles.disclaimer}>Las marcas aparecen por sus avisos públicos; no implica patrocinio ni relación comercial.</small>
+    <b>Empresas con avisos concretos disponibles.</b>
+    <p className={styles.action}>Tocá una empresa para ver sus vacantes individuales.</p>
+    <small className={styles.disclaimer}>Mostramos empresas porque encontramos avisos públicos concretos; no implica patrocinio ni relación comercial.</small>
    </div>
    <div className={styles.railShell}>
     <button className={`${styles.arrow} ${styles.prev}`} type="button" onClick={()=>move(-1)} aria-label="Ver empresas anteriores">‹</button>
     <div ref={rail} className={styles.logos} role="list" aria-label="Empresas con oportunidades públicas disponibles">
-     {companies.map(c=><Link className={styles.logo} key={c.name} title={`Ver oportunidades de ${c.name}`} role="listitem" href={`/empleos?empresa=${encodeURIComponent(c.name)}`}><CompanyLogo {...c}/><b>{c.name}</b><small>Ver empleos</small></Link>)}
+     {companies.map(c=><Link className={styles.logo} key={c.name} title={`Ver oportunidades de ${c.name}`} role="listitem" href={`/empleos?empresa=${encodeURIComponent(c.name)}`}><CompanyLogo {...c}/><b>{c.name}</b><small>Ver vacantes</small></Link>)}
     </div>
     <button className={`${styles.arrow} ${styles.next}`} type="button" onClick={()=>move(1)} aria-label="Ver más empresas">›</button>
    </div>
