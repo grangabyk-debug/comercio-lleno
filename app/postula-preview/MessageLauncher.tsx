@@ -5,12 +5,15 @@ import {FormEvent,useEffect,useMemo,useState} from 'react'
 import {createPortal} from 'react-dom'
 import {cvAuthClient} from '../cv-ia/cvAuth'
 
-type Thread={id:string;conversation_kind?:'application'|'flex';unread_count?:number;pm_companies?:{name?:string}|null;pm_applications?:{status?:string;pm_jobs?:{title?:string}|null}|null;pm_flex_posts?:{title?:string;location_text?:string;compensation_text?:string}|null}
+type CounterpartProfile={user_id?:string;display_name?:string|null;headline?:string|null;location?:string|null;profile_completion?:number|null}
+type Thread={id:string;conversation_kind?:'application'|'flex';unread_count?:number;pm_companies?:{name?:string}|null;pm_applications?:{status?:string;pm_jobs?:{title?:string}|null}|null;pm_flex_posts?:{title?:string;location_text?:string;compensation_text?:string}|null;counterpart_profile?:CounterpartProfile|null}
 type Msg={id:string;sender_user_id:string;body:string;message_type:string;created_at:string}
 type LauncherVariant='header'|'mobile-nav'
 
 function title(t:Thread){return t.conversation_kind==='flex'?t.pm_flex_posts?.title||'Servicio Flex':t.pm_applications?.pm_jobs?.title||'Conversación laboral'}
-function counterpart(t:Thread){return t.conversation_kind==='flex'?(t.pm_companies?.name||'Servicios Flex'):(t.pm_companies?.name||'Empresa')}
+function counterpart(t:Thread){return t.conversation_kind==='flex'?(t.counterpart_profile?.display_name||'Persona interesada'):(t.pm_companies?.name||'Empresa')}
+function counterpartMeta(t:Thread){if(t.conversation_kind!=='flex')return'';return [t.counterpart_profile?.headline,t.counterpart_profile?.location].filter(Boolean).join(' · ')}
+function initials(t:Thread){return counterpart(t).split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'PM'}
 async function token(){const {data}=await cvAuthClient().auth.getSession();return data.session?.access_token||''}
 function ChatIcon(){return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 5.5h13v9.2h-7.1L7.2 18v-3.3H5.5z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg>}
 function unreadOf(list:Thread[]){return list.reduce((total,item)=>total+Number(item.unread_count||0),0)}
@@ -57,7 +60,12 @@ export default function MessageLauncher({variant='header',active=false}:{variant
   const t=knownToken||await token();if(!t)return
   const r=await fetch(`/api/postula/messages?conversation=${encodeURIComponent(id)}`,{headers:{Authorization:`Bearer ${t}`},cache:'no-store'})
   const d=await r.json().catch(()=>({}))
-  if(r.ok&&d?.ok){setMessages(d.messages||[]);setMe(String(d.me||''));const source=baseThreads||threads;const next=source.map(item=>item.id===id?{...item,unread_count:0}:item);applyThreads(next);window.dispatchEvent(new CustomEvent('pm:messages-read',{detail:{conversation:id}}))}
+  if(r.ok&&d?.ok){
+   setMessages(d.messages||[]);setMe(String(d.me||''))
+   const source=baseThreads||threads
+   const next=source.map(item=>item.id===id?{...item,...(d.conversation||{}),unread_count:0}:item)
+   applyThreads(next);window.dispatchEvent(new CustomEvent('pm:messages-read',{detail:{conversation:id}}))
+  }
  }
  async function send(e:FormEvent){
   e.preventDefault();const clean=text.trim();if(!clean||!activeThread||busy)return
@@ -80,7 +88,7 @@ export default function MessageLauncher({variant='header',active=false}:{variant
     {loading?<div className="pm-msg-state"><b>Cargando mensajes…</b></div>:
      logged===false?<div className="pm-msg-state"><b>Ingresá para ver tus mensajes.</b><p>Usás la misma cuenta para empleos y Servicios Flex.</p><div className="pm-msg-auth-actions"><Link href="/login?next=%2Fmensajes">Iniciar sesión</Link><Link href="/registro?next=%2Fmensajes" className="secondary">Crear cuenta</Link></div></div>:
      threads.length===0?<div className="pm-msg-state"><b>Todavía no hay conversaciones.</b><p>Cuando una empresa te escriba o contactes una publicación de Servicios Flex, aparecerá acá.</p><Link href="/empleos">Buscar empleos</Link></div>:
-     <div className="pm-msg-shell"><aside>{threads.map(t=><button key={t.id} data-on={t.id===activeThread} onClick={()=>void loadMessages(t.id)}><i>{counterpart(t).slice(0,2).toUpperCase()}</i><span><b>{counterpart(t)}</b><small>{title(t)}</small></span>{Number(t.unread_count||0)>0&&<strong className="pm-msg-thread-unread">{t.unread_count}</strong>}</button>)}</aside><div className="pm-msg-chat">{thread&&<div className="pm-msg-chat-head"><b>{counterpart(thread)}</b><span>{title(thread)}</span></div>}<div className="pm-msg-messages">{messages.map(m=><div key={m.id} data-mine={m.sender_user_id===me}><p>{m.body}</p><small>{new Date(m.created_at).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}</small></div>)}</div><form onSubmit={send}><input value={text} onChange={e=>setText(e.target.value)} placeholder="Escribí un mensaje…" maxLength={4000}/><button disabled={busy||!text.trim()}>{busy?'…':'Enviar'}</button></form></div></div>}
+     <div className="pm-msg-shell"><aside>{threads.map(t=><button key={t.id} data-on={t.id===activeThread} onClick={()=>void loadMessages(t.id)}><i>{initials(t)}</i><span>{t.conversation_kind==='flex'?<><b>{title(t)}</b><small>{counterpart(t)}{counterpartMeta(t)?` · ${counterpartMeta(t)}`:''}</small></>:<><b>{counterpart(t)}</b><small>{title(t)}</small></>}</span>{Number(t.unread_count||0)>0&&<strong className="pm-msg-thread-unread">{t.unread_count}</strong>}</button>)}</aside><div className="pm-msg-chat">{thread&&<div className="pm-msg-chat-head">{thread.conversation_kind==='flex'?<><b>{title(thread)}</b><span>{counterpart(thread)}{counterpartMeta(thread)?` · ${counterpartMeta(thread)}`:''}</span></>:<><b>{counterpart(thread)}</b><span>{title(thread)}</span></>}</div>}<div className="pm-msg-messages">{messages.map(m=><div key={m.id} data-mine={m.sender_user_id===me}><p>{m.body}</p><small>{new Date(m.created_at).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}</small></div>)}</div><form onSubmit={send}><input value={text} onChange={e=>setText(e.target.value)} placeholder={thread?.conversation_kind==='flex'?'Escribí sobre el servicio…':'Escribí un mensaje…'} maxLength={4000}/><button disabled={busy||!text.trim()}>{busy?'…':'Enviar'}</button></form></div></div>}
     <footer><span>También podés abrir la bandeja completa.</span><Link href="/mensajes">Abrir pantalla completa</Link></footer>
    </section>
   </div>:null
