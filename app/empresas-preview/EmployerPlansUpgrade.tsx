@@ -19,10 +19,7 @@ export default function EmployerPlansUpgrade(){
   try{
    localStorage.setItem('pm_selected_company_plan',plan)
    setNotice('')
-   if(paid){
-    setBusyPlan(plan)
-    await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()))
-   }
+   if(paid){setBusyPlan(plan);await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()))}
    const {data}=await cvAuthClient().auth.getSession()
    const session=data.session
    if(!session){setBusyPlan(null);checkoutLock.current=false;location.assign(`/empresas/registro?plan=${encodeURIComponent(plan)}`);return}
@@ -32,12 +29,10 @@ export default function EmployerPlansUpgrade(){
    const payload=await response.json().catch(()=>({}))
    if(response.status===409&&payload?.code==='needs_company'){setBusyPlan(null);checkoutLock.current=false;location.assign(`/empresas/registro?plan=${encodeURIComponent(plan)}`);return}
    if(response.ok&&payload?.init_point){location.assign(payload.init_point);return}
-   setBusyPlan(null)
-   checkoutLock.current=false
+   setBusyPlan(null);checkoutLock.current=false
    setNotice(payload?.error||`Tu plan ${PLAN_LABEL[plan]} quedó seleccionado. Terminá la configuración de la empresa para continuar.`)
   }catch{
-   setBusyPlan(null)
-   checkoutLock.current=false
+   setBusyPlan(null);checkoutLock.current=false
    setNotice('No pudimos abrir el pago ahora. Tu plan quedó seleccionado para continuar después.')
   }
  }
@@ -45,16 +40,13 @@ export default function EmployerPlansUpgrade(){
  useEffect(()=>{
   const ensureHint=(rel:string,href:string)=>{
    if(document.head.querySelector(`link[rel="${rel}"][href="${href}"]`))return
-   const link=document.createElement('link')
-   link.rel=rel
-   link.href=href
+   const link=document.createElement('link');link.rel=rel;link.href=href
    if(rel==='preconnect')link.crossOrigin='anonymous'
    document.head.appendChild(link)
   }
   ensureHint('dns-prefetch','//www.mercadopago.com.ar')
   ensureHint('preconnect','https://www.mercadopago.com.ar')
 
-  let frame=0
   const enhance=()=>{
    const plans=document.querySelector('.pm7-employer-plans') as HTMLElement|null
    if(plans&&!plans.dataset.pmPlansEnhanced){
@@ -72,8 +64,14 @@ export default function EmployerPlansUpgrade(){
     cards.forEach((card,index)=>{
      const plan=PLAN_IDS[index];if(!plan)return
      card.dataset.plan=plan;card.tabIndex=0
+     const priceNote=card.querySelector('.price small') as HTMLElement|null
+     if(priceNote)priceNote.textContent=' / mes'
      const link=card.querySelector('a') as HTMLAnchorElement|null
-     if(link){link.href=`/empresas/registro?plan=${plan}`;link.textContent=plan==='gratis'?'Crear cuenta gratis':plan==='empresa'?'Configurar plan a medida':`Elegir ${PLAN_LABEL[plan]}`;link.onclick=(event)=>{event.preventDefault();void startPlan(plan)}}
+     if(link){
+      link.href=`/empresas/registro?plan=${plan}`
+      link.textContent=plan==='gratis'?'Crear cuenta gratis':plan==='empresa'?'Configurar plan a medida':`Elegir ${PLAN_LABEL[plan]}`
+      link.onclick=(event)=>{event.preventDefault();void startPlan(plan)}
+     }
      card.onclick=(event)=>{if((event.target as HTMLElement).closest('a'))return;cards.forEach(item=>item.classList.remove('pm19-active'));card.classList.add('pm19-active')}
      card.onkeydown=(event)=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();cards.forEach(item=>item.classList.remove('pm19-active'));card.classList.add('pm19-active')}}
     })
@@ -83,24 +81,25 @@ export default function EmployerPlansUpgrade(){
     const chosen=(localStorage.getItem('pm_selected_company_plan')||'') as PlanId
     if(PLAN_IDS.includes(chosen)){
      const doneLink=document.querySelector('a[href="/empresas/panel"]') as HTMLAnchorElement|null
-     if(doneLink&&!doneLink.dataset.pmPlanEnhanced){doneLink.dataset.pmPlanEnhanced='1';doneLink.textContent=chosen==='gratis'?'Entrar al panel':chosen==='empresa'?'Continuar con plan Empresa':`Continuar con ${PLAN_LABEL[chosen]}`;doneLink.onclick=(event)=>{event.preventDefault();void startPlan(chosen)}}
+     if(doneLink&&!doneLink.dataset.pmPlanEnhanced){
+      doneLink.dataset.pmPlanEnhanced='1'
+      doneLink.textContent=chosen==='gratis'?'Entrar al panel':chosen==='empresa'?'Continuar con plan Empresa':`Continuar con ${PLAN_LABEL[chosen]}`
+      doneLink.onclick=(event)=>{event.preventDefault();void startPlan(chosen)}
+     }
     }
    }
   }
-  frame=requestAnimationFrame(enhance)
-  return()=>cancelAnimationFrame(frame)
+
+  enhance()
+  const observer=new MutationObserver(()=>enhance())
+  observer.observe(document.body,{childList:true,subtree:true})
+  const retry=window.setInterval(enhance,250)
+  const stop=window.setTimeout(()=>window.clearInterval(retry),12000)
+  return()=>{observer.disconnect();window.clearInterval(retry);window.clearTimeout(stop)}
  },[])
 
  return <>
-  {busyPlan&&<div className="pm19-checkout-overlay" role="status" aria-live="polite" aria-busy="true">
-   <div className="pm19-checkout-card">
-    <div className="pm19-checkout-provider"><span>MP</span><b>Mercado Pago</b></div>
-    <div className="pm19-checkout-spinner" aria-hidden="true"/>
-    <strong>Te estamos llevando a Mercado Pago</strong>
-    <p>Estamos preparando el checkout seguro de <b>{PLAN_LABEL[busyPlan]}</b>. Puede tardar unos segundos.</p>
-    <small>No cierres esta ventana.</small>
-   </div>
-  </div>}
+  {busyPlan&&<div className="pm19-checkout-overlay" role="status" aria-live="polite" aria-busy="true"><div className="pm19-checkout-card"><div className="pm19-checkout-provider"><span>MP</span><b>Mercado Pago</b></div><div className="pm19-checkout-spinner" aria-hidden="true"/><strong>Te estamos llevando a Mercado Pago</strong><p>Estamos preparando el checkout seguro de <b>{PLAN_LABEL[busyPlan]}</b>. Puede tardar unos segundos.</p><small>No cierres esta ventana.</small></div></div>}
   {notice&&<div className="pm19-plan-notice" role="status"><div><b>No pudimos continuar</b><span>{notice}</span></div><button type="button" onClick={()=>setNotice('')} aria-label="Cerrar">×</button></div>}
  </>
 }
