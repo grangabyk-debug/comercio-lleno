@@ -5,15 +5,17 @@ import {cvAuthClient} from '../cv-ia/cvAuth'
 
 type AnswerKey='adult'|'one_off'|'recurring'|'supervised'|'role_replacement'|'private_home'|'platform_transport'
 type Answers=Record<AnswerKey,boolean|null>
-const VERSION='services-flex-2026-08-25'
+type ListingType='request'|'offer'
+const VERSION='services-flex-2026-08-26'
 const EMPTY:Answers={adult:null,one_off:null,recurring:null,supervised:null,role_replacement:null,private_home:null,platform_transport:null}
 
 function normalizedAnswers(adult:boolean):Answers{
  return {adult,one_off:true,recurring:false,supervised:false,role_replacement:false,private_home:false,platform_transport:false}
 }
+function cleanType(v:unknown):ListingType{return String(v||'request')==='offer'?'offer':'request'}
 
 export default function ServicesFlexLegalGuard(){
- const[open,setOpen]=useState(false),[adult,setAdult]=useState<boolean|null>(null),[accepted,setAccepted]=useState(false),[busy,setBusy]=useState(false),[result,setResult]=useState(''),[error,setError]=useState('')
+ const[open,setOpen]=useState(false),[adult,setAdult]=useState<boolean|null>(null),[accepted,setAccepted]=useState(false),[busy,setBusy]=useState(false),[result,setResult]=useState(''),[error,setError]=useState(''),[pendingType,setPendingType]=useState<ListingType>('request')
  const complete=useMemo(()=>adult===true&&accepted,[adult,accepted])
 
  useEffect(()=>{
@@ -21,11 +23,16 @@ export default function ServicesFlexLegalGuard(){
    const cached=sessionStorage.getItem('pm_services_flex_legal_answers')
    if(cached){const parsed={...EMPTY,...JSON.parse(cached)} as Answers;if(parsed.adult===true){setAdult(true);setAccepted(true)}}
   }catch{}
-  const launch=()=>{setResult('');setError('');setOpen(true)}
-  const capture=(event:MouseEvent)=>{const target=event.target as Element|null;const trigger=target?.closest?.('#publicar-flex,[data-services-flex-publish]');if(!trigger)return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();launch()}
+  const launch=(type:ListingType)=>{setPendingType(type);try{sessionStorage.setItem('pm_flex_publish_type',type)}catch{}setResult('');setError('');setOpen(true)}
+  const capture=(event:MouseEvent)=>{const target=event.target as Element|null;const trigger=target?.closest?.('#publicar-flex,[data-services-flex-publish]') as HTMLElement|null;if(!trigger)return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();launch(cleanType(trigger.dataset.flexType))}
+  const external=(event:Event)=>{const detail=(event as CustomEvent<{listingType?:ListingType}>).detail;launch(cleanType(detail?.listingType))}
   document.addEventListener('click',capture,true)
-  const params=new URLSearchParams(location.search);if(params.get('clasificar')==='1'){params.delete('clasificar');const qs=params.toString();history.replaceState({},'',`${location.pathname}${qs?`?${qs}`:''}${location.hash}`);window.setTimeout(launch,0)}
-  return()=>document.removeEventListener('click',capture,true)
+  window.addEventListener('pm:flex-legal-open',external as EventListener)
+  const params=new URLSearchParams(location.search);if(params.get('clasificar')==='1'){
+   const type=cleanType(params.get('tipo'))
+   params.delete('clasificar');params.delete('tipo');const qs=params.toString();history.replaceState({},'',`${location.pathname}${qs?`?${qs}`:''}${location.hash}`);window.setTimeout(()=>launch(type),0)
+  }
+  return()=>{document.removeEventListener('click',capture,true);window.removeEventListener('pm:flex-legal-open',external as EventListener)}
  },[])
 
  async function confirm(){
@@ -34,29 +41,31 @@ export default function ServicesFlexLegalGuard(){
   setBusy(true);setError('')
   try{
    sessionStorage.setItem('pm_services_flex_legal_answers',JSON.stringify(answers))
+   sessionStorage.setItem('pm_flex_publish_type',pendingType)
    const{data}=await cvAuthClient().auth.getSession()
-   if(!data.session){setOpen(false);window.dispatchEvent(new CustomEvent('pm:flex-publish'));return}
+   if(!data.session){setOpen(false);window.dispatchEvent(new CustomEvent('pm:flex-publish',{detail:{listingType:pendingType}}));return}
    const{data:record,error:rpcError}=await cvAuthClient().rpc('pm_record_flex_legal_check',{p_answers:answers,p_policy_version:VERSION})
    if(rpcError)throw rpcError
    const serverResult=String(record?.result||'allowed');setResult(serverResult)
-   if(serverResult==='allowed'){setOpen(false);window.dispatchEvent(new CustomEvent('pm:flex-publish'))}
+   if(serverResult==='allowed'){setOpen(false);window.dispatchEvent(new CustomEvent('pm:flex-publish',{detail:{listingType:pendingType}}))}
   }catch(e){setError(e instanceof Error?e.message:'No pudimos validar el encuadre. Intentá nuevamente.')}finally{setBusy(false)}
  }
 
  if(!open)return null
  const ageBlocked=adult===false||result==='age_restricted'
+ const offering=pendingType==='offer'
  return <div className="pmsf-guard-backdrop" role="dialog" aria-modal="true" aria-labelledby="pmsf-guard-title" onMouseDown={e=>{if(e.target===e.currentTarget)setOpen(false)}}>
   <section className="pmsf-guard-card">
    <button type="button" className="pmsf-guard-close" onClick={()=>setOpen(false)} aria-label="Cerrar">×</button>
    <span className="pmsf-guard-kicker">ANTES DE PUBLICAR · SERVICIOS FLEX</span>
-   <h2 id="pmsf-guard-title">Una confirmación rápida.</h2>
-   <p className="pmsf-guard-intro">Servicios Flex es para tareas puntuales entre partes independientes. Antes de continuar, confirmá estas dos condiciones.</p>
+   <h2 id="pmsf-guard-title">{offering?'Vas a ofrecer un servicio.':'Vas a pedir un servicio.'}</h2>
+   <p className="pmsf-guard-intro">Servicios Flex conecta prestaciones independientes en ambas direcciones. Podés necesitar algo o mostrar lo que sabés hacer, siempre sin encubrir una relación laboral.</p>
 
    {!ageBlocked?<div className="pmsf-guard-compact">
     <article className="pmsf-guard-age"><div><b>¿Sos mayor de 18 años?</b><small>Servicios Flex está disponible únicamente para personas adultas.</small></div><div className="pmsf-age-actions"><button type="button" data-on={adult===true} onClick={()=>setAdult(true)}>Sí</button><button type="button" data-on={adult===false} onClick={()=>{setAdult(false);setAccepted(false)}}>No</button></div></article>
     <label className="pmsf-guard-accept" data-disabled={adult!==true}>
      <input type="checkbox" checked={accepted} disabled={adult!==true} onChange={e=>setAccepted(e.target.checked)}/>
-     <span><b>Acepto las condiciones de Servicios Flex</b><small>Confirmo que la tarea es puntual e independiente, que no reemplaza un puesto de trabajo permanente, no implica una relación laboral continua o supervisada, no corresponde a trabajo habitual de casas particulares y no consiste principalmente en reparto o traslado de personas coordinado por la plataforma. También acepto los <a href="/terminos/servicios-flex" target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()}>Términos de Servicios Flex</a>.</small></span>
+     <span><b>Acepto las condiciones de Servicios Flex</b><small>Confirmo que cada servicio o acuerdo será independiente y con alcance propio; no reemplaza un puesto permanente, no implica relación laboral continua o supervisada, no corresponde a trabajo habitual de casas particulares y no consiste principalmente en reparto o traslado de personas coordinado por la plataforma. También acepto los <a href="/terminos/servicios-flex" target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()}>Términos de Servicios Flex</a>.</small></span>
     </label>
    </div>:<div className="pmsf-guard-blocked"><b>Servicios Flex está disponible sólo para mayores de 18 años.</b><p>No habilitamos publicación ni contratación de servicios puntuales para cuentas de menores dentro de esta sección.</p><button type="button" onClick={()=>{setAdult(null);setAccepted(false);setResult('')}}>Volver</button></div>}
 
