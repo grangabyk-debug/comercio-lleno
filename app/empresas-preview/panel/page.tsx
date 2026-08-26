@@ -3,6 +3,7 @@ import {PlatformHeader,PlatformFooter} from '../../postula-preview/PlatformChrom
 import SupportHelp from '../../postula-preview/SupportHelp'
 import FlexManager from '../../changas-preview/FlexManager'
 import EmployerDashboardLive from './EmployerDashboardLive'
+import EmployerJobManager from './EmployerJobManager'
 import EmployerSetupOnboarding from './EmployerSetupOnboarding'
 import '../../postula-preview/premium-v5.css'
 import '../../postula-preview/premium-v6.css'
@@ -19,5 +20,6 @@ import './panel-organization.css'
 import './messaging-v25.css'
 import './panel-readability-v26.css'
 import './panel-loading-v42.css'
+import './job-manager-v43.css'
 export const metadata={title:{absolute:'Panel de selección | Postulá Mejor'},robots:{index:false,follow:false},alternates:{canonical:'https://postulamejor.com/empresas/panel'}}
-export default function EmployerPanel(){return <main className={`${styles.page} pm7-page pm7-employer`}><PlatformHeader audience="employer"/><EmployerDashboardLive/><section className="pm38-employer-publications" id="publicaciones-flex"><FlexManager accountMode/></section><EmployerSetupOnboarding/><PlatformFooter/><SupportHelp audience="employer"/></main>}
+export default function EmployerPanel(){return <main className={`${styles.page} pm7-page pm7-employer`}><PlatformHeader audience="employer"/><EmployerDashboardLive/><section className="pm43-publications-hub" id="publicaciones"><div><div><span>PUBLICACIONES DE LA EMPRESA</span><h2>Empleos y Servicios Flex, en un solo lugar.</h2><p>Administrá lo que publicaste, corregí descripciones, finalizá búsquedas y reutilizá avisos finalizados sin volver a cargarlos desde cero.</p></div><nav><a href="#publicaciones-empleo">Empleos</a><a href="#publicaciones-flex">Servicios Flex</a></nav></div></section><EmployerJobManager/><section className="pm38-employer-publications" id="publicaciones-flex"><FlexManager accountMode/></section><EmployerSetupOnboarding/><PlatformFooter/><SupportHelp audience="employer"/></main>}

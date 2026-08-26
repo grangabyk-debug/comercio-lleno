@@ -19,9 +19,7 @@ export async function GET(req:NextRequest){
   if(error)return NextResponse.json({ok:false,error:error.message},{status:400})
   const rows=(data||[]).map((row:any)=>{
    const job=first(row.pm_jobs) as any,companyRow=first(job?.pm_companies) as any
-   if(job?.employer_visibility==='confidential'&&!revealStatuses.has(String(row.status||''))){
-    return {...row,pm_jobs:{...job,pm_companies:{name:`Empresa · ${job?.area||'identidad reservada'}`},identity_revealed:false}}
-   }
+   if(job?.employer_visibility==='confidential'&&!revealStatuses.has(String(row.status||''))){return {...row,pm_jobs:{...job,pm_companies:{name:`Empresa · ${job?.area||'identidad reservada'}`},identity_revealed:false}}}
    return {...row,pm_jobs:{...job,pm_companies:companyRow,identity_revealed:true}}
   })
   return NextResponse.json({ok:true,applications:rows})
@@ -45,22 +43,16 @@ export async function POST(req:NextRequest){
   c.from('pm_candidate_profiles').select('phone,city,province,headline,skills,availability,work_modes,resume_path,resume_name').eq('user_id',user.id).maybeSingle()
  ])
  const effectiveResume=resume||txt(candidate?.resume_path,500)
+ const displayName=txt(profile?.display_name||b?.name,100),phone=txt(candidate?.phone||b?.phone,60),city=txt(candidate?.city||b?.city,120),availability=txt(candidate?.availability||b?.availability,180),experience=txt(b?.experience,180),expectedSalary=txt(b?.expected_salary,80)
+ const required:[string,string,string][]=[
+  ['name',displayName,'Completá tu nombre y apellido.'],['phone',phone,'Completá tu teléfono.'],['city',city,'Completá tu ciudad o zona.'],['resume',effectiveResume,'Adjuntá un CV para esta postulación.'],['letter',letter,'Completá una presentación breve.'],['availability',availability,'Indicá tu disponibilidad.'],['experience',experience,'Indicá tu experiencia relacionada.'],['expectedSalary',expectedSalary,'Indicá tu sueldo bruto pretendido.']
+ ]
+ const missing=required.find(([,value])=>!value)
+ if(missing)return NextResponse.json({ok:false,code:'required_field',field:missing[0],error:missing[2]},{status:400})
  const snapshot={
-  display_name:txt(profile?.display_name||b?.name,100),
-  avatar_path:txt(profile?.avatar_url,500),
-  phone:txt(candidate?.phone||b?.phone,60),
-  city:txt(candidate?.city||b?.city,120),
-  province:txt(candidate?.province,120),
-  headline:txt(candidate?.headline,180),
-  skills:Array.isArray(candidate?.skills)?candidate.skills.map((x:unknown)=>txt(x,80)).filter(Boolean).slice(0,25):[],
-  availability:txt(candidate?.availability||b?.availability,180),
-  work_modes:Array.isArray(candidate?.work_modes)?candidate.work_modes.map((x:unknown)=>txt(x,40)).filter(Boolean).slice(0,5):[],
-  experience:txt(b?.experience,180),
-  expected_salary:txt(b?.expected_salary,80),
-  resume_name:txt(candidate?.resume_name,180),
-  shared_for_application:true
+  display_name:displayName,avatar_path:txt(profile?.avatar_url,500),phone,city,province:txt(candidate?.province,120),headline:txt(candidate?.headline,180),skills:Array.isArray(candidate?.skills)?candidate.skills.map((x:unknown)=>txt(x,80)).filter(Boolean).slice(0,25):[],availability,work_modes:Array.isArray(candidate?.work_modes)?candidate.work_modes.map((x:unknown)=>txt(x,40)).filter(Boolean).slice(0,5):[],experience,expected_salary:expectedSalary,resume_name:txt(candidate?.resume_name,180),shared_for_application:true
  }
- const {data,error}=await c.rpc('pm_submit_application',{p_job_id:job,p_resume_path:effectiveResume||null,p_cover_letter:letter||null,p_candidate_snapshot:snapshot})
+ const {data,error}=await c.rpc('pm_submit_application',{p_job_id:job,p_resume_path:effectiveResume,p_cover_letter:letter,p_candidate_snapshot:snapshot})
  if(error){const message=/job unavailable/i.test(error.message)?'La oferta no está disponible.':error.message;return NextResponse.json({ok:false,error:message},{status:/job unavailable/i.test(error.message)?404:400})}
  return NextResponse.json({ok:true,application:first(data)})
 }
