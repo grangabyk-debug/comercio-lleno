@@ -45,7 +45,7 @@ export async function POST(req:NextRequest){
  const effectiveResume=resume||txt(candidate?.resume_path,500)
  const displayName=txt(profile?.display_name||b?.name,100),phone=txt(candidate?.phone||b?.phone,60),city=txt(candidate?.city||b?.city,120),availability=txt(candidate?.availability||b?.availability,180),experience=txt(b?.experience,180),expectedSalary=txt(b?.expected_salary,80)
  const required:[string,string,string][]=[
-  ['name',displayName,'Completá tu nombre y apellido.'],['phone',phone,'Completá tu teléfono.'],['city',city,'Completá tu ciudad o zona.'],['resume',effectiveResume,'Adjuntá un CV para esta postulación.'],['letter',letter,'Completá una presentación breve.'],['availability',availability,'Indicá tu disponibilidad.'],['experience',experience,'Indicá tu experiencia relacionada.'],['expectedSalary',expectedSalary,'Indicá tu sueldo bruto pretendido.']
+  ['name',displayName,'Completá tu nombre y apellido.'],['phone',phone,'Completá tu teléfono.'],['city',city,'Completá tu ciudad o zona.'],['resume',effectiveResume,'Adjuntá un CV para esta postulación.'],['availability',availability,'Indicá tu disponibilidad.'],['experience',experience,'Indicá tu experiencia relacionada.']
  ]
  const missing=required.find(([,value])=>!value)
  if(missing)return NextResponse.json({ok:false,code:'required_field',field:missing[0],error:missing[2]},{status:400})

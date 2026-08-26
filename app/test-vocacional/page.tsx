@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import VocationalTestClient from './VocationalTestClient'
 import VocationalCertificate from './VocationalCertificate'
+import {PlatformFooter,PlatformHeader,MobileNav} from '../postula-preview/PlatformChrome'
 import './test-polish-v2.css'
 
 export const metadata:Metadata={
@@ -13,4 +14,11 @@ export const metadata:Metadata={
   openGraph:{siteName:'Postulá Mejor',type:'website',locale:'es_AR',url:'https://postulamejor.com/test-vocacional',title:'Test de intereses vocacionales y laborales gratis | Postulá Mejor',description:'30 situaciones para explorar tus intereses laborales con el marco RIASEC y convertir el resultado en un primer CV.'},
 }
 
-export default function VocationalTestPage(){return <><VocationalTestClient/><VocationalCertificate/><footer style={{maxWidth:1040,margin:'-42px auto 45px',padding:'0 18px',fontFamily:'Inter,system-ui,sans-serif',fontSize:12,lineHeight:1.65,color:'#5b626b'}}><b style={{color:'#30353c'}}>Base metodológica:</b> esta experiencia es una adaptación orientativa propia del marco RIASEC/Holland. El O*NET Interest Profiler utiliza ese mismo marco y cuenta con investigación psicométrica publicada por O*NET con participación de investigadores de University of Illinois. <a href="https://www.onetcenter.org/reports/IP_Manual.html" target="_blank" rel="noreferrer" style={{color:'#4d3fd2',fontWeight:850}}>Manual O*NET</a> · <a href="https://www.onetcenter.org/reports/IP_RVS.html" target="_blank" rel="noreferrer" style={{color:'#4d3fd2',fontWeight:850}}>Confiabilidad y validez</a></footer></>}
+const unifiedChromeCss=`
+.pm-test-unified>main>header:first-child{display:none!important}
+.pm-test-unified>main{min-height:0!important}
+.pm-test-unified .pm-postula-footer{margin-top:0}
+@media(max-width:760px){.pm-test-unified>main>header:first-child{display:none!important}}
+`
+
+export default function VocationalTestPage(){return <div className="pm7-page pm7-candidate pm-test-unified"><PlatformHeader/><VocationalTestClient/><VocationalCertificate/><footer style={{maxWidth:1040,margin:'-42px auto 45px',padding:'0 18px',fontFamily:'Inter,system-ui,sans-serif',fontSize:12,lineHeight:1.65,color:'#5b626b'}}><b style={{color:'#30353c'}}>Base metodológica:</b> esta experiencia es una adaptación orientativa propia del marco RIASEC/Holland. El O*NET Interest Profiler utiliza ese mismo marco y cuenta con investigación psicométrica publicada por O*NET con participación de investigadores de University of Illinois. <a href="https://www.onetcenter.org/reports/IP_Manual.html" target="_blank" rel="noreferrer" style={{color:'#4d3fd2',fontWeight:850}}>Manual O*NET</a> · <a href="https://www.onetcenter.org/reports/IP_RVS.html" target="_blank" rel="noreferrer" style={{color:'#4d3fd2',fontWeight:850}}>Confiabilidad y validez</a></footer><PlatformFooter/><MobileNav active={'test' as any}/><style dangerouslySetInnerHTML={{__html:unifiedChromeCss}}/></div>}
