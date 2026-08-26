@@ -10,9 +10,10 @@ function db(req:NextRequest){const auth=req.headers.get('authorization')||'';con
 function objectUrl(base:string,path:string){return base+path.split('/').map(encodeURIComponent).join('/')}
 function firstName(v:string){return v.split(/\s+/).filter(Boolean)[0]||'Persona'}
 function external(v:unknown){const s=text(v,800);return /^https?:\/\//i.test(s)?s:''}
-const PUBLIC_FIELDS='id,title,category,description,location_text,compensation_text,duration_text,scheduled_for,verification_level,status,created_at,company_id,publisher_user_id,image_path,image_source,image_status,public_identity,publisher_kind,publisher_display_name,publisher_avatar_url'
+function scheduledIso(v:string){if(!v)return null;const raw=/^\d{4}-\d{2}-\d{2}$/.test(v)?`${v}T12:00:00-03:00`:v;const d=new Date(raw);return Number.isNaN(d.getTime())?null:d.toISOString()}
+const PUBLIC_FIELDS='id,title,category,description,location_text,compensation_text,duration_text,scheduled_for,verification_level,status,created_at,company_id,publisher_user_id,image_path,image_source,image_status,public_identity,publisher_kind,publisher_display_name,publisher_avatar_url,allow_phone_contact,contact_phone'
 
-async function decoratePosts(c:any,posts:any[]){
+async function decoratePosts(c:any,posts:any[],showPhone=false){
  const avatarPaths=Array.from(new Set(posts.filter(p=>p?.public_identity!==false).map(p=>text(p?.publisher_avatar_url,600)).filter((p:string)=>p&&!/^https?:\/\//i.test(p)))) as string[]
  const signed=new Map<string,string>()
  if(avatarPaths.length){
@@ -22,7 +23,9 @@ async function decoratePosts(c:any,posts:any[]){
  return posts.map(p=>{
   const avatar=text(p.publisher_avatar_url,800)
   const publisherAvatar=p.public_identity===false?'':external(avatar)||(p.publisher_kind==='company'&&avatar?objectUrl(BRAND_PUBLIC,avatar):signed.get(avatar)||'')
-  return {...p,image_url:p.image_path?objectUrl(FLEX_PUBLIC,String(p.image_path)):'',publisher_avatar_public:publisherAvatar}
+  const contactPhone=showPhone&&p.allow_phone_contact===true?text(p.contact_phone,40):''
+  const{contact_phone,...safe}=p
+  return {...safe,image_url:p.image_path?objectUrl(FLEX_PUBLIC,String(p.image_path)):'',publisher_avatar_public:publisherAvatar,contact_phone_public:contactPhone}
  })
 }
 
@@ -45,11 +48,11 @@ export async function GET(req:NextRequest){
   const{data,error}=await c.from('pm_flex_posts').select(PUBLIC_FIELDS).in('id',favoriteIds).eq('status','published')
   if(error)return NextResponse.json({ok:false,error:'No pudimos cargar tus favoritos.'},{status:400})
   const order=new Map(favoriteIds.map((id,i)=>[id,i]));const posts=[...(data||[])].sort((a:any,b:any)=>(order.get(String(a.id))??999)-(order.get(String(b.id))??999))
-  return NextResponse.json({ok:true,posts:await decoratePosts(c,posts),favorites:favoriteIds})
+  return NextResponse.json({ok:true,posts:await decoratePosts(c,posts,true),favorites:favoriteIds})
  }
  const{data,error}=await c.from('pm_flex_posts').select(PUBLIC_FIELDS).eq('status','published').order('created_at',{ascending:false}).limit(60)
  if(error)return NextResponse.json({ok:false,error:'No pudimos cargar Servicios Flex.'},{status:400})
- return NextResponse.json({ok:true,posts:await decoratePosts(c,data||[]),favorites:favoriteIds})
+ return NextResponse.json({ok:true,posts:await decoratePosts(c,data||[],Boolean(user)),favorites:favoriteIds})
 }
 
 export async function POST(req:NextRequest){
@@ -85,8 +88,9 @@ export async function POST(req:NextRequest){
  const legalAnswers=(legalCheck.answers||{}) as Record<string,unknown>
  if(legalAnswers.adult!==true||legalAnswers.one_off!==true||legalAnswers.recurring===true||legalAnswers.supervised===true||legalAnswers.role_replacement===true||legalAnswers.private_home===true||legalAnswers.platform_transport===true)return NextResponse.json({ok:false,code:'legal_check_required',error:'El encuadre de esta publicación no corresponde a Servicios Flex. Revisá la clasificación antes de continuar.'},{status:400})
 
- const title=text(b?.title,140),category=text(b?.category,80),description=text(b?.description,1800),location=text(b?.location_text,180),compensation=text(b?.compensation_text,120),duration=text(b?.duration_text,100),scheduled=text(b?.scheduled_for,80),companyId=text(b?.company_id,80),imagePath=text(b?.image_path,600)
- if(title.length<5||category.length<2||description.length<15||location.length<2||compensation.length<2)return NextResponse.json({ok:false,error:'Completá título, categoría, descripción, zona e importe.'},{status:400})
+ const title=text(b?.title,140),category=text(b?.category,80),description=text(b?.description,1800),location=text(b?.location_text,180),compensation=text(b?.compensation_text,120),duration=text(b?.duration_text,100),scheduled=text(b?.scheduled_for,80),companyId=text(b?.company_id,80),imagePath=text(b?.image_path,600),contactPhone=text(b?.contact_phone,40),allowPhone=b?.allow_phone_contact===true
+ if(title.length<5||category.length<2||description.length<15||location.length<2)return NextResponse.json({ok:false,error:'Completá título, categoría, descripción y zona o modalidad.'},{status:400})
+ if(allowPhone){const digits=contactPhone.replace(/\D/g,'');if(digits.length<8||digits.length>15)return NextResponse.json({ok:false,error:'Revisá el teléfono. Ingresá un número válido con código de área.'},{status:400})}
  if(/repart|delivery|mensajer[ií]a|movilidad|traslado\s+de\s+personas/i.test(category))return NextResponse.json({ok:false,code:'restricted_category',error:'Reparto y movilidad no están habilitados dentro de Servicios Flex porque tienen un régimen específico para plataformas.'},{status:400})
  let company:any=null
  if(companyId){
@@ -100,10 +104,10 @@ export async function POST(req:NextRequest){
  const publisherKind=company?'company':'person';const displayName=publicIdentity?rawName:(company?'Empresa':firstName(rawName));const publisherAvatar=publicIdentity?avatar:''
  const version=text(b?.policy_version,40)||'services-flex-2026-08-25';const consentRows=['terms','privacy','flex_publish_rules'].map(consent_type=>({user_id:user.id,consent_type,version,accepted:true,source:'services_flex_publish'}));const{error:consentErr}=await c.from('pm_consents').upsert(consentRows,{onConflict:'user_id,consent_type,version'});if(consentErr)return NextResponse.json({ok:false,error:'No pudimos registrar la aceptación de las reglas. Intentá nuevamente.'},{status:400})
  const scopeKey=`user:${user.id}`
- const{data,error}=await c.rpc('pm_publish_flex_with_credit',{p_scope_key:scopeKey,p_company_id:companyId||null,p_title:title,p_category:category,p_description:description,p_location_text:location,p_compensation_text:compensation,p_duration_text:duration,p_scheduled_for:scheduled?new Date(scheduled).toISOString():null})
+ const{data,error}=await c.rpc('pm_publish_flex_with_credit',{p_scope_key:scopeKey,p_company_id:companyId||null,p_title:title,p_category:category,p_description:description,p_location_text:location,p_compensation_text:compensation||null,p_duration_text:duration,p_scheduled_for:scheduledIso(scheduled)})
  if(error){const noCredits=/no_flex_credits|wallet_not_found/i.test(error.message);return NextResponse.json({ok:false,code:noCredits?'no_credits':'publish_failed',error:noCredits?'No te quedan créditos para publicar. Podés usar un crédito incluido en tu cuenta o comprar un pack de Servicios Flex.':error.message},{status:noCredits?402:400})}
  const postId=text((data as any)?.id,80);let post:any=data
- if(postId){const{data:updated,error:updateErr}=await c.from('pm_flex_posts').update({image_path:imagePath||null,image_source:imagePath?'custom':'category',image_status:imagePath?'approved':'default',public_identity:publicIdentity,publisher_kind:publisherKind,publisher_display_name:displayName,publisher_avatar_url:publisherAvatar||null,legal_check_id:legalCheck.id}).eq('id',postId).select(PUBLIC_FIELDS).single();if(!updateErr&&updated)post=updated}
- const decorated=await decoratePosts(c,[post])
+ if(postId){const{data:updated,error:updateErr}=await c.from('pm_flex_posts').update({image_path:imagePath||null,image_source:imagePath?'custom':'category',image_status:imagePath?'approved':'default',public_identity:publicIdentity,publisher_kind:publisherKind,publisher_display_name:displayName,publisher_avatar_url:publisherAvatar||null,legal_check_id:legalCheck.id,allow_phone_contact:allowPhone,contact_phone:allowPhone?contactPhone:null}).eq('id',postId).select(PUBLIC_FIELDS).single();if(!updateErr&&updated)post=updated}
+ const decorated=await decoratePosts(c,[post],true)
  return NextResponse.json({ok:true,post:decorated[0]||post})
 }
