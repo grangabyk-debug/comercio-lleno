@@ -10,7 +10,7 @@ export default function FlexPlanBenefitsBridge(){
    document.querySelectorAll('#planes article').forEach(card=>{
     const title=card.querySelector('h3')?.textContent?.trim()
     const list=card.querySelector('ul')
-    if(!list||list.querySelector('[data-pm-flex-benefit]'))return
+    if(!list||list.querySelector('[data-pm-flex-benefit]')||list.textContent?.includes('Servicios Flex'))return
     let text=''
     if(title==='CV Pro')text='✓ Incluye 2 créditos para publicar Servicios Flex'
     if(title==='Búsqueda Activa')text='✓ Incluye 5 créditos de Servicios Flex durante los 30 días'
@@ -20,7 +20,7 @@ export default function FlexPlanBenefitsBridge(){
    document.querySelectorAll('.pm7-employer-plan').forEach((card,index)=>{
     const plan=(card as HTMLElement).dataset.plan||companyPlanOrder[index]||''
     const list=card.querySelector('ul')
-    if(!plan||!list||list.querySelector('[data-pm-flex-benefit]')||!companyCredits[plan])return
+    if(!plan||!list||list.querySelector('[data-pm-flex-benefit]')||list.textContent?.includes('Servicios Flex')||!companyCredits[plan])return
     ;(card as HTMLElement).dataset.plan=plan
     const li=document.createElement('li')
     li.dataset.pmFlexBenefit='1'
