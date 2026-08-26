@@ -7,5 +7,6 @@ import './employer-access-v20.css'
 import './employer-stability-v21.css'
 import './employer-header.css'
 import './employer-minimal-v46.css'
+import './employer-trim-v47.css'
 export const metadata=postulaProductMetadata
 export default function Layout({children}:{children:React.ReactNode}){return <>{children}<EmployerPlansUpgrade/><FlexPlanBenefitsBridge/></>}
