@@ -18,10 +18,18 @@ function loadGoogleIdentity(){return new Promise<GoogleIdentity>((resolve,reject
 
 function strongPassword(value:string){return value.length>=10&&/[a-z]/.test(value)&&/[A-Z]/.test(value)&&/[0-9]/.test(value)}
 function safeNext(value:string|null){return value&&value.startsWith('/')&&!value.startsWith('//')?value:''}
+function cleanPersonName(value:string){return value.trim().replace(/\s+/g,' ').slice(0,60)}
 async function signupTicket(email:string){const r=await fetch(SIGNUP_TICKET_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});const d=await r.json().catch(()=>({}));if(!r.ok||!d?.ok)throw new Error(d?.error||'No pudimos preparar el registro.');return String(d.signup_token||'')}
-async function registerVerified(email:string,password:string,signup_token:string){const r=await fetch(REGISTER_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password,signup_token,role:'candidate',next:'/registro'})});const d=await r.json().catch(()=>({}));if(!r.ok||!d?.ok)throw new Error(d?.error||'No pudimos crear tu cuenta.');return d}
+async function registerVerified(email:string,password:string,signup_token:string,firstName:string,lastName:string){const r=await fetch(REGISTER_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password,signup_token,first_name:firstName,last_name:lastName,role:'candidate',next:'/registro'})});const d=await r.json().catch(()=>({}));if(!r.ok||!d?.ok)throw new Error(d?.error||'No pudimos crear tu cuenta.');return d}
 async function welcome(token:string){try{await fetch('/api/postula/welcome',{method:'POST',headers:{Authorization:`Bearer ${token}`}})}catch{}}
 async function personalDestination(token:string){try{const r=await fetch('/api/postula/profile',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const d=await r.json().catch(()=>({}));if(d?.candidate&&d?.profile?.onboarding_completed)return'/mi-cuenta';return'/mi-cuenta?activar=postulante'}catch{return'/mi-cuenta?activar=postulante'}}
+async function syncGoogleProfile(token:string,user:any){
+ const meta=user?.user_metadata||{}
+ const displayName=String(meta.full_name||meta.name||[meta.given_name,meta.family_name].filter(Boolean).join(' ')||'').trim().replace(/\s+/g,' ').slice(0,80)
+ const avatar=String(meta.avatar_url||meta.picture||'').trim().slice(0,500)
+ if(!displayName)return
+ try{await fetch('/api/postula/profile',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({role:'candidate',display_name:displayName,...(avatar?{avatar_url:avatar}:{})})})}catch{}
+}
 
 export default function PersonalAccessForm({mode}:{mode:'signup'|'login'}){
  const params=useSearchParams()
@@ -31,7 +39,7 @@ export default function PersonalAccessForm({mode}:{mode:'signup'|'login'}){
  const requestedNext=safeNext(params.get('next'))
  const loginHref=requestedNext?`/login?next=${encodeURIComponent(requestedNext)}`:'/login'
  const signupHref=requestedNext?`/registro?next=${encodeURIComponent(requestedNext)}`:'/registro'
- const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirmPassword,setConfirmPassword]=useState(''),[newPassword,setNewPassword]=useState(''),[accepted,setAccepted]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('')
+ const [firstName,setFirstName]=useState(''),[lastName,setLastName]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirmPassword,setConfirmPassword]=useState(''),[newPassword,setNewPassword]=useState(''),[accepted,setAccepted]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('')
  const [showPassword,setShowPassword]=useState(false),[showConfirm,setShowConfirm]=useState(false),[showNewPassword,setShowNewPassword]=useState(false)
  const googleButtonRef=useRef<HTMLDivElement>(null)
 
@@ -55,6 +63,7 @@ export default function PersonalAccessForm({mode}:{mode:'signup'|'login'}){
       const {data,error}=await cvAuthClient().auth.signInWithIdToken({provider:'google',token:response.credential})
       if(error)throw error
       if(!data.session)throw new Error('No pudimos iniciar la sesión con Google.')
+      await syncGoogleProfile(data.session.access_token,data.user)
       if(mode==='signup')void welcome(data.session.access_token)
       location.assign(requestedNext||await personalDestination(data.session.access_token))
      }catch(e){setError(e instanceof Error?e.message:'No pudimos continuar con Google.');setBusy(false)}
@@ -71,11 +80,14 @@ export default function PersonalAccessForm({mode}:{mode:'signup'|'login'}){
   try{
    const clean=email.trim().toLowerCase()
    if(mode==='signup'){
+    const first=cleanPersonName(firstName),last=cleanPersonName(lastName)
+    if(first.length<2)throw new Error('Ingresá tu nombre.')
+    if(last.length<2)throw new Error('Ingresá tu apellido.')
     if(!accepted)throw new Error('Para crear la cuenta necesitás aceptar los Términos y la Política de Privacidad.')
     if(!strongPassword(password))throw new Error('Usá al menos 10 caracteres, con mayúscula, minúscula y un número.')
     if(password!==confirmPassword)throw new Error('Las contraseñas no coinciden. Revisalas e intentá nuevamente.')
     const ticket=await signupTicket(clean)
-    await registerVerified(clean,password,ticket)
+    await registerVerified(clean,password,ticket,first,last)
     setPassword('');setConfirmPassword('');setMessage(`Te enviamos un correo a ${clean}. Confirmalo para activar tu cuenta.`)
    }else{
     const {data,error}=await cvAuthClient().auth.signInWithPassword({email:clean,password})
@@ -103,8 +115,9 @@ export default function PersonalAccessForm({mode}:{mode:'signup'|'login'}){
  return <div className={`${styles.authCard} pm-employer-auth-card`}>
   <span className="pm-employer-auth-kicker">POSTULÁ MEJOR · PERSONAS</span>
   <h2>{mode==='signup'?'Creá tu cuenta gratis':'Volvé a tu cuenta'}</h2>
-  <p>{mode==='signup'?'Una sola cuenta para buscar empleo, postularte, usar tu CV, conversar y participar en Trabajo Flex.':'Ingresá con tu email. Si ese mismo usuario también administra una empresa, vas a poder activar tu perfil de postulante por separado sin crear otra contraseña.'}</p>
+  <p>{mode==='signup'?'Usá tu nombre real para que tus postulaciones, mensajes y Servicios Flex se identifiquen correctamente.':'Ingresá con tu email. Si ese mismo usuario también administra una empresa, vas a poder activar tu perfil de postulante por separado sin crear otra contraseña.'}</p>
   <form className="pm-employer-auth-form" onSubmit={submit}>
+   {mode==='signup'&&<><label>Nombre<input type="text" value={firstName} onChange={e=>setFirstName(e.target.value)} autoComplete="given-name" maxLength={60} placeholder="Tu nombre" required/></label><label>Apellido<input type="text" value={lastName} onChange={e=>setLastName(e.target.value)} autoComplete="family-name" maxLength={60} placeholder="Tu apellido" required/></label></>}
    <label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="email" placeholder="tu@email.com" required/></label>
    <label>Contraseña<div className="pm-employer-password-wrap"><input type={showPassword?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} autoComplete={mode==='signup'?'new-password':'current-password'} placeholder={mode==='signup'?'10+ caracteres, mayúscula y número':'Tu contraseña'} required/><button type="button" className="pm-employer-password-toggle" onClick={()=>setShowPassword(v=>!v)}>{showPassword?'Ocultar':'Ver'}</button></div></label>
    {mode==='signup'&&<label>Repetir contraseña<div className="pm-employer-password-wrap"><input type={showConfirm?'text':'password'} value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} autoComplete="new-password" placeholder="Volvé a escribirla" required/><button type="button" className="pm-employer-password-toggle" onClick={()=>setShowConfirm(v=>!v)}>{showConfirm?'Ocultar':'Ver'}</button></div></label>}
