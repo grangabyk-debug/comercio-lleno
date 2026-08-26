@@ -3,17 +3,16 @@ set -euo pipefail
 
 BRANCH="${VERCEL_GIT_COMMIT_REF:-}"
 BASE_SHA="${VERCEL_GIT_PREVIOUS_SHA:-}"
-QA_BRANCH="feat/servicios-flex-doble-direccion-20260826"
 
 # Regla de ahorro: Vercel no debe compilar ramas de trabajo/preview.
-# Sólo main, staging y la rama explícita de QA pueden consumir un build automático.
-if [ -n "$BRANCH" ] && [ "$BRANCH" != "main" ] && [ "$BRANCH" != "staging" ] && [ "$BRANCH" != "$QA_BRANCH" ]; then
+# Sólo main y staging pueden consumir un build automático.
+if [ -n "$BRANCH" ] && [ "$BRANCH" != "main" ] && [ "$BRANCH" != "staging" ]; then
   echo "Rama $BRANCH no habilitada para deploy automático: omitir build."
   exit 0
 fi
 
-# En main/staging/QA, si no existe una referencia previa confiable, compilamos
-# por seguridad para no perder una publicación real o una validación explícita.
+# En main/staging, si no existe una referencia previa confiable, compilamos
+# por seguridad para no perder una publicación real.
 if [ -z "$BASE_SHA" ]; then
   echo "Sin VERCEL_GIT_PREVIOUS_SHA en rama deployable: ejecutar build."
   exit 1
