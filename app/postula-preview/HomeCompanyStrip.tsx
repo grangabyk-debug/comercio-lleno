@@ -6,29 +6,29 @@ import {useEffect,useRef,useState} from 'react'
 import {createPortal} from 'react-dom'
 import styles from './home-companies.module.css'
 
-type Company={name:string;domain?:string;logoDomain?:string;initials:string}
+type Company={name:string;domain:string;initials:string}
 const companies:Company[]=[
  {name:'Coca-Cola FEMSA',domain:'coca-colafemsa.com',initials:'CF'},
  {name:'Cencosud',domain:'cencosud.com',initials:'CE'},
  {name:'Fleni',domain:'fleni.org.ar',initials:'FL'},
+ {name:'PedidosYa',domain:'pedidosya.com.ar',initials:'PY'},
+ {name:'Despegar',domain:'despegar.com',initials:'DE'},
+ {name:'EY',domain:'ey.com',initials:'EY'},
+ {name:'Emi Labs',domain:'emilabs.ai',initials:'EL'},
+ {name:'Minor Hotels Europe & Americas',domain:'minorhotels.com',initials:'MH'},
+ {name:'Marriott International',domain:'marriott.com',initials:'MI'},
+ {name:'Wyndham Hotels & Resorts',domain:'wyndhamhotels.com',initials:'WH'},
+ {name:'Givaudan',domain:'givaudan.com',initials:'GI'},
  {name:'Rex',domain:'pintureriasrex.com',initials:'RX'},
  {name:'Taranto',domain:'taranto.com.ar',initials:'TA'},
- {name:'Prodental',initials:'PD'},
- {name:'ITSM Consulting',initials:'IT'},
- {name:'El Precio Mayorista',initials:'EM'},
- {name:'Pop Store',initials:'PS'},
- {name:'Clarks',initials:'CL'},
- {name:'PedidosYa',domain:'pedidosya.com',logoDomain:'pedidosya.com.ar',initials:'PY'},
- {name:'Minor Hotels Europe & Americas',domain:'minorhotels.com',initials:'MH'},
 ]
 
-function CompanyLogo({domain,logoDomain,initials}:{domain?:string;logoDomain?:string;initials:string}){
- const resolved=logoDomain||domain
- const sources=resolved?[
-  `https://${resolved}/favicon.ico`,
-  `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(`https://${resolved}`)}&sz=256`,
-  `https://icons.duckduckgo.com/ip3/${resolved}.ico`,
- ]:[]
+function CompanyLogo({domain,initials}:{domain:string;initials:string}){
+ const sources=[
+  `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(`https://${domain}`)}&sz=256`,
+  `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+  `https://${domain}/favicon.ico`,
+ ]
  const [sourceIndex,setSourceIndex]=useState(0)
  const src=sources[sourceIndex]
  return <span className={styles.mark} aria-hidden="true">
@@ -74,7 +74,7 @@ export default function HomeCompanyStrip(){
    <div className={styles.railShell}>
     <button className={`${styles.arrow} ${styles.prev}`} type="button" onClick={()=>move(-1)} aria-label="Ver empresas anteriores">‹</button>
     <div ref={rail} className={styles.logos} role="list" aria-label="Empresas con oportunidades públicas disponibles">
-     {companies.map(c=><Link className={styles.logo} key={c.name} title={`Ver oportunidades de ${c.name}`} role="listitem" href={`/empleos?empresa=${encodeURIComponent(c.name)}`}><CompanyLogo {...c}/><b>{c.name}</b><small>Ver vacantes</small></Link>)}
+     {companies.map(c=><Link className={styles.logo} key={c.name} title={`Ver oportunidades de ${c.name}`} role="listitem" href={`/empleos?empresa=${encodeURIComponent(c.name)}`}><CompanyLogo domain={c.domain} initials={c.initials}/><b>{c.name}</b><small>Ver vacantes</small></Link>)}
     </div>
     <button className={`${styles.arrow} ${styles.next}`} type="button" onClick={()=>move(1)} aria-label="Ver más empresas">›</button>
    </div>

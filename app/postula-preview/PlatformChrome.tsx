@@ -6,8 +6,6 @@ import NexoLauncher from './NexoLauncher'
 import MessageLauncher from './MessageLauncher'
 import PushDevicePrompt from './PushDevicePrompt'
 import AccountNavLink from './AccountNavLink'
-import HomeCompanyStrip from './HomeCompanyStrip'
-import HomeJobVisualSync from './HomeJobVisualSync'
 import FlexNamingBridge from './FlexNamingBridge'
 import './integration-v8.css'
 import './premium-v9.css'
@@ -60,7 +58,7 @@ export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'em
       <Link href="/empresas" className={`${styles.navPrimary} pm-role-switch`}>Soy empleador</Link>
       <AccountNavLink audience="candidate" className={`${styles.navAccent} pm-social-account`}/>
     </nav>
-  </header><PushDevicePrompt/><HomeJobVisualSync/><HomeCompanyStrip/><LandingConversationV12/></>
+  </header><PushDevicePrompt/><LandingConversationV12/></>
 }
 
 export function MobileNav({active='inicio'}:{active?:'inicio'|'empleos'|'cuenta'|'cv'|'changas'|'mensajes'}){
