@@ -3,6 +3,13 @@ import type {NextRequest} from 'next/server'
 
 const POSTULA_MAINTENANCE=false
 
+function isPostulaHost(request:NextRequest){
+ const host=(request.headers.get('host')||'').split(':')[0].toLowerCase()
+ return host==='postulamejor.com'||host==='www.postulamejor.com'
+}
+function isSensitivePostulaPath(pathname:string){
+ return pathname==='/login'||pathname==='/registro'||pathname==='/mensajes'||pathname.startsWith('/mi-cuenta')||pathname.startsWith('/postular/')||pathname==='/empresas/login'||pathname==='/empresas/registro'||pathname.startsWith('/mi-postula-preview')||pathname.startsWith('/postulacion-preview/')||pathname==='/postula-login-preview'||pathname==='/postula-registro-preview'
+}
 function secure(response:NextResponse,request:NextRequest){
  response.headers.set('X-Content-Type-Options','nosniff')
  response.headers.set('X-Frame-Options','SAMEORIGIN')
@@ -11,11 +18,26 @@ function secure(response:NextResponse,request:NextRequest){
  response.headers.set('Permissions-Policy',cameraAllowed?'camera=(self), microphone=(self), geolocation=()':'camera=(), microphone=(self), geolocation=()')
  response.headers.set('X-Permitted-Cross-Domain-Policies','none')
  response.headers.set('X-DNS-Prefetch-Control','off')
- response.headers.set('Strict-Transport-Security','max-age=31536000; includeSubDomains')
+ response.headers.set('Strict-Transport-Security','max-age=63072000; includeSubDomains; preload')
  const authPopupAllowed=request.nextUrl.pathname==='/login'||request.nextUrl.pathname==='/registro'||request.nextUrl.pathname==='/empresas/login'||request.nextUrl.pathname==='/empresas/registro'
  response.headers.set('Cross-Origin-Opener-Policy',authPopupAllowed?'same-origin-allow-popups':'same-origin')
  response.headers.set('Origin-Agent-Cluster','?1')
+ response.headers.set('Cross-Origin-Resource-Policy','same-site')
  response.headers.set('Content-Security-Policy',"base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; upgrade-insecure-requests")
+ if(isPostulaHost(request)){
+  response.headers.set('X-Frame-Options','DENY')
+  response.headers.set('Content-Security-Policy',"base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests")
+  const pathname=request.nextUrl.pathname
+  if(isSensitivePostulaPath(pathname)){
+   response.headers.set('Cache-Control','private, no-store, max-age=0, must-revalidate')
+   response.headers.set('Pragma','no-cache')
+   response.headers.set('X-Robots-Tag','noindex, nofollow, noarchive, nosnippet')
+  }
+  if(pathname.startsWith('/api/postula/')){
+   response.headers.set('Cache-Control','private, no-store, max-age=0, must-revalidate')
+   response.headers.set('Pragma','no-cache')
+  }
+ }
  return response
 }
 
