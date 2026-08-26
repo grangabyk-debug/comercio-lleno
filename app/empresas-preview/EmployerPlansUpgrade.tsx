@@ -1,6 +1,6 @@
 'use client'
 
-import {useEffect,useState} from 'react'
+import {useEffect,useRef,useState} from 'react'
 import {cvAuthClient} from '../cv-ia/cvAuth'
 
 type PlanId='gratis'|'impulso'|'seleccion'|'escala'|'empresa'
@@ -9,23 +9,51 @@ const PLAN_LABEL:Record<PlanId,string>={gratis:'Gratis',impulso:'Impulso',selecc
 
 export default function EmployerPlansUpgrade(){
  const [notice,setNotice]=useState('')
+ const [busyPlan,setBusyPlan]=useState<PlanId|null>(null)
+ const checkoutLock=useRef(false)
+
  async function startPlan(plan:PlanId){
+  if(checkoutLock.current)return
+  checkoutLock.current=true
+  const paid=plan==='impulso'||plan==='seleccion'||plan==='escala'
   try{
    localStorage.setItem('pm_selected_company_plan',plan)
+   setNotice('')
+   if(paid){
+    setBusyPlan(plan)
+    await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()))
+   }
    const {data}=await cvAuthClient().auth.getSession()
    const session=data.session
-   if(!session){location.assign(`/empresas/registro?plan=${encodeURIComponent(plan)}`);return}
-   if(plan==='gratis'){location.assign('/empresas/panel?plan=gratis');return}
-   if(plan==='empresa'){location.assign('/empresas/configuracion?plan=empresa&origen=planes');return}
+   if(!session){setBusyPlan(null);checkoutLock.current=false;location.assign(`/empresas/registro?plan=${encodeURIComponent(plan)}`);return}
+   if(plan==='gratis'){setBusyPlan(null);checkoutLock.current=false;location.assign('/empresas/panel?plan=gratis');return}
+   if(plan==='empresa'){setBusyPlan(null);checkoutLock.current=false;location.assign('/empresas/configuracion?plan=empresa&origen=planes');return}
    const response=await fetch('/api/postula/billing/checkout',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'},body:JSON.stringify({plan})})
    const payload=await response.json().catch(()=>({}))
-   if(response.status===409&&payload?.code==='needs_company'){location.assign(`/empresas/registro?plan=${encodeURIComponent(plan)}`);return}
+   if(response.status===409&&payload?.code==='needs_company'){setBusyPlan(null);checkoutLock.current=false;location.assign(`/empresas/registro?plan=${encodeURIComponent(plan)}`);return}
    if(response.ok&&payload?.init_point){location.assign(payload.init_point);return}
+   setBusyPlan(null)
+   checkoutLock.current=false
    setNotice(payload?.error||`Tu plan ${PLAN_LABEL[plan]} quedó seleccionado. Terminá la configuración de la empresa para continuar.`)
-  }catch{setNotice('No pudimos abrir el pago ahora. Tu plan quedó seleccionado para continuar después.')}
+  }catch{
+   setBusyPlan(null)
+   checkoutLock.current=false
+   setNotice('No pudimos abrir el pago ahora. Tu plan quedó seleccionado para continuar después.')
+  }
  }
 
  useEffect(()=>{
+  const ensureHint=(rel:string,href:string)=>{
+   if(document.head.querySelector(`link[rel="${rel}"][href="${href}"]`))return
+   const link=document.createElement('link')
+   link.rel=rel
+   link.href=href
+   if(rel==='preconnect')link.crossOrigin='anonymous'
+   document.head.appendChild(link)
+  }
+  ensureHint('dns-prefetch','//www.mercadopago.com.ar')
+  ensureHint('preconnect','https://www.mercadopago.com.ar')
+
   let frame=0
   const enhance=()=>{
    const plans=document.querySelector('.pm7-employer-plans') as HTMLElement|null
@@ -63,6 +91,16 @@ export default function EmployerPlansUpgrade(){
   return()=>cancelAnimationFrame(frame)
  },[])
 
- if(!notice)return null
- return <div className="pm19-plan-notice" role="status"><div><b>Plan guardado</b><span>{notice}</span></div><button type="button" onClick={()=>setNotice('')} aria-label="Cerrar">×</button></div>
+ return <>
+  {busyPlan&&<div className="pm19-checkout-overlay" role="status" aria-live="polite" aria-busy="true">
+   <div className="pm19-checkout-card">
+    <div className="pm19-checkout-provider"><span>MP</span><b>Mercado Pago</b></div>
+    <div className="pm19-checkout-spinner" aria-hidden="true"/>
+    <strong>Te estamos llevando a Mercado Pago</strong>
+    <p>Estamos preparando el checkout seguro de <b>{PLAN_LABEL[busyPlan]}</b>. Puede tardar unos segundos.</p>
+    <small>No cierres esta ventana.</small>
+   </div>
+  </div>}
+  {notice&&<div className="pm19-plan-notice" role="status"><div><b>No pudimos continuar</b><span>{notice}</span></div><button type="button" onClick={()=>setNotice('')} aria-label="Cerrar">×</button></div>}
+ </>
 }
