@@ -1,6 +1,6 @@
 'use client'
 
-import {FormEvent,useMemo,useState} from 'react'
+import {FormEvent,useEffect,useMemo,useState} from 'react'
 import {cvAuthClient} from '../cv-ia/cvAuth'
 
 type MinePost={id:string;title:string;category?:string;description?:string;location_text?:string;compensation_text?:string;scheduled_for?:string|null;status:string;created_at?:string}
@@ -10,7 +10,9 @@ function statusLabel(status:string){if(status==='published')return'Activa';if(st
 function statusHelp(status:string){if(status==='published')return'Visible en Servicios Flex';if(status==='closed')return'Ya no se muestra públicamente';if(status==='removed')return'Eliminada de la vista pública';return'No está visible públicamente'}
 function dateLabel(value?:string){if(!value)return'';const d=new Date(value);return Number.isNaN(d.getTime())?'':d.toLocaleDateString('es-AR',{day:'2-digit',month:'short',year:'numeric'})}
 
-export default function FlexManager(){
+export default function FlexManager({accountMode=false}:{accountMode?:boolean}){
+ const[authReady,setAuthReady]=useState(false)
+ const[authenticated,setAuthenticated]=useState(false)
  const[open,setOpen]=useState(false)
  const[loading,setLoading]=useState(false)
  const[busy,setBusy]=useState(false)
@@ -25,21 +27,24 @@ export default function FlexManager(){
 
  async function token(){const{data}=await cvAuthClient().auth.getSession();return data.session?.access_token||''}
  async function load(){
-  const t=await token();if(!t){location.assign('/login?next=/servicios-flex');return}
+  const t=await token();if(!t){setAuthenticated(false);return}
   setLoading(true);setNotice('')
   try{const r=await fetch('/api/postula/flex?mine=1',{headers:{Authorization:`Bearer ${t}`},cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok||!d?.ok)throw new Error(d?.error||'No pudimos cargar tus publicaciones.');setPosts(Array.isArray(d.posts)?d.posts:[])}catch(e){setNotice(e instanceof Error?e.message:'No pudimos cargar tus publicaciones.')}finally{setLoading(false)}
  }
+ useEffect(()=>{let alive=true;(async()=>{const{data}=await cvAuthClient().auth.getSession();if(!alive)return;const ok=Boolean(data.session);setAuthenticated(ok);setAuthReady(true)})().catch(()=>{if(alive){setAuthenticated(false);setAuthReady(true)}});return()=>{alive=false}},[])
+ useEffect(()=>{if(accountMode&&authenticated)void load()},[accountMode,authenticated])
  async function openManager(){setOpen(true);setEditId('');setConfirm(null);await load()}
  async function action(kind:'edit_description'|'finish'|'remove',post:MinePost,description?:string){
-  if(busy)return;const t=await token();if(!t){location.assign('/login?next=/servicios-flex');return}
+  if(busy)return;const t=await token();if(!t){location.assign('/login?next=/mi-cuenta#publicaciones');return}
   setBusy(true);setNotice('')
-  try{const r=await fetch('/api/postula/flex/manage',{method:'POST',headers:{Authorization:`Bearer ${t}`,'Content-Type':'application/json'},body:JSON.stringify({action:kind,post_id:post.id,description})});const d=await r.json().catch(()=>({}));if(!r.ok||!d?.ok)throw new Error(d?.error||'No pudimos actualizar la publicación.');setNotice(String(d.message||'Publicación actualizada.'));setEditId('');setConfirm(null);await load();window.setTimeout(()=>location.reload(),700)}catch(e){setNotice(e instanceof Error?e.message:'No pudimos actualizar la publicación.')}finally{setBusy(false)}
+  try{const r=await fetch('/api/postula/flex/manage',{method:'POST',headers:{Authorization:`Bearer ${t}`,'Content-Type':'application/json'},body:JSON.stringify({action:kind,post_id:post.id,description})});const d=await r.json().catch(()=>({}));if(!r.ok||!d?.ok)throw new Error(d?.error||'No pudimos actualizar la publicación.');setNotice(String(d.message||'Publicación actualizada.'));setEditId('');setConfirm(null);await load()}catch(e){setNotice(e instanceof Error?e.message:'No pudimos actualizar la publicación.')}finally{setBusy(false)}
  }
  function startEdit(post:MinePost){setConfirm(null);setEditId(post.id);setEditText(String(post.description||''));setNotice('')}
  function saveEdit(e:FormEvent,post:MinePost){e.preventDefault();void action('edit_description',post,editText)}
 
+ if(!authReady||!authenticated)return null
  return <>
-  <div className="pm37-launch"><div><span>TUS SERVICIOS FLEX</span><b>Administrá lo que publicaste</b><small>Podés editar solo la descripción, finalizar o eliminar una publicación. El crédito usado no se reintegra.</small></div><button type="button" onClick={()=>void openManager()}>Mis publicaciones</button></div>
+  {accountMode?<div className="pm38-account-pubs"><div className="pm38-account-pubs-head"><div><span>MIS PUBLICACIONES</span><h2>Servicios Flex que publicaste.</h2><p>Acá están separados de Favoritos. Incluye lo que hayas publicado como persona o desde una empresa que administrás.</p></div><a href="/servicios-flex?clasificar=1">+ Publicar servicio</a></div>{loading?<div className="pm38-account-pubs-empty">Cargando publicaciones…</div>:visible.length?<div className="pm38-account-pubs-list">{visible.slice(0,4).map(post=><article key={post.id}><div><span data-status={post.status}>{statusLabel(post.status)}</span><small>{dateLabel(post.created_at)}</small></div><h3>{post.title}</h3><p>{post.category||'Servicio Flex'} · {post.location_text||'Zona a coordinar'}</p></article>)}</div>:<div className="pm38-account-pubs-empty"><b>Todavía no publicaste ningún Servicio Flex.</b><span>Cuando publiques uno, va a aparecer en esta sección de tu cuenta.</span></div>}<div className="pm38-account-pubs-actions"><button type="button" onClick={()=>void openManager()}>Administrar mis publicaciones</button><a href="/servicios-flex#explorar">Ver Servicios Flex</a></div></div>:<div className="pm37-launch"><div><span>TUS SERVICIOS FLEX</span><b>Administrá lo que publicaste</b><small>Esta opción aparece únicamente cuando iniciás sesión. También está disponible desde Mi cuenta.</small></div><button type="button" onClick={()=>void openManager()}>Mis publicaciones</button></div>}
 
   {open&&<div className="pm37-overlay" role="dialog" aria-modal="true" aria-labelledby="pm37-title"><section className="pm37-card">
    <header><div><span>GESTIÓN DE SERVICIOS FLEX</span><h2 id="pm37-title">Mis publicaciones</h2><p>{activeCount?`${activeCount} ${activeCount===1?'publicación activa':'publicaciones activas'}`:'No tenés publicaciones activas'} · los créditos consumidos no vuelven al finalizar o eliminar.</p></div><button type="button" onClick={()=>setOpen(false)} aria-label="Cerrar">×</button></header>

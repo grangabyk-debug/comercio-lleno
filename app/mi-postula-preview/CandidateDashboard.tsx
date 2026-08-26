@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import {FormEvent,useEffect,useMemo,useRef,useState} from 'react'
 import {cvAuthClient} from '../cv-ia/cvAuth'
+import FlexManager from '../changas-preview/FlexManager'
 import NativeApplications from './NativeApplications'
 import FlexFavorites from './FlexFavorites'
 
@@ -31,7 +32,7 @@ export default function CandidateDashboard({jobCount=0}:{jobCount?:number}){
  return <div className="pm34-shell">
   <aside className="pm34-sidebar">
    <div className="pm34-side-person"><button type="button" onClick={()=>avatarRef.current?.click()} className="pm34-mini-avatar" style={signedAvatar?{backgroundImage:`url(${signedAvatar})`}:{}}>{signedAvatar?'':initials(profile.display_name||email)}</button><div><b>{profile.display_name||'Tu perfil'}</b><small>{candidate.headline||email}</small></div></div>
-   <nav><a href="#perfil" className="active">Perfil</a><a href="#cv">Mi CV</a><a href="#postulaciones">Postulaciones</a><Link href="/mensajes">Mensajes</Link><a href="#flex">Trabajo Flex</a><Link href="/mi-cuenta/preferencias">Preferencias</Link></nav>
+   <nav><a href="#perfil" className="active">Perfil</a><a href="#cv">Mi CV</a><a href="#postulaciones">Postulaciones</a><Link href="/mensajes">Mensajes</Link><a href="#publicaciones">Mis publicaciones</a><a href="#flex">Servicio Flex</a><a href="#favoritos">Favoritos</a><Link href="/mi-cuenta/preferencias">Preferencias</Link></nav>
    <div className="pm34-side-role"><small>{hasEmployer?'TENÉS PERFIL DE EMPRESA':'¿TAMBIÉN CONTRATÁS?'}</small><p>{hasEmployer?'Podés cambiar al panel de tu empresa sin mezclar los datos personales.':'Creá el perfil de tu empresa con sus propios datos y mantenelo separado de tu búsqueda laboral.'}</p><Link href={hasEmployer?'/empresas/panel':'/empresas/registro'}>{hasEmployer?'Ir a mi empresa':'Crear perfil de empresa'}</Link></div>
   </aside>
   <main className="pm34-main">
@@ -51,10 +52,12 @@ export default function CandidateDashboard({jobCount=0}:{jobCount?:number}){
     <article className="pm34-card pm34-linkedin"><div className="pm34-card-head"><div><span>LINKEDIN</span><h2>{candidate.linkedin_url?'Perfil vinculado por URL.':'Sumá tu perfil profesional externo.'}</h2></div></div><p>{candidate.linkedin_url?'Podés abrirlo o cambiar el enlace cuando quieras.':'Agregar LinkedIn es opcional. Sirve para completar contexto profesional sin mezclarlo con tu CV.'}</p>{candidate.linkedin_url?<a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer">Abrir LinkedIn ↗</a>:<button type="button" onClick={()=>setEditing(true)}>Agregar LinkedIn</button>}</article>
    </section>
 
-   <section className="pm34-quick"><Link href="/mensajes"><span>MENSAJES</span><b>Conversaciones</b><small>Empresas y Trabajo Flex</small></Link><Link href="/trabajos-flex"><span>TRABAJO FLEX</span><b>Oportunidades puntuales</b><small>Explorá y guardá tareas</small></Link><Link href="/mi-cuenta/preferencias"><span>PREFERENCIAS</span><b>Privacidad y notificaciones</b><small>Todo lo de configuración, separado</small></Link><Link href="/empleos"><span>EMPLEOS</span><b>{jobCount} oportunidades</b><small>Filtrá por área y zona</small></Link></section>
+   <section className="pm34-quick"><Link href="/mensajes"><span>MENSAJES</span><b>Conversaciones</b><small>Empresas y Servicios Flex</small></Link><Link href="/servicios-flex"><span>SERVICIO FLEX</span><b>Servicios puntuales</b><small>Explorá, filtrá y guardá servicios</small></Link><a href="#publicaciones"><span>MIS PUBLICACIONES</span><b>Lo que publicaste</b><small>Administrá tus Servicios Flex</small></a><a href="#favoritos"><span>FAVORITOS</span><b>Guardados</b><small>Empleos y Servicios Flex</small></a></section>
 
    <section id="postulaciones"><NativeApplications/></section>
-   <section id="flex"><FlexFavorites/></section>
+   <section id="publicaciones"><FlexManager accountMode/></section>
+   <section id="flex" className="pm38-flex-account-link"><div><span>SERVICIO FLEX</span><h2>Servicios puntuales, separados de empleos.</h2><p>Buscá tareas independientes con principio y fin definidos. Para puestos de trabajo o relaciones laborales usá Empleos.</p></div><Link href="/servicios-flex">Explorar Servicios Flex</Link></section>
+   <section id="favoritos"><FlexFavorites/></section>
   </main>
   {preview&&<div className="pm34-preview-backdrop" onMouseDown={e=>{if(e.currentTarget===e.target)setPreview(false)}}><section className="pm34-preview" role="dialog" aria-modal="true" aria-label="Vista del perfil para empresas"><header><div><span>VISTA DE EMPRESA</span><b>Así se presenta tu perfil</b></div><button onClick={()=>setPreview(false)}>×</button></header><div className="pm34-preview-person"><div className="pm34-preview-avatar" style={signedAvatar?{backgroundImage:`url(${signedAvatar})`}:{}}>{signedAvatar?'':initials(profile.display_name||email)}</div><div><h2>{profile.display_name||'Nombre del postulante'}</h2><p>{candidate.headline||'Titular profesional'}</p><span>{candidate.city||candidate.province||'Ubicación no publicada'}</span></div></div><div className="pm34-preview-section"><small>HABILIDADES</small><div>{(candidate.skills||[]).length?(candidate.skills||[]).map(s=><span key={s}>{s}</span>):<em>Sin habilidades públicas todavía.</em>}</div></div><div className="pm34-preview-section"><small>DISPONIBILIDAD</small><p>{candidate.availability||'A completar'}</p></div><footer>La empresa sólo ve los datos permitidos por tu configuración de privacidad y por una postulación concreta.</footer></section></div>}
  </div>

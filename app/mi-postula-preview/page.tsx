@@ -6,9 +6,11 @@ import '../postula-preview/premium-v6.css'
 import '../postula-preview/premium-v7.css'
 import '../postula-preview/premium-v7-account.css'
 import '../postula-preview/inner-v5.css'
+import '../changas-preview/flex-manage-v37.css'
 import './account-v8.css'
 import './native-apps.css'
 import './account-media-v33.css'
 import './account-social-v34.css'
+import './account-flex-v38.css'
 export const metadata={title:{absolute:'Mi perfil | Postulá Mejor'},robots:{index:false,follow:false},alternates:{canonical:'https://postulamejor.com/mi-cuenta'}}
 export default function CandidatePage(){return <main className={`${styles.page} pm7-page`}><PlatformHeader/><CandidateDashboard/><PlatformFooter/><MobileNav active="cuenta"/></main>}
