@@ -6,7 +6,9 @@ import {useCallback,useEffect,useRef,useState} from 'react'
 type CompanyCard={name:string;logo:string;count:number}
 
 function initials(name:string){return name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()}
-function fallbackLogo(src:string){try{const host=new URL(src).hostname.replace(/^www\./,'');return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=128`}catch{return''}}
+function domainFrom(src:string){try{return new URL(src).hostname.replace(/^www\./,'')}catch{return''}}
+function googleLogo(src:string){const domain=domainFrom(src);return domain?`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`:src}
+function duckLogo(src:string){const domain=domainFrom(src);return domain?`https://icons.duckduckgo.com/ip3/${domain}.ico`:''}
 
 export default function HomeCompanyRail({companies}:{companies:CompanyCard[]}){
  const rail=useRef<HTMLDivElement>(null)
@@ -24,7 +26,7 @@ export default function HomeCompanyRail({companies}:{companies:CompanyCard[]}){
     <button type="button" className="pm44-company-arrow" onClick={()=>move(-1)} disabled={edge.start} aria-label="Ver empresas anteriores">‹</button>
     <div className="pm44-company-list" ref={rail}>
      {companies.map(company=><Link className="pm44-company-item" href={`/empleos?empresa=${encodeURIComponent(company.name)}`} title={`Ver oportunidades de ${company.name}`} key={company.name}>
-      <span className="pm44-company-logo"><img src={company.logo} alt={`Logo de ${company.name}`} loading="lazy" referrerPolicy="no-referrer" onError={event=>{const img=event.currentTarget;const fallback=fallbackLogo(img.src);if(!img.dataset.fallback&&fallback&&fallback!==img.src){img.dataset.fallback='1';img.src=fallback;return}img.style.display='none';const badge=img.nextElementSibling as HTMLElement|null;if(badge)badge.style.display='flex'}}/><b>{initials(company.name)}</b></span>
+      <span className="pm44-company-logo"><img src={googleLogo(company.logo)} alt={`Logo de ${company.name}`} loading="eager" referrerPolicy="no-referrer" data-source={company.logo} onError={event=>{const img=event.currentTarget;const original=img.dataset.source||'';if(!img.dataset.duck){const fallback=duckLogo(original);if(fallback){img.dataset.duck='1';img.src=fallback;return}}img.style.display='none';const badge=img.nextElementSibling as HTMLElement|null;if(badge)badge.style.display='flex'}}/><b>{initials(company.name)}</b></span>
       <span className="pm44-company-name">{company.name}<small>{company.count===1?'1 aviso':`${company.count} avisos`}</small></span>
      </Link>)}
     </div>
