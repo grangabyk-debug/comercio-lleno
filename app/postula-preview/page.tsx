@@ -3,6 +3,7 @@ import styles from './platform.module.css'
 import {PlatformFooter,PlatformHeader,MobileNav} from './PlatformChrome'
 import {getJobCatalog,type PreviewJob} from './jobs'
 import {previewGigs} from './gigs'
+import HomeCompanyRail from './HomeCompanyRail'
 import './premium-v4.css'
 import './premium-v5.css'
 import './premium-v6.css'
@@ -18,26 +19,33 @@ export const metadata={
 }
 export const revalidate=21600
 
-const homeCompanies=[
- {name:'Coca-Cola FEMSA',logo:'https://coca-colafemsa.com/favicon.ico'},
- {name:'Despegar',logo:'https://www.despegar.com/favicon.ico'},
- {name:'PedidosYa',logo:'https://www.pedidosya.com/favicon.ico'},
- {name:'EY',logo:'https://www.ey.com/favicon.ico'},
- {name:'Emi Labs',logo:'https://www.emilabs.ai/favicon.ico'},
- {name:'Cencosud',logo:'https://www.cencosud.com/favicon.ico'},
-]
 const categoryCards=[
  {title:'Gastronomía',copy:'Bar, cocina, salón, café',image:'https://images.pexels.com/photos/3771118/pexels-photo-3771118.jpeg?auto=compress&cs=tinysrgb&w=900'},
  {title:'Ventas',copy:'Retail, comercial, atención',image:'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=900'},
  {title:'Logística',copy:'Depósito, reparto, operaciones',image:'https://images.pexels.com/photos/6169668/pexels-photo-6169668.jpeg?auto=compress&cs=tinysrgb&w=900'},
  {title:'Administración',copy:'Oficina, soporte, finanzas',image:'https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=900'},
 ]
+const companyPriority=['Coca-Cola FEMSA','Despegar','PedidosYa','EY','Emi Labs','Cencosud']
 function initials(name:string){return name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()}
 function jobVisual(area:string,index:number){const a=area.toLowerCase();if(/venta|comercial|atenci/.test(a))return 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1200';if(/tecn|producto|dise/.test(a))return 'https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=1200';if(/admin|finan|audit/.test(a))return 'https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=1200';return ['https://images.pexels.com/photos/3768126/pexels-photo-3768126.jpeg?auto=compress&cs=tinysrgb&w=1200','https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=1200'][index%2]}
 function extraTag(job:PreviewJob){return job.tags.find(x=>x!==job.area&&x!==job.schedule)}
+function buildHomeCompanies(jobs:PreviewJob[]){
+ const map=new Map<string,{name:string;logo:string;count:number}>()
+ for(const job of jobs){
+  const name=String(job.company||'').trim();if(!name||job.confidential||!job.logoUrl)continue
+  const key=name.toLocaleLowerCase('es-AR');const current=map.get(key)
+  if(current){current.count+=1;if(!current.logo&&job.logoUrl)current.logo=job.logoUrl}else map.set(key,{name,logo:job.logoUrl,count:1})
+ }
+ const priority=new Map(companyPriority.map((name,index)=>[name.toLocaleLowerCase('es-AR'),index]))
+ return [...map.values()].sort((a,b)=>{
+  const ai=priority.get(a.name.toLocaleLowerCase('es-AR'));const bi=priority.get(b.name.toLocaleLowerCase('es-AR'))
+  if(ai!==undefined||bi!==undefined){if(ai===undefined)return 1;if(bi===undefined)return-1;return ai-bi}
+  return b.count-a.count||a.name.localeCompare(b.name,'es')
+ }).slice(0,20)
+}
 
 export default async function PostulaPreview(){
- const jobs=await getJobCatalog();const featured=jobs.slice(0,5)
+ const jobs=await getJobCatalog();const featured=jobs.slice(0,5);const homeCompanies=buildHomeCompanies(jobs)
  return <main className={`${styles.page} pm7-page pm7-candidate`}>
   <PlatformHeader/>
   <section className="pm7-hero"><div className="pm7-hero-bg one"/><div className="pm7-hero-bg two"/><div className="pm7-hero-inner">
@@ -45,7 +53,7 @@ export default async function PostulaPreview(){
    <div className="pm7-hero-visual"><div className="pm7-main-photo"><div className="pm7-main-photo-image"/><div className="pm7-photo-caption"><span>EJEMPLO DE INTERFAZ</span><b>Barista · Café de especialidad</b><small>Presencial · Turno mañana</small></div></div><div className="pm7-float-job"><span className="pm7-float-logo">PM</span><div><small>EJEMPLO DE OPORTUNIDAD</small><b>Vendedor/a · Shopping</b><span>Ubicación y distancia al abrir el aviso</span></div><strong>→</strong></div><div className="pm7-float-msg"><div className="pm7-chat-avatar">PM</div><p><b>Ejemplo de mensaje</b><span>Una empresa puede escribirte desde una postulación real.</span></p><small>vista demo</small></div><div className="pm7-float-match"><b>IA</b><span>Match explicable</span><small>te mostramos por qué</small></div></div>
   </div></section>
 
-  <section id="pm44-company-strip-static" className="pm44-company-strip" aria-label="Empresas con oportunidades visibles"><div className="pm44-company-strip-inner"><div className="pm44-company-strip-copy"><span>EMPRESAS CON AVISOS</span><b>Oportunidades publicadas en nuestro catálogo</b></div><div className="pm44-company-list">{homeCompanies.map(company=><Link className="pm44-company-item" href={`/empleos?empresa=${encodeURIComponent(company.name)}`} title={`Ver oportunidades de ${company.name}`} key={company.name}><span className="pm44-company-logo"><img src={company.logo} alt="" loading="lazy" referrerPolicy="no-referrer"/><b>{initials(company.name)}</b></span><span>{company.name}</span></Link>)}</div><Link className="pm44-company-more" href="/empleos">Ver empleos →</Link><p className="pm44-company-note"><b>Aclaración:</b> estas marcas aparecen porque existen avisos laborales públicos vinculados a ellas dentro del catálogo. Esto no implica relación comercial, representación, patrocinio, afiliación ni vínculo laboral con Postulá Mejor.</p></div></section>
+  <HomeCompanyRail companies={homeCompanies}/>
 
   <section className="pm8-tools"><div className="pm8-tools-head"><div><span className="pm7-eyebrow coral">HERRAMIENTAS GRATIS</span><h2>Tu perfil también se puede entrenar.</h2></div><p>No tenés que comprar nada para empezar. Creá una cuenta simple y usá el diagnóstico ATS, el test vocacional, el creador de primer CV y la biblioteca de plantillas.</p></div><div className="pm8-tool-grid">
    <Link href="/mejorar-cv" className="pm8-tool"><i/><span>ATS + diagnóstico</span><h3>Mejorá el CV que ya tenés.</h3><p>Subilo, elegí un puesto y entendé qué ve un sistema ATS, un recruiter y quien contrata.</p><b>Analizar gratis →</b></Link>
