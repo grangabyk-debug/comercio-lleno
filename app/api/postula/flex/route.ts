@@ -6,6 +6,20 @@ const KEY='sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I'
 const FLEX_PUBLIC=`${URL}/storage/v1/object/public/postula-flex-media/`
 const BRAND_PUBLIC=`${URL}/storage/v1/object/public/postula-branding/`
 const text=(v:unknown,n=900)=>String(v??'').trim().slice(0,n)
+function normalized(v:unknown){return text(v,2600).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9$+\s-]/g,' ').replace(/\s+/g,' ').trim()}
+function employmentLikeService(values:{title:string;category:string;description:string;duration:string;compensation:string}){
+ const hay=normalized(`${values.title} ${values.category} ${values.description} ${values.duration} ${values.compensation}`)
+ const hardRole=/\b(ninera|ninero|babysitter|empleada domestica|empleado domestico|personal domestico|personal de casas particulares|ama de llaves)\b/
+ if(hardRole.test(hay))return true
+ const strongEmployment=/\b(relacion de dependencia|relacion laboral|puesto de trabajo|puesto laboral|vacante|sueldo|salario|jornada laboral|full time|part time|media jornada|empleado|empleada|incorporacion inmediata|obra social|aguinaldo|presentismo|franco semanal|contrato laboral)\b/
+ if(strongEmployment.test(hay))return true
+ const role=/\b(cajero|cajera|vendedor|vendedora|repositor|repositora|recepcionista|administrativo|administrativa|secretario|secretaria|operario|operaria|mozo|moza|camarero|camarera|cocinero|cocinera|bachero|bachera|chofer|conductor|conductora|sereno|vigilador|vigiladora|encargado|encargada|supervisor|supervisora|gerente|telemarketer|promotor|promotora|playero|playera|cuidador|cuidadora)\b/
+ const hiring=/\b(se busca|buscamos|busco|se necesita|necesitamos|contratamos|para cubrir|cubrir puesto|reemplazo de personal|turno fijo|horario fijo|lunes a viernes|lunes a sabado|todos los dias|cada semana|semanal|mensual|permanente|estable)\b/
+ if(role.test(hay)&&hiring.test(hay))return true
+ const recurring=/\b(todos los dias|cada semana|semanal|mensual|permanente|continuo|continuidad|horario fijo|turno fijo|lunes a viernes|lunes a sabado)\b/
+ const dependency=/\b(supervision|supervisado|supervisada|cumplir horario|asistencia|jefe|encargado|ordenes|indicaciones diarias)\b/
+ return recurring.test(hay)&&dependency.test(hay)
+}
 function db(req:NextRequest){const auth=req.headers.get('authorization')||'';const options:any={auth:{persistSession:false,autoRefreshToken:false}};if(auth)options.global={headers:{Authorization:auth}};return createClient(URL,KEY,options)}
 function objectUrl(base:string,path:string){return base+path.split('/').map(encodeURIComponent).join('/')}
 function firstName(v:string){return v.split(/\s+/).filter(Boolean)[0]||'Persona'}
@@ -95,6 +109,7 @@ export async function POST(req:NextRequest){
 
  const title=text(b?.title,140),category=text(b?.category,80),description=text(b?.description,1800),location=text(b?.location_text,180),compensation=text(b?.compensation_text,120),duration=text(b?.duration_text,100),scheduled=text(b?.scheduled_for,80),companyId=text(b?.company_id,80),imagePath=text(b?.image_path,600),contactPhone=text(b?.contact_phone,40),allowPhone=b?.allow_phone_contact===true
  if(title.length<5||category.length<2||description.length<15||location.length<2)return NextResponse.json({ok:false,error:'Completá título, categoría, descripción y zona o modalidad.'},{status:400})
+ if(employmentLikeService({title,category,description,duration,compensation}))return NextResponse.json({ok:false,code:'employment_like_service',error:'Esto parece corresponder a una búsqueda laboral o una relación de trabajo. Publicalo desde una cuenta de Empresa en Empleos. Servicio Flex es únicamente para servicios puntuales e independientes, con principio y fin definidos.'},{status:400})
  if(allowPhone){const digits=contactPhone.replace(/\D/g,'');if(digits.length<8||digits.length>15)return NextResponse.json({ok:false,error:'Revisá el teléfono. Ingresá un número válido con código de área.'},{status:400})}
  if(/repart|delivery|mensajer[ií]a|movilidad|traslado\s+de\s+personas/i.test(category))return NextResponse.json({ok:false,code:'restricted_category',error:'Reparto y movilidad no están habilitados dentro de Servicios Flex porque tienen un régimen específico para plataformas.'},{status:400})
  let company:any=null
