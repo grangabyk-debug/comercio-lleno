@@ -13,8 +13,8 @@ export default function JobQuickActions({slug,title,company,external}:{slug:stri
    await navigator.clipboard.writeText(url);setCopied(true);setTimeout(()=>setCopied(false),1800)
   }catch{}
  }
- return <div className="pm-job-quick-actions">
-  <Link href={`/postular/${slug}?rapida=1`} className="pm-job-quick-primary">{external?'Preparar postulación rápida':'Postulación rápida'}</Link>
+ return <div className={`pm-job-quick-actions ${external?'external':''}`}>
+  {!external&&<Link href={`/postular/${slug}?rapida=1`} className="pm-job-quick-primary">Postulación rápida</Link>}
   <button type="button" className="pm-job-share" onClick={()=>void share()}><span aria-hidden="true">↗</span>{copied?'Enlace copiado':'Compartir'}</button>
  </div>
 }

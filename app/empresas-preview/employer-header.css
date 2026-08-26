@@ -13,14 +13,14 @@
 
 .pm-employer-topbar-inner{
   width:100%;
-  max-width:1480px;
-  min-height:72px;
+  max-width:1500px;
+  min-height:84px;
   margin:0 auto;
-  padding:10px clamp(20px,4vw,58px);
+  padding:11px clamp(22px,3.6vw,58px);
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:28px;
+  gap:30px;
 }
 
 .pm-employer-wordmark{
@@ -40,7 +40,7 @@
 
 .pm-employer-brand-copy strong{
   color:#10151d;
-  font-size:22px;
+  font-size:23px;
   line-height:.95;
   font-weight:950;
   letter-spacing:-.05em;
@@ -49,7 +49,7 @@
 
 .pm-employer-brand-copy small{
   color:#74802f;
-  font-size:9.5px;
+  font-size:10px;
   line-height:1;
   font-weight:950;
   letter-spacing:.17em;
@@ -60,20 +60,20 @@
   display:flex;
   align-items:center;
   justify-content:flex-end;
-  gap:8px;
+  gap:10px;
   min-width:0;
 }
 
 .pm-employer-topbar-nav>a,
 .pm-employer-topbar-nav>.pm-nexo-launcher{
-  min-height:42px;
+  min-height:52px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  padding:0 14px;
-  border-radius:13px;
+  padding:0 20px;
+  border-radius:15px;
   border:1px solid transparent;
-  font-size:11px;
+  font-size:15px;
   line-height:1;
   font-weight:900;
   white-space:nowrap;
@@ -91,7 +91,7 @@
 }
 
 .pm-employer-topbar-nav>.pm-nexo-launcher{
-  gap:7px;
+  gap:9px;
   color:#071827;
   background:#fff;
   border-color:#dce4e7;
@@ -99,7 +99,7 @@
 }
 
 .pm-employer-topbar-nav>.pm-nexo-launcher>span{
-  font-size:11px;
+  font-size:15px;
   font-weight:950;
 }
 
@@ -108,14 +108,14 @@
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  height:18px;
+  height:24px;
   margin:0;
-  padding:0 6px;
+  padding:0 8px;
   border-radius:999px;
   background:#d9ff59;
   color:#071827;
   border:0;
-  font-size:6px;
+  font-size:8px;
   line-height:1;
   font-weight:950;
   letter-spacing:.045em;
@@ -128,7 +128,7 @@
 }
 
 .pm-employer-topbar-nav>.pm-employer-account{
-  min-width:98px;
+  min-width:108px;
   color:#fff;
   background:#11151d;
   border-color:#11151d;
@@ -136,12 +136,42 @@
 }
 
 .pm-employer-topbar-nav>button[aria-label="Cerrar sesión"]{
-  width:38px!important;
-  height:38px!important;
-  min-height:38px!important;
-  flex:0 0 38px!important;
+  width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
+  flex:0 0 44px!important;
   margin-left:0!important;
-  border-radius:12px!important;
+  border-radius:13px!important;
+}
+
+/* Hero de Empresas: los carteles flotantes tienen que poder leerse de un vistazo. */
+@media(min-width:761px){
+  .pm7-employer .pm17-human-card{
+    width:278px!important;
+    min-height:130px!important;
+    padding:12px!important;
+    grid-template-columns:84px 1fr!important;
+    gap:13px!important;
+  }
+  .pm7-employer .pm17-human-photo{height:102px!important}
+  .pm7-employer .pm17-human-card span{font-size:8.5px!important;line-height:1.25!important}
+  .pm7-employer .pm17-human-card b{font-size:16px!important;line-height:1.12!important}
+  .pm7-employer .pm17-human-card small{font-size:10.5px!important;line-height:1.38!important}
+
+  .pm7-employer .pm7-employer-float{
+    width:300px!important;
+    padding:19px 20px!important;
+    border-radius:24px!important;
+  }
+  .pm7-employer .pm7-employer-float small{font-size:9px!important;line-height:1.2!important;letter-spacing:.08em!important}
+  .pm7-employer .pm7-employer-float b{font-size:21px!important;line-height:1.12!important;margin-top:4px!important}
+  .pm7-employer .pm7-employer-float span{font-size:11.5px!important;line-height:1.45!important;margin-top:5px!important}
+}
+
+@media(max-width:1120px) and (min-width:761px){
+  .pm7-employer .pm17-human-card{width:250px!important;right:218px!important}
+  .pm7-employer .pm7-employer-float{width:270px!important}
+  .pm7-employer .pm7-employer-float b{font-size:19px!important}
 }
 
 @media(max-width:760px){
