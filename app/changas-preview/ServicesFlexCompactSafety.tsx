@@ -4,10 +4,9 @@ import {useEffect,useState} from 'react'
 import {cvAuthClient} from '../cv-ia/cvAuth'
 
 const INFO=[
- {key:'pay',title:'Importe claro',text:'Si el importe ya está definido, queda visible antes de contactar. Si todavía no lo sabés, puede quedar a acordar entre las partes.'},
- {key:'identity',title:'Identidad y contexto',text:'Mostramos señales verificables e historial cuando exista, siempre con contexto y posibilidad de pedir ayuda ante una conducta sospechosa.'},
- {key:'employment',title:'No encubre empleo',text:'Si hay continuidad, dependencia, supervisión permanente o cobertura de un puesto habitual, la publicación debe ir por Empleos y no por Servicios Flex.'},
- {key:'chat',title:'Chat primero',text:'Podés preguntar y acordar condiciones antes de realizar cualquier servicio. No compartas claves, códigos ni documentación sensible sin necesidad legítima.'},
+ {key:'home',title:'Trabajo doméstico recurrente',text:'Servicios Flex no está pensado para trabajo habitual en casas particulares. Si la tarea es periódica, continua o encuadra en un régimen especial, debe gestionarse por la vía que corresponda.'},
+ {key:'employment',title:'Lo que ya es una relación laboral',text:'Si hay continuidad, dependencia, horario fijo, supervisión permanente o cobertura de un puesto habitual, corresponde publicarlo como Empleo y no como Servicio Flex.'},
+ {key:'blocked',title:'Qué no se publica',text:'No permitimos pedidos ilegales, riesgosos, engañosos, reparto o traslado coordinado por la plataforma, ni tareas que intenten ocultar una relación laboral o un régimen especial.'},
 ] as const
 
 const PACKS=[
@@ -73,9 +72,9 @@ export default function ServicesFlexCompactSafety(){
    </div>
 
    <div className="pmsf-info-grid">
-    {INFO.map(item=><div className={`pmsf-info-card ${item.key}`} key={item.key} onMouseLeave={()=>setOpen(v=>v===item.key?'':v)}>
+    {INFO.map(item=><div className={`pmsf-info-card ${item.key}`} data-open={open===item.key} key={item.key} onMouseLeave={()=>setOpen(v=>v===item.key?'':v)}>
       <b>{item.title}</b>
-      <button type="button" className="pmsf-info-button" aria-label={`Información sobre ${item.title}`} aria-expanded={open===item.key} onMouseEnter={()=>setOpen(item.key)} onFocus={()=>setOpen(item.key)} onClick={()=>setOpen(v=>v===item.key?'':item.key)}>i</button>
+      <button type="button" className="pmsf-info-button" aria-label={`Ver ${item.title}`} aria-expanded={open===item.key} onMouseEnter={()=>setOpen(item.key)} onFocus={()=>setOpen(item.key)} onClick={()=>setOpen(v=>v===item.key?'':item.key)}>→</button>
       {open===item.key&&<div className="pmsf-info-tooltip" role="tooltip">{item.text}</div>}
     </div>)}
    </div>

@@ -11,6 +11,7 @@ import './flex-polish-v27.css'
 import './flex-media-v33.css'
 import './flex-publish-v34.css'
 import './flex-compact-safety-v35.css'
+import './flex-neon-rules-v36.css'
 
 export const metadata={title:{absolute:'Servicios Flex | Postulá Mejor'},description:'Tareas puntuales y servicios independientes concretos cerca tuyo, con contexto, chat y reglas claras antes de acordar.',robots:{index:true,follow:true},alternates:{canonical:'https://postulamejor.com/servicios-flex'}}
 

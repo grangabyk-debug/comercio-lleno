@@ -1,0 +1,21 @@
+/* Servicios Flex V36 — reglas con borde neón y movimiento sutil */
+.pmsf-info-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:6px 0 30px}
+.pmsf-info-card{--neon-a:#ff49d8;--neon-b:#785cff;--neon-c:#73e7ff;position:relative;isolation:isolate;min-height:112px;padding:25px 72px 25px 25px;border:1.5px solid transparent;border-radius:25px;background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(249,250,255,.96)) padding-box,linear-gradient(115deg,var(--neon-a),var(--neon-b),var(--neon-c),var(--neon-a)) border-box;background-size:100% 100%,260% 260%;box-shadow:0 16px 44px rgba(38,38,72,.08),0 0 28px color-mix(in srgb,var(--neon-b) 13%,transparent);transition:transform .28s ease,box-shadow .28s ease;animation:pmsfNeonBorder 8s ease-in-out infinite;overflow:visible}
+.pmsf-info-card.home{--neon-a:#ff5acc;--neon-b:#7b5dff;--neon-c:#b381ff}
+.pmsf-info-card.employment{--neon-a:#b15cff;--neon-b:#6467ff;--neon-c:#5ad7ff;animation-delay:-2.7s}
+.pmsf-info-card.blocked{--neon-a:#57d4ff;--neon-b:#8d62ff;--neon-c:#d5ff58;animation-delay:-5.1s}
+.pmsf-info-card:before{content:"";position:absolute;z-index:-1;inset:9px 16px -11px;border-radius:22px;background:linear-gradient(100deg,var(--neon-a),var(--neon-b),var(--neon-c));filter:blur(23px);opacity:.18;transition:opacity .28s ease,transform .28s ease;pointer-events:none}
+.pmsf-info-card:after{content:"";position:absolute;left:20px;right:78px;bottom:18px;height:1px;background:linear-gradient(90deg,transparent,var(--neon-b),var(--neon-c),transparent);opacity:.32;transform:scaleX(.76);transition:opacity .28s ease,transform .28s ease;pointer-events:none}
+.pmsf-info-card:hover,.pmsf-info-card[data-open=true]{transform:translateY(-5px);box-shadow:0 24px 54px rgba(34,35,68,.12),0 0 34px color-mix(in srgb,var(--neon-b) 24%,transparent)}
+.pmsf-info-card:hover:before,.pmsf-info-card[data-open=true]:before{opacity:.32;transform:scale(1.03)}
+.pmsf-info-card:hover:after,.pmsf-info-card[data-open=true]:after{opacity:.72;transform:scaleX(1)}
+.pmsf-info-card>b{position:relative;z-index:2;font-size:19px;line-height:1.12;letter-spacing:-.03em;color:#171925;font-weight:900}
+.pmsf-info-button{right:21px;width:42px;height:42px;border-radius:50%;border:1px solid color-mix(in srgb,var(--neon-b) 38%,#d9dde8);background:rgba(255,255,255,.78);backdrop-filter:blur(10px);color:#242735;font-size:18px;font-weight:750;box-shadow:0 7px 20px rgba(45,45,80,.09),inset 0 0 0 1px rgba(255,255,255,.55);transition:transform .24s ease,background .24s ease,color .24s ease,box-shadow .24s ease}
+.pmsf-info-button:hover,.pmsf-info-button:focus-visible,.pmsf-info-card[data-open=true] .pmsf-info-button{transform:translateY(-50%) translateX(3px) scale(1.05);background:#171925;color:#fff;border-color:transparent;box-shadow:0 8px 26px color-mix(in srgb,var(--neon-b) 30%,transparent);outline:none}
+.pmsf-info-tooltip{left:16px;right:16px;top:calc(100% + 12px);border:1px solid rgba(255,255,255,.13);background:linear-gradient(135deg,#151824,#20243a);font-size:13px;line-height:1.55;padding:15px 16px;border-radius:17px;box-shadow:0 22px 55px rgba(16,17,29,.25),0 0 28px color-mix(in srgb,var(--neon-b) 14%,transparent);animation:pmsfTooltipIn .2s ease-out both}
+.pmsf-info-tooltip:before{background:#1c2032}
+@keyframes pmsfNeonBorder{0%,100%{background-position:0 0,0% 50%}50%{background-position:0 0,100% 50%}}
+@keyframes pmsfTooltipIn{from{opacity:0;transform:translateY(-5px) scale(.985)}to{opacity:1;transform:none}}
+@media(max-width:900px){.pmsf-info-grid{grid-template-columns:1fr;gap:12px}.pmsf-info-card{min-height:94px;padding:21px 68px 21px 21px}}
+@media(max-width:640px){.pmsf-info-grid{grid-template-columns:1fr;gap:10px}.pmsf-info-card{min-height:82px;padding:17px 60px 17px 17px;border-radius:20px}.pmsf-info-card>b{font-size:16px}.pmsf-info-button{right:15px;width:36px;height:36px;font-size:16px}.pmsf-info-tooltip{position:fixed;left:14px;right:14px;top:auto;bottom:82px;font-size:13px;padding:15px 16px;border-radius:17px;z-index:13000}}
+@media(prefers-reduced-motion:reduce){.pmsf-info-card{animation:none!important;transition:none}.pmsf-info-card:before,.pmsf-info-card:after,.pmsf-info-button,.pmsf-info-tooltip{animation:none!important;transition:none!important}}
