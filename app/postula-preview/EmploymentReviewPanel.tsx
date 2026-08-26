@@ -1,0 +1,40 @@
+'use client'
+
+import Link from 'next/link'
+import {useEffect,useState} from 'react'
+import {cvAuthClient} from '../cv-ia/cvAuth'
+import css from './EmploymentReviewPanel.module.css'
+
+type Review={id:string;direction:string;rating:number;comment?:string|null;reply_body?:string|null;editable_until:string;created_at:string;updated_at:string}
+type ReviewData={ok:boolean;status:string;hired_at?:string|null;editable_until?:string|null;can_review:boolean;viewer_role:'candidate'|'employer';job_title:string;company_name:string;mine:Review|null;other:Review|null;error?:string}
+
+function dateLabel(value?:string|null){if(!value)return'';return new Date(value).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'America/Argentina/Buenos_Aires'})}
+function starsText(value:number){return`${'★'.repeat(Math.max(0,Math.min(5,value)))}${'☆'.repeat(Math.max(0,5-Math.min(5,value)))}`}
+
+export default function EmploymentReviewPanel({applicationId}:{applicationId:string}){
+ const [data,setData]=useState<ReviewData|null>(null),[rating,setRating]=useState(0),[comment,setComment]=useState(''),[reply,setReply]=useState(''),[busy,setBusy]=useState(false),[notice,setNotice]=useState(''),[error,setError]=useState('')
+ async function request(body?:Record<string,unknown>){
+  const {data:auth}=await cvAuthClient().auth.getSession();const token=auth.session?.access_token
+  if(!token)throw new Error('Iniciá sesión para ver esta experiencia.')
+  const r=await fetch(body?'/api/postula/reviews':`/api/postula/reviews?application_id=${encodeURIComponent(applicationId)}`,body?{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({application_id:applicationId,...body})}:{headers:{Authorization:`Bearer ${token}`},cache:'no-store'})
+  const payload=await r.json().catch(()=>({}))
+  if(!r.ok)throw new Error(payload?.error||'No pudimos actualizar la evaluación.')
+  return payload as ReviewData
+ }
+ async function load(){try{const next=await request();setData(next);setRating(Number(next.mine?.rating||0));setComment(String(next.mine?.comment||''));setReply(String(next.other?.reply_body||''))}catch(e){setError(e instanceof Error?e.message:'No pudimos cargar la evaluación.')}}
+ useEffect(()=>{void load()},[applicationId])
+ async function saveReview(){if(!rating||busy)return;setBusy(true);setError('');setNotice('');try{const next=await request({action:'review',rating,comment});setData(next);setRating(Number(next.mine?.rating||rating));setComment(String(next.mine?.comment||comment));setNotice('Calificación guardada. La otra parte fue notificada.')}catch(e){setError(e instanceof Error?e.message:'No pudimos guardar la calificación.')}finally{setBusy(false)}}
+ async function saveReply(){if(!data?.other?.id||!reply.trim()||busy)return;setBusy(true);setError('');setNotice('');try{const next=await request({action:'reply',review_id:data.other.id,reply});setData(next);setReply(String(next.other?.reply_body||reply));setNotice('Observación guardada dentro del plazo.')}catch(e){setError(e instanceof Error?e.message:'No pudimos guardar la observación.')}finally{setBusy(false)}}
+ if(error&&!data)return <div className={css.panel}><div className={css.error}>{error}</div></div>
+ if(!data||data.status!=='hired')return null
+ const employer=data.viewer_role==='employer',otherName=employer?'postulante':'empresa',mineName=employer?'al postulante':'a la empresa'
+ return <section className={css.panel} aria-label="Calificación de experiencia laboral">
+  <div className={css.head}><div><span>EXPERIENCIA LABORAL</span><h3>Calificación bilateral</h3><p>Esta opción se habilitó porque la contratación fue confirmada. Ambas partes tienen el mismo plazo para evaluar, modificar y responder.</p></div><div className={css.deadline} data-open={data.can_review}>{data.can_review?`Hasta ${dateLabel(data.editable_until)}`:'Período cerrado'}</div></div>
+  <div className={css.grid}>
+   <div className={css.card}><small>TU EVALUACIÓN</small><h4>Calificá {mineName}</h4>{data.can_review?<><div className={css.stars} aria-label="Calificación de 1 a 5">{[1,2,3,4,5].map(n=><button type="button" key={n} className={css.star} data-on={rating>=n} onClick={()=>setRating(n)} aria-label={`${n} estrella${n===1?'':'s'}`}>★</button>)}</div><textarea className={css.textarea} maxLength={1200} value={comment} onChange={e=>setComment(e.target.value)} placeholder="Contá brevemente cómo fue la experiencia. Evitá datos sensibles o personales que no correspondan."/><button type="button" className={css.action} disabled={busy||!rating} onClick={()=>void saveReview()}>{busy?'Guardando…':data.mine?'Actualizar calificación':'Guardar calificación'}</button></>:data.mine?<div className={css.review}><strong>{starsText(data.mine.rating)} · {data.mine.rating}/5</strong>{data.mine.comment&&<p>{data.mine.comment}</p>}</div>:<div className={css.closed}>No dejaste una calificación durante los 10 días habilitados.</div>}{data.mine?.reply_body&&<div className={css.reply}><b>Respuesta recibida</b><p>{data.mine.reply_body}</p></div>}</div>
+   <div className={css.card}><small>EVALUACIÓN RECIBIDA</small><h4>Lo que indicó {otherName}</h4>{data.other?<><div className={css.review}><strong>{starsText(data.other.rating)} · {data.other.rating}/5</strong>{data.other.comment&&<p>{data.other.comment}</p>}</div>{data.can_review?<><textarea className={css.textarea} maxLength={1200} value={reply} onChange={e=>setReply(e.target.value)} placeholder="Si querés aclarar algo o estás en desacuerdo, dejá tu observación acá."/><button type="button" className={`${css.action} ${css.secondary}`} disabled={busy||!reply.trim()} onClick={()=>void saveReply()}>{data.other.reply_body?'Actualizar observación':'Responder / dejar observación'}</button></>:data.other.reply_body&&<div className={css.reply}><b>Tu observación</b><p>{data.other.reply_body}</p></div>}</>:<div className={css.closed}>{data.can_review?`La otra parte todavía no dejó su evaluación. Puede hacerlo hasta ${dateLabel(data.editable_until)}.`:'La otra parte no dejó una evaluación durante el plazo.'}</div>}</div>
+  </div>
+  {notice&&<div className={css.saved}>{notice}</div>}{error&&<div className={css.error}>{error}</div>}
+  <div className={css.notice}>El plazo es de 10 días desde que se confirma la contratación. Después queda cerrado y las evaluaciones finalizadas pasan a construir el indicador público. <Link href="/politica-evaluaciones">Cómo funciona la evaluación</Link>.</div>
+ </section>
+}
