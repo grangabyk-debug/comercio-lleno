@@ -5,6 +5,7 @@ import styles from '../postula-preview/platform.module.css'
 import {PlatformFooter,PlatformHeader,MobileNav} from '../postula-preview/PlatformChrome'
 import {getJobCatalog,type PreviewJob} from '../postula-preview/jobs'
 import JobsExplorer from './JobsExplorer'
+import JobCardLinkBehavior from './JobCardLinkBehavior'
 import './jobs-premium.css'
 import './jobs-mobile-fix.css'
 import './jobs-polish-v36.css'
@@ -73,7 +74,7 @@ export default async function JobsPage({searchParams}:JobsPageProps){
  const companyFilter=String(rawCompany||'').trim()
  const catalog=getCachedJobCatalog()
  return <main className={`${styles.page} pm-jobs-page-v5 pm-jobs-page-v7 pm7-page`}>
-  <PlatformHeader/>
+  <PlatformHeader/><JobCardLinkBehavior/>
   <section className="pm7-jobs-hero"><div className="pm7-jobs-hero-inner"><div><span className="pm7-eyebrow coral">TU FEED DE TRABAJO</span><h1>Buscá menos.<br/><em>Descubrí mejor.</em></h1><p>Filtrá por rubro, provincia y ciudad. Si completás tu perfil, también podés ordenar las oportunidades según tus habilidades, zona, modalidad y disponibilidad.</p><div className="pm7-hero-actions"><Link href="/trabajos-flex" className="pm7-btn-black">Ver trabajos flex para hoy</Link><Link href="/mi-cuenta" className="pm7-btn-white">Completar mi perfil</Link></div></div><Suspense fallback={<JobsPulseFallback/>}><JobsPulse catalog={catalog} companyFilter={companyFilter}/></Suspense></div></section>
   <Suspense fallback={<JobsCatalogFallback/>}><JobsCatalog catalog={catalog} companyFilter={companyFilter}/></Suspense>
   <PlatformFooter/><MobileNav active="empleos"/>
