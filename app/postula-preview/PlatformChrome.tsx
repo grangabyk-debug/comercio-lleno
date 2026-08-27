@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import styles from './platform.module.css'
-import MobileChoicePrompt from './MobileChoicePrompt'
 import LandingConversationV12 from './LandingConversationV12'
 import NexoLauncher from './NexoLauncher'
 import MessageLauncher from './MessageLauncher'
@@ -44,7 +43,7 @@ function EmployerHeader(){
 }
 
 export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'employer'}){
-  if(audience==='employer')return <><FlexNamingBridge/><EmployerHeader/><LandingConversationV12/><MobileChoicePrompt/></>
+  if(audience==='employer')return <><FlexNamingBridge/><EmployerHeader/><LandingConversationV12/></>
 
   const headerClass=`${styles.header} pm-social-header pm-social-header-candidate`
   return <><FlexNamingBridge/><header className={headerClass}>
