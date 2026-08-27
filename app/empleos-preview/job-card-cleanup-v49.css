@@ -1,0 +1,3 @@
+/* Las tarjetas completas de empleo ya son clickeables; no repetir CTA visible. */
+.pm-job-card .pm-job-foot>a[href^="/empleos/"]{position:absolute!important;inset:0!important;z-index:1!important;display:block!important;width:100%!important;height:100%!important;opacity:0!important;overflow:hidden!important;text-indent:-9999px!important;pointer-events:none!important}
+.pm-job-card .pm-job-foot{position:relative!important;padding-right:0!important}.pm-job-card{cursor:pointer!important}
