@@ -24,83 +24,32 @@ function visualFor(title:string){
 }
 
 const companyDomains:Record<string,string>={
- 'coca-cola femsa':'coca-colafemsa.com',
- 'cencosud':'cencosud.com',
- 'fleni':'fleni.org.ar',
- 'rex':'pintureriasrex.com',
- 'taranto':'taranto.com.ar',
- 'prodental':'franquiciasprodental.com',
- 'itsm consulting':'itsmconsulting.com.ar',
- 'el precio mayorista':'elpreciomayorista.com.ar',
- 'clarks':'clarksrecoleta.com',
- 'pedidosya':'pedidosya.com.ar',
- 'minor hotels europe & americas':'minorhotels.com',
- 'despegar':'despegar.com',
- 'emi labs':'emilabs.ai',
- 'ey':'ey.com',
- 'mercado libre':'mercadolibre.com.ar',
- 'carrefour':'carrefour.com.ar',
- 'farmacity':'farmacity.com',
- 'frávega':'fravega.com',
- 'fravega':'fravega.com',
+ 'coca-cola femsa':'coca-colafemsa.com','cencosud':'cencosud.com','fleni':'fleni.org.ar','rex':'pintureriasrex.com','taranto':'taranto.com.ar','prodental':'franquiciasprodental.com','itsm consulting':'itsmconsulting.com.ar','el precio mayorista':'elpreciomayorista.com.ar','clarks':'clarksrecoleta.com','pedidosya':'pedidosya.com.ar','minor hotels europe & americas':'minorhotels.com','despegar':'despegar.com','emi labs':'emilabs.ai','ey':'ey.com','mercado libre':'mercadolibre.com.ar','carrefour':'carrefour.com.ar','farmacity':'farmacity.com','frávega':'fravega.com','fravega':'fravega.com',
 }
 
-function logoSources(company:string){
- const domain=companyDomains[company.trim().toLowerCase()]
- if(!domain)return []
- return [
-  `https://${domain}/favicon.ico`,
-  `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(`https://${domain}`)}&sz=256`,
- ]
-}
+const homeZones=[
+ ['','Todo Argentina'],['CABA','CABA'],['Zona Norte GBA','Zona Norte · GBA'],['Zona Oeste GBA','Zona Oeste · GBA'],['Zona Sur GBA','Zona Sur · GBA'],['La Plata','La Plata'],['Rosario','Rosario'],['Córdoba','Córdoba'],['Mendoza','Mendoza'],['Remoto','Remoto'],
+] as const
 
+function logoSources(company:string){const domain=companyDomains[company.trim().toLowerCase()];if(!domain)return[];return[`https://${domain}/favicon.ico`,`https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(`https://${domain}`)}&sz=256`]}
 function installLogo(mark:HTMLElement,company:string){
  if(!company||mark.dataset.pmLogoCompany===company||mark.querySelector('img'))return
- const sources=logoSources(company)
- if(!sources.length)return
- const fallback=(mark.textContent||company.split(/\s+/).slice(0,2).map(x=>x[0]).join('')).trim().toUpperCase()
- mark.dataset.pmLogoCompany=company
- mark.textContent=''
- const image=document.createElement('img')
- image.alt=`Logo de ${company}`
- image.referrerPolicy='no-referrer'
- image.decoding='async'
- image.loading='lazy'
- image.style.cssText='display:block;width:72%;height:72%;margin:auto;object-fit:contain;background:#fff;border-radius:8px;'
- let index=0
- const next=()=>{
-  if(index>=sources.length){image.remove();mark.textContent=fallback;return}
-  image.src=sources[index++]
- }
- image.onerror=next
- mark.appendChild(image)
- next()
+ const sources=logoSources(company);if(!sources.length)return
+ const fallback=(mark.textContent||company.split(/\s+/).slice(0,2).map(x=>x[0]).join('')).trim().toUpperCase();mark.dataset.pmLogoCompany=company;mark.textContent=''
+ const image=document.createElement('img');image.alt=`Logo de ${company}`;image.referrerPolicy='no-referrer';image.decoding='async';image.loading='lazy';image.style.cssText='display:block;width:72%;height:72%;margin:auto;object-fit:contain;background:#fff;border-radius:8px;'
+ let index=0;const next=()=>{if(index>=sources.length){image.remove();mark.textContent=fallback;return}image.src=sources[index++]};image.onerror=next;mark.appendChild(image);next()
 }
-
-function syncJobVisuals(){
- document.querySelectorAll<HTMLElement>('.pm7-social-job').forEach(card=>{
-  const title=card.querySelector('h3')?.textContent?.trim()||''
-  const cover=card.querySelector<HTMLElement>('.pm7-social-job-cover')
-  const visual=visualFor(title)
-  if(cover&&visual)cover.style.backgroundImage=`url(${visual})`
- })
-}
-
-function syncCompanyLogos(){
- document.querySelectorAll<HTMLElement>('.pm7-social-company').forEach(row=>{
-  const company=row.querySelector('div b')?.textContent?.trim()||''
-  const mark=row.firstElementChild
-  if(mark instanceof HTMLElement)installLogo(mark,company)
- })
+function syncJobVisuals(){document.querySelectorAll<HTMLElement>('.pm7-social-job').forEach(card=>{const title=card.querySelector('h3')?.textContent?.trim()||'',cover=card.querySelector<HTMLElement>('.pm7-social-job-cover'),visual=visualFor(title);if(cover&&visual)cover.style.backgroundImage=`url(${visual})`})}
+function syncCompanyLogos(){document.querySelectorAll<HTMLElement>('.pm7-social-company').forEach(row=>{const company=row.querySelector('div b')?.textContent?.trim()||'',mark=row.firstElementChild;if(mark instanceof HTMLElement)installLogo(mark,company)})}
+function installHomeSearch(){
+ const existing=document.querySelector<HTMLElement>('.pm7-search');if(!existing||existing.dataset.pmRealSearch)return
+ const form=document.createElement('form');form.className=`${existing.className} pm-home-job-search`;form.action='/empleos';form.method='get';form.dataset.pmRealSearch='1'
+ const q=document.createElement('label');q.innerHTML='<small>¿Qué querés hacer?</small><input name="q" type="search" autocomplete="off" placeholder="ventas, café, diseño, logística…" aria-label="Puesto o palabra clave">'
+ const zone=document.createElement('label');const select=document.createElement('select');select.name='location';select.setAttribute('aria-label','Zona para buscar trabajo');for(const[value,label]of homeZones){const option=document.createElement('option');option.value=value;option.textContent=label;select.appendChild(option)};const zoneTitle=document.createElement('small');zoneTitle.textContent='¿Dónde?';zone.append(zoneTitle,select)
+ const submit=document.createElement('button');submit.type='submit';submit.textContent='Buscar';form.append(q,zone,submit);existing.replaceWith(form)
 }
 
 export default function HomeJobVisualSync(){
- useEffect(()=>{
-  const frame=requestAnimationFrame(()=>{
-   syncJobVisuals()
-   syncCompanyLogos()
-  })
-  return()=>cancelAnimationFrame(frame)
- },[])
+ useEffect(()=>{const frame=requestAnimationFrame(()=>{syncJobVisuals();syncCompanyLogos();installHomeSearch()});return()=>cancelAnimationFrame(frame)},[])
  return <HomeCompanyStrip/>
 }
