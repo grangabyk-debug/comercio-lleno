@@ -6,6 +6,7 @@ import {cvAuthClient} from '../cv-ia/cvAuth'
 export default function CandidateAvatarPersistence(){
  useEffect(()=>{
   let alive=true
+  let retryTimers:number[]=[]
   const paint=async()=>{
    const client=cvAuthClient();const {data}=await client.auth.getSession();const token=data.session?.access_token
    if(!token||!alive)return
@@ -24,16 +25,29 @@ export default function CandidateAvatarPersistence(){
     el.style.backgroundSize='cover';el.style.backgroundPosition='center';el.style.backgroundRepeat='no-repeat';el.style.color='transparent'
    })
   }
+  const saveButton=()=>Array.from(document.querySelectorAll<HTMLButtonElement>('.pm34-profile-actions button')).find(button=>button.textContent?.trim()==='Guardar foto')
   const autoSave=()=>{
-   const buttons=Array.from(document.querySelectorAll<HTMLButtonElement>('.pm34-profile-actions button'))
-   const save=buttons.find(button=>button.textContent?.trim()==='Guardar foto')
-   if(save&&!save.disabled&&!save.dataset.pmAvatarAutosave){save.dataset.pmAvatarAutosave='1';setTimeout(()=>{if(document.contains(save)&&!save.disabled)save.click()},80)}
+   const save=saveButton()
+   if(!save||save.disabled||save.dataset.pmAvatarAutosave==='saving')return false
+   save.dataset.pmAvatarAutosave='saving'
+   save.click()
+   window.setTimeout(()=>{if(document.contains(save))delete save.dataset.pmAvatarAutosave;void paint()},700)
+   return true
+  }
+  const scheduleAutoSave=()=>{
+   retryTimers.forEach(id=>window.clearTimeout(id));retryTimers=[]
+   ;[120,350,800,1500,2600].forEach(delay=>retryTimers.push(window.setTimeout(()=>{if(alive)autoSave()},delay)))
+  }
+  const onFileChange=(event:Event)=>{
+   const input=event.target as HTMLInputElement|null
+   if(!input?.matches('input[type="file"][accept*="image"]')||!input.files?.length)return
+   scheduleAutoSave()
   }
   void paint();autoSave()
-  const observer=new MutationObserver(()=>{autoSave();void paint()})
+  const observer=new MutationObserver(()=>{if(autoSave())window.setTimeout(()=>void paint(),750)})
   observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']})
-  const refresh=()=>void paint();window.addEventListener('focus',refresh)
-  return()=>{alive=false;observer.disconnect();window.removeEventListener('focus',refresh)}
+  const refresh=()=>void paint();window.addEventListener('focus',refresh);document.addEventListener('change',onFileChange,true)
+  return()=>{alive=false;observer.disconnect();retryTimers.forEach(id=>window.clearTimeout(id));window.removeEventListener('focus',refresh);document.removeEventListener('change',onFileChange,true)}
  },[])
  return null
 }
