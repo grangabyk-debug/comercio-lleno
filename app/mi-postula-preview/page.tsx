@@ -7,6 +7,8 @@ import '../postula-preview/premium-v6.css'
 import '../postula-preview/premium-v7.css'
 import '../postula-preview/premium-v7-account.css'
 import '../postula-preview/inner-v5.css'
+import '../postula-preview/notifications-v16.css'
+import '../changas-preview/flex-credits-v21.css'
 import '../changas-preview/flex-manage-v37.css'
 import '../changas-preview/flex-market-v39.css'
 import './account-v8.css'
@@ -14,5 +16,7 @@ import './native-apps.css'
 import './account-media-v33.css'
 import './account-social-v34.css'
 import './account-flex-v38.css'
-export const metadata={title:{absolute:'Mi perfil | Postulá Mejor'},robots:{index:false,follow:false},alternates:{canonical:'https://postulamejor.com/mi-cuenta'}}
+import './chat/chat.css'
+import './candidate-workspace-v42.css'
+export const metadata={title:{absolute:'Mi cuenta | Postulá Mejor'},robots:{index:false,follow:false},alternates:{canonical:'https://postulamejor.com/mi-cuenta'}}
 export default function CandidatePage(){return <main className={`${styles.page} pm7-page`}><PlatformHeader/><CandidateDashboard/><CandidateAvatarPersistence/><PlatformFooter/><MobileNav active="cuenta"/></main>}
