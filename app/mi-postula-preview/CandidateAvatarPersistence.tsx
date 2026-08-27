@@ -20,7 +20,7 @@ export default function CandidateAvatarPersistence(){
    if(save&&!save.disabled&&!save.dataset.pmAvatarAutosave){save.dataset.pmAvatarAutosave='1';setTimeout(()=>{if(document.contains(save)&&!save.disabled)save.click()},80)}
   }
   void paintExternal();autoSave()
-  const observer=new MutationObserver(()=>{autoSave();void paintExternal()})
+  const observer=new MutationObserver(autoSave)
   observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']})
   return()=>{alive=false;observer.disconnect()}
  },[])
