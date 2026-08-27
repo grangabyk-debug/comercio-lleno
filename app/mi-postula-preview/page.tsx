@@ -18,5 +18,6 @@ import './account-social-v34.css'
 import './account-flex-v38.css'
 import './chat/chat.css'
 import './candidate-workspace-v42.css'
+import './candidate-chat-embed-v42.css'
 export const metadata={title:{absolute:'Mi cuenta | Postulá Mejor'},robots:{index:false,follow:false},alternates:{canonical:'https://postulamejor.com/mi-cuenta'}}
 export default function CandidatePage(){return <main className={`${styles.page} pm7-page`}><PlatformHeader/><CandidateDashboard/><CandidateAvatarPersistence/><PlatformFooter/><MobileNav active="cuenta"/></main>}
