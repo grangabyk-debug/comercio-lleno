@@ -12,7 +12,7 @@ export default function CandidatePlansPayments(){
     <article className="featured"><small>BÚSQUEDA ACTIVA</small><h3>Más ayuda para buscar</h3><p>Funciones adicionales para ordenar y acompañar tu búsqueda laboral.</p><strong>$12.900</strong><span>30 días</span><Link href="/busqueda-activa">Ver y contratar</Link></article>
    </div>
   </section>
-  <section className="pm42-panel"><div className="pm42-section-head"><div><span>SERVICIOS FLEX</span><h2>Créditos para publicar servicios.</h2><p>Si ofrecés o necesitás publicar un Servicio Flex, el saldo personal se administra acá. Los créditos comprados son pagos únicos.</p></div></div><FlexCredits companyId={null} onCompanyChange={()=>{}}/></section>
+  <section className="pm42-panel"><div className="pm42-section-head"><div><span>SERVICIOS FLEX</span><h2>Créditos para publicar servicios.</h2><p>Si ofrecés o necesitás publicar un Servicio Flex, el saldo personal se administra acá. Los créditos comprados son pagos únicos.</p></div></div><FlexCredits companyId={null} onCompanyChange={()=>{}} personalOnly/></section>
   <section className="pm42-panel pm42-payment-help"><div><span>HISTORIAL Y COMPROBANTES</span><h2>Todo pago queda asociado a tu cuenta.</h2><p>Los productos personales y los créditos Flex utilizan Mercado Pago. Si un pago queda pendiente, la acreditación se actualiza cuando Mercado Pago confirma el estado.</p></div><Link href="/soporte">Necesito ayuda con un pago</Link></section>
  </div>
 }
