@@ -87,3 +87,15 @@ export async function POST(req:NextRequest){
  }
  return NextResponse.json({ok:true})
 }
+
+export async function DELETE(req:NextRequest){
+ const db=client(req);const {data:{user},error}=await db.auth.getUser();if(error||!user)return NextResponse.json({ok:false,error:'Iniciá sesión.'},{status:401})
+ const resource=cleanText(req.nextUrl.searchParams.get('resource'),40)
+ if(resource!=='resume')return NextResponse.json({ok:false,error:'Recurso inválido.'},{status:400})
+ const {data:candidate}=await db.from('pm_candidate_profiles').select('resume_path').eq('user_id',user.id).maybeSingle()
+ const path=String(candidate?.resume_path||'')
+ if(path&&path.startsWith(`${user.id}/`)){const {error:removeError}=await db.storage.from('postula-private').remove([path]);if(removeError)return NextResponse.json({ok:false,error:'No pudimos eliminar el archivo del CV.'},{status:400})}
+ const {error:updateError}=await db.from('pm_candidate_profiles').update({resume_path:null,resume_name:null,updated_at:new Date().toISOString()}).eq('user_id',user.id)
+ if(updateError)return NextResponse.json({ok:false,error:updateError.message},{status:400})
+ return NextResponse.json({ok:true,removed:'resume'})
+}
