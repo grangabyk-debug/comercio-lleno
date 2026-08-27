@@ -2,8 +2,9 @@ import {NextRequest,NextResponse} from 'next/server'
 import {createClient} from '@supabase/supabase-js'
 const URL='https://pejkycdttogpmmdntzuq.supabase.co'
 function adminDb(){const key=process.env.SUPABASE_SERVICE_ROLE_KEY;return key?createClient(URL,key,{auth:{persistSession:false,autoRefreshToken:false}}):null}
+function mercadoPagoToken(){return process.env.POSTULA_MERCADOPAGO_ACCESS_TOKEN||process.env.MERCADOPAGO_ACCESS_TOKEN||process.env.MP_ACCESS_TOKEN||''}
 export async function POST(req:NextRequest){
- const admin=adminDb(),token=process.env.POSTULA_MERCADOPAGO_ACCESS_TOKEN;if(!admin||!token)return NextResponse.json({ok:false,error:'Billing no configurado.'},{status:503})
+ const admin=adminDb(),token=mercadoPagoToken();if(!admin||!token)return NextResponse.json({ok:false,error:'Billing no configurado.'},{status:503})
  const b=await req.json().catch(()=>({}));const paymentId=String(req.nextUrl.searchParams.get('data.id')||b?.data?.id||b?.id||'').trim();if(!paymentId)return NextResponse.json({ok:true,ignored:true})
  const response=await fetch(`https://api.mercadopago.com/v1/payments/${encodeURIComponent(paymentId)}`,{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const payment=await response.json().catch(()=>({}));if(!response.ok)return NextResponse.json({ok:false,error:'No pudimos verificar el pago.'},{status:502})
  const ref=String(payment?.external_reference||''),match=/^postula-flex:([0-9a-f-]{36})$/i.exec(ref);if(!match)return NextResponse.json({ok:true,ignored:true})
