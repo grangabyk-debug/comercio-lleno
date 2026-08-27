@@ -14,7 +14,13 @@ function duckLogo(company:CompanyCard){const domain=companyDomain(company);retur
 const railPolish=`
 .pm44-company-more{min-height:50px!important;padding:0 18px!important;border:0!important;background:linear-gradient(135deg,#5d4cff 0%,#7d5bff 58%,#a85cff 100%)!important;color:#fff!important;font-size:13px!important;font-weight:950!important;box-shadow:0 12px 28px rgba(93,76,255,.28)!important;letter-spacing:-.01em!important}.pm44-company-more span{font-size:19px!important;transition:transform .18s ease}.pm44-company-more:hover{transform:translateY(-2px)!important;box-shadow:0 16px 34px rgba(93,76,255,.36)!important}.pm44-company-more:hover span{transform:translateX(3px)}
 .pm44-despegar-mark{width:36px;height:36px;border-radius:11px;background:linear-gradient(145deg,#6046ff,#8d5dff 58%,#d868ff);display:grid;place-items:center;position:relative;color:#fff;font-size:17px;font-weight:950;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 5px 12px rgba(96,70,255,.2)}.pm44-despegar-mark i{position:absolute;right:4px;top:3px;font-style:normal;font-size:8px;transform:rotate(-18deg)}
-@media(max-width:540px){.pm44-company-more{min-height:40px!important;padding:0 12px!important;font-size:10.5px!important}}
+/* Home opportunities: the entire card is already the link. Keep the mode and heart on opposite sides and remove the redundant bottom CTA. */
+.pm7-social-job-cover>span:first-child{position:absolute!important;top:16px!important;left:16px!important;right:auto!important;z-index:4!important;max-width:calc(100% - 92px)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.pm7-social-job-cover>.pm7-home-save{position:absolute!important;top:16px!important;right:16px!important;left:auto!important;z-index:5!important;margin:0!important}
+.pm7-home-open{display:none!important}
+.pm7-social-job-foot{justify-content:flex-start!important}
+.pm7-home-job-link:focus-visible{outline:3px solid #6657ff!important;outline-offset:3px!important}
+@media(max-width:540px){.pm44-company-more{min-height:40px!important;padding:0 12px!important;font-size:10.5px!important}.pm7-social-job-cover>span:first-child{top:13px!important;left:13px!important;max-width:calc(100% - 86px)!important}.pm7-social-job-cover>.pm7-home-save{top:13px!important;right:13px!important}}
 `
 
 export default function HomeCompanyRail({companies}:{companies:CompanyCard[]}){
