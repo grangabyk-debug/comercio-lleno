@@ -12,7 +12,7 @@ export default function CandidateAvatarPersistence(){
    const r=await fetch('/api/postula/profile',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'}).catch(()=>null)
    const d=await r?.json().catch(()=>({}));const avatar=String(d?.profile?.avatar_url||'')
    if(!/^https?:\/\//i.test(avatar))return
-   document.querySelectorAll<HTMLElement>('.pm34-mini-avatar,.pm34-avatar').forEach(el=>{if(!el.style.backgroundImage)el.style.backgroundImage=`url("${avatar.replace(/"/g,'')}")`})
+   document.querySelectorAll<HTMLElement>('.pm34-mini-avatar,.pm34-avatar').forEach(el=>{if(!el.style.backgroundImage){el.style.backgroundImage=`url("${avatar.replace(/"/g,'')}")`;el.style.backgroundSize='cover';el.style.backgroundPosition='center';el.style.color='transparent'}})
   }
   const autoSave=()=>{
    const buttons=Array.from(document.querySelectorAll<HTMLButtonElement>('.pm34-profile-actions button'))
