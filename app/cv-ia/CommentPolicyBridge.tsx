@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import CvPerspectiveRebuild from './CvPerspectiveRebuild'
 
 const LEGACY_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai'
 const COMMENTS_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai-comments'
@@ -55,5 +56,5 @@ export default function CommentPolicyBridge(){
     const observer=new MutationObserver(rewrite);observer.observe(document.body,{subtree:true,childList:true,characterData:true})
     return()=>{window.fetch=nativeFetch as typeof window.fetch;observer.disconnect()}
   },[])
-  return null
+  return <CvPerspectiveRebuild/>
 }
