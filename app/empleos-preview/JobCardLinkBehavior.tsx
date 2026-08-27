@@ -53,5 +53,33 @@ export default function JobCardLinkBehavior(){
     }
   },[])
 
-  return null
+  return <style>{`
+    .pm-jobs-page-v7 .pm-area-rail button{
+      color:#4d5662!important;
+      background:#fff!important;
+      border-color:#d9dfe6!important;
+      box-shadow:none!important;
+    }
+    .pm-jobs-page-v7 .pm-area-rail button:hover,
+    .pm-jobs-page-v7 .pm-area-rail button:focus-visible{
+      color:#ffffff!important;
+      background:#5b4cf0!important;
+      border-color:#5b4cf0!important;
+      box-shadow:0 9px 22px rgba(91,76,240,.22)!important;
+      outline:none!important;
+      transform:translateY(-1px)!important;
+    }
+    .pm-jobs-page-v7 .pm-area-rail button[data-active="true"]{
+      color:#ffffff!important;
+      background:#161820!important;
+      border-color:#161820!important;
+      box-shadow:0 7px 18px rgba(22,24,32,.16)!important;
+    }
+    .pm-jobs-page-v7 .pm-area-rail button[data-active="true"]:hover,
+    .pm-jobs-page-v7 .pm-area-rail button[data-active="true"]:focus-visible{
+      color:#ffffff!important;
+      background:#2a2e39!important;
+      border-color:#2a2e39!important;
+    }
+  `}</style>
 }
