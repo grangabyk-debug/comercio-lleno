@@ -1,0 +1,36 @@
+/* Employer dashboard V49 — una sola dashboard, compacta y navegable */
+.pm48-workspace{--pm49-ink:#10151d;--pm49-muted:#65717e;--pm49-line:#e1e5ea;--pm49-panel:#fff;--pm49-soft:#f6f8fa;--pm49-dark:#0d2733;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}
+.pm48-workspace *{font-family:inherit!important;box-sizing:border-box}
+.pm48-sidebar{position:sticky!important;top:76px!important;height:calc(100dvh - 92px)!important;align-self:start!important;border-radius:24px!important;overflow:hidden!important}
+.pm48-sidebar nav{display:grid!important;gap:6px!important}.pm48-sidebar nav button{min-height:46px!important;border-radius:13px!important;font-size:13px!important}.pm48-sidebar nav button[data-on=true]{background:#d9ff59!important;color:#10151d!important;box-shadow:none!important}
+.pm48-workspace-main{min-width:0!important}.pm48-live{min-width:0!important}
+.pmed-page{font-family:inherit!important;color:var(--pm49-ink)!important}
+.pmed-head{padding:8px 2px 18px!important;align-items:center!important}.pmed-head>div:first-child>span{color:#4c58ff!important}.pmed-head h1{display:inline-block!important;margin:4px 0 3px!important;padding:3px 8px!important;border-radius:8px!important;background:linear-gradient(90deg,#d9ff59,#c9f7c5)!important;color:#10151d!important;font-size:clamp(30px,4vw,48px)!important;line-height:.98!important;letter-spacing:-.05em!important}.pmed-head>div:last-child>a:first-child{display:none!important}
+.pmed-metrics{gap:10px!important;margin-bottom:14px!important}.pmed-metrics article{min-height:112px!important;padding:17px 18px!important;border-radius:20px!important}.pmed-metrics article>b{font-size:34px!important;line-height:1!important}.pmed-metrics article small,.pmed-metrics article span{font-size:11px!important}
+
+/* Resumen: mensajería y embudo comparten una sola fila. */
+.pm48-workspace[data-view=resumen] .pmed-page{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:14px 16px!important;align-items:start!important}
+.pm48-workspace[data-view=resumen] .pmed-head,.pm48-workspace[data-view=resumen] .pmed-assigned,.pm48-workspace[data-view=resumen] .pmed-metrics{grid-column:1/-1!important}
+.pm48-workspace[data-view=resumen] .pmed-inbox{grid-column:1!important;grid-row:auto!important;margin:0!important;min-height:260px!important;height:100%!important;padding:20px!important;border-radius:22px!important}
+.pm48-workspace[data-view=resumen] .pmed-flow{grid-column:2!important;grid-row:auto!important;margin:0!important;min-height:260px!important;height:100%!important;padding:20px!important;border-radius:22px!important}
+.pm48-workspace[data-view=resumen] .pmed-inbox-head h2,.pm48-workspace[data-view=resumen] .pmed-flow-head h2{font-size:22px!important;line-height:1.05!important;margin:4px 0!important}.pm48-workspace[data-view=resumen] .pmed-inbox-head p{font-size:12px!important;line-height:1.45!important;margin:6px 0 0!important}.pm48-workspace[data-view=resumen] .pmed-zero{min-height:90px!important;padding:14px!important}.pm48-workspace[data-view=resumen] .pmed-bars{gap:9px!important}.pm48-workspace[data-view=resumen] .pmed-bars>div{grid-template-columns:96px 1fr 24px!important;gap:8px!important;font-size:11px!important}
+/* El overview no repite vacantes, RRHH ni el listado completo de candidatos: se accede desde el menú. */
+.pm48-workspace[data-view=resumen] .pmed-grid,.pm48-workspace[data-view=resumen] .pmed-candidates{display:none!important}
+
+/* Candidatos: la reputación vive dentro del perfil seleccionado. */
+.pm48-workspace[data-view=candidatos] .pmed-head,.pm48-workspace[data-view=candidatos] .pmed-assigned,.pm48-workspace[data-view=candidatos] .pmed-metrics,.pm48-workspace[data-view=candidatos] .pmed-inbox,.pm48-workspace[data-view=candidatos] .pmed-flow,.pm48-workspace[data-view=candidatos] .pmed-grid{display:none!important}
+.pm48-workspace[data-view=candidatos] .pmed-candidates{margin:0!important;min-height:calc(100dvh - 190px)!important;display:grid!important;grid-template-columns:minmax(260px,.38fr) minmax(0,.62fr)!important;border-radius:24px!important;overflow:hidden!important}.pm48-workspace[data-view=candidatos] .pmed-candidate-list{max-height:calc(100dvh - 190px)!important;overflow:auto!important}.pm48-workspace[data-view=candidatos] .pmed-candidate-detail{max-height:calc(100dvh - 190px)!important;overflow:auto!important;padding:24px!important}.pm48-inline-reputation-host{margin:14px 0 2px!important}.pm48-inline-reputation{border:1px solid #dfe4e9!important;border-radius:17px!important;padding:14px!important;background:#f8fafb!important;box-shadow:none!important}
+
+/* Mensajes: sólo mensajería, sin repetir el resto de la dashboard. */
+.pm48-workspace[data-view=mensajes] .pmed-head,.pm48-workspace[data-view=mensajes] .pmed-assigned,.pm48-workspace[data-view=mensajes] .pmed-metrics,.pm48-workspace[data-view=mensajes] .pmed-flow,.pm48-workspace[data-view=mensajes] .pmed-grid,.pm48-workspace[data-view=mensajes] .pmed-candidates{display:none!important}.pm48-workspace[data-view=mensajes] .pmed-inbox{margin:0!important;min-height:calc(100dvh - 190px)!important;border-radius:24px!important;padding:24px!important}
+
+/* Publicaciones y configuración son vistas propias; no renderizar un panel gigante detrás. */
+.pm48-workspace[data-view=publicaciones] .pm48-live,.pm48-workspace[data-view=empresa] .pm48-live{display:none!important}
+.pm48-view{margin:0!important}.pm48-view>header{padding:4px 0 18px!important}.pm48-view>header h1{font-size:clamp(28px,3.5vw,42px)!important;line-height:1!important;letter-spacing:-.045em!important}.pm48-settings-stack{display:grid!important;gap:12px!important}.pm48-settings-details{border-radius:18px!important}
+
+/* Corrige el loader antiguo: spinner dentro de la tarjeta y no debajo. */
+.pmed-loading:before{padding:34px 28px 80px!important;min-height:220px!important}
+.pmed-loading:after{top:50%!important;margin-top:34px!important;left:50%!important;margin-left:-21px!important}
+
+@media(max-width:1050px){.pm48-workspace[data-view=resumen] .pmed-page{grid-template-columns:1fr!important}.pm48-workspace[data-view=resumen] .pmed-inbox,.pm48-workspace[data-view=resumen] .pmed-flow{grid-column:1!important}.pm48-workspace[data-view=candidatos] .pmed-candidates{grid-template-columns:1fr!important}.pm48-workspace[data-view=candidatos] .pmed-candidate-list{max-height:320px!important}.pm48-workspace[data-view=candidatos] .pmed-candidate-detail{max-height:none!important}}
+@media(max-width:760px){.pm48-sidebar{position:static!important;height:auto!important}.pmed-head h1{font-size:32px!important}.pmed-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}.pmed-metrics article{min-height:94px!important}.pm48-workspace[data-view=resumen] .pmed-inbox,.pm48-workspace[data-view=resumen] .pmed-flow{min-height:220px!important;padding:16px!important}.pm48-workspace[data-view=mensajes] .pmed-inbox{min-height:65dvh!important;padding:16px!important}.pm48-workspace[data-view=candidatos] .pmed-candidates{min-height:auto!important;border-radius:18px!important}}
