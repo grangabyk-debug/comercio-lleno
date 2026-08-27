@@ -9,9 +9,8 @@ export default function FlexUxCleanup(){
   const enhance=()=>{
    const search=document.querySelector<HTMLElement>('.pm38-flex-search')
    const action=search?.querySelector<HTMLElement>(':scope > div:last-child')
-   if(action&&!action.dataset.pm42Search){
+   if(action&&!action.querySelector('.pm41-search-btn')){
     action.dataset.pm42Search='1'
-    action.replaceChildren()
     const button=document.createElement('button')
     button.type='button';button.className='pm41-search-btn';button.textContent='Buscar';button.setAttribute('aria-label','Buscar Servicios Flex')
     button.addEventListener('click',()=>{(document.activeElement as HTMLElement|null)?.blur?.();document.querySelector<HTMLElement>('.pm7-gig-grid,.pm38-flex-empty')?.scrollIntoView({behavior:'smooth',block:'start'})})
