@@ -7,7 +7,8 @@ export default function CandidatePlansPayments(){
  return <div className="pm42-payments-stack">
   <section className="pm42-panel pm42-products">
    <div className="pm42-section-head"><div><span>PLANES Y HERRAMIENTAS</span><h2>Pagos personales, separados de tu perfil.</h2><p>Elegí solamente lo que te sirva. Tu cuenta básica, tus postulaciones y tus mensajes siguen funcionando sin contratar un plan.</p></div></div>
-   <div className="pm42-product-grid">\    <article><small>CV PRO+</small><h3>Mejorá tu CV con IA</h3><p>Una herramienta para revisar y mejorar el currículum antes de postularte.</p><strong>$5.990</strong><span>30 días</span><Link href="/mejorar-cv">Ver y contratar</Link></article>
+   <div className="pm42-product-grid">
+    <article><small>CV PRO+</small><h3>Mejorá tu CV con IA</h3><p>Una herramienta para revisar y mejorar el currículum antes de postularte.</p><strong>$5.990</strong><span>30 días</span><Link href="/mejorar-cv">Ver y contratar</Link></article>
     <article className="featured"><small>BÚSQUEDA ACTIVA</small><h3>Más ayuda para buscar</h3><p>Funciones adicionales para ordenar y acompañar tu búsqueda laboral.</p><strong>$12.900</strong><span>30 días</span><Link href="/busqueda-activa">Ver y contratar</Link></article>
    </div>
   </section>
