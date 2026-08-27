@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import {useEffect,useState} from 'react'
 import EmployerDashboardLive from './EmployerDashboardLive'
+import EmployerDashboardLoadGuard from './EmployerDashboardLoadGuard'
 import EmployerCandidateReputationInline from './EmployerCandidateReputationInline'
 
 const EmployerJobManager=dynamic(()=>import('./EmployerJobManager'),{ssr:false,loading:()=> <div className="pm48-module-loading">Cargando empleos…</div>})
@@ -22,6 +23,7 @@ export default function EmployerWorkspace(){
  function choose(next:View){setView(next);const url=new URL(window.location.href);if(next==='resumen')url.searchParams.delete('tab');else url.searchParams.set('tab',next);window.history.replaceState({},'',url)}
  const needsLive=view==='resumen'||view==='candidatos'||view==='mensajes'
  return <div className="pm48-workspace" data-view={view}>
+  <EmployerDashboardLoadGuard/>
   <aside className="pm48-sidebar" aria-label="Dashboard de empresa"><div className="pm48-brand"><i>PM</i><div><b>Postulá Mejor</b><small>Dashboard empresa</small></div></div><nav>{views.map(([key,label,icon])=><button type="button" key={key} data-on={view===key} onClick={()=>choose(key)}><span>{icon}</span>{label}</button>)}</nav><div className="pm48-side-bottom"><a href="/empresas/publicar">＋ Nueva búsqueda</a><a href="/">Ver sitio público ↗</a></div></aside>
   <main className="pm48-workspace-main">
    <div className="pm48-mobile-nav">{views.map(([key,label])=><button type="button" key={key} data-on={view===key} onClick={()=>choose(key)}>{label}</button>)}</div>
