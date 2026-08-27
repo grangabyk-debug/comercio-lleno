@@ -26,5 +26,6 @@ import './dashboard-v48.css'
 import './dashboard-v49.css'
 import './dashboard-v50.css'
 import './dashboard-v51.css'
+import './dashboard-v52.css'
 export const metadata={title:{absolute:'Dashboard empresa | Postulá Mejor'},robots:{index:false,follow:false},alternates:{canonical:'https://postulamejor.com/empresas/panel'}}
 export default function EmployerPanel(){return <main className={`${styles.page} pm7-page pm7-employer`}><PlatformHeader audience="employer"/><EmployerWorkspace/><SupportHelp audience="employer"/></main>}

@@ -1,0 +1,14 @@
+/* Employer Dashboard V52 — reputación laboral legible y con estados claros */
+.pm48-workspace[data-view=candidatos] .pm48-inline-reputation-host{margin:18px 0!important}
+.pm48-workspace[data-view=candidatos] .pm48-inline-reputation{padding:18px 20px!important;border-radius:19px!important;border-color:#d9e0e6!important;background:#f8fafb!important}
+.pm48-workspace[data-view=candidatos] .pm48-inline-reputation-head{gap:16px!important;align-items:center!important}
+.pm48-workspace[data-view=candidatos] .pm48-inline-reputation-head small{font-size:11px!important;line-height:1.2!important;letter-spacing:.13em!important}
+.pm48-workspace[data-view=candidatos] .pm48-inline-reputation-head b{margin-top:5px!important;font-size:15px!important;line-height:1.3!important}
+.pm48-workspace[data-view=candidatos] .pm48-inline-reputation-head .pm48-no-reviews{flex:0 0 auto;padding:8px 12px!important;border:1px solid #efc5c8!important;border-radius:999px!important;background:#fff0f1!important;color:#a43b46!important;font-size:12px!important;line-height:1.15!important;font-weight:900!important}
+.pm48-workspace[data-view=candidatos] .pm48-hire-action{gap:18px!important;margin-top:15px!important;padding-top:15px!important;border-top-color:#dde3e8!important}
+.pm48-workspace[data-view=candidatos] .pm48-hire-action p{max-width:660px!important;color:#5d6974!important;font-size:13px!important;line-height:1.5!important}
+.pm48-workspace[data-view=candidatos] .pm48-hire-action button{min-height:46px!important;padding:0 17px!important;border-radius:12px!important;font-size:12px!important;line-height:1.15!important;font-weight:950!important;box-shadow:0 7px 18px rgba(17,25,35,.11)!important}
+.pm48-workspace[data-view=candidatos] .pm48-hire-action button:hover:not(:disabled){transform:translateY(-1px)}
+.pm48-workspace[data-view=candidatos] .pm48-hire-action button:disabled{opacity:.58!important;cursor:wait!important}
+.pm48-workspace[data-view=candidatos] .pm48-reputation-notice{margin-top:13px!important;padding:11px 13px!important;border-radius:11px!important;font-size:12px!important;line-height:1.45!important}
+@media(max-width:760px){.pm48-workspace[data-view=candidatos] .pm48-inline-reputation{padding:16px!important}.pm48-workspace[data-view=candidatos] .pm48-inline-reputation-head{align-items:flex-start!important;flex-direction:column!important}.pm48-workspace[data-view=candidatos] .pm48-hire-action{align-items:stretch!important}.pm48-workspace[data-view=candidatos] .pm48-hire-action button{width:100%!important;min-height:48px!important;font-size:13px!important}}
