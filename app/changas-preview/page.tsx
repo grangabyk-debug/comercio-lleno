@@ -16,6 +16,7 @@ import './flex-neon-rules-v36.css'
 import './flex-manage-v37.css'
 import './flex-organize-v38.css'
 import './flex-market-v39.css'
+import './flex-market-v40.css'
 
 export const metadata={title:{absolute:'Servicios Flex | Postulá Mejor'},description:'Buscá profesionales o publicá el servicio que ofrecés. Servicios independientes, solicitudes puntuales, chat y reglas claras antes de acordar.',robots:{index:true,follow:true},alternates:{canonical:'https://postulamejor.com/servicios-flex'}}
 
