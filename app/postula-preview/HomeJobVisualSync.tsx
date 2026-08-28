@@ -1,6 +1,6 @@
 'use client'
 
-import {useEffect} from 'react'
+import {useLayoutEffect} from 'react'
 import HomeCompanyStrip from './HomeCompanyStrip'
 
 const img=(id:number)=>`https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=1200`
@@ -42,14 +42,28 @@ function installLogo(mark:HTMLElement,company:string){
 function syncJobVisuals(){document.querySelectorAll<HTMLElement>('.pm7-social-job').forEach(card=>{const title=card.querySelector('h3')?.textContent?.trim()||'',cover=card.querySelector<HTMLElement>('.pm7-social-job-cover'),visual=visualFor(title);if(cover&&visual)cover.style.backgroundImage=`url(${visual})`})}
 function syncCompanyLogos(){document.querySelectorAll<HTMLElement>('.pm7-social-company').forEach(row=>{const company=row.querySelector('div b')?.textContent?.trim()||'',mark=row.firstElementChild;if(mark instanceof HTMLElement)installLogo(mark,company)})}
 function installHomeSearch(){
- const existing=document.querySelector<HTMLElement>('.pm7-search');if(!existing||existing.dataset.pmRealSearch)return
- const form=document.createElement('form');form.className=`${existing.className} pm-home-job-search`;form.action='/empleos';form.method='get';form.dataset.pmRealSearch='1'
+ const existing=document.querySelector<HTMLElement>('.pm7-search');if(!existing)return false
+ if(existing.matches('form.pm-home-job-search')||existing.dataset.pmRealSearch)return true
+ const form=document.createElement('form');form.className=`${existing.className} pm-home-job-search`;form.action='/empleos';form.method='get';form.dataset.pmRealSearch='1';form.setAttribute('role','search')
  const q=document.createElement('label');q.innerHTML='<small>¿Qué querés hacer?</small><input name="q" type="search" autocomplete="off" placeholder="ventas, café, diseño, logística…" aria-label="Puesto o palabra clave">'
  const zone=document.createElement('label');const select=document.createElement('select');select.name='location';select.setAttribute('aria-label','Zona para buscar trabajo');for(const[value,label]of homeZones){const option=document.createElement('option');option.value=value;option.textContent=label;select.appendChild(option)};const zoneTitle=document.createElement('small');zoneTitle.textContent='¿Dónde?';zone.append(zoneTitle,select)
  const submit=document.createElement('button');submit.type='submit';submit.textContent='Buscar';form.append(q,zone,submit);existing.replaceWith(form)
+ return true
 }
+function syncLanding(){const searchReady=installHomeSearch();syncJobVisuals();syncCompanyLogos();return searchReady}
 
 export default function HomeJobVisualSync(){
- useEffect(()=>{const frame=requestAnimationFrame(()=>{syncJobVisuals();syncCompanyLogos();installHomeSearch()});return()=>cancelAnimationFrame(frame)},[])
+ useLayoutEffect(()=>{
+  let stopped=false
+  const run=()=>{if(stopped)return;syncLanding()}
+  run()
+  /* The landing is streamed by Next. On a cold request this component can hydrate
+     before the hero arrives, so watch the stream and upgrade the search as soon as
+     the actual markup is inserted. */
+  const observer=new MutationObserver(()=>run())
+  observer.observe(document.documentElement,{childList:true,subtree:true})
+  const frames=[0,40,120,300,700,1400].map(ms=>window.setTimeout(run,ms))
+  return()=>{stopped=true;observer.disconnect();frames.forEach(id=>window.clearTimeout(id))}
+ },[])
  return <HomeCompanyStrip/>
 }
