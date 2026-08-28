@@ -3,7 +3,7 @@ import {unstable_cache} from 'next/cache'
 import Link from 'next/link'
 import styles from '../postula-preview/platform.module.css'
 import {PlatformFooter,PlatformHeader,MobileNav} from '../postula-preview/PlatformChrome'
-import {getJobCatalog,type PreviewJob} from '../postula-preview/jobs'
+import {getFullJobCatalog,type PreviewJob} from '../postula-preview/jobs'
 import JobsExplorer from './JobsExplorer'
 import JobCardLinkBehavior from './JobCardLinkBehavior'
 import JobSaveAuthGuard from './JobSaveAuthGuard'
@@ -18,7 +18,7 @@ import '../postula-preview/premium-v7.css'
 
 export const metadata={title:{absolute:'Empleos | Postulá Mejor'},description:'Descubrí oportunidades laborales con una experiencia más cercana, visual y simple.',robots:{index:true,follow:true},alternates:{canonical:'https://postulamejor.com/empleos'}}
 export const revalidate=21600
-const getCachedJobCatalog=unstable_cache(getJobCatalog,['postula-empleos-catalog-v1'],{revalidate:21600,tags:['postula-empleos-catalog']})
+const getCachedJobCatalog=unstable_cache(getFullJobCatalog,['postula-empleos-catalog-v2'],{revalidate:21600,tags:['postula-empleos-catalog']})
 type JobsPageProps={searchParams?:Promise<{empresa?:string|string[]}>}
 type CatalogProps={catalog:Promise<PreviewJob[]>;companyFilter:string}
 function filterCompany(allJobs:PreviewJob[],companyFilter:string){const companyNeedle=companyFilter.toLocaleLowerCase('es');return companyFilter?allJobs.filter(j=>{const company=j.company.toLocaleLowerCase('es');return company.includes(companyNeedle)||companyNeedle.includes(company)}):allJobs}
