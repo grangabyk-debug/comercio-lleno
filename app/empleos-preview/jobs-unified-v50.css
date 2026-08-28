@@ -26,7 +26,18 @@
  .pm-filter-close{display:inline-flex!important;align-items:center;justify-content:center;min-height:32px;padding:0 10px;border-radius:9px!important;background:#111820!important;color:#fff!important;font-size:9px!important;font-weight:950!important}
  .pm-filter-heading{position:sticky!important;top:-18px!important;z-index:2!important;margin:-1px -1px 0!important;padding:16px 1px 12px!important;background:#fff!important}.pm-filter-heading>span{font-size:18px!important}
  .pm-filter-block{padding:13px 0!important}.pm-filter-block>strong{font-size:10px!important}.pm-filter-block label{font-size:12px!important;padding:7px 0!important}.pm-filter-block select{font-size:13px!important;min-height:46px!important}
- .pm-results{border-radius:18px!important}.pm-results-head{padding:14px!important}.pm-results-head strong{font-size:18px!important}.pm-job-card{padding:16px!important}
+ .pm-results{border-radius:18px!important}.pm-results-head{padding:12px 13px!important}.pm-results-head strong{font-size:17px!important}
+ /* Mobile cards: same information, much less vertical space. */
+ .pm-job-list{gap:10px!important}
+ .pm-job-card{padding:12px!important;border-radius:18px!important}
+ .pm-job-card .pm-job-visual{height:128px!important;min-height:128px!important;border-radius:14px!important;margin-bottom:10px!important;background-position:center 38%!important}
+ .pm-job-card>.pm-save{top:10px!important;right:10px!important;min-height:34px!important;padding:0 10px!important;border-radius:999px!important;font-size:10px!important}
+ .pm-job-card .pm-job-visual>span:first-child{left:10px!important;bottom:9px!important;max-width:calc(100% - 92px)!important;padding:6px 9px!important;font-size:9px!important}
+ .pm-company-row{gap:9px!important;margin:0 0 8px!important}.pm-company-avatar{width:42px!important;height:42px!important;min-width:42px!important;border-radius:12px!important}.pm-company-row b{font-size:14px!important}.pm-company-row small{font-size:10px!important;margin-top:2px!important}.pm-company-row time{padding:4px 7px!important;font-size:8px!important}
+ .pm-job-card h3{margin:6px 0 8px!important;font-size:23px!important;line-height:1.04!important;letter-spacing:-.04em!important}
+ .pm-job-tags{gap:6px!important;margin:0 0 8px!important}.pm-job-tags span{padding:6px 9px!important;font-size:9px!important;border-radius:999px!important}
+ .pm-job-card>p{display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important;margin:7px 0 9px!important;font-size:11.5px!important;line-height:1.45!important}
+ .pm-job-foot{padding-top:8px!important;margin-top:0!important}.pm-job-foot>span{font-size:9px!important}
  .pm-profile-gate-card{padding:25px 20px 21px;border-radius:24px}.pm-profile-gate-card h3{font-size:26px}.pm-profile-gate-card p{font-size:12px}.pm-profile-gate-card>div{display:grid;grid-template-columns:1fr}.pm-profile-gate-card a{width:100%}
  .pm-company-filter-note{align-items:flex-start;flex-wrap:wrap}.pm-company-filter-note a{margin-left:0;width:100%}
 }
