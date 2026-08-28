@@ -17,19 +17,6 @@ export default function FlexUxCleanup(){
     action.appendChild(button)
    }
 
-   const explorer=document.querySelector<HTMLElement>('.pm7-gig-explorer')
-   const listingFilters=explorer?.querySelector<HTMLElement>('.pm39-listing-filter')
-   if(explorer&&listingFilters&&!explorer.querySelector('.pm44-mobile-filter-toggle')){
-    const button=document.createElement('button')
-    button.type='button';button.className='pm44-mobile-filter-toggle';button.setAttribute('aria-expanded','false');button.setAttribute('aria-label','Abrir filtros de Servicios Flex')
-    button.innerHTML='<span><i aria-hidden="true"></i>Filtros</span><b aria-hidden="true">⌄</b>'
-    button.addEventListener('click',()=>{
-     const open=explorer.classList.toggle('pm44-mobile-filters-open')
-     button.setAttribute('aria-expanded',String(open));button.setAttribute('aria-label',open?'Cerrar filtros de Servicios Flex':'Abrir filtros de Servicios Flex')
-    })
-    listingFilters.before(button)
-   }
-
    document.querySelectorAll<HTMLElement>('.pm39-market-card').forEach(card=>{
     if(card.dataset.pm42Card)return
     card.dataset.pm42Card='1';card.tabIndex=0;card.setAttribute('role','button')
