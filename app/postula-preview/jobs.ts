@@ -2,12 +2,34 @@ import {createClient} from '@supabase/supabase-js'
 import {currentJobBoost} from './publicJobBoost'
 import {publicJobExtras} from './publicJobExtras'
 import {commonPublicJobs} from './publicJobCommon'
+import {everydayPublicJobs} from './publicJobEveryday'
 
 export type PreviewJob={
-  slug:string;title:string;company:string;location:string;mode:'Presencial'|'Híbrido'|'Remoto';schedule:string;area:string;source:string;sourceUrl:string;checkedAt:string;summary:string;requirements:string[];tags:string[];external:boolean;internalJobId?:string;compensation?:string;confidential?:boolean;logoUrl?:string
+  slug:string
+  title:string
+  company:string
+  location:string
+  mode:'Presencial'|'Híbrido'|'Remoto'
+  schedule:string
+  area:string
+  source:string
+  sourceUrl:string
+  checkedAt:string
+  summary:string
+  requirements:string[]
+  tags:string[]
+  external:boolean
+  internalJobId?:string
+  compensation?:string
+  confidential?:boolean
+  logoUrl?:string
 }
 
-const officialCheck=['Revisar los requisitos completos en la publicación oficial','Confirmar modalidad, horario y vigencia antes de postularte','Postularse únicamente por el canal oficial de la empresa']
+const officialCheck=[
+  'Revisar los requisitos completos en la publicación oficial',
+  'Confirmar modalidad, horario y vigencia antes de postularte',
+  'Postularse únicamente por el canal oficial de la empresa',
+]
 
 export const previewJobs:PreviewJob[]=[
   {slug:'despegar-agente-ventas-pilar',title:'Agente de viajes (Ventas) - Tienda Pilar',company:'Despegar',location:'Buenos Aires · Pilar',mode:'Presencial',schedule:'Full time',area:'Ventas y Comercial',source:'Despegar Careers / Lever',sourceUrl:'https://jobs.lever.co/despegar/?location=Buenos+Aires',checkedAt:'2026-08-24',summary:'Búsqueda vigente para atención comercial y venta de experiencias de viaje en la tienda de Pilar.',requirements:officialCheck,tags:['Ventas','Turismo','Pilar'],external:true},
@@ -24,39 +46,114 @@ export const previewJobs:PreviewJob[]=[
 
 const brandingBucket='https://pejkycdttogpmmdntzuq.supabase.co/storage/v1/object/public/postula-branding/'
 const brandDomains:Record<string,string>={
- 'despegar':'https://www.despegar.com/favicon.ico','ey':'https://www.ey.com/favicon.ico','marriott international':'https://www.marriott.com/favicon.ico','minor hotels europe & americas':'https://www.minorhotels.com/favicon.ico','wyndham hotels & resorts':'https://www.wyndhamhotels.com/favicon.ico','coca-cola femsa':'https://coca-colafemsa.com/favicon.ico','cencosud':'https://www.cencosud.com/favicon.ico','givaudan':'https://www.givaudan.com/favicon.ico','emi labs':'https://www.emilabs.ai/favicon.ico','pedidosya':'https://www.pedidosya.com/favicon.ico','dlocal':'https://www.dlocal.com/favicon.ico','aleph':'https://www.alephholding.com/favicon.ico','binance':'https://www.binance.com/favicon.ico','monks':'https://www.monks.com/favicon.ico','hogarth worldwide':'https://www.hogarth.com/favicon.ico','appsflyer':'https://www.appsflyer.com/favicon.ico','grido':'https://www.gridohelado.com/favicon.ico','carrefour':'https://www.carrefour.com.ar/favicon.ico','coto':'https://www.coto.com/favicon.ico','supermercados dia':'https://diaonline.supermercadosdia.com.ar/favicon.ico','changomás':'https://www.masonline.com/favicon.ico','farmacity':'https://www.farmacity.com/favicon.ico','frávega':'https://www.fravega.com/favicon.ico','mercado libre':'https://www.mercadolibre.com.ar/favicon.ico'
+  'despegar':'https://www.despegar.com/favicon.ico',
+  'ey':'https://www.ey.com/favicon.ico',
+  'marriott international':'https://www.marriott.com/favicon.ico',
+  'minor hotels europe & americas':'https://www.minorhotels.com/favicon.ico',
+  'wyndham hotels & resorts':'https://www.wyndhamhotels.com/favicon.ico',
+  'coca-cola femsa':'https://coca-colafemsa.com/favicon.ico',
+  'cencosud':'https://www.cencosud.com/favicon.ico',
+  'givaudan':'https://www.givaudan.com/favicon.ico',
+  'emi labs':'https://www.emilabs.ai/favicon.ico',
+  'pedidosya':'https://www.pedidosya.com/favicon.ico',
+  'dlocal':'https://www.dlocal.com/favicon.ico',
+  'aleph':'https://www.alephholding.com/favicon.ico',
+  'binance':'https://www.binance.com/favicon.ico',
+  'monks':'https://www.monks.com/favicon.ico',
+  'hogarth worldwide':'https://www.hogarth.com/favicon.ico',
+  'appsflyer':'https://www.appsflyer.com/favicon.ico',
+  'grido':'https://www.gridohelado.com/favicon.ico',
+  'carrefour':'https://www.carrefour.com.ar/favicon.ico',
+  'coto':'https://www.coto.com/favicon.ico',
+  'supermercados dia':'https://diaonline.supermercadosdia.com.ar/favicon.ico',
+  'changomás':'https://www.masonline.com/favicon.ico',
+  'farmacity':'https://www.farmacity.com/favicon.ico',
+  'frávega':'https://www.fravega.com/favicon.ico',
+  'mercado libre':'https://www.mercadolibre.com.ar/favicon.ico',
+  'rex':'https://www.rex.com.ar/favicon.ico',
 }
+
 function brandLogo(company:string){return brandDomains[company.trim().toLowerCase()]||''}
 function normalizeMode(v:string):'Presencial'|'Híbrido'|'Remoto'{const s=v.toLowerCase();if(s.includes('remot'))return'Remoto';if(s.includes('híbr')||s.includes('hibr'))return'Híbrido';return'Presencial'}
-function semanticKey(job:PreviewJob){if(job.internalJobId)return`internal:${job.internalJobId}`;const url=job.sourceUrl.toLowerCase();if(/jobs\.lever\.co|greenhouse\.io|boards\.greenhouse|\/viewjob\?|\/job\//.test(url))return`url:${url}`;return`semantic:${job.company}|${job.title}|${job.location}`.toLowerCase()}
+function semanticKey(job:PreviewJob){
+  if(job.internalJobId)return`internal:${job.internalJobId}`
+  const url=job.sourceUrl.toLowerCase()
+  if(/jobs\.lever\.co|greenhouse\.io|boards\.greenhouse|\/viewjob\?|\/job\/|get_vacancy|computrabajo\.com\/.*oferta/.test(url))return`url:${url}`
+  return`semantic:${job.company}|${job.title}|${job.location}`.toLowerCase()
+}
 function normalized(value:string){return value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim()}
-const foreignLocation=/\b(sudafrica|south africa|brasil|brazil|colombia|peru|chile|uruguay|montevideo|paraguay|bolivia|ecuador|venezuela|mexico|latinoamerica|latin america|latam|global|worldwide|spain|espana|portugal|united states|estados unidos|usa|miami|new york|sao paulo|bogota|medellin|lima)\b/
-function argentinaOnly(job:PreviewJob){const where=normalized(job.location||'');return Boolean(where)&&!foreignLocation.test(where)}
+
+const argentinaSignal=/\b(argentina|buenos aires|caba|capital federal|cordoba|santa fe|rosario|mendoza|tucuman|salta|jujuy|catamarca|la rioja|san juan|san luis|entre rios|corrientes|misiones|chaco|formosa|santiago del estero|neuquen|rio negro|chubut|santa cruz|tierra del fuego|la pampa|mar del plata|la plata|bahia blanca|bariloche|comodoro rivadavia|pilar|tigre|san isidro|quilmes|avellaneda|moreno|merlo|haedo|castelar|benavidez|tortuguitas|villa traful|leones)\b/
+const regionalRemote=/\b(latinoamerica|latin america|latam|south america|americas|global|worldwide)\b/
+const foreignSignal=/\b(sudafrica|south africa|brasil|brazil|colombia|peru|chile|uruguay|montevideo|paraguay|bolivia|ecuador|venezuela|mexico|spain|espana|portugal|united states|estados unidos|usa|canada|france|francia|germany|alemania|italy|italia|united kingdom|uk|ireland|india|singapore|australia|new zealand|miami|new york|sao paulo|bogota|medellin|lima|santiago de chile|madrid|barcelona|lisbon|lisboa)\b/
+function argentinaOnly(job:PreviewJob){
+  const where=normalized(job.location||'')
+  if(!where)return false
+  if(argentinaSignal.test(where))return true
+  if(job.mode==='Remoto'&&regionalRemote.test(where))return true
+  if(foreignSignal.test(where))return false
+  return true
+}
 function recency(job:PreviewJob){const value=Date.parse(String(job.checkedAt||''));if(!Number.isFinite(value))return 0;return Math.min(value,Date.now())}
-async function nativeJobs():Promise<PreviewJob[]>{try{const db=createClient('https://pejkycdttogpmmdntzuq.supabase.co','sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I',{auth:{persistSession:false,autoRefreshToken:false}});const {data,error}=await db.rpc('pm_public_job_catalog');if(error||!Array.isArray(data))return[];return data.map((r:any)=>({slug:`pm-${r.id}`,title:String(r.title),company:String(r.company_name),location:String(r.location_text||'Argentina'),mode:normalizeMode(String(r.work_mode||'')),schedule:String(r.schedule||'A confirmar'),area:String(r.area||'Otros rubros'),source:`Publicada en Postulá Mejor · ${r.employer_visibility==='confidential'?'identidad del empleador reservada':r.company_verification==='verified'?'empresa verificada':'validación básica'}`,sourceUrl:`/postular/pm-${r.id}`,checkedAt:String(r.published_at||new Date().toISOString()),summary:String(r.description||'').slice(0,1000),requirements:Array.isArray(r.requirements)?r.requirements.map(String):[],tags:[String(r.area||'Trabajo'),String(r.work_mode||''),r.employer_visibility==='confidential'?'Empleador reservado':''].filter(Boolean),external:false,internalJobId:String(r.id),compensation:String(r.compensation_text||''),confidential:r.employer_visibility==='confidential',logoUrl:r.company_logo_path?`${brandingBucket}${String(r.company_logo_path)}`:''}))}catch{return[]}}
+
+async function nativeJobs():Promise<PreviewJob[]>{
+  try{
+    const db=createClient('https://pejkycdttogpmmdntzuq.supabase.co','sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I',{auth:{persistSession:false,autoRefreshToken:false}})
+    const {data,error}=await db.rpc('pm_public_job_catalog')
+    if(error||!Array.isArray(data))return[]
+    return data.map((r:any)=>({
+      slug:`pm-${r.id}`,
+      title:String(r.title),
+      company:String(r.company_name),
+      location:String(r.location_text||'Argentina'),
+      mode:normalizeMode(String(r.work_mode||'')),
+      schedule:String(r.schedule||'A confirmar'),
+      area:String(r.area||'Otros rubros'),
+      source:`Publicada en Postulá Mejor · ${r.employer_visibility==='confidential'?'identidad del empleador reservada':r.company_verification==='verified'?'empresa verificada':'validación básica'}`,
+      sourceUrl:`/postular/pm-${r.id}`,
+      checkedAt:String(r.published_at||new Date().toISOString()),
+      summary:String(r.description||'').slice(0,1000),
+      requirements:Array.isArray(r.requirements)?r.requirements.map(String):[],
+      tags:[String(r.area||'Trabajo'),String(r.work_mode||''),r.employer_visibility==='confidential'?'Empleador reservado':''].filter(Boolean),
+      external:false,
+      internalJobId:String(r.id),
+      compensation:String(r.compensation_text||''),
+      confidential:r.employer_visibility==='confidential',
+      logoUrl:r.company_logo_path?`${brandingBucket}${String(r.company_logo_path)}`:'',
+    }))
+  }catch{return[]}
+}
 
 function finalizeCatalog(input:PreviewJob[]){
   const seen=new Set<string>()
   return input
-   .filter(job=>{if(!argentinaOnly(job))return false;const key=semanticKey(job);if(seen.has(key))return false;seen.add(key);return true})
-   .map(job=>({...job,logoUrl:job.confidential?'':job.logoUrl||brandLogo(job.company)}))
-   .sort((a,b)=>recency(b)-recency(a)||Number(Boolean(b.internalJobId))-Number(Boolean(a.internalJobId))||a.title.localeCompare(b.title,'es'))
+    .filter(job=>{
+      if(!argentinaOnly(job))return false
+      const key=semanticKey(job)
+      if(seen.has(key))return false
+      seen.add(key)
+      return true
+    })
+    .map(job=>({...job,logoUrl:job.confidential?'':job.logoUrl||brandLogo(job.company)}))
+    .sort((a,b)=>recency(b)-recency(a)||Number(Boolean(b.internalJobId))-Number(Boolean(a.internalJobId))||a.title.localeCompare(b.title,'es'))
 }
 
-/* Fast catalog for the landing. It avoids dozens of third-party career API calls,
-   so the home can paint immediately while still showing native Postulá Mejor jobs
-   and the maintained local catalog. */
 export async function getJobCatalog(){
   const native=await nativeJobs()
-  return finalizeCatalog([...commonPublicJobs,...previewJobs,...native,...publicJobExtras,...currentJobBoost])
+  return finalizeCatalog([...everydayPublicJobs,...commonPublicJobs,...previewJobs,...native,...publicJobExtras,...currentJobBoost])
 }
 
-/* Full discovery remains available for the dedicated jobs explorer, where the
-   richer live catalog is worth the extra server work and is cached by that page. */
 export async function getFullJobCatalog(){
-  const [{discoverPublicJobs},{discoverOverflowJobs},native]=await Promise.all([import('./publicJobSources'),import('./publicJobOverflow'),nativeJobs()])
+  const [{discoverPublicJobs},{discoverOverflowJobs},native]=await Promise.all([
+    import('./publicJobSources'),
+    import('./publicJobOverflow'),
+    nativeJobs(),
+  ])
   const [live,overflow]=await Promise.all([discoverPublicJobs(),discoverOverflowJobs()])
-  return finalizeCatalog([...commonPublicJobs,...previewJobs,...native,...publicJobExtras,...currentJobBoost,...live,...overflow])
+  return finalizeCatalog([...everydayPublicJobs,...commonPublicJobs,...previewJobs,...native,...publicJobExtras,...currentJobBoost,...live,...overflow])
 }
 
-export function getPreviewJob(slug:string){const job=[...commonPublicJobs,...previewJobs,...publicJobExtras,...currentJobBoost].find(job=>job.slug===slug);return job?{...job,logoUrl:job.logoUrl||brandLogo(job.company)}:undefined}
+export function getPreviewJob(slug:string){
+  const job=[...everydayPublicJobs,...commonPublicJobs,...previewJobs,...publicJobExtras,...currentJobBoost].find(job=>job.slug===slug)
+  return job?{...job,logoUrl:job.logoUrl||brandLogo(job.company)}:undefined
+}
