@@ -14,6 +14,17 @@ function textPatch(body:any,key:string,current:unknown,max=180){return has(body,
 function arrayPatch(body:any,key:string,current:unknown,max=60,limit=25){if(!has(body,key))return Array.isArray(current)?current:[];return Array.isArray(body?.[key])?body[key].map((x:unknown)=>cleanText(x,max)).filter(Boolean).slice(0,limit):[]}
 function visibilityPatch(body:any,current:unknown):Visibility{const incoming=cleanText(body?.profile_visibility,40) as Visibility;if(has(body,'profile_visibility')&&VISIBILITY.includes(incoming))return incoming;const saved=cleanText(current,40) as Visibility;return VISIBILITY.includes(saved)?saved:'applications_only'}
 function linkedinPatch(body:any,current:unknown){if(!has(body,'linkedin_url'))return current??null;const value=cleanText(body?.linkedin_url,500);if(!value)return null;try{const parsed=new URL(/^https?:\/\//i.test(value)?value:`https://${value}`);if(!/(^|\.)linkedin\.com$/i.test(parsed.hostname))return current??null;return parsed.toString()}catch{return current??null}}
+function ownedStoragePath(value:unknown,userId:string,max=500){const path=cleanText(value,max);if(!path)return null;return path.startsWith(`${userId}/`)?path:null}
+function avatarPatch(body:any,current:unknown,userId:string){
+ if(!has(body,'avatar_url'))return current??null
+ const value=cleanText(body?.avatar_url,500)
+ if(!value)return null
+ if(value.startsWith(`${userId}/`))return value
+ if(/^https:\/\//i.test(value)){
+  try{const parsed=new URL(value);if(/(^|\.)googleusercontent\.com$/i.test(parsed.hostname))return parsed.toString()}catch{}
+ }
+ return current??null
+}
 
 export async function GET(req:NextRequest){
  const db=client(req);const {data:{user},error}=await db.auth.getUser();if(error||!user)return NextResponse.json({ok:false,error:'Iniciá sesión.'},{status:401})
@@ -33,6 +44,18 @@ export async function POST(req:NextRequest){
   db.from('pm_profiles').select('*').eq('user_id',user.id).maybeSingle(),
   db.from('pm_candidate_profiles').select('*').eq('user_id',user.id).maybeSingle()
  ])
+ if(has(body,'resume_path')){
+  const incoming=cleanText(body?.resume_path,500)
+  if(incoming&&!ownedStoragePath(incoming,user.id))return NextResponse.json({ok:false,error:'El archivo del CV no pertenece a esta cuenta.'},{status:403})
+ }
+ if(has(body,'avatar_url')){
+  const incoming=cleanText(body?.avatar_url,500)
+  if(incoming&&!incoming.startsWith(`${user.id}/`)){
+   let trustedExternal=false
+   if(/^https:\/\//i.test(incoming)){try{trustedExternal=/(^|\.)googleusercontent\.com$/i.test(new URL(incoming).hostname)}catch{}}
+   if(!trustedExternal)return NextResponse.json({ok:false,error:'La imagen de perfil no pertenece a esta cuenta.'},{status:403})
+  }
+ }
  const requestedRole=body?.role==='employer'?'employer':body?.role==='candidate'?'candidate':null
  const primaryRole=existingProfile?.primary_role||requestedRole||'candidate'
  const candidateWrite=requestedRole==='candidate'||body?.activate_candidate===true||body?.candidate_settings===true||Boolean(existingCandidate)
@@ -40,7 +63,7 @@ export async function POST(req:NextRequest){
   user_id:user.id,
   primary_role:primaryRole,
   display_name:textPatch(body,'display_name',existingProfile?.display_name,80),
-  avatar_url:textPatch(body,'avatar_url',existingProfile?.avatar_url,500),
+  avatar_url:avatarPatch(body,existingProfile?.avatar_url,user.id),
   onboarding_completed:has(body,'onboarding_completed')?Boolean(body?.onboarding_completed):Boolean(existingProfile?.onboarding_completed),
   updated_at:new Date().toISOString()
  }
@@ -63,7 +86,7 @@ export async function POST(req:NextRequest){
    preferred_areas:areas,
    availability:textPatch(body,'availability',existingCandidate?.availability,180),
    work_modes:modes,
-   resume_path:textPatch(body,'resume_path',existingCandidate?.resume_path,500),
+   resume_path:has(body,'resume_path')?ownedStoragePath(body?.resume_path,user.id,500):(existingCandidate?.resume_path??null),
    resume_name:textPatch(body,'resume_name',existingCandidate?.resume_name,180),
    profile_visibility:profileVisibility,
    public_photo:has(body,'public_photo')?Boolean(body?.public_photo):existingCandidate?.public_photo!==false,
