@@ -1,0 +1,113 @@
+/* Servicios Flex V49 — move zone, price and duration into the white information area on mobile. */
+@media(max-width:720px){
+  .pm7-gig-card.pm39-market-card .pm7-gig-photo{
+    overflow:visible!important;
+  }
+
+  /* The photo is visual only: keep the listing badge and favorite there. */
+  .pm7-gig-card.pm39-market-card .pm7-gig-photo>span{
+    display:none!important;
+  }
+
+  /* Price/duration used to pile up over the bottom of the image. Move that block into the free white column. */
+  .pm7-gig-card.pm39-market-card .pm7-gig-price{
+    position:absolute!important;
+    z-index:6!important;
+    left:124px!important;
+    right:auto!important;
+    bottom:37px!important;
+    width:min(300px,calc(100vw - 176px))!important;
+    min-width:0!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:12px!important;
+    align-items:end!important;
+    padding:0!important;
+    margin:0!important;
+    background:transparent!important;
+    color:#171a21!important;
+    pointer-events:none!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-price b,
+  .pm7-gig-card.pm39-market-card .pm7-gig-price small{
+    display:block!important;
+    min-width:0!important;
+    margin:0!important;
+    color:#303743!important;
+    text-shadow:none!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-price b{
+    font-size:10px!important;
+    line-height:1.15!important;
+    font-weight:900!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-price small{
+    font-size:9px!important;
+    line-height:1.15!important;
+    font-weight:800!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-price b:before,
+  .pm7-gig-card.pm39-market-card .pm7-gig-price small:before{
+    display:block!important;
+    margin-bottom:3px!important;
+    color:#9aa2ac!important;
+    font-size:6.5px!important;
+    line-height:1!important;
+    font-weight:950!important;
+    letter-spacing:.11em!important;
+    text-transform:uppercase!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-price b:before{content:"Importe"}
+  .pm7-gig-card.pm39-market-card .pm7-gig-price small:before{content:"Duración"}
+
+  /* Leave enough clean room for metadata and avoid long text colliding with it. */
+  .pm7-gig-card.pm39-market-card .pm7-gig-body>p{
+    -webkit-line-clamp:2!important;
+    max-height:2.8em!important;
+  }
+
+  /* Zone stays in the body, clearly separated from price/duration. */
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot{
+    min-height:27px!important;
+    margin-top:auto!important;
+    padding-top:7px!important;
+    border-top:1px solid #e9edf1!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot>span{
+    display:block!important;
+    max-width:100%!important;
+    color:#3f4853!important;
+    font-size:9px!important;
+    line-height:1.15!important;
+    font-weight:850!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot>span:before{
+    content:"Zona · ";
+    color:#9aa2ac!important;
+    font-size:7px!important;
+    font-weight:950!important;
+    letter-spacing:.05em!important;
+    text-transform:uppercase!important;
+  }
+}
+
+@media(max-width:390px){
+  .pm7-gig-card.pm39-market-card .pm7-gig-price{
+    left:114px!important;
+    width:calc(100vw - 158px)!important;
+    gap:8px!important;
+    bottom:35px!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-price b{
+    font-size:9.5px!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-price small{
+    font-size:8.5px!important;
+  }
+}
