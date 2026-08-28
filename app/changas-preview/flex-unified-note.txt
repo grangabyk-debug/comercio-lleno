@@ -1,1 +1,0 @@
-Servicios Flex utiliza una interfaz de filtros equivalente a Empleos, adaptada al modelo de servicios independientes. En móvil los filtros permanecen cerrados hasta que la persona toca Filtros. No usar el término changas en la interfaz pública.
