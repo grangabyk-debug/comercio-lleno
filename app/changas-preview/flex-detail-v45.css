@@ -1,8 +1,9 @@
 /* Servicios Flex V45 — detalle equilibrado, legible y compacto en desktop */
 .pm7-gig-modal{padding:28px!important;background:rgba(8,10,16,.72)!important;backdrop-filter:blur(16px)!important;align-items:center!important}
-.pm7-gig-modal-card{position:relative!important;width:min(1040px,calc(100vw - 72px))!important;max-height:min(760px,calc(100dvh - 56px))!important;display:grid!important;grid-template-columns:minmax(360px,.82fr) minmax(0,1.18fr)!important;border-radius:28px!important;overflow:hidden!important;background:#fff!important;box-shadow:0 34px 110px rgba(0,0,0,.38)!important}
+.pm7-gig-modal-card{position:relative!important;width:min(1040px,calc(100vw - 72px))!important;height:min(760px,calc(100dvh - 56px))!important;max-height:calc(100dvh - 56px)!important;display:grid!important;grid-template-columns:minmax(360px,.82fr) minmax(0,1.18fr)!important;border-radius:28px!important;overflow:hidden!important;background:#fff!important;box-shadow:0 34px 110px rgba(0,0,0,.38)!important}
 .pm7-modal-image{min-height:0!important;height:100%!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important}
-.pm7-modal-content{min-width:0!important;height:100%!important;overflow:auto!important;padding:34px 38px 32px!important;overscroll-behavior:contain!important}
+.pm7-modal-content{min-width:0!important;min-height:0!important;height:100%!important;max-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important;padding:34px 38px 32px!important;overscroll-behavior:contain!important;scrollbar-width:thin!important;scrollbar-color:#c8ced5 transparent!important;scrollbar-gutter:stable!important}
+.pm7-modal-content::-webkit-scrollbar{width:8px!important}.pm7-modal-content::-webkit-scrollbar-track{background:transparent!important}.pm7-modal-content::-webkit-scrollbar-thumb{background:#c8ced5!important;border-radius:999px!important;border:2px solid #fff!important}
 .pm7-modal-close{position:absolute!important;top:14px!important;right:14px!important;float:none!important;margin:0!important;z-index:20!important;width:42px!important;height:42px!important;display:grid!important;place-items:center!important;border:1px solid rgba(16,21,29,.1)!important;border-radius:50%!important;background:rgba(255,255,255,.94)!important;color:#151922!important;box-shadow:0 8px 28px rgba(14,18,24,.14)!important;font-size:25px!important;line-height:1!important;cursor:pointer!important}
 .pm39-modal-type{margin:0 0 10px!important;padding:7px 10px!important;font-size:9px!important}
 .pm7-mini-label{display:block!important;font-size:10px!important;line-height:1.35!important;color:#69727c!important}
@@ -20,9 +21,9 @@
 
 @media(max-width:860px){
  .pm7-gig-modal{padding:10px!important;align-items:start!important}
- .pm7-gig-modal-card{width:min(680px,100%)!important;max-height:calc(100dvh - 20px)!important;grid-template-columns:1fr!important;border-radius:22px!important;overflow:auto!important;margin:0 auto!important}
+ .pm7-gig-modal-card{width:min(680px,100%)!important;height:auto!important;max-height:calc(100dvh - 20px)!important;grid-template-columns:1fr!important;border-radius:22px!important;overflow:auto!important;margin:0 auto!important}
  .pm7-modal-image{height:245px!important;min-height:245px!important}
- .pm7-modal-content{height:auto!important;overflow:visible!important;padding:23px 20px 26px!important}
+ .pm7-modal-content{height:auto!important;max-height:none!important;overflow:visible!important;padding:23px 20px 26px!important;scrollbar-gutter:auto!important}
  .pm7-modal-close{position:sticky!important;top:10px!important;float:right!important;margin:10px 10px -52px 0!important;background:#151922!important;color:#fff!important;border:2px solid #fff!important}
  .pm7-modal-content h2{font-size:31px!important}
 }
