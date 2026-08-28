@@ -1,0 +1,12 @@
+/* Employer mobile V53 — dock y menú equivalentes al lado postulante, con identidad azul */
+@media(max-width:720px){
+ .pm7-employer .pm46-dock{border-color:rgba(20,74,130,.18);background:rgba(247,251,255,.94);box-shadow:0 18px 48px rgba(20,74,130,.18),inset 0 1px 0 rgba(255,255,255,.95)}
+ .pm7-employer .pm46-dock [data-active=true]{background:linear-gradient(145deg,#0f4e87,#176fb7);color:#fff}
+ .pm7-employer .pm46-dock [data-active=true]::after{background:#7ec8ff}
+ .pm7-employer .pm46-sheet-head small{color:#176fb7}
+ .pm7-employer .pm46-sheet-links>a>svg{color:#176fb7}
+ .pm7-employer .pm46-sheet-links>a.pm46-role-switch{margin-top:6px;border-color:rgba(23,111,183,.18);background:linear-gradient(145deg,#eef7ff,#f8fbff)}
+ .pm7-employer .pm-postula-footer{margin-bottom:0}
+ .pm7-employer .pm21-help-fab{background:#0f4e87!important;color:#fff!important}
+ .pm7-employer .pm21-help-fab span{color:#fff!important}
+}
