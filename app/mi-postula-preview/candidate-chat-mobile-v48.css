@@ -1,0 +1,19 @@
+/* Candidate messages V48 — mobile master/detail, no split screen */
+@media(max-width:760px){
+ .pm42-chat-wrap{min-height:0!important;overflow:hidden!important;border-radius:20px!important;background:#fff!important}
+ .pm42-chat-wrap .pmc-page{height:auto!important;min-height:0!important;display:block!important;background:#fff!important}
+ .pm42-chat-wrap .pmc-list{display:block!important;max-height:none!important;height:auto!important;min-height:360px!important;padding:12px 12px 18px!important;overflow:visible!important;border:0!important;background:#fff!important}
+ .pm42-chat-wrap .pmc-chat{display:none!important}
+ .pm42-chat-wrap .pmc-page.pmc-mobile-thread-mode .pmc-list{display:none!important}
+ .pm42-chat-wrap .pmc-page.pmc-mobile-thread-mode .pmc-chat{display:grid!important;height:min(660px,calc(100dvh - 150px))!important;min-height:500px!important;grid-template-rows:auto auto auto minmax(0,1fr) auto auto!important;border:0!important;border-radius:0!important;background:linear-gradient(180deg,#fff 0%,#fffaf1 100%)!important}
+ .pm42-chat-wrap .pmc-page.pmc-mobile-thread-mode .pmc-mobile-back{display:grid!important}
+ .pm42-chat-wrap .pmc-list-top{padding:2px 2px 10px!important}.pm42-chat-wrap .pmc-list-top .pmc-back{display:none!important}
+ .pm42-chat-wrap .pmc-list-top b{font-size:26px!important}.pm42-chat-wrap .pmc-list-top span{font-size:12px!important}
+ .pm42-chat-wrap .pmc-tabs{position:static!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;padding:4px 0 12px!important;background:#fff!important}.pm42-chat-wrap .pmc-tabs button{min-height:46px!important;border-radius:14px!important;font-size:12px!important}
+ .pm42-chat-wrap .pmc-thread{padding:11px 9px!important;border:1px solid #e6e9ed!important;border-radius:16px!important;margin:7px 0!important;background:#fff!important}.pm42-chat-wrap .pmc-thread[data-active=true]{background:#f4f5f8!important;border-color:#d9dde3!important}
+ .pm42-chat-wrap .pmc-empty{min-height:210px!important;margin:10px 0 0!important;padding:32px 20px!important;display:grid!important;place-content:center!important;border-radius:18px!important;box-shadow:none!important}
+ .pm42-chat-wrap .pmc-empty-chat{display:none!important}
+ .pm42-chat-wrap .pmc-chat>header{position:sticky!important;top:0!important;z-index:5!important}
+ .pm42-chat-wrap .pmc-messages{min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain!important;scrollbar-width:thin!important}
+ .pm42-chat-wrap .pmc-compose{position:sticky!important;bottom:0!important;z-index:4!important}
+}
