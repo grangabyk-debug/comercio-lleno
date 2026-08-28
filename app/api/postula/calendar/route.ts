@@ -58,7 +58,8 @@ export async function GET(req:NextRequest){
  })
  const customEvents=(items||[]).map((item:any)=>({...item,id:`task:${item.id}`,task_id:item.id,source:'custom',locked:false}))
  const events=[...customEvents,...interviewEvents].sort((a:any,b:any)=>new Date(a.starts_at).getTime()-new Date(b.starts_at).getTime())
- const upcoming=events.filter((event:any)=>new Date(event.starts_at).getTime()>=Date.now()&&event.status!=='cancelled').slice(0,8)
+ const inactiveUpcoming=new Set(['cancelled','declined','completed'])
+ const upcoming=events.filter((event:any)=>new Date(event.starts_at).getTime()>=Date.now()&&!inactiveUpcoming.has(String(event.status||''))).slice(0,8)
  return NextResponse.json({ok:true,audience,company:member?{id:member.company_id,name:first(member.pm_companies)?.name||member.pm_companies?.name||'Tu empresa',role:member.role}:null,events,upcoming})
 }
 
