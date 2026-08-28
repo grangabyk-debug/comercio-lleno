@@ -46,13 +46,13 @@
 
   .pm7-gig-card.pm39-market-card .pm7-gig-photo>span{display:none!important}
 
-  /* Type badge and zone are two independent chips with fixed real dimensions. */
+  /* Type and zone are deliberately separated so they can never collide. */
   .pm7-gig-card.pm39-market-card .pm39-type-badge{
     position:absolute!important;
     z-index:5!important;
     left:9px!important;
     top:auto!important;
-    bottom:43px!important;
+    bottom:68px!important;
     box-sizing:border-box!important;
     width:auto!important;
     max-width:108px!important;
@@ -140,7 +140,6 @@
     line-height:1.38!important;
   }
 
-  /* Zone sits cleanly below the type badge, fully inside the image column. */
   .pm7-gig-card.pm39-market-card .pm7-gig-foot{
     position:absolute!important;
     z-index:6!important;
@@ -268,7 +267,7 @@
   .pm7-gig-card.pm39-market-card .pm7-gig-body{padding:11px 10px 61px!important}
   .pm7-gig-card.pm39-market-card h3{font-size:16.5px!important}
   .pm7-gig-card.pm39-market-card .pm7-gig-photo>button{left:78px!important;width:31px!important;height:31px!important;min-width:31px!important;min-height:31px!important}
-  .pm7-gig-card.pm39-market-card .pm39-type-badge{left:7px!important;max-width:100px!important;bottom:41px!important}
+  .pm7-gig-card.pm39-market-card .pm39-type-badge{left:7px!important;max-width:100px!important;bottom:64px!important}
   .pm7-gig-card.pm39-market-card .pm7-gig-foot{left:7px!important;bottom:8px!important;width:100px!important;height:25px!important}
   .pm7-gig-card.pm39-market-card .pm7-gig-foot>span{width:100px!important;height:25px!important}
   .pm7-gig-card.pm39-market-card .pm7-gig-price{left:calc(var(--pm-flex-media) + 10px)!important;right:10px!important;bottom:9px!important;gap:6px!important}
