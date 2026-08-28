@@ -15,21 +15,22 @@ type PaidPlan=keyof typeof PLAN
 function db(req:NextRequest){const auth=req.headers.get('authorization')||'';return createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{Authorization:auth}}})}
 
 export async function POST(req:NextRequest){
+ const auth=req.headers.get('authorization')||''
  const client=db(req)
  const {data:{user}}=await client.auth.getUser()
  if(!user)return NextResponse.json({ok:false,error:'Primero creá o iniciá sesión con tu cuenta de empresa.'},{status:401})
  const body=await req.json().catch(()=>({}))
  const plan=String(body?.plan||'') as PaidPlan
  if(!(plan in PLAN))return NextResponse.json({ok:false,error:'Plan inválido.'},{status:400})
- const {data:members,error}=await client.from('pm_company_members').select('company_id,status').eq('user_id',user.id).eq('status','active').limit(1)
+ const {data:members,error}=await client.from('pm_company_members').select('company_id,role,status').eq('user_id',user.id).eq('status','active').in('role',['owner','admin']).limit(1)
  if(error)return NextResponse.json({ok:false,error:error.message},{status:400})
  const companyId=members?.[0]?.company_id
- if(!companyId)return NextResponse.json({ok:false,code:'needs_company',error:'Primero completá la configuración de tu empresa.'},{status:409})
+ if(!companyId)return NextResponse.json({ok:false,code:'needs_billing_permission',error:'Sólo el propietario o un administrador de la empresa puede contratar o cambiar un plan.'},{status:403})
 
  const chosen=PLAN[plan]
  const response=await fetch(`${BILLING_API}?action=checkout`,{
   method:'POST',
-  headers:{'Content-Type':'application/json'},
+  headers:{'Content-Type':'application/json',Authorization:auth},
   body:JSON.stringify({plan,email:user.email,user_id:user.id,company_id:companyId}),
   cache:'no-store',
  })
@@ -39,7 +40,7 @@ export async function POST(req:NextRequest){
 
  const syncResponse=await fetch(SYNC_API,{
   method:'POST',
-  headers:{'Content-Type':'application/json'},
+  headers:{'Content-Type':'application/json',Authorization:auth},
   body:JSON.stringify({id:String(payload.preapproval_id)}),
   cache:'no-store',
  })
