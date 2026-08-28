@@ -19,7 +19,7 @@ export default function FlexUxCleanup(){
 
    document.querySelectorAll<HTMLElement>('.pm39-market-card').forEach(card=>{
     if(card.dataset.pm42Card)return
-    card.dataset.pm42Card='1';card.tabIndex=0;card.setAttribute('role','button')
+    card.dataset.pm42Card='1';card.tabIndex=0;card.setAttribute('role','button');card.style.cursor='pointer'
     const title=card.querySelector('h3')?.textContent?.trim();if(title)card.setAttribute('aria-label',`Abrir Servicio Flex: ${title}`)
    })
    const chat=document.querySelector<HTMLElement>('.pm7-mini-chat')
@@ -28,7 +28,15 @@ export default function FlexUxCleanup(){
    }
   }
   const openCard=(card:HTMLElement)=>card.querySelector<HTMLButtonElement>('.pm7-gig-foot button')?.click()
-  const onClick=(event:MouseEvent)=>{const target=event.target as HTMLElement|null;const card=target?.closest<HTMLElement>('.pm39-market-card');if(!card||target?.closest(interactive))return;openCard(card)}
+  const onClick=(event:MouseEvent)=>{
+   const target=event.target as HTMLElement|null
+   const card=target?.closest<HTMLElement>('.pm39-market-card')
+   if(!card)return
+   const control=target?.closest<HTMLElement>(interactive)
+   if(control&&control!==card)return
+   event.preventDefault()
+   openCard(card)
+  }
   const onKey=(event:KeyboardEvent)=>{if(event.key!=='Enter'&&event.key!==' ')return;const target=event.target as HTMLElement|null;const card=target?.closest<HTMLElement>('.pm39-market-card');if(!card||target!==card)return;event.preventDefault();openCard(card)}
   enhance()
   const observer=new MutationObserver(enhance);observer.observe(document.body,{childList:true,subtree:true})
