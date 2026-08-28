@@ -28,7 +28,6 @@
 
   .pm7-gig-card.pm39-market-card:hover{transform:none!important}
 
-  /* Photo occupies only the left column. Its positioned children use the whole card as containing block. */
   .pm7-gig-card.pm39-market-card .pm7-gig-photo{
     position:static!important;
     grid-column:1!important;
@@ -47,22 +46,25 @@
 
   .pm7-gig-card.pm39-market-card .pm7-gig-photo>span{display:none!important}
 
-  /* Listing type on image. */
+  /* Type badge and zone are two independent chips with fixed real dimensions. */
   .pm7-gig-card.pm39-market-card .pm39-type-badge{
     position:absolute!important;
     z-index:5!important;
     left:9px!important;
     top:auto!important;
-    bottom:44px!important;
-    max-width:110px!important;
+    bottom:43px!important;
+    box-sizing:border-box!important;
+    width:auto!important;
+    max-width:108px!important;
+    height:22px!important;
     min-height:22px!important;
-    padding:5px 8px!important;
+    padding:0 8px!important;
     border-radius:999px!important;
     background:#141820!important;
     color:#fff!important;
     box-shadow:0 5px 14px rgba(0,0,0,.18)!important;
     font-size:6px!important;
-    line-height:1!important;
+    line-height:22px!important;
     font-weight:950!important;
     letter-spacing:.08em!important;
     white-space:nowrap!important;
@@ -73,7 +75,6 @@
     background:#6555e8!important;
   }
 
-  /* Favorite stays isolated in the image corner. */
   .pm7-gig-card.pm39-market-card .pm7-gig-photo>button{
     position:absolute!important;
     z-index:7!important;
@@ -94,7 +95,6 @@
     line-height:1!important;
   }
 
-  /* White information column. */
   .pm7-gig-card.pm39-market-card .pm7-gig-body{
     position:static!important;
     grid-column:2!important;
@@ -140,13 +140,15 @@
     line-height:1.38!important;
   }
 
-  /* Zone is an image overlay, under the type badge. */
+  /* Zone sits cleanly below the type badge, fully inside the image column. */
   .pm7-gig-card.pm39-market-card .pm7-gig-foot{
     position:absolute!important;
     z-index:6!important;
     left:9px!important;
     bottom:10px!important;
-    width:110px!important;
+    box-sizing:border-box!important;
+    width:108px!important;
+    height:25px!important;
     min-height:25px!important;
     margin:0!important;
     padding:0!important;
@@ -158,10 +160,12 @@
   .pm7-gig-card.pm39-market-card .pm7-gig-foot>span{
     display:flex!important;
     align-items:center!important;
-    width:100%!important;
+    box-sizing:border-box!important;
+    width:108px!important;
+    height:25px!important;
     min-width:0!important;
     min-height:25px!important;
-    padding:5px 8px!important;
+    padding:0 8px!important;
     overflow:hidden!important;
     border:1px solid rgba(216,255,69,.78)!important;
     border-radius:999px!important;
@@ -187,7 +191,6 @@
 
   .pm7-gig-card.pm39-market-card .pm7-gig-foot>button{display:none!important}
 
-  /* Price + duration live in the white column and never depend on viewport-width hacks. */
   .pm7-gig-card.pm39-market-card .pm7-gig-price{
     position:absolute!important;
     z-index:6!important;
@@ -265,8 +268,9 @@
   .pm7-gig-card.pm39-market-card .pm7-gig-body{padding:11px 10px 61px!important}
   .pm7-gig-card.pm39-market-card h3{font-size:16.5px!important}
   .pm7-gig-card.pm39-market-card .pm7-gig-photo>button{left:78px!important;width:31px!important;height:31px!important;min-width:31px!important;min-height:31px!important}
-  .pm7-gig-card.pm39-market-card .pm39-type-badge{left:7px!important;max-width:102px!important;bottom:43px!important}
-  .pm7-gig-card.pm39-market-card .pm7-gig-foot{left:7px!important;bottom:9px!important;width:102px!important}
+  .pm7-gig-card.pm39-market-card .pm39-type-badge{left:7px!important;max-width:100px!important;bottom:41px!important}
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot{left:7px!important;bottom:8px!important;width:100px!important;height:25px!important}
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot>span{width:100px!important;height:25px!important}
   .pm7-gig-card.pm39-market-card .pm7-gig-price{left:calc(var(--pm-flex-media) + 10px)!important;right:10px!important;bottom:9px!important;gap:6px!important}
   .pm7-gig-card.pm39-market-card .pm7-gig-price b,
   .pm7-gig-card.pm39-market-card .pm7-gig-price small{padding:6px 7px!important;font-size:8.7px!important}
