@@ -7,7 +7,7 @@ import {createPortal} from 'react-dom'
 import {cvAuthClient} from '../cv-ia/cvAuth'
 
 type Active='inicio'|'empleos'|'cuenta'|'cv'|'changas'|'mensajes'
-type IconKind='home'|'search'|'bolt'|'menu'|'user'|'chat'|'briefcase'|'heart'|'settings'|'logout'|'building'
+type IconKind='home'|'search'|'bolt'|'menu'|'user'|'chat'|'briefcase'|'heart'|'settings'|'logout'|'building'|'calendar'
 type EmployerTab='resumen'|'candidatos'|'mensajes'|'publicaciones'|'empresa'|'equipo'|'planes'|'configuracion'
 const employerTabs:EmployerTab[]=['resumen','candidatos','mensajes','publicaciones','empresa','equipo','planes','configuracion']
 function validEmployerTab(value:string|null):value is EmployerTab{return Boolean(value&&employerTabs.includes(value as EmployerTab))}
@@ -24,6 +24,7 @@ function Icon({kind}:{kind:IconKind}){
  if(kind==='heart')return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M12 20.2 4.5 13a5 5 0 0 1 7.5-6.6A5 5 0 0 1 19.5 13z"/></svg>
  if(kind==='settings')return <svg viewBox="0 0 24 24" aria-hidden="true"><circle {...common} cx="12" cy="12" r="3"/><path {...common} d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2M6 6l1.4 1.4M16.6 16.6 18 18M18 6l-1.4 1.4M7.4 16.6 6 18"/></svg>
  if(kind==='building')return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M5 20V5h9v15M14 9h5v11M8 8h3M8 11.5h3M8 15h3M17 12h.1M17 15h.1M3 20h18"/></svg>
+ if(kind==='calendar')return <svg viewBox="0 0 24 24" aria-hidden="true"><rect {...common} x="3.5" y="5.5" width="17" height="15" rx="2"/><path {...common} d="M7.5 3.5v4M16.5 3.5v4M3.5 10h17M7.5 14h.1M12 14h.1M16.5 14h.1M7.5 17h.1M12 17h.1"/></svg>
  if(kind==='logout')return <svg viewBox="0 0 24 24" aria-hidden="true"><path {...common} d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></svg>
  return null
 }
@@ -58,14 +59,23 @@ export default function MobileNavigation({active='inicio'}:{active?:Active}){
 
  useEffect(()=>{
   if(!logged)return
-  let alive=true
+  let alive=true,channel:any=null
+  const client=cvAuthClient()
   const load=async()=>{
-   const {data}=await cvAuthClient().auth.getSession();const token=data.session?.access_token;if(!token||!alive)return
-   try{const r=await fetch('/api/postula/messages',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const d=await r.json().catch(()=>({}));if(r.ok&&alive)setUnread((d?.conversations||[]).reduce((n:number,x:any)=>n+Number(x?.unread_count||0),0))}catch{}
+   const {data}=await client.auth.getSession();const token=data.session?.access_token;if(!token||!alive)return
+   try{const r=await fetch(`/api/postula/messages?audience=${employer?'employer':'candidate'}`,{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const d=await r.json().catch(()=>({}));if(r.ok&&alive)setUnread((d?.conversations||[]).reduce((n:number,x:any)=>n+Number(x?.unread_count||0),0))}catch{}
   }
-  void load();const timer=window.setInterval(()=>void load(),60000)
-  return()=>{alive=false;window.clearInterval(timer)}
- },[logged])
+  const start=async()=>{
+   const {data}=await client.auth.getSession();const user=data.session?.user;if(!user||!alive)return
+   await load()
+   channel=client.channel(`pm-nav-${user.id}-${employer?'employer':'candidate'}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'pm_notifications',filter:`user_id=eq.${user.id}`},(payload:any)=>{if(payload?.new?.notification_type==='message')void load()}).subscribe()
+  }
+  void start()
+  const timer=window.setInterval(()=>void load(),20000)
+  const focus=()=>void load(),visible=()=>{if(document.visibilityState==='visible')void load()}
+  window.addEventListener('focus',focus);document.addEventListener('visibilitychange',visible)
+  return()=>{alive=false;window.clearInterval(timer);window.removeEventListener('focus',focus);document.removeEventListener('visibilitychange',visible);if(channel)void client.removeChannel(channel)}
+ },[logged,employer])
 
  useEffect(()=>{
   if(!open)return
@@ -93,19 +103,19 @@ export default function MobileNavigation({active='inicio'}:{active?:Active}){
    <div className="pm46-auth-actions">{employer?<><Link href="/empresas/login" onClick={close}>Ingresar como empresa</Link><Link href="/empresas/registro" className="secondary" onClick={close}>Crear cuenta empresa</Link></>:<><Link href="/login" onClick={close}>Iniciar sesión</Link><Link href="/registro" className="secondary" onClick={close}>Crear cuenta gratis</Link></>}</div>
    <nav className="pm46-sheet-links" aria-label="Navegación pública"><Link href="/" onClick={close}><Icon kind="home"/><span><b>Inicio</b><small>Volver a Postulá Mejor</small></span></Link><Link href="/empleos" onClick={close}><Icon kind="search"/><span><b>Empleos</b><small>Explorar oportunidades</small></span></Link><Link href="/servicios-flex" onClick={close}><Icon kind="bolt"/><span><b>Servicios Flex</b><small>Buscar u ofrecer servicios</small></span></Link><Link href="/empresas" onClick={close}><Icon kind="building"/><span><b>Empresas</b><small>Publicar y contratar</small></span></Link></nav>
   </>:<>
-   <nav className="pm46-sheet-links" aria-label="Opciones de cuenta">{employer?<><Link href="/empresas/panel?tab=publicaciones" onClick={()=>closeEmployer('publicaciones')}><Icon kind="briefcase"/><span><b>Publicaciones</b><small>Empleos y Servicios Flex</small></span></Link><Link href="/empresas/panel?tab=empresa" onClick={()=>closeEmployer('empresa')}><Icon kind="building"/><span><b>Empresa</b><small>Datos, identidad y perfil</small></span></Link><Link href="/empresas/panel?tab=equipo" onClick={()=>closeEmployer('equipo')}><Icon kind="user"/><span><b>Equipo y permisos</b><small>Integrantes y accesos</small></span></Link><Link href="/empresas/panel?tab=planes" onClick={()=>closeEmployer('planes')}><Icon kind="briefcase"/><span><b>Planes y pagos</b><small>Suscripción y créditos</small></span></Link><Link href="/empresas/panel?tab=configuracion" onClick={()=>closeEmployer('configuracion')}><Icon kind="settings"/><span><b>Configuración</b><small>Preferencias de la cuenta</small></span></Link><Link href="/" onClick={close} className="pm46-role-switch"><Icon kind="user"/><span><b>Soy postulante</b><small>Ir al lado de búsqueda de empleo</small></span></Link></>:<><Link href="/mi-cuenta" onClick={close}><Icon kind="user"/><span><b>Mi cuenta</b><small>Perfil y resumen</small></span></Link><Link href="/mi-cuenta?tab=mensajes" onClick={close}><Icon kind="chat"/><span><b>Mensajes</b><small>Empleos y Servicios Flex</small></span>{unread>0&&<em>{unread>99?'99+':unread}</em>}</Link><Link href="/mi-cuenta?tab=postulaciones" onClick={close}><Icon kind="briefcase"/><span><b>Postulaciones</b><small>Seguí tus procesos</small></span></Link><Link href="/mi-cuenta?tab=favoritos" onClick={close}><Icon kind="heart"/><span><b>Favoritos</b><small>Lo que guardaste</small></span></Link><Link href="/mi-cuenta?tab=configuracion" onClick={close}><Icon kind="settings"/><span><b>Configuración</b><small>Privacidad y preferencias</small></span></Link><Link href="/empresas" onClick={close} className="pm46-role-switch"><Icon kind="building"/><span><b>Soy empresa</b><small>Publicá empleos y gestioná candidatos</small></span></Link></>}</nav>
+   <nav className="pm46-sheet-links" aria-label="Opciones de cuenta">{employer?<><Link href="/empresas/calendario" onClick={close}><Icon kind="calendar"/><span><b>Calendario</b><small>Entrevistas y tareas del equipo</small></span></Link><Link href="/empresas/panel?tab=publicaciones" onClick={()=>closeEmployer('publicaciones')}><Icon kind="briefcase"/><span><b>Publicaciones</b><small>Empleos y Servicios Flex</small></span></Link><Link href="/empresas/panel?tab=empresa" onClick={()=>closeEmployer('empresa')}><Icon kind="building"/><span><b>Empresa</b><small>Datos, identidad y perfil</small></span></Link><Link href="/empresas/panel?tab=equipo" onClick={()=>closeEmployer('equipo')}><Icon kind="user"/><span><b>Equipo y permisos</b><small>Integrantes y accesos</small></span></Link><Link href="/empresas/panel?tab=planes" onClick={()=>closeEmployer('planes')}><Icon kind="briefcase"/><span><b>Planes y pagos</b><small>Suscripción y créditos</small></span></Link><Link href="/empresas/panel?tab=configuracion" onClick={()=>closeEmployer('configuracion')}><Icon kind="settings"/><span><b>Configuración</b><small>Preferencias de la cuenta</small></span></Link><Link href="/" onClick={close} className="pm46-role-switch"><Icon kind="user"/><span><b>Soy postulante</b><small>Ir al lado de búsqueda de empleo</small></span></Link></>:<><Link href="/calendario" onClick={close}><Icon kind="calendar"/><span><b>Calendario</b><small>Entrevistas y tareas personales</small></span></Link><Link href="/mi-cuenta" onClick={close}><Icon kind="user"/><span><b>Mi cuenta</b><small>Perfil y resumen</small></span></Link><Link href="/mi-cuenta?tab=mensajes" onClick={close}><Icon kind="chat"/><span><b>Mensajes</b><small>Empleos y Servicios Flex</small></span>{unread>0&&<em>{unread>99?'99+':unread}</em>}</Link><Link href="/mi-cuenta?tab=postulaciones" onClick={close}><Icon kind="briefcase"/><span><b>Postulaciones</b><small>Seguí tus procesos</small></span></Link><Link href="/mi-cuenta?tab=favoritos" onClick={close}><Icon kind="heart"/><span><b>Favoritos</b><small>Lo que guardaste</small></span></Link><Link href="/mi-cuenta?tab=configuracion" onClick={close}><Icon kind="settings"/><span><b>Configuración</b><small>Privacidad y preferencias</small></span></Link><Link href="/empresas" onClick={close} className="pm46-role-switch"><Icon kind="building"/><span><b>Soy empresa</b><small>Publicá empleos y gestioná candidatos</small></span></Link></>}</nav>
    <button type="button" className="pm46-logout" onClick={()=>void logout()} disabled={busy}><Icon kind="logout"/><span><b>{busy?'Cerrando sesión…':'Cerrar sesión'}</b><small>Salir de esta cuenta en el dispositivo</small></span></button>
   </>}
  </section></div>:null
 
- const employerMenuActive=employer&&['publicaciones','empresa','equipo','planes','configuracion'].includes(employerTab)
+ const employerMenuActive=employer&&(pathname.includes('/calendario')||['publicaciones','empresa','equipo','planes','configuracion'].includes(employerTab))
  return <>
   <div className="pm46-mobile-root" data-auth={logged===true?'in':'out'} data-audience={employer?'employer':'candidate'}>
    {logged===true?<nav className="pm46-dock" aria-label="Navegación móvil">
-    <Link href={employer?'/empresas/panel':'/'} onClick={employer?()=>employerNavigate('resumen'):undefined} data-active={employer?employerTab==='resumen':active==='inicio'}><span><Icon kind={employer?'building':'home'}/></span><b>{employer?'Panel':'Inicio'}</b></Link>
-    <Link href={employer?'/empresas/panel?tab=candidatos':'/empleos'} onClick={employer?()=>employerNavigate('candidatos'):undefined} data-active={employer?employerTab==='candidatos':active==='empleos'}><span><Icon kind={employer?'user':'search'}/></span><b>{employer?'Candidatos':'Empleos'}</b></Link>
-    <Link href={employer?'/empresas/panel?tab=mensajes':'/servicios-flex'} onClick={employer?()=>employerNavigate('mensajes'):undefined} data-active={employer?employerTab==='mensajes':active==='changas'}><span><Icon kind={employer?'chat':'bolt'}/>{employer&&unread>0&&<i>{unread>9?'9+':unread}</i>}</span><b>{employer?'Mensajes':'Servicios'}</b></Link>
-    <button type="button" data-active={employer?employerMenuActive:active==='cuenta'||active==='mensajes'} onClick={()=>setOpen(true)} aria-expanded={open}><span><Icon kind="menu"/>{!employer&&unread>0&&<i>{unread>9?'9+':unread}</i>}</span><b>Menú</b></button>
+    <Link href={employer?'/empresas/panel':'/'} onClick={employer?()=>employerNavigate('resumen'):undefined} data-active={employer?employerTab==='resumen'&&!pathname.includes('/calendario'):active==='inicio'}><span><Icon kind={employer?'building':'home'}/></span><b>{employer?'Panel':'Inicio'}</b></Link>
+    <Link href={employer?'/empresas/panel?tab=candidatos':'/empleos'} onClick={employer?()=>employerNavigate('candidatos'):undefined} data-active={employer?employerTab==='candidatos'&&!pathname.includes('/calendario'):active==='empleos'}><span><Icon kind={employer?'user':'search'}/></span><b>{employer?'Candidatos':'Empleos'}</b></Link>
+    <Link href={employer?'/empresas/panel?tab=mensajes':'/servicios-flex'} onClick={employer?()=>employerNavigate('mensajes'):undefined} data-active={employer?employerTab==='mensajes'&&!pathname.includes('/calendario'):active==='changas'}><span><Icon kind={employer?'chat':'bolt'}/>{employer&&unread>0&&<i>{unread>9?'9+':unread}</i>}</span><b>{employer?'Mensajes':'Servicios'}</b></Link>
+    <button type="button" data-active={employer?employerMenuActive:active==='cuenta'||active==='mensajes'||pathname==='/calendario'} onClick={()=>setOpen(true)} aria-expanded={open}><span><Icon kind="menu"/>{!employer&&unread>0&&<i>{unread>9?'9+':unread}</i>}</span><b>Menú</b></button>
    </nav>:<button type="button" className="pm46-guest-menu" onClick={()=>setOpen(true)} aria-expanded={open}><span className="pm46-guest-mark"><i/><i/><i/></span><b>{menuLabel}</b><small>{logged===null?'':'Ingresar · explorar'}</small></button>}
   </div>
   {sheet&&typeof document!=='undefined'?createPortal(sheet,document.body):null}

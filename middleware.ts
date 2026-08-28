@@ -8,7 +8,7 @@ function isPostulaHost(request:NextRequest){
  return host==='postulamejor.com'||host==='www.postulamejor.com'
 }
 function isSensitivePostulaPath(pathname:string){
- return pathname==='/login'||pathname==='/registro'||pathname==='/mensajes'||pathname.startsWith('/mi-cuenta')||pathname.startsWith('/postular/')||pathname==='/empresas/login'||pathname==='/empresas/registro'||pathname.startsWith('/mi-postula-preview')||pathname.startsWith('/postulacion-preview/')||pathname==='/postula-login-preview'||pathname==='/postula-registro-preview'
+ return pathname==='/login'||pathname==='/registro'||pathname==='/mensajes'||pathname==='/calendario'||pathname.startsWith('/mi-cuenta')||pathname.startsWith('/postular/')||pathname==='/empresas/login'||pathname==='/empresas/registro'||pathname.startsWith('/empresas/calendario')||pathname.startsWith('/mi-postula-preview')||pathname.startsWith('/postulacion-preview/')||pathname==='/postula-login-preview'||pathname==='/postula-registro-preview'||pathname==='/postula-calendar-preview'
 }
 function secure(response:NextResponse,request:NextRequest){
  response.headers.set('X-Content-Type-Options','nosniff')
@@ -79,6 +79,7 @@ function postulaMejorRoute(request:NextRequest){
  if(pathname==='/postula-preview')return redirectPostula(request,'/')
  if(pathname==='/postula-login-preview')return redirectPostulaClean(request,'/login')
  if(pathname==='/postula-registro-preview')return redirectPostulaClean(request,'/registro')
+ if(pathname==='/postula-calendar-preview')return redirectPostula(request,'/calendario')
  if(pathname.startsWith('/empleos-preview/'))return redirectPostula(request,`/empleos/${pathname.slice('/empleos-preview/'.length)}`)
  if(pathname==='/empleos-preview')return redirectPostula(request,'/empleos')
  if(pathname==='/changas-preview')return redirectPostula(request,'/servicios-flex')
@@ -96,6 +97,7 @@ function postulaMejorRoute(request:NextRequest){
  if(pathname==='/')return rewritePostula(request,'/postula-preview')
  if(pathname==='/registro')return rewritePostula(request,'/postula-registro-preview')
  if(pathname==='/login')return rewritePostula(request,'/postula-login-preview')
+ if(pathname==='/calendario')return rewritePostula(request,'/postula-calendar-preview')
  if(pathname==='/empleos')return rewritePostula(request,'/empleos-preview')
  if(pathname.startsWith('/empleos/'))return rewritePostula(request,`/empleos-preview/${pathname.slice('/empleos/'.length)}`)
  if(pathname==='/servicios-flex')return rewritePostula(request,'/changas-preview')
