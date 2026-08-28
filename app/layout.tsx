@@ -21,6 +21,7 @@ import './landing-price-offer-boost.css'
 import './redesign/branch-contrast-fix.css'
 import './postula-preview/postula-cookie-v28.css'
 import './postula-preview/calendar-v54.css'
+import './postula-preview/calendar-peek-v54.css'
 import './postula-preview/home-flex-compact-v54.css'
 import './postula-cv-end-v13.css'
 
