@@ -5,10 +5,16 @@ BRANCH="${VERCEL_GIT_COMMIT_REF:-}"
 BASE_SHA="${VERCEL_GIT_PREVIOUS_SHA:-}"
 
 # Regla de ahorro: Vercel no debe compilar ramas de trabajo/preview.
-# Sólo main y staging pueden consumir un build automático.
-if [ -n "$BRANCH" ] && [ "$BRANCH" != "main" ] && [ "$BRANCH" != "staging" ]; then
+# Sólo main, staging y esta rama de validación puntual pueden consumir build.
+if [ -n "$BRANCH" ] && [ "$BRANCH" != "main" ] && [ "$BRANCH" != "staging" ] && [ "$BRANCH" != "feat/postulamejor-chat-calendar-20260828" ]; then
   echo "Rama $BRANCH no habilitada para deploy automático: omitir build."
   exit 0
+fi
+
+# La rama de validación se compila una única vez para QA previo al merge.
+if [ "$BRANCH" = "feat/postulamejor-chat-calendar-20260828" ]; then
+  echo "Preview Postulá Mejor habilitado para validación: ejecutar build."
+  exit 1
 fi
 
 # En main/staging, si no existe una referencia previa confiable, compilamos
