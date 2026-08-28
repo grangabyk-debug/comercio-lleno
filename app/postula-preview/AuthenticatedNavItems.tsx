@@ -6,16 +6,22 @@ import {cvAuthClient} from '../cv-ia/cvAuth'
 import MessageLauncher from './MessageLauncher'
 
 export default function AuthenticatedNavItems({audience='candidate',calendarClassName=''}:{audience?:'candidate'|'employer';calendarClassName?:string}){
- const [logged,setLogged]=useState(false)
+ const [visible,setVisible]=useState(false)
  useEffect(()=>{
   let alive=true
   const client=cvAuthClient()
-  const sync=(session:any)=>{if(alive)setLogged(Boolean(session))}
-  client.auth.getSession().then(({data})=>sync(data.session)).catch(()=>sync(null))
-  const {data:listener}=client.auth.onAuthStateChange((_event,session)=>sync(session))
+  const sync=async(session:any)=>{
+   if(!alive)return
+   if(!session){setVisible(false);return}
+   if(audience==='candidate'){setVisible(true);return}
+   const {data,error}=await client.from('pm_company_members').select('company_id').eq('user_id',session.user.id).eq('status','active').limit(1)
+   if(alive)setVisible(!error&&Boolean(data?.length))
+  }
+  client.auth.getSession().then(({data})=>void sync(data.session)).catch(()=>{if(alive)setVisible(false)})
+  const {data:listener}=client.auth.onAuthStateChange((_event,session)=>void sync(session))
   return()=>{alive=false;listener.subscription.unsubscribe()}
- },[])
- if(!logged)return null
+ },[audience])
+ if(!visible)return null
  if(audience==='employer')return <Link href="/empresas/calendario" className={calendarClassName}>Calendario</Link>
  return <><MessageLauncher/><Link href="/calendario">Calendario</Link></>
 }
