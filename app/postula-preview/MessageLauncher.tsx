@@ -23,14 +23,16 @@ export default function MessageLauncher({variant='header',active=false}:{variant
  function applyThreads(list:Thread[]){setThreads(list);setUnread(unreadOf(list))}
  async function refreshUnread(){
   const t=await token();if(!t){setUnread(0);return}
-  try{const r=await fetch('/api/postula/messages',{headers:{Authorization:`Bearer ${t}`},cache:'no-store'});const d=await r.json().catch(()=>({}));if(r.ok&&d?.ok&&Array.isArray(d.conversations))applyThreads(d.conversations)}catch{}
+  try{const r=await fetch('/api/postula/messages?audience=candidate',{headers:{Authorization:`Bearer ${t}`},cache:'no-store'});const d=await r.json().catch(()=>({}));if(r.ok&&d?.ok&&Array.isArray(d.conversations))applyThreads(d.conversations)}catch{}
  }
  useEffect(()=>{
-  void refreshUnread()
+  let alive=true,channel:any=null;const client=cvAuthClient()
+  const start=async()=>{const {data}=await client.auth.getSession();const user=data.session?.user;await refreshUnread();if(!user||!alive)return;channel=client.channel(`pm-header-messages-${user.id}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'pm_notifications',filter:`user_id=eq.${user.id}`},(payload:any)=>{if(payload?.new?.notification_type==='message')void refreshUnread()}).subscribe()}
+  void start()
   const onFocus=()=>void refreshUnread(),onVisibility=()=>{if(document.visibilityState==='visible')void refreshUnread()}
   window.addEventListener('focus',onFocus);document.addEventListener('visibilitychange',onVisibility)
-  const timer=window.setInterval(()=>void refreshUnread(),60000)
-  return()=>{window.removeEventListener('focus',onFocus);document.removeEventListener('visibilitychange',onVisibility);window.clearInterval(timer)}
+  const timer=window.setInterval(()=>void refreshUnread(),20000)
+  return()=>{alive=false;window.removeEventListener('focus',onFocus);document.removeEventListener('visibilitychange',onVisibility);window.clearInterval(timer);if(channel)void client.removeChannel(channel)}
  },[])
  useEffect(()=>{
   if(!open)return
@@ -48,7 +50,7 @@ export default function MessageLauncher({variant='header',active=false}:{variant
   if(!t){setLogged(false);setLoading(false);return}
   setLogged(true)
   try{
-   const r=await fetch('/api/postula/messages',{headers:{Authorization:`Bearer ${t}`},cache:'no-store'})
+   const r=await fetch('/api/postula/messages?audience=candidate',{headers:{Authorization:`Bearer ${t}`},cache:'no-store'})
    const d=await r.json().catch(()=>({}))
    const list:Thread[]=Array.isArray(d?.conversations)?d.conversations:[]
    applyThreads(list);setMe(String(d?.me||''))
@@ -58,7 +60,7 @@ export default function MessageLauncher({variant='header',active=false}:{variant
  async function loadMessages(id:string,knownToken?:string,baseThreads?:Thread[]){
   setActiveThread(id)
   const t=knownToken||await token();if(!t)return
-  const r=await fetch(`/api/postula/messages?conversation=${encodeURIComponent(id)}`,{headers:{Authorization:`Bearer ${t}`},cache:'no-store'})
+  const r=await fetch(`/api/postula/messages?audience=candidate&conversation=${encodeURIComponent(id)}`,{headers:{Authorization:`Bearer ${t}`},cache:'no-store'})
   const d=await r.json().catch(()=>({}))
   if(r.ok&&d?.ok){
    setMessages(d.messages||[]);setMe(String(d.me||''))
@@ -72,9 +74,9 @@ export default function MessageLauncher({variant='header',active=false}:{variant
   setBusy(true);setText('')
   try{
    const t=await token();if(!t){setLogged(false);return}
-   const r=await fetch('/api/postula/messages',{method:'POST',headers:{Authorization:`Bearer ${t}`,'Content-Type':'application/json'},body:JSON.stringify({conversation_id:activeThread,text:clean})})
+   const r=await fetch('/api/postula/messages',{method:'POST',headers:{Authorization:`Bearer ${t}`,'Content-Type':'application/json'},body:JSON.stringify({audience:'candidate',conversation_id:activeThread,text:clean})})
    const d=await r.json().catch(()=>({}))
-   if(r.ok&&d?.message)setMessages(v=>[...v,d.message]);else setText(clean)
+   if(r.ok&&d?.message){setMessages(v=>[...v,d.message]);void refreshUnread()}else setText(clean)
   }finally{setBusy(false)}
  }
  const badge=unread>99?'99+':String(unread)
