@@ -1,5 +1,6 @@
 import {postulaProductMetadata} from '../postulaProductMetadata'
 import SupportHelp from '../postula-preview/SupportHelp'
+import CandidateUxCleanup from './CandidateUxCleanup'
 import '../postula-preview/support-help-v21.css'
 import './account-readable-v35.css'
 
@@ -39,5 +40,5 @@ const avatarCacheScript=`(()=>{
 })()`
 
 export default function Layout({children}:{children:React.ReactNode}){
- return <><style dangerouslySetInnerHTML={{__html:avatarCacheCss}}/><script dangerouslySetInnerHTML={{__html:avatarCacheScript}}/>{children}<SupportHelp audience="candidate"/></>
+ return <><style dangerouslySetInnerHTML={{__html:avatarCacheCss}}/><script dangerouslySetInnerHTML={{__html:avatarCacheScript}}/><CandidateUxCleanup/>{children}<SupportHelp audience="candidate"/></>
 }
