@@ -1,5 +1,6 @@
 import type {Metadata} from 'next'
 import CvIaPage from '../cv-ia/page'
+import CvAccountGate from './CvAccountGate'
 
 export const metadata:Metadata={
  metadataBase:new URL('https://postulamejor.com'),
@@ -14,4 +15,4 @@ export const metadata:Metadata={
 }
 export const revalidate=300
 
-export default function MejorarCvPage(){return <CvIaPage/>}
+export default function MejorarCvPage(){return <><CvAccountGate/><CvIaPage/></>}
