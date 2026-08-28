@@ -1,0 +1,146 @@
+/* Servicios Flex V52 — final mobile card metadata layout.
+   Zone lives on the image; price and duration live in the white information column. */
+@media(max-width:720px){
+  .pm7-gig-card.pm39-market-card .pm7-gig-body{
+    position:relative!important;
+    overflow:visible!important;
+    padding:10px 11px 46px!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-body>p{
+    -webkit-line-clamp:2!important;
+    max-height:2.8em!important;
+  }
+
+  /* Put ZONA back on top of the image, directly below BUSCA PROFESIONAL / OFRECE SERVICIO. */
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot{
+    position:absolute!important;
+    z-index:25!important;
+    left:-105px!important;
+    right:auto!important;
+    bottom:7px!important;
+    width:98px!important;
+    min-height:24px!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    display:flex!important;
+    align-items:center!important;
+    overflow:visible!important;
+    pointer-events:none!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot>span{
+    display:inline-flex!important;
+    align-items:center!important;
+    width:auto!important;
+    max-width:98px!important;
+    min-height:24px!important;
+    padding:5px 8px!important;
+    border:1px solid rgba(216,255,69,.72)!important;
+    border-radius:999px!important;
+    background:linear-gradient(100deg,rgba(108,88,255,.94) 0%,rgba(108,88,255,.92) 42%,rgba(216,255,69,.96) 100%)!important;
+    color:#11131a!important;
+    box-shadow:0 5px 14px rgba(16,16,24,.18)!important;
+    backdrop-filter:blur(8px)!important;
+    font-size:8.5px!important;
+    line-height:1!important;
+    font-weight:950!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot>span:before{
+    content:"ZONA ·"!important;
+    flex:0 0 auto!important;
+    margin-right:4px!important;
+    color:#fff!important;
+    font-size:6px!important;
+    line-height:1!important;
+    font-weight:950!important;
+    letter-spacing:.08em!important;
+    text-transform:uppercase!important;
+  }
+
+  /* Restore IMPORTE + DURACIÓN in the white column. */
+  .pm7-gig-card.pm39-market-card .pm7-gig-price{
+    position:absolute!important;
+    z-index:30!important;
+    left:124px!important;
+    right:11px!important;
+    bottom:10px!important;
+    width:auto!important;
+    min-width:0!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:12px!important;
+    align-items:end!important;
+    margin:0!important;
+    padding:0!important;
+    background:transparent!important;
+    color:#171a21!important;
+    pointer-events:none!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-price b,
+  .pm7-gig-card.pm39-market-card .pm7-gig-price small{
+    display:block!important;
+    min-width:0!important;
+    margin:0!important;
+    color:#242a33!important;
+    text-shadow:none!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-price b{
+    font-size:10px!important;
+    line-height:1.15!important;
+    font-weight:950!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-price small{
+    font-size:9px!important;
+    line-height:1.15!important;
+    font-weight:850!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-price b:before,
+  .pm7-gig-card.pm39-market-card .pm7-gig-price small:before{
+    display:block!important;
+    margin-bottom:3px!important;
+    color:#969eaa!important;
+    font-size:6.5px!important;
+    line-height:1!important;
+    font-weight:950!important;
+    letter-spacing:.11em!important;
+    text-transform:uppercase!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-price b:before{content:"Importe"!important}
+  .pm7-gig-card.pm39-market-card .pm7-gig-price small:before{content:"Duración"!important}
+}
+
+@media(max-width:390px){
+  .pm7-gig-card.pm39-market-card .pm7-gig-body{
+    padding:9px 10px 43px!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot{
+    left:-95px!important;
+    bottom:6px!important;
+    width:88px!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot>span{
+    max-width:88px!important;
+    min-height:23px!important;
+    padding:5px 7px!important;
+    font-size:8px!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-price{
+    left:114px!important;
+    right:9px!important;
+    bottom:8px!important;
+    gap:8px!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-price b{font-size:9.5px!important}
+  .pm7-gig-card.pm39-market-card .pm7-gig-price small{font-size:8.5px!important}
+}
