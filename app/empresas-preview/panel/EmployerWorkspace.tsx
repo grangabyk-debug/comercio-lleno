@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import {useRouter,useSearchParams} from 'next/navigation'
 import {useEffect,useState} from 'react'
 import EmployerDashboardLive from './EmployerDashboardLive'
 import EmployerDashboardLoadGuard from './EmployerDashboardLoadGuard'
@@ -28,9 +29,20 @@ const views:readonly [View,string,string][]=[
 ]
 
 export default function EmployerWorkspace(){
+ const router=useRouter()
+ const searchParams=useSearchParams()
  const [view,setView]=useState<View>('resumen'),[publicationView,setPublicationView]=useState<PublicationView>('empleos')
- useEffect(()=>{const tab=new URLSearchParams(window.location.search).get('tab') as View|null;if(tab&&views.some(([key])=>key===tab))setView(tab)},[])
- function choose(next:View){setView(next);const url=new URL(window.location.href);if(next==='resumen')url.searchParams.delete('tab');else url.searchParams.set('tab',next);window.history.replaceState({},'',url)}
+ useEffect(()=>{
+  const tab=searchParams.get('tab') as View|null
+  setView(tab&&views.some(([key])=>key===tab)?tab:'resumen')
+ },[searchParams])
+ function choose(next:View){
+  setView(next)
+  const params=new URLSearchParams(searchParams.toString())
+  if(next==='resumen')params.delete('tab');else params.set('tab',next)
+  const query=params.toString()
+  router.replace(`/empresas/panel${query?`?${query}`:''}`,{scroll:false})
+ }
  const needsLive=view==='resumen'||view==='candidatos'||view==='mensajes'
  return <div className="pm48-workspace" data-view={view}>
   <EmployerDashboardLoadGuard/>
