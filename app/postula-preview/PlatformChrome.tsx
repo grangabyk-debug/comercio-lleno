@@ -27,6 +27,7 @@ import './mobile-navigation-v46.css'
 import './support-help-mobile-v46.css'
 import './landing-calendar-v55.css'
 import './calendar-polish-v55.css'
+import './calendar-reminders-v56.css'
 
 function EmployerHeader(){
   return <header className="pm-employer-topbar">
