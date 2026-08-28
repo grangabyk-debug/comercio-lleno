@@ -1,0 +1,85 @@
+/* Mensajes postulante V57 — legibilidad reforzada sin cambiar la estructura */
+@media (min-width:761px){
+  .pmc-page{grid-template-columns:370px minmax(0,1fr)}
+  .pmc-list{padding:20px}
+  .pmc-list-top{padding-bottom:16px}
+  .pmc-list-top b{font-size:25px;line-height:1.05}
+  .pmc-list-top span{font-size:12px;line-height:1.35;margin-top:4px}
+  .pmc-back{font-size:11px;padding:9px 11px}
+  .pmc-tabs{gap:7px;padding-bottom:14px}
+  .pmc-tabs button{min-height:42px;font-size:11px;border-radius:12px}
+  .pmc-tabs i{min-width:20px;height:20px;font-size:9px}
+  .pmc-thread{padding:13px 12px;grid-template-columns:50px minmax(0,1fr) auto;gap:12px}
+  .pmc-thread-avatar{width:50px;height:50px;font-size:12px}
+  .pmc-thread-copy b{font-size:14px;line-height:1.25}
+  .pmc-thread-copy small{font-size:11px;line-height:1.35;margin-top:4px}
+  .pmc-thread-copy em{font-size:8px;padding:4px 7px}
+  .pmc-thread-copy .pmc-flex-title{font-size:16px;line-height:1.18}
+  .pmc-thread-copy .pmc-flex-person{font-size:11px;line-height:1.35;margin-top:5px}
+  .pmc-unread{min-width:25px;height:25px;font-size:10px}
+
+  .pmc-chat>header{min-height:82px;padding:12px 24px;grid-template-columns:50px minmax(0,1fr) auto auto;gap:13px}
+  .pmc-chat-avatar{width:50px;height:50px;font-size:12px}
+  .pmc-chat>header b{font-size:15px;line-height:1.2}
+  .pmc-chat>header small{font-size:11px;line-height:1.35;margin-top:4px}
+  .pmc-header-service{font-size:18px;line-height:1.12}
+  .pmc-kind{font-size:9px;padding:6px 9px}
+  .pmc-close{font-size:11px}
+
+  .pmc-profile-card{max-width:860px;padding:15px 17px;grid-template-columns:52px minmax(0,1fr) auto;gap:14px}
+  .pmc-profile-avatar{width:52px;height:52px;font-size:12px}
+  .pmc-profile-card>div:nth-child(2)>span,.pmc-profile-service>span{font-size:9px;line-height:1.15}
+  .pmc-profile-card>div:nth-child(2)>b{font-size:16px;line-height:1.2;margin-top:5px}
+  .pmc-profile-card p{font-size:12px;line-height:1.4;margin-top:4px}
+  .pmc-profile-card small{font-size:10px;line-height:1.35;margin-top:4px}
+  .pmc-profile-service{min-width:175px;padding:12px 14px}
+  .pmc-profile-service strong{font-size:14px;line-height:1.25}
+
+  .pmc-trust{max-width:860px;padding:13px 16px;font-size:12.5px;line-height:1.55;gap:10px}
+  .pmc-trust i{width:10px;height:10px}
+
+  .pmc-interviews{max-width:860px}
+  .pmc-interviews span{font-size:9px}
+  .pmc-interviews b{font-size:16px}
+  .pmc-interviews p{font-size:12px;line-height:1.4}
+  .pmc-interviews small{font-size:10.5px;line-height:1.4}
+  .pmc-interviews>article>strong{font-size:12px}
+  .pmc-interview-actions button{font-size:10.5px;min-height:40px}
+  .pmc-calendar-link{font-size:10px;min-height:34px;padding:0 11px}
+
+  .pmc-messages{max-width:900px;padding:22px 22px 32px}
+  .pmc-messages article{margin:9px 0}
+  .pmc-messages article>div{padding:13px 15px}
+  .pmc-messages p{font-size:14px;line-height:1.55}
+  .pmc-messages time{font-size:10px;line-height:1.2;margin-top:7px;font-weight:700}
+  .pmc-transcript{font-size:9px;padding:5px 8px}
+  .pmc-notice{max-width:860px;font-size:12px;line-height:1.45;padding:12px 15px}
+  .pmc-compose{padding:14px 20px 20px;gap:10px}
+  .pmc-compose textarea{min-height:52px;padding:15px 17px;font-size:14px;line-height:1.45}
+  .pmc-compose button{font-size:11.5px;padding:0 21px}
+}
+
+@media (max-width:760px){
+  .pmc-list-top span{font-size:11px;line-height:1.3}
+  .pmc-tabs button{font-size:10.5px;min-height:38px}
+  .pmc-thread-copy b{font-size:13px}
+  .pmc-thread-copy small{font-size:10px}
+  .pmc-thread-copy em{font-size:7.5px}
+  .pmc-thread-copy .pmc-flex-title{font-size:14.5px}
+  .pmc-thread-copy .pmc-flex-person{font-size:10px}
+  .pmc-chat>header b{font-size:14px}
+  .pmc-chat>header small{font-size:10px}
+  .pmc-kind{font-size:8px}
+  .pmc-profile-card>div:nth-child(2)>span,.pmc-profile-service>span{font-size:8px}
+  .pmc-profile-card>div:nth-child(2)>b{font-size:15px}
+  .pmc-profile-card p{font-size:10.5px}
+  .pmc-profile-card small{font-size:9.5px}
+  .pmc-profile-service strong{font-size:13px}
+  .pmc-trust{font-size:10.5px;line-height:1.5;padding:11px 12px}
+  .pmc-messages p{font-size:14px}
+  .pmc-messages time{font-size:9.5px;margin-top:6px;font-weight:700}
+  .pmc-transcript{font-size:8.5px}
+  .pmc-notice{font-size:10.5px;line-height:1.4}
+  .pmc-compose textarea{font-size:14px}
+  .pmc-compose button{font-size:11px}
+}
