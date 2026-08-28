@@ -46,7 +46,7 @@
 
   .pm7-gig-card.pm39-market-card .pm7-gig-photo>span{display:none!important}
 
-  /* Type and zone are deliberately separated so they can never collide. */
+  /* Type and location are deliberately separated so they can never collide. */
   .pm7-gig-card.pm39-market-card .pm39-type-badge{
     position:absolute!important;
     z-index:5!important;
@@ -140,15 +140,16 @@
     line-height:1.38!important;
   }
 
+  /* Location pill: only the place, no prefix, using the full image width. */
   .pm7-gig-card.pm39-market-card .pm7-gig-foot{
     position:absolute!important;
     z-index:6!important;
-    left:9px!important;
-    bottom:10px!important;
+    left:6px!important;
+    bottom:9px!important;
     box-sizing:border-box!important;
-    width:108px!important;
-    height:25px!important;
-    min-height:25px!important;
+    width:calc(var(--pm-flex-media) - 12px)!important;
+    height:26px!important;
+    min-height:26px!important;
     margin:0!important;
     padding:0!important;
     border:0!important;
@@ -159,33 +160,31 @@
   .pm7-gig-card.pm39-market-card .pm7-gig-foot>span{
     display:flex!important;
     align-items:center!important;
+    justify-content:center!important;
     box-sizing:border-box!important;
-    width:108px!important;
-    height:25px!important;
+    width:100%!important;
+    height:26px!important;
     min-width:0!important;
-    min-height:25px!important;
-    padding:0 8px!important;
+    min-height:26px!important;
+    padding:0 5px!important;
     overflow:hidden!important;
-    border:1px solid rgba(216,255,69,.78)!important;
+    border:1px solid rgba(216,255,69,.92)!important;
     border-radius:999px!important;
-    background:linear-gradient(95deg,#6957ef 0 43%,#d9ff54 100%)!important;
-    color:#131820!important;
-    box-shadow:0 5px 14px rgba(18,20,31,.18)!important;
-    font-size:8px!important;
+    background:linear-gradient(105deg,#6d5cf1 0%,#5543d8 100%)!important;
+    color:#fff!important;
+    box-shadow:0 5px 14px rgba(18,20,31,.2)!important;
+    font-size:clamp(6.6px,1.8vw,8px)!important;
     line-height:1!important;
     font-weight:950!important;
+    letter-spacing:-.01em!important;
+    text-align:center!important;
     white-space:nowrap!important;
     text-overflow:ellipsis!important;
   }
 
   .pm7-gig-card.pm39-market-card .pm7-gig-foot>span::before{
-    content:"ZONA ·"!important;
-    flex:0 0 auto!important;
-    margin-right:4px!important;
-    color:#fff!important;
-    font-size:6px!important;
-    font-weight:950!important;
-    letter-spacing:.08em!important;
+    content:none!important;
+    display:none!important;
   }
 
   .pm7-gig-card.pm39-market-card .pm7-gig-foot>button{display:none!important}
@@ -268,8 +267,8 @@
   .pm7-gig-card.pm39-market-card h3{font-size:16.5px!important}
   .pm7-gig-card.pm39-market-card .pm7-gig-photo>button{left:78px!important;width:31px!important;height:31px!important;min-width:31px!important;min-height:31px!important}
   .pm7-gig-card.pm39-market-card .pm39-type-badge{left:7px!important;max-width:100px!important;bottom:64px!important}
-  .pm7-gig-card.pm39-market-card .pm7-gig-foot{left:7px!important;bottom:8px!important;width:100px!important;height:25px!important}
-  .pm7-gig-card.pm39-market-card .pm7-gig-foot>span{width:100px!important;height:25px!important}
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot{left:5px!important;bottom:8px!important;width:calc(var(--pm-flex-media) - 10px)!important;height:25px!important}
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot>span{height:25px!important;min-height:25px!important;font-size:6.7px!important;padding:0 4px!important}
   .pm7-gig-card.pm39-market-card .pm7-gig-price{left:calc(var(--pm-flex-media) + 10px)!important;right:10px!important;bottom:9px!important;gap:6px!important}
   .pm7-gig-card.pm39-market-card .pm7-gig-price b,
   .pm7-gig-card.pm39-market-card .pm7-gig-price small{padding:6px 7px!important;font-size:8.7px!important}
