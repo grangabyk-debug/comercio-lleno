@@ -1,0 +1,58 @@
+'use client'
+
+import {useEffect,useMemo,useRef,useState} from 'react'
+import {createPortal} from 'react-dom'
+
+type FlexPost={id:string;title?:string;category?:string;location_text?:string;created_at?:string;listing_type?:'request'|'offer';publisher_kind?:'person'|'company';scheduled_for?:string|null;availability_text?:string|null}
+type SortOrder='newest'|'oldest'
+type Direction='all'|'request'|'offer'
+const provinces=['CABA','Buenos Aires','Catamarca','Chaco','Chubut','Córdoba','Corrientes','Entre Ríos','Formosa','Jujuy','La Pampa','La Rioja','Mendoza','Misiones','Neuquén','Río Negro','Salta','San Juan','San Luis','Santa Cruz','Santa Fe','Santiago del Estero','Tierra del Fuego','Tucumán']
+const cabaPlaces=['agronomia','almagro','balvanera','barracas','belgrano','boedo','caballito','chacarita','coghlan','colegiales','constitucion','flores','floresta','la boca','liniers','mataderos','monserrat','nueva pompeya','nunez','palermo','parque avellaneda','parque chacabuco','parque chas','parque patricios','paternal','puerto madero','recoleta','retiro','saavedra','san cristobal','san nicolas','san telmo','villa crespo','villa del parque','villa devoto','villa lugano','villa luro','villa ortuzar','villa pueyrredon','villa soldati','villa urquiza']
+const gba=['vicente lopez','olivos','florida','munro','martinez','san isidro','tigre','pilar','escobar','castelar','moron','haedo','ituzaingo','ramos mejia','san justo','merlo','hurlingham','moreno','avellaneda','lanus','lomas de zamora','banfield','temperley','adrogue','quilmes','bernal','berazategui','florencio varela','ezeiza','canning','monte grande','la plata','mar del plata','bahia blanca','tandil','campana','zarate','lujan','pergamino','junin','necochea','olavarria']
+const nonCity=new Set(['argentina','buenos aires','provincia de buenos aires','gba','gran buenos aires','remoto','presencial','online','a coordinar','zona norte','zona sur','zona oeste'])
+function norm(v:string){return v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim()}
+function inferProvince(location:string){const n=norm(location);if(/\bcaba\b|capital federal/.test(n)||cabaPlaces.some(x=>n.includes(x)))return'CABA';if(/provincia de buenos aires|\bbuenos aires\b|\bgba\b/.test(n)||gba.some(x=>n.includes(x)))return'Buenos Aires';if(/rosario|santa fe/.test(n))return'Santa Fe';if(/cordoba/.test(n))return'Córdoba';if(/mendoza/.test(n))return'Mendoza';return provinces.filter(x=>!['CABA','Buenos Aires','Santa Fe','Córdoba','Mendoza'].includes(x)).find(x=>n.includes(norm(x)))||''}
+function inferCity(location:string,province:string){const whole=norm(location),known=[...cabaPlaces,...gba,'rosario','cordoba','mendoza'].find(x=>whole.includes(x));if(known){const raw=location.split(/[·|,]/).map(x=>x.trim()).find(x=>norm(x).includes(known));return raw||known.replace(/\b\w/g,x=>x.toUpperCase())}return location.split(/[·|,]/).map(x=>x.trim()).filter(Boolean).find(x=>{const n=norm(x);return n&&!nonCity.has(n)&&n!==norm(province)&&!/^provincia de/.test(n)})||''}
+function setNativeValue(el:HTMLInputElement|HTMLSelectElement,value:string){const proto=el instanceof HTMLInputElement?HTMLInputElement.prototype:HTMLSelectElement.prototype;const setter=Object.getOwnPropertyDescriptor(proto,'value')?.set;setter?.call(el,value);el.dispatchEvent(new Event(el instanceof HTMLInputElement?'input':'change',{bubbles:true}))}
+function findLabeledSelect(label:string){return Array.from(document.querySelectorAll<HTMLLabelElement>('.pm38-flex-filters label')).find(x=>x.querySelector('span')?.textContent?.trim()===label)?.querySelector('select')||null}
+
+export default function FlexUnifiedFilters(){
+ const[mount,setMount]=useState<HTMLElement|null>(null),[posts,setPosts]=useState<FlexPost[]>([]),[sort,setSort]=useState<SortOrder>('newest'),[province,setProvince]=useState('Todas'),[city,setCity]=useState('Todas'),[modality,setModality]=useState('Todas'),[timing,setTiming]=useState('Todos'),[category,setCategory]=useState('Todos'),[direction,setDirection]=useState<Direction>('all'),[publisher,setPublisher]=useState('Todos'),[mobileOpen,setMobileOpen]=useState(false),[visible,setVisible]=useState(0)
+ const applying=useRef(false)
+ useEffect(()=>{let dead=false;const setup=()=>{const search=document.querySelector('.pm38-flex-search');if(!search)return false;let node=document.querySelector('.pm-flex-unified-mount') as HTMLElement|null;if(!node){node=document.createElement('div');node.className='pm-flex-unified-mount';search.insertAdjacentElement('afterend',node)}setMount(node);return true};if(!setup()){const o=new MutationObserver(()=>{if(setup())o.disconnect()});o.observe(document.body,{childList:true,subtree:true});setTimeout(()=>o.disconnect(),6000)}fetch('/api/postula/flex',{cache:'no-store'}).then(r=>r.json()).then(d=>{if(!dead&&Array.isArray(d?.posts))setPosts(d.posts)}).catch(()=>{});return()=>{dead=true}},[])
+ const places=useMemo(()=>posts.map(p=>{const location=String(p.location_text||'');const prov=inferProvince(location);return{post:p,province:prov,city:inferCity(location,prov)}}),[posts])
+ const provinceOptions=useMemo(()=>Array.from(new Set(places.map(x=>x.province).filter(Boolean))).sort((a,b)=>provinces.indexOf(a)-provinces.indexOf(b)),[places])
+ const cityOptions=useMemo(()=>Array.from(new Set(places.filter(x=>(province==='Todas'||x.province===province)&&x.city).map(x=>x.city))).sort((a,b)=>a.localeCompare(b,'es')),[places,province])
+ const categories=useMemo(()=>Array.from(new Set(posts.map(x=>String(x.category||'')).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'es')),[posts])
+ function syncReactFilters(){
+  const zoneInputs=document.querySelectorAll<HTMLInputElement>('.pm38-flex-search input'),zone=zoneInputs[1]
+  const zoneValue=modality==='Remoto'?'remoto':city!=='Todas'?city:province!=='Todas'?province:''
+  if(zone)setNativeValue(zone,zoneValue)
+  const pub=findLabeledSelect('Quién publica');if(pub)setNativeValue(pub,publisher)
+  const when=findLabeledSelect('Cuándo');if(when)setNativeValue(when,timing)
+  const cat=findLabeledSelect('Categoría');if(cat)setNativeValue(cat,category)
+  const buttons=Array.from(document.querySelectorAll<HTMLButtonElement>('.pm39-listing-filter button'));const index=direction==='all'?0:direction==='request'?1:2;buttons[index]?.click()
+ }
+ function applyDom(){if(applying.current)return;applying.current=true;requestAnimationFrame(()=>{const grid=document.querySelector('.pm7-gig-grid');if(!grid){applying.current=false;setVisible(0);return}const postMap=new Map<string,FlexPost[]>();for(const p of posts){const key=`${norm(String(p.title||''))}|${norm(String(p.location_text||''))}`;postMap.set(key,[...(postMap.get(key)||[]),p])}const cards=Array.from(grid.querySelectorAll<HTMLElement>(':scope > .pm7-gig-card'));let shown=0;const ranked=cards.map((card,i)=>{const title=card.querySelector('.pm7-gig-body h3')?.textContent||'',loc=card.querySelector('.pm7-gig-foot span')?.textContent||'',key=`${norm(title)}|${norm(loc)}`,post=(postMap.get(key)||[])[0],created=Date.parse(String(post?.created_at||''))||0,isRemote=/\bremot|online\b/i.test(loc);const hidden=modality==='En persona'&&isRemote;card.style.display=hidden?'none':'';if(!hidden)shown++;return{card,created:created||i}});const ordered=[...ranked].sort((a,b)=>sort==='newest'?b.created-a.created:a.created-b.created);ordered.forEach((x,i)=>x.card.style.order=String(i));setVisible(shown);applying.current=false})}
+ useEffect(()=>{if(!mount)return;syncReactFilters();const t=setTimeout(applyDom,80);return()=>clearTimeout(t)},[mount,province,city,modality,timing,category,direction,publisher,sort,posts])
+ useEffect(()=>{if(!mount)return;const root=mount.closest('.pm7-gig-explorer')||document.body;const observer=new MutationObserver(()=>applyDom());observer.observe(root,{childList:true,subtree:true});applyDom();return()=>observer.disconnect()},[mount,sort,modality,posts])
+ function clear(){setSort('newest');setProvince('Todas');setCity('Todas');setModality('Todas');setTiming('Todos');setCategory('Todos');setDirection('all');setPublisher('Todos')}
+ const active=[province!=='Todas',city!=='Todas',modality!=='Todas',timing!=='Todos',category!=='Todos',direction!=='all',publisher!=='Todos',sort!=='newest'].filter(Boolean).length
+ if(!mount)return null
+ return createPortal(<div className="pm-flex-unified" data-open={mobileOpen}>
+  <button type="button" className="pm-flex-mobile-filter-button" onClick={()=>setMobileOpen(true)}><span>Filtros</span><b>{active||'+'}</b></button>
+  {mobileOpen&&<button type="button" className="pm-flex-filter-backdrop" aria-label="Cerrar filtros" onClick={()=>setMobileOpen(false)}/>} 
+  <aside className="pm-flex-filter-panel"><div className="pm-flex-filter-head"><div><span>FILTROS</span><b>Encontrá lo que necesitás</b></div><div><button type="button" onClick={clear}>Limpiar</button><button type="button" className="done" onClick={()=>setMobileOpen(false)}>Listo</button></div></div>
+   <div className="pm-flex-filter-grid">
+    <label><span>Ordenar</span><select value={sort} onChange={e=>setSort(e.target.value as SortOrder)}><option value="newest">Más recientes primero</option><option value="oldest">Más antiguos primero</option></select></label>
+    <label><span>Provincia</span><select value={province} onChange={e=>{setProvince(e.target.value);setCity('Todas');if(e.target.value!=='Todas')setModality('Todas')}}><option>Todas</option>{provinceOptions.map(x=><option key={x}>{x}</option>)}</select></label>
+    <label><span>Ciudad / localidad</span><select value={city} onChange={e=>{setCity(e.target.value);if(e.target.value!=='Todas')setModality('Todas')}}><option>Todas</option>{cityOptions.map(x=><option key={x}>{x}</option>)}</select></label>
+    <label><span>Modalidad</span><select value={modality} onChange={e=>{const v=e.target.value;setModality(v);if(v==='Remoto'){setProvince('Todas');setCity('Todas')}}}><option>Todas</option><option>En persona</option><option>Remoto</option></select></label>
+    <label><span>Cuándo</span><select value={timing} onChange={e=>setTiming(e.target.value)}><option>Todos</option><option>Hoy</option><option>Con fecha</option><option>A coordinar</option></select></label>
+    <label><span>Área / categoría</span><select value={category} onChange={e=>setCategory(e.target.value)}><option value="Todos">Todas</option>{categories.map(x=><option key={x}>{x}</option>)}</select></label>
+    <label><span>Tipo</span><select value={direction} onChange={e=>setDirection(e.target.value as Direction)}><option value="all">Todos</option><option value="request">Buscan un servicio</option><option value="offer">Ofrecen un servicio</option></select></label>
+    <label><span>Quién publica</span><select value={publisher} onChange={e=>setPublisher(e.target.value)}><option>Todos</option><option>Personas</option><option>Empresas</option></select></label>
+   </div><div className="pm-flex-filter-foot"><span>{visible||0} publicaciones visibles</span><small>Los filtros se aplican al instante.</small></div>
+  </aside>
+ </div>,mount)
+}
