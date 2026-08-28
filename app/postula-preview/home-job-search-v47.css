@@ -7,5 +7,7 @@
 .pm-home-job-search select{cursor:pointer}
 .pm-home-job-search button{min-width:122px;border:0;border-radius:14px;background:#ff696f;color:white;padding:0 22px;font:inherit;font-size:13px;font-weight:950;cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
 .pm-home-job-search button:hover{transform:translateY(-1px);background:#f85e65;box-shadow:0 12px 24px rgba(248,94,101,.22)}
-.pm-home-job-search input:focus,.pm-home-job-search select:focus{color:#5c4cf0}
+.pm-home-job-search input:focus,.pm-home-job-search select:focus{color:#1b1d25;background:#fff}
+.pm7-page .pm-home-job-search input:focus-visible,.pm7-page .pm-home-job-search select:focus-visible{outline:0!important;outline-offset:0!important;box-shadow:none!important}
+.pm-home-job-search input:focus-visible{caret-color:#1b1d25}
 @media(max-width:760px){.pm-home-job-search{display:grid!important;grid-template-columns:1fr!important;padding:9px!important;gap:0!important}.pm-home-job-search label{min-height:68px;padding:10px 12px!important}.pm-home-job-search label+label{border-left:0!important;border-top:1px solid rgba(27,29,38,.09)!important}.pm-home-job-search input,.pm-home-job-search select{font-size:16px}.pm-home-job-search button{min-height:54px;margin-top:2px;width:100%}}
