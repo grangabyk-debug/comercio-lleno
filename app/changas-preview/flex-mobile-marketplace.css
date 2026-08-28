@@ -1,0 +1,273 @@
+/* Mobile marketplace rebuilt from scratch. Desktop keeps the existing card design. */
+@media (max-width:720px){
+  .pm7-gig-grid{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+    align-items:start!important;
+  }
+
+  .pm7-gig-card.pm39-market-card{
+    --pm-flex-media:128px;
+    position:relative!important;
+    display:grid!important;
+    grid-template-columns:var(--pm-flex-media) minmax(0,1fr)!important;
+    width:100%!important;
+    height:188px!important;
+    min-height:188px!important;
+    max-height:188px!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+    border:1px solid #dde2e7!important;
+    border-radius:20px!important;
+    background:#fff!important;
+    box-shadow:0 7px 22px rgba(24,31,42,.045)!important;
+    transform:none!important;
+  }
+
+  .pm7-gig-card.pm39-market-card:hover{transform:none!important}
+
+  /* Photo occupies only the left column. Its positioned children use the whole card as containing block. */
+  .pm7-gig-card.pm39-market-card .pm7-gig-photo{
+    position:static!important;
+    grid-column:1!important;
+    grid-row:1!important;
+    width:var(--pm-flex-media)!important;
+    height:188px!important;
+    min-height:188px!important;
+    max-height:188px!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+    border-radius:0!important;
+    background-size:cover!important;
+    background-position:center!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-photo>span{display:none!important}
+
+  /* Listing type on image. */
+  .pm7-gig-card.pm39-market-card .pm39-type-badge{
+    position:absolute!important;
+    z-index:5!important;
+    left:9px!important;
+    top:auto!important;
+    bottom:44px!important;
+    max-width:110px!important;
+    min-height:22px!important;
+    padding:5px 8px!important;
+    border-radius:999px!important;
+    background:#141820!important;
+    color:#fff!important;
+    box-shadow:0 5px 14px rgba(0,0,0,.18)!important;
+    font-size:6px!important;
+    line-height:1!important;
+    font-weight:950!important;
+    letter-spacing:.08em!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .pm7-gig-card.pm39-market-card[data-listing-type="offer"] .pm39-type-badge{
+    background:#6555e8!important;
+  }
+
+  /* Favorite stays isolated in the image corner. */
+  .pm7-gig-card.pm39-market-card .pm7-gig-photo>button{
+    position:absolute!important;
+    z-index:7!important;
+    top:10px!important;
+    left:88px!important;
+    right:auto!important;
+    width:34px!important;
+    height:34px!important;
+    min-width:34px!important;
+    min-height:34px!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:50%!important;
+    background:rgba(255,255,255,.96)!important;
+    color:#111820!important;
+    box-shadow:0 5px 16px rgba(20,26,34,.13)!important;
+    font-size:18px!important;
+    line-height:1!important;
+  }
+
+  /* White information column. */
+  .pm7-gig-card.pm39-market-card .pm7-gig-body{
+    position:static!important;
+    grid-column:2!important;
+    grid-row:1!important;
+    display:block!important;
+    min-width:0!important;
+    height:188px!important;
+    min-height:188px!important;
+    max-height:188px!important;
+    padding:12px 13px 63px!important;
+    overflow:hidden!important;
+    background:#fff!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-person,
+  .pm7-gig-card.pm39-market-card .pm7-gig-tags{
+    display:none!important;
+  }
+
+  .pm7-gig-card.pm39-market-card h3{
+    display:-webkit-box!important;
+    -webkit-box-orient:vertical!important;
+    -webkit-line-clamp:2!important;
+    max-height:2.18em!important;
+    margin:0 0 8px!important;
+    overflow:hidden!important;
+    color:#151820!important;
+    font-size:18px!important;
+    line-height:1.08!important;
+    font-weight:900!important;
+    letter-spacing:-.035em!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-body>p{
+    display:-webkit-box!important;
+    -webkit-box-orient:vertical!important;
+    -webkit-line-clamp:2!important;
+    max-height:2.75em!important;
+    margin:0!important;
+    overflow:hidden!important;
+    color:#626b77!important;
+    font-size:10px!important;
+    line-height:1.38!important;
+  }
+
+  /* Zone is an image overlay, under the type badge. */
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot{
+    position:absolute!important;
+    z-index:6!important;
+    left:9px!important;
+    bottom:10px!important;
+    width:110px!important;
+    min-height:25px!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+    pointer-events:none!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot>span{
+    display:flex!important;
+    align-items:center!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:25px!important;
+    padding:5px 8px!important;
+    overflow:hidden!important;
+    border:1px solid rgba(216,255,69,.78)!important;
+    border-radius:999px!important;
+    background:linear-gradient(95deg,#6957ef 0 43%,#d9ff54 100%)!important;
+    color:#131820!important;
+    box-shadow:0 5px 14px rgba(18,20,31,.18)!important;
+    font-size:8px!important;
+    line-height:1!important;
+    font-weight:950!important;
+    white-space:nowrap!important;
+    text-overflow:ellipsis!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot>span::before{
+    content:"ZONA ·"!important;
+    flex:0 0 auto!important;
+    margin-right:4px!important;
+    color:#fff!important;
+    font-size:6px!important;
+    font-weight:950!important;
+    letter-spacing:.08em!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot>button{display:none!important}
+
+  /* Price + duration live in the white column and never depend on viewport-width hacks. */
+  .pm7-gig-card.pm39-market-card .pm7-gig-price{
+    position:absolute!important;
+    z-index:6!important;
+    left:calc(var(--pm-flex-media) + 13px)!important;
+    right:13px!important;
+    bottom:11px!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:8px!important;
+    width:auto!important;
+    margin:0!important;
+    padding:0!important;
+    color:#151922!important;
+    background:transparent!important;
+    pointer-events:none!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-price b,
+  .pm7-gig-card.pm39-market-card .pm7-gig-price small{
+    display:block!important;
+    min-width:0!important;
+    min-height:39px!important;
+    margin:0!important;
+    padding:7px 8px!important;
+    overflow:hidden!important;
+    border:1px solid #edf0f2!important;
+    border-radius:11px!important;
+    background:#f7f8fa!important;
+    color:#222932!important;
+    text-shadow:none!important;
+    white-space:nowrap!important;
+    text-overflow:ellipsis!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-price b{
+    font-size:10px!important;
+    line-height:1.1!important;
+    font-weight:950!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-price small{
+    font-size:9px!important;
+    line-height:1.1!important;
+    font-weight:850!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-price b::before,
+  .pm7-gig-card.pm39-market-card .pm7-gig-price small::before{
+    display:block!important;
+    margin-bottom:4px!important;
+    color:#929aa5!important;
+    font-size:6px!important;
+    line-height:1!important;
+    font-weight:950!important;
+    letter-spacing:.1em!important;
+    text-transform:uppercase!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-price b::before{content:"Importe"!important}
+  .pm7-gig-card.pm39-market-card .pm7-gig-price small::before{content:"Duración"!important}
+}
+
+@media (max-width:390px){
+  .pm7-gig-card.pm39-market-card{
+    --pm-flex-media:116px;
+    height:180px!important;
+    min-height:180px!important;
+    max-height:180px!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-photo,
+  .pm7-gig-card.pm39-market-card .pm7-gig-body{
+    height:180px!important;
+    min-height:180px!important;
+    max-height:180px!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-photo{width:var(--pm-flex-media)!important}
+  .pm7-gig-card.pm39-market-card .pm7-gig-body{padding:11px 10px 61px!important}
+  .pm7-gig-card.pm39-market-card h3{font-size:16.5px!important}
+  .pm7-gig-card.pm39-market-card .pm7-gig-photo>button{left:78px!important;width:31px!important;height:31px!important;min-width:31px!important;min-height:31px!important}
+  .pm7-gig-card.pm39-market-card .pm39-type-badge{left:7px!important;max-width:102px!important;bottom:43px!important}
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot{left:7px!important;bottom:9px!important;width:102px!important}
+  .pm7-gig-card.pm39-market-card .pm7-gig-price{left:calc(var(--pm-flex-media) + 10px)!important;right:10px!important;bottom:9px!important;gap:6px!important}
+  .pm7-gig-card.pm39-market-card .pm7-gig-price b,
+  .pm7-gig-card.pm39-market-card .pm7-gig-price small{padding:6px 7px!important;font-size:8.7px!important}
+}
