@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import {notFound} from 'next/navigation'
+import {unstable_cache} from 'next/cache'
 import styles from '../../postula-preview/platform.module.css'
 import {PlatformHeader,PlatformFooter,MobileNav} from '../../postula-preview/PlatformChrome'
-import {getJobCatalog} from '../../postula-preview/jobs'
+import {getFullJobCatalog} from '../../postula-preview/jobs'
 import {companyProfileHref} from '../../postula-preview/publicCompany'
 import {getPublicCompanyReputation,getPublicJobCompanyId} from '../../postula-preview/publicReputation'
 import PublicReputationBadge from '../../postula-preview/PublicReputationBadge'
@@ -16,10 +17,11 @@ import '../job-company-v43.css'
 
 export const revalidate=300
 export const dynamicParams=true
+const getCachedFullJobCatalog=unstable_cache(getFullJobCatalog,['postula-job-detail-catalog-v2'],{revalidate:21600,tags:['postula-empleos-catalog']})
 
 export async function generateMetadata({params}:{params:Promise<{slug:string}>}){
   const {slug}=await params
-  const jobs=await getJobCatalog()
+  const jobs=await getCachedFullJobCatalog()
   const job=jobs.find(j=>j.slug===slug)
   if(!job)return{title:{absolute:'Empleo | Postulá Mejor'},robots:{index:false,follow:true}}
   return{title:{absolute:`${job.title} en ${job.company} | Postulá Mejor`},description:job.summary.slice(0,155),alternates:{canonical:`https://postulamejor.com/empleos/${job.slug}`},robots:{index:true,follow:true}}
@@ -27,7 +29,7 @@ export async function generateMetadata({params}:{params:Promise<{slug:string}>})
 
 export default async function JobDetail({params}:{params:Promise<{slug:string}>}){
   const {slug}=await params
-  const jobs=await getJobCatalog()
+  const jobs=await getCachedFullJobCatalog()
   const job=jobs.find(j=>j.slug===slug)
   if(!job)notFound()
   const companyHref=await companyProfileHref(job)
