@@ -31,6 +31,22 @@ export default function HomeCompanyRail({companies}:{companies:CompanyCard[]}){
   setEdge({start:el.scrollLeft<8,end:el.scrollLeft+el.clientWidth>=el.scrollWidth-8})
  },[])
  useEffect(()=>{updateEdges();const el=rail.current;if(!el)return;el.addEventListener('scroll',updateEdges,{passive:true});window.addEventListener('resize',updateEdges);return()=>{el.removeEventListener('scroll',updateEdges);window.removeEventListener('resize',updateEdges)}},[updateEdges])
+ useEffect(()=>{
+  let active=true
+  const heading=document.querySelector<HTMLElement>('.pm7-feed-side .pm7-side-card.dark h3')
+  const original=heading?.textContent||''
+  if(heading){heading.textContent='Actualizando oportunidades…';heading.setAttribute('aria-busy','true')}
+  fetch('/api/postula/jobs-count',{cache:'no-store'})
+   .then(response=>{if(!response.ok)throw new Error('job-count');return response.json()})
+   .then(data=>{
+    const count=Number(data?.count)
+    if(!active||!heading||!Number.isFinite(count)||count<1)return
+    heading.textContent=`${count} oportunidades visibles.`
+    heading.removeAttribute('aria-busy')
+   })
+   .catch(()=>{if(active&&heading){heading.textContent=original;heading.removeAttribute('aria-busy')}})
+  return()=>{active=false}
+ },[])
  const move=(dir:number)=>{const el=rail.current;if(!el)return;el.scrollBy({left:dir*Math.max(280,el.clientWidth*.72),behavior:'smooth'})}
  return <section id="pm44-company-strip-static" className="pm44-company-strip" aria-label="Empresas con oportunidades visibles">
   <style dangerouslySetInnerHTML={{__html:railPolish}}/>
