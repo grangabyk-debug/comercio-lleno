@@ -1,13 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import {usePathname} from 'next/navigation'
+import {usePathname,useSearchParams} from 'next/navigation'
 import {useEffect,useState} from 'react'
 import {createPortal} from 'react-dom'
 import {cvAuthClient} from '../cv-ia/cvAuth'
 
 type Active='inicio'|'empleos'|'cuenta'|'cv'|'changas'|'mensajes'
 type IconKind='home'|'search'|'bolt'|'menu'|'user'|'chat'|'briefcase'|'heart'|'settings'|'logout'|'building'
+type EmployerTab='resumen'|'candidatos'|'mensajes'|'publicaciones'|'empresa'|'equipo'|'planes'|'configuracion'
 
 function Icon({kind}:{kind:IconKind}){
  const common={fill:'none',stroke:'currentColor',strokeWidth:1.85,strokeLinecap:'round' as const,strokeLinejoin:'round' as const}
@@ -27,7 +28,10 @@ function Icon({kind}:{kind:IconKind}){
 
 export default function MobileNavigation({active='inicio'}:{active?:Active}){
  const pathname=usePathname()||'/'
+ const searchParams=useSearchParams()
  const employer=pathname.startsWith('/empresas')
+ const requestedEmployerTab=searchParams.get('tab') as EmployerTab|null
+ const employerTab:EmployerTab=requestedEmployerTab&&['resumen','candidatos','mensajes','publicaciones','empresa','equipo','planes','configuracion'].includes(requestedEmployerTab)?requestedEmployerTab:'resumen'
  const [logged,setLogged]=useState<boolean|null>(null)
  const [open,setOpen]=useState(false)
  const [busy,setBusy]=useState(false)
@@ -77,18 +81,19 @@ export default function MobileNavigation({active='inicio'}:{active?:Active}){
    <div className="pm46-auth-actions">{employer?<><Link href="/empresas/login" onClick={close}>Ingresar como empresa</Link><Link href="/empresas/registro" className="secondary" onClick={close}>Crear cuenta empresa</Link></>:<><Link href="/login" onClick={close}>Iniciar sesión</Link><Link href="/registro" className="secondary" onClick={close}>Crear cuenta gratis</Link></>}</div>
    <nav className="pm46-sheet-links" aria-label="Navegación pública"><Link href="/" onClick={close}><Icon kind="home"/><span><b>Inicio</b><small>Volver a Postulá Mejor</small></span></Link><Link href="/empleos" onClick={close}><Icon kind="search"/><span><b>Empleos</b><small>Explorar oportunidades</small></span></Link><Link href="/servicios-flex" onClick={close}><Icon kind="bolt"/><span><b>Servicios Flex</b><small>Buscar u ofrecer servicios</small></span></Link><Link href="/empresas" onClick={close}><Icon kind="building"/><span><b>Empresas</b><small>Publicar y contratar</small></span></Link></nav>
   </>:<>
-   <nav className="pm46-sheet-links" aria-label="Opciones de cuenta">{employer?<><Link href="/empresas/panel" onClick={close}><Icon kind="building"/><span><b>Panel</b><small>Resumen de la empresa</small></span></Link><Link href="/empresas/panel?tab=candidatos" onClick={close}><Icon kind="user"/><span><b>Candidatos</b><small>Revisar postulaciones</small></span></Link><Link href="/empresas/panel?tab=mensajes" onClick={close}><Icon kind="chat"/><span><b>Mensajes</b><small>Conversaciones de la empresa</small></span>{unread>0&&<em>{unread>99?'99+':unread}</em>}</Link><Link href="/empresas/panel?tab=planes" onClick={close}><Icon kind="briefcase"/><span><b>Planes y pagos</b><small>Suscripción y créditos</small></span></Link><Link href="/empresas/panel?tab=configuracion" onClick={close}><Icon kind="settings"/><span><b>Configuración</b><small>Preferencias de la cuenta</small></span></Link><Link href="/" onClick={close} className="pm46-role-switch"><Icon kind="user"/><span><b>Soy postulante</b><small>Ir al lado de búsqueda de empleo</small></span></Link></>:<><Link href="/mi-cuenta" onClick={close}><Icon kind="user"/><span><b>Mi cuenta</b><small>Perfil y resumen</small></span></Link><Link href="/mi-cuenta?tab=mensajes" onClick={close}><Icon kind="chat"/><span><b>Mensajes</b><small>Empleos y Servicios Flex</small></span>{unread>0&&<em>{unread>99?'99+':unread}</em>}</Link><Link href="/mi-cuenta?tab=postulaciones" onClick={close}><Icon kind="briefcase"/><span><b>Postulaciones</b><small>Seguí tus procesos</small></span></Link><Link href="/mi-cuenta?tab=favoritos" onClick={close}><Icon kind="heart"/><span><b>Favoritos</b><small>Lo que guardaste</small></span></Link><Link href="/mi-cuenta?tab=configuracion" onClick={close}><Icon kind="settings"/><span><b>Configuración</b><small>Privacidad y preferencias</small></span></Link><Link href="/empresas" onClick={close} className="pm46-role-switch"><Icon kind="building"/><span><b>Soy empresa</b><small>Publicá empleos y gestioná candidatos</small></span></Link></>}</nav>
+   <nav className="pm46-sheet-links" aria-label="Opciones de cuenta">{employer?<><Link href="/empresas/panel?tab=publicaciones" onClick={close}><Icon kind="briefcase"/><span><b>Publicaciones</b><small>Empleos y Servicios Flex</small></span></Link><Link href="/empresas/panel?tab=empresa" onClick={close}><Icon kind="building"/><span><b>Empresa</b><small>Datos, identidad y perfil</small></span></Link><Link href="/empresas/panel?tab=equipo" onClick={close}><Icon kind="user"/><span><b>Equipo y permisos</b><small>Integrantes y accesos</small></span></Link><Link href="/empresas/panel?tab=planes" onClick={close}><Icon kind="briefcase"/><span><b>Planes y pagos</b><small>Suscripción y créditos</small></span></Link><Link href="/empresas/panel?tab=configuracion" onClick={close}><Icon kind="settings"/><span><b>Configuración</b><small>Preferencias de la cuenta</small></span></Link><Link href="/" onClick={close} className="pm46-role-switch"><Icon kind="user"/><span><b>Soy postulante</b><small>Ir al lado de búsqueda de empleo</small></span></Link></>:<><Link href="/mi-cuenta" onClick={close}><Icon kind="user"/><span><b>Mi cuenta</b><small>Perfil y resumen</small></span></Link><Link href="/mi-cuenta?tab=mensajes" onClick={close}><Icon kind="chat"/><span><b>Mensajes</b><small>Empleos y Servicios Flex</small></span>{unread>0&&<em>{unread>99?'99+':unread}</em>}</Link><Link href="/mi-cuenta?tab=postulaciones" onClick={close}><Icon kind="briefcase"/><span><b>Postulaciones</b><small>Seguí tus procesos</small></span></Link><Link href="/mi-cuenta?tab=favoritos" onClick={close}><Icon kind="heart"/><span><b>Favoritos</b><small>Lo que guardaste</small></span></Link><Link href="/mi-cuenta?tab=configuracion" onClick={close}><Icon kind="settings"/><span><b>Configuración</b><small>Privacidad y preferencias</small></span></Link><Link href="/empresas" onClick={close} className="pm46-role-switch"><Icon kind="building"/><span><b>Soy empresa</b><small>Publicá empleos y gestioná candidatos</small></span></Link></>}</nav>
    <button type="button" className="pm46-logout" onClick={()=>void logout()} disabled={busy}><Icon kind="logout"/><span><b>{busy?'Cerrando sesión…':'Cerrar sesión'}</b><small>Salir de esta cuenta en el dispositivo</small></span></button>
   </>}
  </section></div>:null
 
+ const employerMenuActive=employer&&['publicaciones','empresa','equipo','planes','configuracion'].includes(employerTab)
  return <>
   <div className="pm46-mobile-root" data-auth={logged===true?'in':'out'} data-audience={employer?'employer':'candidate'}>
    {logged===true?<nav className="pm46-dock" aria-label="Navegación móvil">
-    <Link href={employer?'/empresas/panel':'/'} data-active={employer?pathname.includes('/panel'):active==='inicio'}><span><Icon kind={employer?'building':'home'}/></span><b>{employer?'Panel':'Inicio'}</b></Link>
-    <Link href={employer?'/empresas/panel?tab=candidatos':'/empleos'} data-active={employer?false:active==='empleos'}><span><Icon kind={employer?'user':'search'}/></span><b>{employer?'Candidatos':'Empleos'}</b></Link>
-    <Link href={employer?'/empresas/panel?tab=mensajes':'/servicios-flex'} data-active={employer?active==='mensajes':active==='changas'}><span><Icon kind={employer?'chat':'bolt'}/>{employer&&unread>0&&<i>{unread>9?'9+':unread}</i>}</span><b>{employer?'Mensajes':'Servicios'}</b></Link>
-    <button type="button" data-active={active==='cuenta'||active==='mensajes'} onClick={()=>setOpen(true)} aria-expanded={open}><span><Icon kind="menu"/>{!employer&&unread>0&&<i>{unread>9?'9+':unread}</i>}</span><b>Menú</b></button>
+    <Link href={employer?'/empresas/panel':'/'} data-active={employer?employerTab==='resumen':active==='inicio'}><span><Icon kind={employer?'building':'home'}/></span><b>{employer?'Panel':'Inicio'}</b></Link>
+    <Link href={employer?'/empresas/panel?tab=candidatos':'/empleos'} data-active={employer?employerTab==='candidatos':active==='empleos'}><span><Icon kind={employer?'user':'search'}/></span><b>{employer?'Candidatos':'Empleos'}</b></Link>
+    <Link href={employer?'/empresas/panel?tab=mensajes':'/servicios-flex'} data-active={employer?employerTab==='mensajes':active==='changas'}><span><Icon kind={employer?'chat':'bolt'}/>{employer&&unread>0&&<i>{unread>9?'9+':unread}</i>}</span><b>{employer?'Mensajes':'Servicios'}</b></Link>
+    <button type="button" data-active={employer?employerMenuActive:active==='cuenta'||active==='mensajes'} onClick={()=>setOpen(true)} aria-expanded={open}><span><Icon kind="menu"/>{!employer&&unread>0&&<i>{unread>9?'9+':unread}</i>}</span><b>Menú</b></button>
    </nav>:<button type="button" className="pm46-guest-menu" onClick={()=>setOpen(true)} aria-expanded={open}><span className="pm46-guest-mark"><i/><i/><i/></span><b>{menuLabel}</b><small>{logged===null?'':'Ingresar · explorar'}</small></button>}
   </div>
   {sheet&&typeof document!=='undefined'?createPortal(sheet,document.body):null}
