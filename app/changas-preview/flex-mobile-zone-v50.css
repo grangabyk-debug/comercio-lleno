@@ -1,0 +1,71 @@
+/* Servicios Flex V50 — make location readable and intentional on compact mobile cards. */
+@media(max-width:720px){
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot{
+    position:absolute!important;
+    z-index:7!important;
+    left:124px!important;
+    right:10px!important;
+    bottom:7px!important;
+    min-height:28px!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    display:flex!important;
+    align-items:center!important;
+    overflow:visible!important;
+    pointer-events:none!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot>span{
+    display:inline-flex!important;
+    align-items:center!important;
+    width:auto!important;
+    max-width:100%!important;
+    min-height:27px!important;
+    padding:6px 10px!important;
+    border:1px solid rgba(101,85,232,.18)!important;
+    border-radius:999px!important;
+    background:linear-gradient(100deg,#eeeaff 0%,#f5f2ff 62%,#e7ff9a 100%)!important;
+    color:#161922!important;
+    box-shadow:0 6px 16px rgba(62,48,142,.10)!important;
+    font-size:9px!important;
+    line-height:1!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot>span:before{
+    content:"ZONA ·"!important;
+    flex:0 0 auto!important;
+    margin-right:5px!important;
+    color:#6254e5!important;
+    font-size:6.5px!important;
+    line-height:1!important;
+    font-weight:950!important;
+    letter-spacing:.09em!important;
+    text-transform:uppercase!important;
+  }
+
+  /* Keep the price/duration row clearly above the location pill. */
+  .pm7-gig-card.pm39-market-card .pm7-gig-price{
+    bottom:42px!important;
+  }
+}
+
+@media(max-width:390px){
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot{
+    left:114px!important;
+    right:8px!important;
+    bottom:6px!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-foot>span{
+    min-height:25px!important;
+    padding:5px 8px!important;
+    font-size:8.5px!important;
+  }
+  .pm7-gig-card.pm39-market-card .pm7-gig-price{
+    bottom:39px!important;
+  }
+}
