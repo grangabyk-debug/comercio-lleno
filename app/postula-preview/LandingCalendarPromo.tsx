@@ -7,14 +7,13 @@ const weekdays=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom']
 const months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']
 function pad(v:number){return String(v).padStart(2,'0')}
 function key(d:Date){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
-function startMonth(d:Date){return new Date(d.getFullYear(),d.getMonth(),1)}
 
 export default function LandingCalendarPromo(){
  const pathname=usePathname()||'/'
  const employer=pathname==='/empresas'||pathname==='/empresas/'
  const candidate=pathname==='/'
  if(!candidate&&!employer)return null
- const today=new Date(),month=startMonth(today),weekday=(month.getDay()+6)%7,gridStart=new Date(month);gridStart.setDate(month.getDate()-weekday)
+ const today=new Date(),gridStart=new Date(today);gridStart.setDate(today.getDate()-((today.getDay()+6)%7))
  const cells=Array.from({length:14},(_,i)=>{const d=new Date(gridStart);d.setDate(gridStart.getDate()+i);return d})
  const interviewDate=new Date(today);interviewDate.setDate(today.getDate()+2)
  const taskDate=new Date(today);taskDate.setDate(today.getDate()+4)
