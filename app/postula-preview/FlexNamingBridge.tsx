@@ -43,11 +43,18 @@ function processNode(root:Node){
 export default function FlexNamingBridge(){
  useEffect(()=>{
   const w=window as typeof window&{__pmFlexNamingBridge?:boolean};if(w.__pmFlexNamingBridge)return;w.__pmFlexNamingBridge=true
+  const caretStyle=document.createElement('style')
+  caretStyle.dataset.pmStaticCaretGuard='1'
+  caretStyle.textContent=`
+   body *:not(input):not(textarea):not([contenteditable="true"]):not([contenteditable="plaintext-only"]){caret-color:transparent!important}
+   input,textarea,[contenteditable="true"],[contenteditable="plaintext-only"]{caret-color:auto!important}
+  `
+  document.head.appendChild(caretStyle)
   const apply=()=>{processNode(document.body);document.title=replaceTextValue(document.title);document.querySelectorAll('meta[content]').forEach(meta=>{const content=meta.getAttribute('content')||'';const next=replaceTextValue(content).replaceAll('https://postulamejor.com/trabajos-flex','https://postulamejor.com/servicios-flex');if(next!==content)meta.setAttribute('content',next)});enhanceServicesFlex()}
   apply()
   const observer=new MutationObserver(records=>{for(const record of records)record.addedNodes.forEach(processNode);enhanceServicesFlex()})
   observer.observe(document.body,{childList:true,subtree:true})
-  return()=>{observer.disconnect();w.__pmFlexNamingBridge=false}
+  return()=>{caretStyle.remove();observer.disconnect();w.__pmFlexNamingBridge=false}
  },[])
  return null
 }
