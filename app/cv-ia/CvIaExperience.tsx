@@ -2,8 +2,8 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import styles from './cv-ia-production.module.css'
+import {CV_API} from './cvAuth'
 
-const CV_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai'
 const PAY_API='https://wtcntclzcubkbtcsqkzc.supabase.co/functions/v1/cv-ai-purchase'
 const SESSION_KEY='cv_ai_session_token_v1'
 

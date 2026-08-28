@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import styles from './orientation.module.css'
-import { SESSION_KEY, trackCvEvent } from './cvAuth'
+import { CV_SUPABASE_URL, SESSION_KEY, trackCvEvent } from './cvAuth'
 
-const ORIENTATION_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai-orientation'
+const ORIENTATION_API=`${CV_SUPABASE_URL}/functions/v1/cv-ai-orientation`
 const NO_OFFER_TEXT='No se proporcionó una oferta específica. Analizar el CV según el puesto recomendado y la experiencia real del candidato.'
 
 type RoleRec={role:string;fit_score:number;why_it_fits:string;evidence:string[];what_to_emphasize:string[];search_terms:string[]}

@@ -1,7 +1,7 @@
 import {NextRequest,NextResponse} from 'next/server'
 import {createClient} from '@supabase/supabase-js'
 
-const URL='https://pejkycdttogpmmdntzuq.supabase.co'
+const URL=(process.env.NEXT_PUBLIC_POSTULA_SUPABASE_URL||'https://postulamejor.supabase.co').replace(/\/+$/,'')
 const KEY='sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I'
 const VISIBILITY=['discoverable','applications_only','private'] as const
 

@@ -27,12 +27,13 @@ export default function MessageLauncher({variant='header',active=false}:{variant
  }
  useEffect(()=>{
   let alive=true,channel:any=null;const client=cvAuthClient()
-  const start=async()=>{const {data}=await client.auth.getSession();const user=data.session?.user;await refreshUnread();if(!user||!alive)return;channel=client.channel(`pm-header-messages-${user.id}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'pm_notifications',filter:`user_id=eq.${user.id}`},(payload:any)=>{if(payload?.new?.notification_type==='message')void refreshUnread()}).subscribe()}
+  const start=async()=>{const {data}=await client.auth.getSession();const user=data.session?.user;if(!user||!alive){setUnread(0);return}await refreshUnread();if(!alive)return;channel=client.channel(`pm-header-messages-${user.id}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'pm_notifications',filter:`user_id=eq.${user.id}`},(payload:any)=>{if(payload?.new?.notification_type==='message'&&document.visibilityState==='visible')void refreshUnread()}).subscribe()}
   void start()
-  const onFocus=()=>void refreshUnread(),onVisibility=()=>{if(document.visibilityState==='visible')void refreshUnread()}
-  window.addEventListener('focus',onFocus);document.addEventListener('visibilitychange',onVisibility)
-  const timer=window.setInterval(()=>void refreshUnread(),20000)
-  return()=>{alive=false;window.removeEventListener('focus',onFocus);document.removeEventListener('visibilitychange',onVisibility);window.clearInterval(timer);if(channel)void client.removeChannel(channel)}
+  const onFocus=()=>{if(document.visibilityState==='visible')void refreshUnread()}
+  const onVisibility=()=>{if(document.visibilityState==='visible')void refreshUnread()}
+  const onRead=()=>void refreshUnread()
+  window.addEventListener('focus',onFocus);window.addEventListener('pm:messages-read',onRead);document.addEventListener('visibilitychange',onVisibility)
+  return()=>{alive=false;window.removeEventListener('focus',onFocus);window.removeEventListener('pm:messages-read',onRead);document.removeEventListener('visibilitychange',onVisibility);if(channel)void client.removeChannel(channel)}
  },[])
  useEffect(()=>{
   if(!open)return

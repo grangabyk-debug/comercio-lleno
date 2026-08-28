@@ -1,7 +1,7 @@
 import {NextRequest,NextResponse} from 'next/server'
 import {createClient} from '@supabase/supabase-js'
 
-const URL='https://pejkycdttogpmmdntzuq.supabase.co'
+const URL=(process.env.NEXT_PUBLIC_POSTULA_SUPABASE_URL||'https://postulamejor.supabase.co').replace(/\/+$/,'')
 const KEY='sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I'
 const FLEX_PUBLIC=`${URL}/storage/v1/object/public/postula-flex-media/`
 const BRAND_PUBLIC=`${URL}/storage/v1/object/public/postula-branding/`
@@ -46,7 +46,7 @@ async function decoratePosts(c:any,posts:any[],showPhone=false){
 }
 
 export async function GET(req:NextRequest){
- const c=db(req);const mine=req.nextUrl.searchParams.get('mine')==='1';const favoritesOnly=req.nextUrl.searchParams.get('favorites')==='1';const{data:{user}}=await c.auth.getUser()
+ const c=db(req);const mine=req.nextUrl.searchParams.get('mine')==='1';const favoritesOnly=req.nextUrl.searchParams.get('favorites')==='1';const hasAuth=Boolean(req.headers.get('authorization'));const user=hasAuth?(await c.auth.getUser()).data.user:null
  if(mine){
   if(!user)return NextResponse.json({ok:false,error:'Iniciá sesión.'},{status:401})
   const [{data:posts,error:pErr},{data:responses,error:rErr}]=await Promise.all([

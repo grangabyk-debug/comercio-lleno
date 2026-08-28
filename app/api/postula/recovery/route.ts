@@ -4,7 +4,7 @@ import {createClient} from '@supabase/supabase-js'
 
 export const runtime='nodejs'
 
-const SUPABASE_URL='https://pejkycdttogpmmdntzuq.supabase.co'
+const SUPABASE_URL=(process.env.NEXT_PUBLIC_POSTULA_SUPABASE_URL||'https://postulamejor.supabase.co').replace(/\/+$/,'')
 const GENERIC_MESSAGE='Si existe una cuenta con ese email, te enviamos un enlace para recuperar tu contraseña.'
 
 function adminDb(){

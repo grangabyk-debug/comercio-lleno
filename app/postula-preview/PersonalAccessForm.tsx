@@ -3,11 +3,11 @@
 import Link from 'next/link'
 import {FormEvent,useEffect,useState} from 'react'
 import {useSearchParams} from 'next/navigation'
-import {cvAuthClient} from '../cv-ia/cvAuth'
+import {CV_SUPABASE_URL,cvAuthClient} from '../cv-ia/cvAuth'
 import styles from './platform.module.css'
 
-const SIGNUP_TICKET_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai-signup-ticket'
-const REGISTER_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai-register-verified'
+const SIGNUP_TICKET_API=`${CV_SUPABASE_URL}/functions/v1/cv-ai-signup-ticket`
+const REGISTER_API=`${CV_SUPABASE_URL}/functions/v1/cv-ai-register-verified`
 
 function strongPassword(value:string){return value.length>=10&&/[a-z]/.test(value)&&/[A-Z]/.test(value)&&/[0-9]/.test(value)}
 function safeNext(value:string|null){return value&&value.startsWith('/')&&!value.startsWith('//')?value:''}

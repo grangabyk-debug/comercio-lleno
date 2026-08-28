@@ -68,13 +68,14 @@ export default function MobileNavigation({active='inicio'}:{active?:Active}){
   const start=async()=>{
    const {data}=await client.auth.getSession();const user=data.session?.user;if(!user||!alive)return
    await load()
-   channel=client.channel(`pm-nav-${user.id}-${employer?'employer':'candidate'}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'pm_notifications',filter:`user_id=eq.${user.id}`},(payload:any)=>{if(payload?.new?.notification_type==='message')void load()}).subscribe()
+   channel=client.channel(`pm-nav-${user.id}-${employer?'employer':'candidate'}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'pm_notifications',filter:`user_id=eq.${user.id}`},(payload:any)=>{if(payload?.new?.notification_type==='message'&&document.visibilityState==='visible')void load()}).subscribe()
   }
   void start()
-  const timer=window.setInterval(()=>void load(),20000)
-  const focus=()=>void load(),visible=()=>{if(document.visibilityState==='visible')void load()}
-  window.addEventListener('focus',focus);document.addEventListener('visibilitychange',visible)
-  return()=>{alive=false;window.clearInterval(timer);window.removeEventListener('focus',focus);document.removeEventListener('visibilitychange',visible);if(channel)void client.removeChannel(channel)}
+  const focus=()=>{if(document.visibilityState==='visible')void load()}
+  const visible=()=>{if(document.visibilityState==='visible')void load()}
+  const read=()=>void load()
+  window.addEventListener('focus',focus);window.addEventListener('pm:messages-read',read);document.addEventListener('visibilitychange',visible)
+  return()=>{alive=false;window.removeEventListener('focus',focus);window.removeEventListener('pm:messages-read',read);document.removeEventListener('visibilitychange',visible);if(channel)void client.removeChannel(channel)}
  },[logged,employer])
 
  useEffect(()=>{

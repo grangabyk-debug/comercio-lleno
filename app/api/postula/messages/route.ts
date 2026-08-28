@@ -1,7 +1,7 @@
 import {NextRequest,NextResponse} from 'next/server'
 import {createClient} from '@supabase/supabase-js'
 
-const URL='https://pejkycdttogpmmdntzuq.supabase.co'
+const URL=(process.env.NEXT_PUBLIC_POSTULA_SUPABASE_URL||'https://postulamejor.supabase.co').replace(/\/+$/,'')
 const KEY='sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I'
 function client(req:NextRequest){const auth=req.headers.get('authorization')||'';return createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{Authorization:auth}}})}
 const clean=(v:unknown,max=4000)=>String(v??'').replace(/\s+/g,' ').trim().slice(0,max)

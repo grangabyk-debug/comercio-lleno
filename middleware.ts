@@ -108,7 +108,6 @@ function postulaMejorRoute(request:NextRequest){
  if(pathname.startsWith('/postular/'))return rewritePostula(request,`/postulacion-preview/${pathname.slice('/postular/'.length)}`)
  if(pathname==='/empresas')return rewritePostula(request,'/empresas-preview')
  if(pathname.startsWith('/empresas/'))return rewritePostula(request,`/empresas-preview/${pathname.slice('/empresas/'.length)}`)
- if(pathname==='/mejorar-cv')return rewritePostula(request,'/cv-ia')
  if(pathname==='/privacidad')return rewritePostula(request,'/cv-ia/privacidad')
  if(pathname==='/terminos')return rewritePostula(request,'/cv-ia/terminos')
  if(pathname==='/terminos/servicios-flex')return rewritePostula(request,'/cv-ia/terminos/servicios-flex')

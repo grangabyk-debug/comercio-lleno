@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import {CV_SUPABASE_URL} from './cvAuth'
 
 const SESSION_KEY='cv_ai_session_token_v1'
-const OWNER_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai-owner-test'
+const OWNER_API=`${CV_SUPABASE_URL}/functions/v1/cv-ai-owner-test`
 
 async function post(body:Record<string,unknown>){
   const response=await fetch(OWNER_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
