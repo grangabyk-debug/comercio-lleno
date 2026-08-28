@@ -26,11 +26,25 @@ const views:readonly [View,string,string][]=[
  ['planes','Planes y pagos','$'],
  ['configuracion','Configuración','⚙'],
 ]
+function validView(value:string|null):value is View{return Boolean(value&&views.some(([key])=>key===value))}
 
 export default function EmployerWorkspace(){
  const [view,setView]=useState<View>('resumen'),[publicationView,setPublicationView]=useState<PublicationView>('empleos')
- useEffect(()=>{const tab=new URLSearchParams(window.location.search).get('tab') as View|null;if(tab&&views.some(([key])=>key===tab))setView(tab)},[])
- function choose(next:View){setView(next);const url=new URL(window.location.href);if(next==='resumen')url.searchParams.delete('tab');else url.searchParams.set('tab',next);window.history.replaceState({},'',url)}
+ useEffect(()=>{
+  const syncFromUrl=()=>{const tab=new URLSearchParams(window.location.search).get('tab');setView(validView(tab)?tab:'resumen')}
+  const syncFromNav=(event:Event)=>{const tab=(event as CustomEvent<string>).detail;if(validView(tab))setView(tab)}
+  syncFromUrl()
+  window.addEventListener('popstate',syncFromUrl)
+  window.addEventListener('pm:employer-tab',syncFromNav)
+  return()=>{window.removeEventListener('popstate',syncFromUrl);window.removeEventListener('pm:employer-tab',syncFromNav)}
+ },[])
+ function choose(next:View){
+  setView(next)
+  const url=new URL(window.location.href)
+  if(next==='resumen')url.searchParams.delete('tab');else url.searchParams.set('tab',next)
+  window.history.replaceState({},'',url)
+  window.dispatchEvent(new CustomEvent('pm:employer-tab',{detail:next}))
+ }
  const needsLive=view==='resumen'||view==='candidatos'||view==='mensajes'
  return <div className="pm48-workspace" data-view={view}>
   <EmployerDashboardLoadGuard/>
