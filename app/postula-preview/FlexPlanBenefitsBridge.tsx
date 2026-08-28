@@ -6,6 +6,14 @@ const companyPlanOrder=['gratis','impulso','seleccion','escala','empresa']
 
 export default function FlexPlanBenefitsBridge(){
  useEffect(()=>{
+  const comparisonStyle=document.createElement('style')
+  comparisonStyle.dataset.pmCvComparisonSemantics='1'
+  comparisonStyle.textContent=`
+   .pmcv-page .pmcv-shell section:has([class*="compareCard"]) [class*="compareCard"]>[class*="compareRow"]:nth-child(2)>i{background:#f0fbf5!important;color:#168451!important}
+   .pmcv-page .pmcv-shell section:has([class*="compareCard"]) [class*="compareCard"]>[class*="compareRow"]:nth-child(2)>i::before{content:"✓"!important;background:#dff8ea!important;color:#168451!important}
+  `
+  document.head.appendChild(comparisonStyle)
+
   const apply=()=>{
    document.querySelectorAll('#planes article').forEach(card=>{
     const title=card.querySelector('h3')?.textContent?.trim()
@@ -35,7 +43,7 @@ export default function FlexPlanBenefitsBridge(){
   observer.observe(document.body,{childList:true,subtree:true})
   const retry=window.setInterval(apply,250)
   const stop=window.setTimeout(()=>window.clearInterval(retry),12000)
-  return()=>{observer.disconnect();window.clearInterval(retry);window.clearTimeout(stop)}
+  return()=>{comparisonStyle.remove();observer.disconnect();window.clearInterval(retry);window.clearTimeout(stop)}
  },[])
  return null
 }
