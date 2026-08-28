@@ -15,6 +15,7 @@ import './jobs-unified-v50.css'
 import '../postula-preview/premium-v5.css'
 import '../postula-preview/premium-v6.css'
 import '../postula-preview/premium-v7.css'
+import './jobs-mobile-layout-v51.css'
 
 export const metadata={title:{absolute:'Empleos | Postulá Mejor'},description:'Descubrí oportunidades laborales con una experiencia más cercana, visual y simple.',robots:{index:true,follow:true},alternates:{canonical:'https://postulamejor.com/empleos'}}
 export const revalidate=21600
