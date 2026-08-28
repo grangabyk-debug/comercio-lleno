@@ -3,6 +3,9 @@
 import {useEffect} from 'react'
 
 const TEXT_REPLACEMENTS:[RegExp,string][]=[
+ [/TRABAJOS FLEXIBLES/g,'SERVICIOS FLEXIBLES'],
+ [/Trabajos flexibles/g,'Servicios flexibles'],
+ [/trabajos flexibles/g,'servicios flexibles'],
  [/TRABAJOS FLEX/g,'SERVICIOS FLEX'],
  [/Trabajos Flex/g,'Servicios Flex'],
  [/Trabajo Flex/g,'Servicio Flex'],
