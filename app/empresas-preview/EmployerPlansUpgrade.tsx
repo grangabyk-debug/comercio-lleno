@@ -3,9 +3,9 @@
 import {useEffect,useRef,useState} from 'react'
 import {cvAuthClient} from '../cv-ia/cvAuth'
 
-type PlanId='gratis'|'impulso'|'seleccion'|'escala'|'empresa'
-const PLAN_IDS:PlanId[]=['gratis','impulso','seleccion','escala','empresa']
-const PLAN_LABEL:Record<PlanId,string>={gratis:'Gratis',impulso:'Impulso',seleccion:'Selección IA',escala:'Escala',empresa:'Empresa'}
+type PlanId='gratis'|'impulso'|'seleccion'
+const PLAN_IDS:PlanId[]=['gratis','impulso','seleccion']
+const PLAN_LABEL:Record<PlanId,string>={gratis:'Gratis',impulso:'Impulso',seleccion:'Selección IA'}
 
 export default function EmployerPlansUpgrade(){
  const [notice,setNotice]=useState('')
@@ -15,38 +15,27 @@ export default function EmployerPlansUpgrade(){
  async function startPlan(plan:PlanId){
   if(checkoutLock.current)return
   checkoutLock.current=true
-  const paid=plan==='impulso'||plan==='seleccion'||plan==='escala'
   try{
    localStorage.setItem('pm_selected_company_plan',plan)
    setNotice('')
-   if(paid){setBusyPlan(plan);await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()))}
+   setBusyPlan(plan)
    const {data}=await cvAuthClient().auth.getSession()
    const session=data.session
    if(!session){setBusyPlan(null);checkoutLock.current=false;location.assign(`/empresas/registro?plan=${encodeURIComponent(plan)}`);return}
    if(plan==='gratis'){setBusyPlan(null);checkoutLock.current=false;location.assign('/empresas/panel?plan=gratis');return}
-   if(plan==='empresa'){setBusyPlan(null);checkoutLock.current=false;location.assign('/empresas/configuracion?plan=empresa&origen=planes');return}
    const response=await fetch('/api/postula/billing/checkout',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'},body:JSON.stringify({plan})})
    const payload=await response.json().catch(()=>({}))
    if(response.status===409&&payload?.code==='needs_company'){setBusyPlan(null);checkoutLock.current=false;location.assign(`/empresas/registro?plan=${encodeURIComponent(plan)}`);return}
-   if(response.ok&&payload?.init_point){location.assign(payload.init_point);return}
+   if(response.ok&&payload?.ok){localStorage.removeItem('pm_selected_company_plan');location.assign(`/empresas/panel?trial=1&plan=${encodeURIComponent(plan)}`);return}
    setBusyPlan(null);checkoutLock.current=false
-   setNotice(payload?.error||`Tu plan ${PLAN_LABEL[plan]} quedó seleccionado. Terminá la configuración de la empresa para continuar.`)
+   setNotice(payload?.error||`No pudimos activar ${PLAN_LABEL[plan]} ahora.`)
   }catch{
    setBusyPlan(null);checkoutLock.current=false
-   setNotice('No pudimos abrir el pago ahora. Tu plan quedó seleccionado para continuar después.')
+   setNotice('No pudimos activar el plan ahora. Probá nuevamente en unos segundos.')
   }
  }
 
  useEffect(()=>{
-  const ensureHint=(rel:string,href:string)=>{
-   if(document.head.querySelector(`link[rel="${rel}"][href="${href}"]`))return
-   const link=document.createElement('link');link.rel=rel;link.href=href
-   if(rel==='preconnect')link.crossOrigin='anonymous'
-   document.head.appendChild(link)
-  }
-  ensureHint('dns-prefetch','//www.mercadopago.com.ar')
-  ensureHint('preconnect','https://www.mercadopago.com.ar')
-
   const enhance=()=>{
    const plans=document.querySelector('.pm7-employer-plans') as HTMLElement|null
    if(plans&&!plans.dataset.pmPlansEnhanced){
@@ -58,18 +47,16 @@ export default function EmployerPlansUpgrade(){
     const title=head?.querySelector('h2') as HTMLElement|null
     const copy=head?.querySelector(':scope > p') as HTMLElement|null
     if(kicker)kicker.textContent='PLANES PARA EMPRESAS'
-    if(title)title.textContent='Cinco planes. Elegí el que te acompaña hoy.'
-    if(copy)copy.textContent='Primero creás tu cuenta y configurás la empresa. Después elegís el plan y, si corresponde, pasás al pago. Sin vueltas y sin perder lo que ya completaste.'
+    if(title)title.textContent='Probá 30 días gratis. Después decidís.'
+    if(copy)copy.textContent='Gratis sigue en $0. Impulso y Selección IA se activan hoy sin pago durante 30 días. Antes del vencimiento te avisamos; si no continuás, la cuenta vuelve automáticamente al plan Gratis.'
     const cards=Array.from(plans.querySelectorAll('.pm7-employer-plan')) as HTMLElement[]
     cards.forEach((card,index)=>{
      const plan=PLAN_IDS[index];if(!plan)return
      card.dataset.plan=plan;card.tabIndex=0
-     const priceNote=card.querySelector('.price small') as HTMLElement|null
-     if(priceNote)priceNote.textContent=' / mes'
      const link=card.querySelector('a') as HTMLAnchorElement|null
      if(link){
       link.href=`/empresas/registro?plan=${plan}`
-      link.textContent=plan==='gratis'?'Crear cuenta gratis':plan==='empresa'?'Configurar plan a medida':`Elegir ${PLAN_LABEL[plan]}`
+      link.textContent=plan==='gratis'?'Crear cuenta gratis':`Activar ${PLAN_LABEL[plan]} gratis 30 días`
       link.onclick=(event)=>{event.preventDefault();void startPlan(plan)}
      }
      card.onclick=(event)=>{if((event.target as HTMLElement).closest('a'))return;cards.forEach(item=>item.classList.remove('pm19-active'));card.classList.add('pm19-active')}
@@ -83,7 +70,7 @@ export default function EmployerPlansUpgrade(){
      const doneLink=document.querySelector('a[href="/empresas/panel"]') as HTMLAnchorElement|null
      if(doneLink&&!doneLink.dataset.pmPlanEnhanced){
       doneLink.dataset.pmPlanEnhanced='1'
-      doneLink.textContent=chosen==='gratis'?'Entrar al panel':chosen==='empresa'?'Continuar con plan Empresa':`Continuar con ${PLAN_LABEL[chosen]}`
+      doneLink.textContent=chosen==='gratis'?'Entrar al panel':`Activar ${PLAN_LABEL[chosen]} gratis 30 días`
       doneLink.onclick=(event)=>{event.preventDefault();void startPlan(chosen)}
      }
     }
@@ -99,7 +86,7 @@ export default function EmployerPlansUpgrade(){
  },[])
 
  return <>
-  {busyPlan&&<div className="pm19-checkout-overlay" role="status" aria-live="polite" aria-busy="true"><div className="pm19-checkout-card"><div className="pm19-checkout-provider"><span>MP</span><b>Mercado Pago</b></div><div className="pm19-checkout-spinner" aria-hidden="true"/><strong>Te estamos llevando a Mercado Pago</strong><p>Estamos preparando el checkout seguro de <b>{PLAN_LABEL[busyPlan]}</b>. Puede tardar unos segundos.</p><small>No cierres esta ventana.</small></div></div>}
+  {busyPlan&&<div className="pm19-checkout-overlay" role="status" aria-live="polite" aria-busy="true"><div className="pm19-checkout-card"><div className="pm19-checkout-spinner" aria-hidden="true"/><strong>{busyPlan==='gratis'?'Preparando tu cuenta':'Activando tus 30 días gratis'}</strong><p>{busyPlan==='gratis'?'Estamos abriendo tu panel.':`Estamos activando ${PLAN_LABEL[busyPlan]} sin cobro inicial.`}</p><small>Puede tardar unos segundos.</small></div></div>}
   {notice&&<div className="pm19-plan-notice" role="status"><div><b>No pudimos continuar</b><span>{notice}</span></div><button type="button" onClick={()=>setNotice('')} aria-label="Cerrar">×</button></div>}
  </>
 }
