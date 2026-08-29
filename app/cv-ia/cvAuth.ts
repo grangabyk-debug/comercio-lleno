@@ -14,44 +14,52 @@ export const SESSION_KEY='cv_ai_session_token_v1'
 
 let singleton:ReturnType<typeof createClient>|null=null
 
-function stabilizeSessionReads(client:ReturnType<typeof createClient>){
-  const auth:any=client.auth
-  const nativeGetSession=auth.getSession.bind(auth)
-  let cachedSession:any=undefined
-  let refreshInFlight:Promise<any>|null=null
-  let resolveInitial:((value:any)=>void)|null=null
-  const initialSession=new Promise<any>(resolve=>{resolveInitial=resolve})
-
-  const publish=(session:any)=>{
-    cachedSession=session??null
-    if(resolveInitial){
-      resolveInitial({data:{session:cachedSession},error:null})
-      resolveInitial=null
+function storedBrowserSession(){
+  if(typeof window==='undefined')return null
+  try{
+    const host=new URL(CV_SUPABASE_URL).hostname.split('.')[0]
+    const preferred=`sb-${host}-auth-token`
+    const keys=[preferred]
+    for(let i=0;i<window.localStorage.length;i++){
+      const key=window.localStorage.key(i)
+      if(key&&/^sb-.*-auth-token$/.test(key)&&!keys.includes(key))keys.push(key)
     }
-  }
-
-  auth.onAuthStateChange((event:string,session:any)=>{
-    if(event==='INITIAL_SESSION'||event==='SIGNED_IN'||event==='SIGNED_OUT'||event==='TOKEN_REFRESHED'||event==='USER_UPDATED'||event==='PASSWORD_RECOVERY')publish(session)
-  })
-
-  auth.getSession=()=>{
-    if(cachedSession===undefined)return initialSession
-    if(cachedSession===null)return Promise.resolve({data:{session:null},error:null})
-    const expiresAt=Number(cachedSession?.expires_at||0)*1000
-    if(!expiresAt||expiresAt>Date.now()+30_000)return Promise.resolve({data:{session:cachedSession},error:null})
-    if(refreshInFlight)return refreshInFlight
-    refreshInFlight=nativeGetSession().then((result:any)=>{
-      if(result?.data&&Object.prototype.hasOwnProperty.call(result.data,'session'))cachedSession=result.data.session??null
-      return result
-    }).finally(()=>{refreshInFlight=null})
-    return refreshInFlight
-  }
+    for(const key of keys){
+      const raw=window.localStorage.getItem(key)
+      if(!raw)continue
+      const parsed=JSON.parse(raw)
+      const session=parsed?.currentSession||parsed?.session||parsed
+      if(!session?.access_token||!session?.user)continue
+      const tokenPayload=String(session.access_token).split('.')[1]
+      if(tokenPayload){
+        try{
+          const normalized=tokenPayload.replace(/-/g,'+').replace(/_/g,'/')
+          const payload=JSON.parse(window.atob(normalized.padEnd(Math.ceil(normalized.length/4)*4,'=')))
+          const issuer=String(payload?.iss||'')
+          const expectedHost=new URL(POSTULA_SUPABASE_FALLBACK).hostname
+          if(issuer&&issuer.includes('supabase.co')&&!issuer.includes(expectedHost))continue
+        }catch{}
+      }
+      return session
+    }
+  }catch{}
+  return null
 }
 
 export function cvAuthClient(){
   if(!singleton){
     singleton=createClient(CV_SUPABASE_URL,CV_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})
-    stabilizeSessionReads(singleton)
+    const auth:any=singleton.auth
+    const nativeGetSession=auth.getSession.bind(auth)
+    auth.getSession=()=>{
+      const stored=storedBrowserSession()
+      const expiresAt=Number(stored?.expires_at||0)*1000
+      if(stored?.access_token&&(!expiresAt||expiresAt>Date.now()+10_000))return Promise.resolve({data:{session:stored},error:null})
+      return Promise.race([
+        nativeGetSession(),
+        new Promise(resolve=>window.setTimeout(()=>resolve({data:{session:null},error:null}),2500))
+      ])
+    }
   }
   return singleton
 }
