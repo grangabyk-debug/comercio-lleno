@@ -1,7 +1,7 @@
 import {NextRequest,NextResponse} from 'next/server'
 import {createClient} from '@supabase/supabase-js'
 
-const URL='https://postulamejor.supabase.co'
+const URL='https://pejkycdttogpmmdntzuq.supabase.co'
 const KEY='sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I'
 const ELIGIBLE=new Set(['seleccion'])
 function userDb(req:NextRequest){const auth=req.headers.get('authorization')||'';return createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{Authorization:auth}}})}

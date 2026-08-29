@@ -2,7 +2,7 @@ import {NextRequest,NextResponse} from 'next/server'
 import {createClient} from '@supabase/supabase-js'
 import {getVercelOidcToken} from '@vercel/oidc'
 
-const SUPABASE_URL='https://postulamejor.supabase.co'
+const SUPABASE_URL='https://pejkycdttogpmmdntzuq.supabase.co'
 const SUPABASE_KEY='sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I'
 const GATEWAY='https://ai-gateway.vercel.sh/v1/chat/completions'
 const MODELS=['openai/gpt-5.4-nano','google/gemini-3.5-flash-lite','openai/gpt-5.4']

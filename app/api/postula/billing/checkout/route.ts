@@ -1,10 +1,10 @@
 import {NextRequest,NextResponse} from 'next/server'
 import {createClient} from '@supabase/supabase-js'
 
-const URL='https://postulamejor.supabase.co'
+const URL='https://pejkycdttogpmmdntzuq.supabase.co'
 const KEY='sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I'
 const BILLING_API='https://wtcntclzcubkbtcsqkzc.supabase.co/functions/v1/postula-company-purchase'
-const SYNC_API='https://postulamejor.supabase.co/functions/v1/postula-company-billing-sync'
+const SYNC_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/postula-company-billing-sync'
 const PLAN={impulso:{label:'Impulso',amount:18900},seleccion:{label:'Selección IA',amount:34900}} as const
 
 type PlanId=keyof typeof PLAN

@@ -1,7 +1,7 @@
 import {NextRequest,NextResponse} from 'next/server'
 import {createClient} from '@supabase/supabase-js'
 
-const URL='https://postulamejor.supabase.co'
+const URL='https://pejkycdttogpmmdntzuq.supabase.co'
 const DAY=24*60*60*1000
 function adminDb(){const key=process.env.SUPABASE_SERVICE_ROLE_KEY;return key?createClient(URL,key,{auth:{persistSession:false,autoRefreshToken:false}}):null}
 async function sendReminderEmail(email:string,plan:string,days:number){

@@ -10,6 +10,7 @@ type Msg={role:'ai'|'user';text:string;delivery?:{destination:string;recipient:s
 export default function NexoLauncher(){
  const [open,setOpen]=useState(false),[gate,setGate]=useState<Gate>('idle'),[company,setCompany]=useState<{id:string;name:string}|null>(null),[job,setJob]=useState<{id:string;title:string}|null>(null),[text,setText]=useState(''),[busy,setBusy]=useState(false),[messages,setMessages]=useState<Msg[]>([]),[contextIds,setContextIds]=useState<string[]>([])
  useEffect(()=>{if(!open)return;const onKey=(e:KeyboardEvent)=>{if(e.key==='Escape')setOpen(false)};window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey)},[open])
+ useEffect(()=>{const scrollPlans=()=>{if(location.hash!=='#planes')return;window.setTimeout(()=>document.querySelector('[data-plan="seleccion"]')?.scrollIntoView({behavior:'smooth',block:'center'}),80)};scrollPlans();window.addEventListener('hashchange',scrollPlans);return()=>window.removeEventListener('hashchange',scrollPlans)},[])
  async function launch(){
   if(typeof window!=='undefined'&&window.matchMedia('(max-width: 760px)').matches){location.assign('/empresas/movil');return}
   setOpen(true);setGate('loading');setContextIds([])

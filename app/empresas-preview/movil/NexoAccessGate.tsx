@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import {useEffect,useState} from 'react'
 import {cvAuthClient} from '../../cv-ia/cvAuth'
+import EmployerMobileHub from './EmployerMobileHub'
 
 type PlanId='gratis'|'impulso'|'seleccion'
 type GateState='loading'|'unauthenticated'|'needs_company'|'locked'|'allowed'
