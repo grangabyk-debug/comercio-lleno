@@ -3,27 +3,145 @@
 import Link from 'next/link'
 import {FormEvent,useEffect,useRef,useState} from 'react'
 import {cvAuthClient} from '../../cv-ia/cvAuth'
+
 type Msg={role:'ai'|'user';text?:string;time:string;audioUrl?:string;kind?:'text'|'audio';delivery?:{destination:string;recipient:string;count:number;status:string}}
 declare global{interface Window{webkitSpeechRecognition?:any;SpeechRecognition?:any}}
-const NEXO_API='/api/postula/employer-assistant-v2'
-const quick=['Publicame un aviso de empleo','¿Cuántas postulaciones recibí?','Buscá los 20 mejores candidatos','¿Quién tiene mejor disponibilidad?','Agendá una entrevista','Enviá esos candidatos a Recursos Humanos']
-function compactNexoAnswer(value:string){return value.replace(/\s*\(estado:\s*[^)]+\)/gi,'').replace(/\s*\(status:\s*[^)]+\)/gi,'').replace(/\s*[·,;-]?\s*estado:\s*(submitted|viewed|shortlist|interview|hired|rejected|withdrawn)\b[.,;]?/gi,'').replace(/\s*[·,;-]?\s*(submitted|viewed|shortlist|interview|hired|rejected|withdrawn)\b(?=\s*[·,.;]|$)/gi,'').replace(/Puesto:\s*/gi,'').replace(/Match orientativo:\s*(\d+(?:[.,]\d+)?)\s*%?/gi,'$1% de ajuste').replace(/Match:\s*(\d+(?:[.,]\d+)?)\s*%?/gi,'$1% de ajuste').replace(/,\s*,/g,',').replace(/\s+\./g,'.').replace(/[ \t]{2,}/g,' ').trim()}
-function when(value?:string){if(!value)return'ahora';try{return new Date(value).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch{return'ahora'}}
-function fromHistory(hd:any):Msg[]{return Array.isArray(hd?.messages)?hd.messages.map((x:any)=>({role:x.role==='ai'?'ai':'user',text:String(x.body||''),time:when(x.created_at),kind:'text' as const})).filter((x:Msg)=>x.text):[]}
-function historyKey(rows:Msg[]){const last=rows[rows.length-1];return `${rows.length}|${last?.role||''}|${last?.time||''}|${last?.text||''}`}
-async function authHeaders(){const {data}=await cvAuthClient().auth.getSession();return data.session?.access_token?{Authorization:`Bearer ${data.session.access_token}`}:{}}
+
+const NEXO_API='/api/postula/employer-assistant-v3'
+const quick=['Publicame un aviso de empleo','¿Cuántos currículums recibí?','Buscá los 20 mejores candidatos','¿Quién tiene mejor disponibilidad?','Agendá una entrevista','Enviá esos candidatos a Recursos Humanos']
+
+function compactNexoAnswer(value:string){
+ return value
+  .replace(/\*\*/g,'').replace(/__/g,'').replace(/`+/g,'')
+  .replace(/^\s*#{1,6}\s*/gm,'')
+  .replace(/^\s*[*-]\s+/gm,'• ')
+  .replace(/\s*\(estado:\s*[^)]+\)/gi,'')
+  .replace(/\s*\(status:\s*[^)]+\)/gi,'')
+  .replace(/\s*[·,;-]?\s*estado:\s*(submitted|viewed|shortlist|interview|hired|rejected|withdrawn)\b[.,;]?/gi,'')
+  .replace(/\s*[·,;-]?\s*(submitted|viewed|shortlist|interview|hired|rejected|withdrawn)\b(?=\s*[·,.;]|$)/gi,'')
+  .replace(/Puesto:\s*/gi,'')
+  .replace(/Match orientativo:\s*(\d+(?:[.,]\d+)?)\s*%?/gi,'$1% de ajuste')
+  .replace(/Match:\s*(\d+(?:[.,]\d+)?)\s*%?/gi,'$1% de ajuste')
+  .replace(/,\s*,/g,',').replace(/\s+\./g,'.').replace(/[ \t]{2,}/g,' ').trim()
+}
+async function authHeaders(){const {data}=await cvAuthClient().auth.getSession();return data.session?.access_token?{Authorization:`Bearer ${data.session.access_token}`}:{}} 
+
 export default function EmployerPocket({embedded=false}:{embedded?:boolean}){
- const [messages,setMessages]=useState<Msg[]>([{role:'ai',text:'Hola, soy Nexo. Puedo consultar tus postulaciones, comparar CV, preparar rankings y entrevistas, enviar mensajes con tu confirmación y también armar avisos de empleo.',time:'ahora',kind:'text'}]),[text,setText]=useState(''),[loading,setLoading]=useState(false),[recording,setRecording]=useState(false),[voiceReplies,setVoiceReplies]=useState(false),[contextIds,setContextIds]=useState<string[]>([]),[seconds,setSeconds]=useState(0),[company,setCompany]=useState<{id:string;name:string}|null>(null),[job,setJob]=useState<{id:string;title:string}|null>(null),[stats,setStats]=useState({received:0,shortlist:0,interview:0}),[auth,setAuth]=useState<boolean|null>(null)
- const recognitionRef=useRef<any>(null),mediaRef=useRef<MediaRecorder|null>(null),streamRef=useRef<MediaStream|null>(null),chunksRef=useRef<Blob[]>([]),transcriptRef=useRef(''),timerRef=useRef<number|null>(null),objectUrls=useRef<string[]>([]),chatRef=useRef<HTMLDivElement|null>(null),historyRef=useRef('')
- useEffect(()=>{(async()=>{const {data}=await cvAuthClient().auth.getSession();setAuth(Boolean(data.session));if(!data.session)return;const headers={Authorization:`Bearer ${data.session.access_token}`};const cr=await fetch('/api/postula/company',{headers,cache:'no-store'});const cd=await cr.json().catch(()=>({}));const m=cd?.memberships?.[0];if(!m?.pm_companies)return;const co={id:String(m.company_id),name:String(m.pm_companies.name)};setCompany(co);const [jr,ar,hr]=await Promise.all([fetch(`/api/postula/company/jobs?company=${encodeURIComponent(co.id)}`,{headers,cache:'no-store'}),fetch(`/api/postula/applications?company=${encodeURIComponent(co.id)}`,{headers,cache:'no-store'}),fetch(`${NEXO_API}?company_id=${encodeURIComponent(co.id)}`,{headers,cache:'no-store'})]);const [jd,ad,hd]=await Promise.all([jr.json().catch(()=>({})),ar.json().catch(()=>({})),hr.json().catch(()=>({}))]);const first=(jd?.jobs||[]).find((x:any)=>x.status==='published')||(jd?.jobs||[])[0];if(first)setJob({id:String(first.id),title:String(first.title)});const apps=ad?.applications||[];setStats({received:apps.length,shortlist:apps.filter((x:any)=>x.status==='shortlist').length,interview:apps.filter((x:any)=>x.status==='interview').length});if(Array.isArray(hd?.state?.context_candidate_ids))setContextIds(hd.state.context_candidate_ids.map(String).slice(0,50));const saved=fromHistory(hd);if(saved.length){historyRef.current=historyKey(saved);setMessages(saved)}else setMessages([{role:'ai',text:`Hola, soy Nexo. Estoy conectado a la cuenta de ${co.name}. Puedo ayudarte con postulantes, CV, búsquedas, entrevistas, mensajes, calendario, equipo y tu plan. Para ejecutar acciones siempre te voy a pedir una confirmación final.`,time:'ahora',kind:'text'}])})()},[])
- useEffect(()=>{if(!company?.id)return;let stopped=false;const poll=async()=>{try{const headers=await authHeaders();const r=await fetch(`${NEXO_API}?company_id=${encodeURIComponent(company.id)}`,{headers,cache:'no-store'});const hd=await r.json().catch(()=>({}));if(stopped)return;if(Array.isArray(hd?.state?.context_candidate_ids))setContextIds(hd.state.context_candidate_ids.map(String).slice(0,50));const saved=fromHistory(hd),key=historyKey(saved);if(saved.length&&key!==historyRef.current){historyRef.current=key;setMessages(saved)}}catch{}};const id=window.setInterval(()=>void poll(),10000);return()=>{stopped=true;window.clearInterval(id)}},[company?.id])
+ const [messages,setMessages]=useState<Msg[]>([{role:'ai',text:'Hola, soy Nexo. Estoy revisando los datos actuales de tu empresa. ¿Qué necesitás?',time:'ahora',kind:'text'}])
+ const [text,setText]=useState(''),[loading,setLoading]=useState(false),[recording,setRecording]=useState(false),[voiceReplies,setVoiceReplies]=useState(false),[contextIds,setContextIds]=useState<string[]>([]),[seconds,setSeconds]=useState(0),[company,setCompany]=useState<{id:string;name:string}|null>(null),[job,setJob]=useState<{id:string;title:string}|null>(null),[stats,setStats]=useState({received:0,shortlist:0,interview:0}),[auth,setAuth]=useState<boolean|null>(null)
+ const recognitionRef=useRef<any>(null),mediaRef=useRef<MediaRecorder|null>(null),streamRef=useRef<MediaStream|null>(null),chunksRef=useRef<Blob[]>([]),transcriptRef=useRef(''),timerRef=useRef<number|null>(null),objectUrls=useRef<string[]>([]),chatRef=useRef<HTMLDivElement|null>(null)
+
+ useEffect(()=>{(async()=>{
+  const {data}=await cvAuthClient().auth.getSession()
+  setAuth(Boolean(data.session))
+  if(!data.session)return
+  const headers={Authorization:`Bearer ${data.session.access_token}`}
+  const cr=await fetch('/api/postula/company',{headers,cache:'no-store'})
+  const cd=await cr.json().catch(()=>({}))
+  const m=cd?.memberships?.[0]
+  if(!m?.pm_companies)return
+  const co={id:String(m.company_id),name:String(m.pm_companies.name)}
+  setCompany(co)
+  setContextIds([])
+  const [jr,ar,sr]=await Promise.all([
+   fetch(`/api/postula/company/jobs?company=${encodeURIComponent(co.id)}`,{headers,cache:'no-store'}),
+   fetch(`/api/postula/applications?company=${encodeURIComponent(co.id)}`,{headers,cache:'no-store'}),
+   fetch(NEXO_API,{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify({company_id:co.id,start_session:true}),cache:'no-store'})
+  ])
+  const [jd,ad,sd]=await Promise.all([jr.json().catch(()=>({})),ar.json().catch(()=>({})),sr.json().catch(()=>({}))])
+  const first=(jd?.jobs||[]).find((x:any)=>x.status==='published')||(jd?.jobs||[])[0]
+  if(first)setJob({id:String(first.id),title:String(first.title)})
+  const apps=ad?.applications||[]
+  setStats({received:apps.length,shortlist:apps.filter((x:any)=>['shortlist','interview','hired'].includes(x.status)).length,interview:apps.filter((x:any)=>['interview','hired'].includes(x.status)).length})
+  const greeting=compactNexoAnswer(String(sd?.answer||`Hola, soy Nexo. Ya estoy mirando los datos actuales de ${co.name}. ¿Qué necesitás?`))
+  setMessages([{role:'ai',text:greeting,time:'ahora',kind:'text'}])
+ })().catch(()=>setAuth(false))},[])
+
  useEffect(()=>{const id=window.requestAnimationFrame(()=>{const el=chatRef.current;if(el)el.scrollTop=el.scrollHeight});return()=>window.cancelAnimationFrame(id)},[messages,loading])
  useEffect(()=>()=>{try{recognitionRef.current?.stop()}catch{};try{mediaRef.current?.stop()}catch{};streamRef.current?.getTracks().forEach(t=>t.stop());if(timerRef.current)window.clearInterval(timerRef.current);objectUrls.current.forEach(URL.revokeObjectURL)},[])
- function speak(value:string){if(!voiceReplies||typeof window==='undefined'||!('speechSynthesis'in window))return;try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(value.replace(/\n/g,'. '));u.lang='es-AR';u.rate=1.03;const voices=window.speechSynthesis.getVoices();u.voice=voices.find(v=>v.lang.toLowerCase()==='es-ar')||voices.find(v=>v.lang.toLowerCase().startsWith('es'))||null;window.speechSynthesis.speak(u)}catch{}}
- async function ask(value:string,opts?:{hideUserText?:boolean;audioUrl?:string}){const q=value.trim();if(!q||loading)return;if(opts?.hideUserText&&opts.audioUrl)setMessages(m=>[...m,{role:'user',audioUrl:opts.audioUrl,time:'ahora',kind:'audio'}]);else setMessages(m=>[...m,{role:'user',text:q,time:'ahora',kind:'text'}]);setText('');setLoading(true);try{const headers={'Content-Type':'application/json',...(await authHeaders())};const r=await fetch(NEXO_API,{method:'POST',headers,body:JSON.stringify({message:q,company_id:company?.id||'',context_candidate_ids:contextIds})});const data=await r.json().catch(()=>({}));const answer=compactNexoAnswer(String(data?.answer||data?.error||'No pude responder ahora.'));if(Array.isArray(data?.selected_candidate_ids))setContextIds(data.selected_candidate_ids.map(String).slice(0,50));setMessages(m=>[...m,{role:'ai',text:answer,time:'ahora',kind:'text',delivery:data?.delivery}]);historyRef.current='';speak(answer)}catch{const answer='No pude conectarme ahora. Probá de nuevo en unos segundos.';setMessages(m=>[...m,{role:'ai',text:answer,time:'ahora',kind:'text'}]);speak(answer)}finally{setLoading(false)}}
+
+ function speak(value:string){
+  if(!voiceReplies||typeof window==='undefined'||!('speechSynthesis'in window))return
+  try{
+   window.speechSynthesis.cancel()
+   const u=new SpeechSynthesisUtterance(value.replace(/\n/g,'. '))
+   u.lang='es-AR';u.rate=1.03
+   const voices=window.speechSynthesis.getVoices()
+   u.voice=voices.find(v=>v.lang.toLowerCase()==='es-ar')||voices.find(v=>v.lang.toLowerCase().startsWith('es'))||null
+   window.speechSynthesis.speak(u)
+  }catch{}
+ }
+
+ async function ask(value:string,opts?:{hideUserText?:boolean;audioUrl?:string}){
+  const q=value.trim()
+  if(!q||loading)return
+  if(opts?.hideUserText&&opts.audioUrl)setMessages(m=>[...m,{role:'user',audioUrl:opts.audioUrl,time:'ahora',kind:'audio'}])
+  else setMessages(m=>[...m,{role:'user',text:q,time:'ahora',kind:'text'}])
+  setText('');setLoading(true)
+  try{
+   const headers={'Content-Type':'application/json',...(await authHeaders())}
+   const r=await fetch(NEXO_API,{method:'POST',headers,body:JSON.stringify({message:q,company_id:company?.id||'',context_candidate_ids:contextIds})})
+   const data=await r.json().catch(()=>({}))
+   const answer=compactNexoAnswer(String(data?.answer||data?.error||'No pude responder ahora.'))
+   if(Array.isArray(data?.selected_candidate_ids))setContextIds(data.selected_candidate_ids.map(String).slice(0,50))
+   setMessages(m=>[...m,{role:'ai',text:answer,time:'ahora',kind:'text',delivery:data?.delivery}])
+   speak(answer)
+  }catch{
+   const answer='No pude conectarme ahora. Probá de nuevo en unos segundos.'
+   setMessages(m=>[...m,{role:'ai',text:answer,time:'ahora',kind:'text'}])
+   speak(answer)
+  }finally{setLoading(false)}
+ }
  function submit(e:FormEvent){e.preventDefault();void ask(text)}
- async function startHold(){if(recording||loading)return;if(!navigator.mediaDevices?.getUserMedia){setMessages(m=>[...m,{role:'ai',text:'Este navegador no permite dictado desde acá. Podés escribir la consulta.',time:'ahora',kind:'text'}]);return}try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});streamRef.current=stream;chunksRef.current=[];transcriptRef.current='';const recorder=new MediaRecorder(stream);mediaRef.current=recorder;recorder.ondataavailable=e=>{if(e.data.size)chunksRef.current.push(e.data)};recorder.start();setRecording(true);setSeconds(0);timerRef.current=window.setInterval(()=>setSeconds(s=>{if(s>=44){void stopHold();return 45}return s+1}),1000);const Ctor=window.SpeechRecognition||window.webkitSpeechRecognition;if(Ctor){const rec=new Ctor();recognitionRef.current=rec;rec.lang='es-AR';rec.interimResults=true;rec.continuous=true;rec.maxAlternatives=1;rec.onresult=(ev:any)=>{let total='';for(let i=0;i<ev.results.length;i++)total+=`${String(ev.results[i][0]?.transcript||'')} `;transcriptRef.current=total.trim()};try{rec.start()}catch{}}}catch{setRecording(false);setMessages(m=>[...m,{role:'ai',text:'No pude acceder al micrófono. Revisá el permiso o escribime la orden.',time:'ahora',kind:'text'}])}}
- async function stopHold(){if(!recording)return;setRecording(false);if(timerRef.current){window.clearInterval(timerRef.current);timerRef.current=null}try{recognitionRef.current?.stop()}catch{}const recorder=mediaRef.current;const blob=await new Promise<Blob>(resolve=>{if(!recorder||recorder.state==='inactive'){resolve(new Blob(chunksRef.current,{type:'audio/webm'}));return}recorder.onstop=()=>resolve(new Blob(chunksRef.current,{type:recorder.mimeType||'audio/webm'}));try{recorder.stop()}catch{resolve(new Blob(chunksRef.current,{type:'audio/webm'}))}});streamRef.current?.getTracks().forEach(t=>t.stop());streamRef.current=null;mediaRef.current=null;const url=URL.createObjectURL(blob);objectUrls.current.push(url);await new Promise(r=>setTimeout(r,180));const transcript=transcriptRef.current.trim();if(transcript)void ask(transcript,{hideUserText:true,audioUrl:url});else setMessages(m=>[...m,{role:'user',audioUrl:url,time:'ahora',kind:'audio'},{role:'ai',text:'Recibí la nota pero el navegador no pudo transcribirla. Probá otra vez o escribime la orden.',time:'ahora',kind:'text'}])}
+
+ async function startHold(){
+  if(recording||loading)return
+  if(!navigator.mediaDevices?.getUserMedia){setMessages(m=>[...m,{role:'ai',text:'Este navegador no permite dictado desde acá. Podés escribir la consulta.',time:'ahora',kind:'text'}]);return}
+  try{
+   const stream=await navigator.mediaDevices.getUserMedia({audio:true})
+   streamRef.current=stream;chunksRef.current=[];transcriptRef.current=''
+   const recorder=new MediaRecorder(stream);mediaRef.current=recorder
+   recorder.ondataavailable=e=>{if(e.data.size)chunksRef.current.push(e.data)}
+   recorder.start();setRecording(true);setSeconds(0)
+   timerRef.current=window.setInterval(()=>setSeconds(s=>{if(s>=44){void stopHold();return 45}return s+1}),1000)
+   const Ctor=window.SpeechRecognition||window.webkitSpeechRecognition
+   if(Ctor){
+    const rec=new Ctor();recognitionRef.current=rec;rec.lang='es-AR';rec.interimResults=true;rec.continuous=true;rec.maxAlternatives=1
+    rec.onresult=(ev:any)=>{let total='';for(let i=0;i<ev.results.length;i++)total+=`${String(ev.results[i][0]?.transcript||'')} `;transcriptRef.current=total.trim()}
+    try{rec.start()}catch{}
+   }
+  }catch{setRecording(false);setMessages(m=>[...m,{role:'ai',text:'No pude acceder al micrófono. Revisá el permiso o escribime la orden.',time:'ahora',kind:'text'}])}
+ }
+
+ async function stopHold(){
+  if(!recording)return
+  setRecording(false)
+  if(timerRef.current){window.clearInterval(timerRef.current);timerRef.current=null}
+  try{recognitionRef.current?.stop()}catch{}
+  const recorder=mediaRef.current
+  const blob=await new Promise<Blob>(resolve=>{
+   if(!recorder||recorder.state==='inactive'){resolve(new Blob(chunksRef.current,{type:'audio/webm'}));return}
+   recorder.onstop=()=>resolve(new Blob(chunksRef.current,{type:recorder.mimeType||'audio/webm'}))
+   try{recorder.stop()}catch{resolve(new Blob(chunksRef.current,{type:'audio/webm'}))}
+  })
+  streamRef.current?.getTracks().forEach(t=>t.stop());streamRef.current=null;mediaRef.current=null
+  const url=URL.createObjectURL(blob);objectUrls.current.push(url)
+  await new Promise(r=>setTimeout(r,180))
+  const transcript=transcriptRef.current.trim()
+  if(transcript)void ask(transcript,{hideUserText:true,audioUrl:url})
+  else setMessages(m=>[...m,{role:'user',audioUrl:url,time:'ahora',kind:'audio'},{role:'ai',text:'Recibí la nota pero el navegador no pudo transcribirla. Probá otra vez o escribime la orden.',time:'ahora',kind:'text'}])
+ }
+
  if(auth===false)return <div className="pm-pocket-page"><div className="pm-pocket-shell"><div style={{padding:30}}><h2>Ingresá como empleador</h2><p>Para usar Nexo necesitamos saber a qué empresa pertenecen las búsquedas.</p><Link href="/empresas/login?next=/empresas/movil">Ingresar a mi cuenta</Link></div></div></div>
- return <div className={`pm-pocket-page ${embedded?'pm-pocket-embedded':''}`}><div className="pm-pocket-shell"><header className="pm-pocket-top"><div className="pm-pocket-person"><span className="pm-pocket-avatar">NX</span><div><b>Nexo</b><small>{job?`Cuenta completa · última búsqueda: ${job.title}`:'Asistente de selección'}</small></div></div><span className="pm-pocket-live"><i/>en línea</span></header><div className="pm-pocket-toolbar">{!embedded&&<Link href="/empresas/panel">← Volver al panel</Link>}<button type="button" data-on={voiceReplies} onClick={()=>{setVoiceReplies(v=>!v);if(voiceReplies&&typeof window!=='undefined')window.speechSynthesis?.cancel()}}>{voiceReplies?'Nexo responde con voz':'Nexo responde con texto'}</button></div><div className="pm-pocket-summary"><div className="pm-pocket-stat"><small>Recibidos</small><b>{stats.received}</b></div><div className="pm-pocket-stat"><small>Shortlist</small><b>{stats.shortlist}</b></div><div className="pm-pocket-stat"><small>Entrevista</small><b>{stats.interview}</b></div></div><div className="pm-pocket-context"><span>EMPRESA ACTUAL</span><b>{company?.name||'Cargando empresa…'}</b><small>Nexo guarda el historial, revisa la información disponible antes de preguntarte y pide confirmación final antes de ejecutar acciones.</small></div><div className="pm-pocket-chat" ref={chatRef}>{messages.map((m,i)=><div className={`pm-msg ${m.role} ${m.kind==='audio'?'audio':''}`} key={`${m.time}-${i}`}>{m.kind==='audio'&&m.audioUrl?<><div className="pm-audio-wave"><i/><i/><i/><i/><i/><i/><i/><i/></div><audio controls preload="metadata" src={m.audioUrl}/><span className="pm-audio-caption">La nota queda local; Nexo guarda la transcripción.</span></>:<>{m.text}{m.delivery&&<div className="pm-delivery"><b>Acción confirmada</b><span>{m.delivery.count} postulaciones · {m.delivery.recipient}</span><small>Dentro del equipo de esta empresa.</small></div>}</>}<small>{m.time}</small></div>)}{loading&&<div className="pm-msg ai"><span className="pm-thinking"><i/><i/><i/></span> Nexo está revisando la información disponible…<small>ahora</small></div>}</div><div className="pm-quick-row">{quick.map(q=><button key={q} onClick={()=>void ask(q)} disabled={loading||recording}>{q}</button>)}</div><div className="pm-voice-note"><b>Mantené apretado el micrófono para dictarle a Nexo.</b> Al soltar, la orden se transcribe. Máximo 45 segundos.</div><form className="pm-pocket-compose" onSubmit={submit}><button className="pm-mic" type="button" data-listening={recording} onPointerDown={e=>{e.currentTarget.setPointerCapture?.(e.pointerId);void startHold()}} onPointerUp={()=>void stopHold()} onPointerCancel={()=>void stopHold()} onContextMenu={e=>e.preventDefault()} aria-label="Mantener presionado para dictar">{recording?<span>{seconds}s</span>:<span className="pm-mic-dot"/>}</button><input value={text} onChange={e=>setText(e.target.value)} placeholder={recording?'Grabando… soltá para enviar':'Preguntá o dale una orden a Nexo…'} maxLength={1600} disabled={recording}/><button className="pm-send" type="submit" disabled={!text.trim()||loading||recording} aria-label="Enviar">→</button></form></div></div>
+
+ return <div className={`pm-pocket-page ${embedded?'pm-pocket-embedded':''}`}><div className="pm-pocket-shell">
+  <header className="pm-pocket-top"><div className="pm-pocket-person"><span className="pm-pocket-avatar">NX</span><div><b>Nexo</b><small>{job?`Cuenta completa · última búsqueda: ${job.title}`:'Asistente de selección'}</small></div></div><span className="pm-pocket-live"><i/>en línea</span></header>
+  <div className="pm-pocket-toolbar">{!embedded&&<Link href="/empresas/panel">← Volver al panel</Link>}<button type="button" data-on={voiceReplies} onClick={()=>{setVoiceReplies(v=>!v);if(voiceReplies&&typeof window!=='undefined')window.speechSynthesis?.cancel()}}>{voiceReplies?'Nexo responde con voz':'Nexo responde con texto'}</button></div>
+  <div className="pm-pocket-summary"><div className="pm-pocket-stat"><small>Recibidos</small><b>{stats.received}</b></div><div className="pm-pocket-stat"><small>Shortlist</small><b>{stats.shortlist}</b></div><div className="pm-pocket-stat"><small>Entrevista</small><b>{stats.interview}</b></div></div>
+  <div className="pm-pocket-context"><span>EMPRESA ACTUAL</span><b>{company?.name||'Cargando empresa…'}</b><small>Cada vez que abrís Nexo empezás un tema nuevo. Si querés retomar algo anterior, decímelo y Nexo recupera ese contexto.</small></div>
+  <div className="pm-pocket-chat" ref={chatRef}>{messages.map((m,i)=><div className={`pm-msg ${m.role} ${m.kind==='audio'?'audio':''}`} key={`${m.time}-${i}`}>{m.kind==='audio'&&m.audioUrl?<><div className="pm-audio-wave"><i/><i/><i/><i/><i/><i/><i/><i/></div><audio controls preload="metadata" src={m.audioUrl}/><span className="pm-audio-caption">La nota queda local; Nexo guarda la transcripción.</span></>:<>{m.text}{m.delivery&&<div className="pm-delivery"><b>Acción confirmada</b><span>{m.delivery.count} postulaciones · {m.delivery.recipient}</span><small>Dentro del equipo de esta empresa.</small></div>}</>}<small>{m.time}</small></div>)}{loading&&<div className="pm-msg ai"><span className="pm-thinking"><i/><i/><i/></span> Nexo está revisando la información disponible…<small>ahora</small></div>}</div>
+  <div className="pm-quick-row">{quick.map(q=><button key={q} onClick={()=>void ask(q)} disabled={loading||recording}>{q}</button>)}</div>
+  <div className="pm-voice-note"><b>Mantené apretado el micrófono para dictarle a Nexo.</b> Al soltar, la orden se transcribe. Máximo 45 segundos.</div>
+  <form className="pm-pocket-compose" onSubmit={submit}><button className="pm-mic" type="button" data-listening={recording} onPointerDown={e=>{e.currentTarget.setPointerCapture?.(e.pointerId);void startHold()}} onPointerUp={()=>void stopHold()} onPointerCancel={()=>void stopHold()} onContextMenu={e=>e.preventDefault()} aria-label="Mantener presionado para dictar">{recording?<span>{seconds}s</span>:<span className="pm-mic-dot"/>}</button><input value={text} onChange={e=>setText(e.target.value)} placeholder={recording?'Grabando… soltá para enviar':'Preguntá o dale una orden a Nexo…'} maxLength={1600} disabled={recording}/><button className="pm-send" type="submit" disabled={!text.trim()||loading||recording} aria-label="Enviar">→</button></form>
+ </div></div>
 }
