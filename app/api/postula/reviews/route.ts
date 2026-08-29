@@ -27,15 +27,24 @@ async function payload(req:NextRequest,applicationId:string){
  if('error' in ctx)return ctx.error
  const {c,application,job,viewerRole}=ctx
  const hiredAt=application.hired_at?new Date(application.hired_at):null
- const endedAt=application.employment_ended_at?new Date(application.employment_ended_at):null
- const availableAt=endedAt||(hiredAt?new Date(hiredAt.getTime()+30*DAY):null)
- const editableUntil=availableAt?new Date(availableAt.getTime()+30*DAY):null
- const now=Date.now(),eligible=Boolean(application.status==='hired'&&availableAt&&availableAt.getTime()<=now),open=Boolean(eligible&&editableUntil&&editableUntil.getTime()>now)
- const {data:reviews}=await c.from('pm_employment_reviews').select('id,direction,rating,comment,reply_body,editable_until,submitted_at,updated_at').eq('application_id',applicationId)
+ const availableAt=hiredAt?new Date(hiredAt.getTime()+30*DAY):null
+ const submissionUntil=availableAt?new Date(availableAt.getTime()+30*DAY):null
+ const now=Date.now()
+ const {data:reviews}=await c.from('pm_employment_reviews').select('id,direction,rating,criteria,comment,reply_body,editable_until,submitted_at,updated_at').eq('application_id',applicationId)
  const mineDirection=viewerRole==='candidate'?'candidate_to_company':'employer_to_candidate'
  const mine=(reviews||[]).find((r:any)=>r.direction===mineDirection)||null
  const other=(reviews||[]).find((r:any)=>r.direction!==mineDirection)||null
- return NextResponse.json({ok:true,application_id:applicationId,status:application.status,hired_at:application.hired_at||null,employment_ended_at:application.employment_ended_at||null,review_available_at:availableAt?.toISOString()||null,editable_until:editableUntil?.toISOString()||null,can_review:open,can_end_relationship:application.status==='hired'&&!application.employment_ended_at,viewer_role:viewerRole,job_title:job?.title||'Experiencia laboral',company_name:first(job?.pm_companies)?.name||'Empresa',mine,other})
+ const firstWindow=Boolean(application.status==='hired'&&availableAt&&submissionUntil&&availableAt.getTime()<=now&&submissionUntil.getTime()>=now)
+ const canReview=mine?new Date(mine.editable_until).getTime()>=now:firstWindow
+ const canReply=Boolean(other&&new Date(other.editable_until).getTime()>=now)
+ let canMarkHired=application.status==='hired',hireGateReason=application.status==='hired'?'already_hired':'candidate_only'
+ if(viewerRole==='employer'&&application.status!=='hired'){
+  const {data:gate,error:gateError}=await c.rpc('pm_hire_gate',{p_application:applicationId})
+  const row=first(gate as any) as any
+  canMarkHired=!gateError&&Boolean(row?.eligible)
+  hireGateReason=gateError?'gate_error':String(row?.reason||'need_interview_or_agreement')
+ }
+ return NextResponse.json({ok:true,application_id:applicationId,status:application.status,hired_at:application.hired_at||null,employment_ended_at:application.employment_ended_at||null,review_available_at:availableAt?.toISOString()||null,review_submission_until:submissionUntil?.toISOString()||null,can_review:canReview,can_reply:canReply,reply_until:other?.editable_until||null,can_end_relationship:application.status==='hired'&&!application.employment_ended_at,can_mark_hired:canMarkHired,hire_gate_reason:hireGateReason,viewer_role:viewerRole,job_title:job?.title||'Experiencia laboral',company_name:first(job?.pm_companies)?.name||'Empresa',mine,other})
 }
 
 export async function GET(req:NextRequest){const id=txt(req.nextUrl.searchParams.get('application_id'),80);if(!id)return NextResponse.json({ok:false,error:'Falta la contratación.'},{status:400});return payload(req,id)}
@@ -51,10 +60,10 @@ export async function POST(req:NextRequest){
   return payload(req,applicationId)
  }
  if(action==='review'){
-  const rating=Number(body?.rating),comment=txt(body?.comment,1200)
-  if(!Number.isInteger(rating)||rating<1||rating>5)return NextResponse.json({ok:false,error:'Elegí una calificación entre 1 y 5.'},{status:400})
-  const {error}=await c.rpc('pm_submit_employment_review',{p_application:applicationId,p_rating:rating,p_comment:comment})
-  if(error){const message=/not available yet/i.test(error.message)?'La evaluación todavía no está habilitada. Se abre a los 30 días o cuando finaliza la relación laboral.':/window closed/i.test(error.message)?'El período opcional de 30 días ya terminó.':error.message;return NextResponse.json({ok:false,error:message},{status:400})}
+  const criteria=body?.criteria&&typeof body.criteria==='object'&&!Array.isArray(body.criteria)?body.criteria:null,comment=txt(body?.comment,1200)
+  if(!criteria)return NextResponse.json({ok:false,error:'Respondé las 5 preguntas antes de guardar.'},{status:400})
+  const {error}=await c.rpc('pm_submit_employment_review_v2',{p_application:applicationId,p_criteria:criteria,p_comment:comment||null})
+  if(error){const message=/not available yet/i.test(error.message)?'La evaluación se habilita 30 días después de confirmar la contratación.':/window closed/i.test(error.message)?'El período para evaluar o modificar esta experiencia ya terminó.':/five criteria|required/i.test(error.message)?'Respondé las 5 preguntas con una puntuación del 1 al 5.':error.message;return NextResponse.json({ok:false,error:message},{status:400})}
   return payload(req,applicationId)
  }
  if(action==='reply'){

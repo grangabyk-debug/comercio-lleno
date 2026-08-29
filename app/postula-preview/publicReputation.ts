@@ -6,7 +6,7 @@ const KEY='sb_publishable_JmqxkVG1qNuCwWfqMeVgBg_-Nn32N2I'
 export type ReputationIndicator='forming'|'favorable'|'mixed'|'unfavorable'
 export type PublicReputation={count:number;average:number|null;indicator:ReputationIndicator;label:string}
 
-const labels:Record<ReputationIndicator,string>={forming:'Indicador en formación',favorable:'Favorable',mixed:'Mixto',unfavorable:'Desfavorable'}
+const labels:Record<ReputationIndicator,string>={forming:'Sin evaluaciones',favorable:'Favorable',mixed:'Mixto',unfavorable:'Desfavorable'}
 
 function normalized(row:any):PublicReputation{
  const count=Number(row?.review_count||0)
@@ -36,7 +36,7 @@ export async function getPublicJobCompanyId(jobId?:string|null){
  return row?.company_id?String(row.company_id):null
 }
 export function reputationText(rep:PublicReputation){
- if(rep.count<3)return`Indicador en formación · ${rep.count}/3`
- const score=rep.average==null?'—':rep.average.toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1})
- return`★ ${score} · ${rep.label} · ${rep.count} ${rep.count===1?'experiencia':'experiencias'}`
+ if(rep.count===0)return'Sin evaluaciones todavía'
+ const score=rep.average==null?'—':rep.average.toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:2})
+ return`★ ${score} · ${rep.count} ${rep.count===1?'evaluación':'evaluaciones'} · ${rep.label}`
 }

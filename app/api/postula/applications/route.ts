@@ -68,6 +68,6 @@ export async function PATCH(req:NextRequest){
  const b=await req.json().catch(()=>({})),id=txt(b?.id,80),status=txt(b?.status,30)
  if(!id||!['viewed','shortlist','interview','rejected','hired','withdrawn'].includes(status))return NextResponse.json({ok:false,error:'Estado inválido.'},{status:400})
  const {data,error}=await c.rpc('pm_set_application_status',{p_application_id:id,p_status:status})
- if(error)return NextResponse.json({ok:false,error:/forbidden/i.test(error.message)?'No tenés permiso para cambiar esta etapa.':error.message},{status:/forbidden/i.test(error.message)?403:400})
+ if(error){const raw=String(error.message||'');const message=/forbidden/i.test(raw)?'No tenés permiso para cambiar esta etapa.':/hire gate not met/i.test(raw)?'Todavía no podés marcar esta contratación. Primero tiene que existir una entrevista confirmada o un acuerdo concreto con la persona en Mensajes.':raw;return NextResponse.json({ok:false,error:message},{status:/forbidden/i.test(raw)?403:400})}
  return NextResponse.json({ok:true,application:first(data)})
 }
