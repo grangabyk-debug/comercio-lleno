@@ -4,35 +4,36 @@ import {useEffect} from 'react'
 
 export default function CandidatePlanOnly(){
  useEffect(()=>{
-  let done=false
   const apply=()=>{
-   const heading=Array.from(document.querySelectorAll('h2')).find(x=>(x.textContent||'').includes('Pagás cuando querés pasar del diagnóstico a la acción')) as HTMLElement|null
-   const section=heading?.closest('section') as HTMLElement|null
-   if(!section)return false
+   const section=document.getElementById('planes') as HTMLElement|null
+   if(!section)return
+
    const cards=Array.from(section.querySelectorAll('article')) as HTMLElement[]
-   if(!cards.length)return false
+   for(const card of cards){
+    const title=card.querySelector('h3') as HTMLElement|null
+    const name=(title?.textContent||'').trim().toLowerCase()
 
-   cards.forEach(card=>{
-    const text=(card.textContent||'').toLowerCase()
-    const isActive=text.includes('búsqueda activa')||text.includes('busqueda activa')
-    const isPro=text.includes('cv pro')
-    const isFree=text.includes('diagnóstico')||text.includes('diagnostico')||text.includes('$0')
-
-    card.style.display=isActive?'none':(isPro||isFree?'':'none')
-
-    if(isPro&&!isActive){
-     const walker=document.createTreeWalker(card,NodeFilter.SHOW_TEXT)
-     let node:Node|null
-     while((node=walker.nextNode())){
-      const raw=node.nodeValue||''
-      const next=raw
-       .replace(/CV Pro(?!\+)/g,'CV Pro+')
-       .replace(/\$8\.900/g,'$5.990')
-       .replace(/pago único/gi,'/ 30 días')
-      if(next!==raw)node.nodeValue=next
-     }
+    if(name.includes('búsqueda activa')||name.includes('busqueda activa')){
+     card.remove()
+     continue
     }
-   })
+
+    if(name==='diagnóstico'||name==='diagnostico'){
+     card.style.display=''
+     continue
+    }
+
+    if(name==='cv pro'||name==='cv pro+'){
+     card.style.display=''
+     if(title)title.textContent='CV Pro+'
+     const price=card.querySelector('[class*="price"] strong') as HTMLElement|null
+     const suffix=card.querySelector('[class*="price"] small') as HTMLElement|null
+     if(price)price.textContent='$5.990'
+     if(suffix)suffix.textContent=' / 30 días'
+     const button=card.querySelector('button') as HTMLButtonElement|null
+     if(button)button.textContent='Quiero mi CV Pro+'
+    }
+   }
 
    const grid=section.querySelector('[class*="plansGrid"]') as HTMLElement|null
    if(grid){
@@ -43,38 +44,25 @@ export default function CandidatePlanOnly(){
     grid.style.setProperty('margin-right','auto','important')
    }
 
+   const heading=section.querySelector('h2') as HTMLElement|null
    const intro=heading?.parentElement?.querySelector('p') as HTMLElement|null
-   const target='El diagnóstico es gratis. CV Pro+ se habilita mediante Mercado Pago y dura 30 días.'
-   if(intro&&intro.textContent?.trim()!==target)intro.textContent=target
+   if(intro)intro.textContent='El diagnóstico es gratis. CV Pro+ se habilita mediante Mercado Pago y dura 30 días.'
 
-   const allText=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT)
-   let node:Node|null
-   while((node=allText.nextNode())){
-    const parent=node.parentElement
-    if(!parent||parent.closest('script,style'))continue
-    const raw=node.nodeValue||''
-    let next=raw
-    if(raw.includes('Tablero en Búsqueda Activa'))next=next.replace('Tablero en Búsqueda Activa','Seguimiento de postulaciones')
-    if(next!==raw)node.nodeValue=next
-   }
-
-   done=true
-   return true
+   const compareRows=Array.from(document.querySelectorAll('[class*="compareRow"]')) as HTMLElement[]
+   compareRows.forEach(row=>{
+    const text=(row.textContent||'').toLowerCase()
+    if(text.includes('búsqueda activa')||text.includes('busqueda activa'))row.remove()
+   })
   }
 
   const style=document.createElement('style')
-  style.id='pmcv-two-plans-layout'
+  style.id='pmcv-candidate-plans-final'
   style.textContent='@media(max-width:720px){#planes [class*="plansGrid"]{grid-template-columns:1fr!important;max-width:540px!important}}'
   document.head.appendChild(style)
 
-  if(apply())return()=>style.remove()
-  const observer=new MutationObserver(()=>{
-   if(done)return
-   if(apply())observer.disconnect()
-  })
-  observer.observe(document.body,{childList:true,subtree:true})
-  const timer=window.setTimeout(()=>observer.disconnect(),6000)
-  return()=>{window.clearTimeout(timer);observer.disconnect();style.remove()}
+  apply()
+  const frame=requestAnimationFrame(apply)
+  return()=>{cancelAnimationFrame(frame);style.remove()}
  },[])
  return null
 }
