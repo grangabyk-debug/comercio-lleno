@@ -1,0 +1,26 @@
+/* Avatar crop fix: keep profile photos independent from generic card button rules. */
+.pm42-summary-profile .pm42-avatar,
+.pm42-profile-top > .pm42-avatar{
+  box-sizing:border-box!important;
+  margin:0!important;
+  padding:0!important;
+  background-size:cover!important;
+  background-position:50% 35%!important;
+  background-repeat:no-repeat!important;
+  overflow:hidden!important;
+}
+.pm42-summary-profile .pm42-avatar{
+  flex:0 0 58px!important;
+  width:58px!important;
+  min-width:58px!important;
+  height:58px!important;
+  min-height:58px!important;
+  border-radius:18px!important;
+}
+.pm42-profile-top > .pm42-avatar{
+  width:72px!important;
+  min-width:72px!important;
+  height:72px!important;
+  min-height:72px!important;
+  border-radius:22px!important;
+}
