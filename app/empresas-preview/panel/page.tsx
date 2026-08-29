@@ -2,6 +2,7 @@ import styles from '../../postula-preview/platform.module.css'
 import {MobileNav,PlatformFooter,PlatformHeader} from '../../postula-preview/PlatformChrome'
 import SupportHelp from '../../postula-preview/SupportHelp'
 import EmployerWorkspace from './EmployerWorkspace'
+import EmployerMetricNavigator from './EmployerMetricNavigator'
 import '../../postula-preview/premium-v5.css'
 import '../../postula-preview/premium-v6.css'
 import '../../postula-preview/premium-v7.css'
@@ -30,4 +31,4 @@ import './dashboard-v51.css'
 import './dashboard-v52.css'
 import './employer-mobile-v53.css'
 export const metadata={title:{absolute:'Dashboard empresa | Postulá Mejor'},robots:{index:false,follow:false},alternates:{canonical:'https://postulamejor.com/empresas/panel'}}
-export default function EmployerPanel(){return <main className={`${styles.page} pm7-page pm7-employer`}><PlatformHeader audience="employer"/><EmployerWorkspace/><PlatformFooter/><MobileNav active="inicio"/><SupportHelp audience="employer"/></main>}
+export default function EmployerPanel(){return <main className={`${styles.page} pm7-page pm7-employer`}><PlatformHeader audience="employer"/><EmployerWorkspace/><EmployerMetricNavigator/><PlatformFooter/><MobileNav active="inicio"/><SupportHelp audience="employer"/></main>}
