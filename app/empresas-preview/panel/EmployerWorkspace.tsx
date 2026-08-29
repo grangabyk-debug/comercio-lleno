@@ -51,7 +51,7 @@ export default function EmployerWorkspace(){
   <EmployerDashboardLoadGuard/>
   <aside className="pm48-sidebar" aria-label="Dashboard de empresa"><nav>{views.map(([key,label,icon])=><button type="button" key={key} data-on={view===key} onClick={()=>choose(key)}><span>{icon}</span>{label}</button>)}</nav><div className="pm48-side-bottom"><a href="/empresas/publicar">＋ Nueva búsqueda</a><a href="/empresas/calendario">Calendario</a><a href="/">Ver sitio público ↗</a></div></aside>
   <main className="pm48-workspace-main">
-   <div className="pm48-mobile-nav">{views.map(([key,label])=><button type="button" key={key} data-on={view===key} onClick={()=>choose(key)}>{label}</button>)}</div>
+   <div className="pm48-mobile-nav">{views.map(([key,label])=><button type="button" key={key} data-on={view===key} onClick={()=>choose(key)}>{label}</button>)}<a href="/empresas/movil?nexo=1&back=panel" aria-label="Abrir Nexo" style={{display:'inline-flex',alignItems:'center',justifyContent:'center',minHeight:48,padding:'0 20px',borderRadius:16,textDecoration:'none',background:'#6d3ee8',color:'#d9ff59',fontWeight:950,boxShadow:'0 10px 24px rgba(109,62,232,.22)'}}>Nexo</a></div>
    {needsLive&&<div className="pm48-live"><EmployerDashboardLive/><EmployerCandidateReputationInline active={view==='candidatos'}/></div>}
    {view==='resumen'&&<CalendarPeek audience="employer"/>}
 
