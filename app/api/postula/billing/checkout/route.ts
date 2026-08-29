@@ -41,9 +41,13 @@ export async function POST(req:NextRequest){
  const admin=adminDb()
  if(!admin)return NextResponse.json({ok:false,error:'No pudimos activar el período gratis ahora.'},{status:503})
  const {data:existing}=await admin.from('pm_company_subscriptions').select('*').eq('company_id',companyId).maybeSingle()
+ if(existing?.status==='authorized'&&existing?.provider&&existing.provider!=='trial')return NextResponse.json({ok:true,plan:existing.plan,paid:true,already_active:true,current_period_end:existing.current_period_end||null})
  if(existing?.provider==='trial'&&existing?.current_period_end){
   const end=new Date(existing.current_period_end).getTime()
-  if(end>Date.now()&&existing.status==='authorized')return NextResponse.json({ok:true,plan:existing.plan,trial:true,current_period_end:existing.current_period_end,already_active:true})
+  if(end>Date.now()&&existing.status==='authorized'){
+   if(existing.plan!==plan)await admin.from('pm_company_subscriptions').update({plan,updated_at:new Date().toISOString()}).eq('company_id',companyId)
+   return NextResponse.json({ok:true,plan,trial:true,current_period_end:existing.current_period_end,already_active:true,switched:existing.plan!==plan,price_after_trial:PLAN[plan].amount})
+  }
   return NextResponse.json({ok:false,code:'trial_used',error:'El período gratuito de 30 días de esta empresa ya fue utilizado. La cuenta permanece en el plan Gratis hasta continuar con un plan pago.'},{status:409})
  }
  const now=new Date(),trialEnd=new Date(now.getTime()+30*24*60*60*1000)
