@@ -1,2 +1,4 @@
 /* Employer V47 — elimina bloque redundante de “Cómo funciona” */
 body .pm7-employer .pm45-compact{display:none!important}
+body .pm7-employer .pm45-old-price{font-size:23px!important;line-height:1.05!important;font-weight:950!important;color:#4e5660!important;text-decoration-thickness:2px!important;text-decoration-color:#4e5660!important;margin:2px 0 7px!important;letter-spacing:-.02em!important}
+@media(max-width:520px){body .pm7-employer .pm45-old-price{font-size:21px!important}}
