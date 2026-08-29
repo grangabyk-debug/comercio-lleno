@@ -6,6 +6,21 @@ import {cvAuthClient} from '../cv-ia/cvAuth'
 
 type Gate='idle'|'loading'|'unauthenticated'|'needs_company'|'locked'|'allowed'
 type Msg={role:'ai'|'user';text:string;delivery?:{destination:string;recipient:string;count:number;status:string}}
+const NEXO_STYLE_HINT='Respondé de forma breve y directa, idealmente en 2 a 5 líneas. No muestres estados internos de la postulación (submitted, viewed, shortlist, interview, hired, rejected, withdrawn) salvo que el usuario los pida expresamente. No repitas datos ni expliques el criterio salvo que te lo pidan.'
+function compactNexoAnswer(value:string){
+ return value
+  .replace(/\s*\(estado:\s*[^)]+\)/gi,'')
+  .replace(/\s*\(status:\s*[^)]+\)/gi,'')
+  .replace(/\s*[·,;-]?\s*estado:\s*(submitted|viewed|shortlist|interview|hired|rejected|withdrawn)\b[.,;]?/gi,'')
+  .replace(/\s*[·,;-]?\s*(submitted|viewed|shortlist|interview|hired|rejected|withdrawn)\b(?=\s*[·,.;]|$)/gi,'')
+  .replace(/Puesto:\s*/gi,'')
+  .replace(/Match orientativo:\s*(\d+(?:[.,]\d+)?)\s*%?/gi,'$1% de ajuste')
+  .replace(/Match:\s*(\d+(?:[.,]\d+)?)\s*%?/gi,'$1% de ajuste')
+  .replace(/,\s*,/g,',')
+  .replace(/\s+\./g,'.')
+  .replace(/[ \t]{2,}/g,' ')
+  .trim()
+}
 
 export default function NexoLauncher(){
  const [open,setOpen]=useState(false),[gate,setGate]=useState<Gate>('idle'),[company,setCompany]=useState<{id:string;name:string}|null>(null),[job,setJob]=useState<{id:string;title:string}|null>(null),[text,setText]=useState(''),[busy,setBusy]=useState(false),[messages,setMessages]=useState<Msg[]>([]),[contextIds,setContextIds]=useState<string[]>([])
@@ -33,11 +48,12 @@ export default function NexoLauncher(){
   setMessages(m=>[...m,{role:'user',text:q}]);setText('');setBusy(true)
   try{
    const {data}=await cvAuthClient().auth.getSession();const token=data.session?.access_token;if(!token)throw new Error()
-   const r=await fetch('/api/postula/employer-assistant',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({message:q,company_id:company?.id||'',context_candidate_ids:contextIds})})
+   const r=await fetch('/api/postula/employer-assistant',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({message:`${q}\n\n${NEXO_STYLE_HINT}`,company_id:company?.id||'',context_candidate_ids:contextIds})})
    const d=await r.json().catch(()=>({}))
    if(r.status===402&&d?.code==='nexo_plan_required'){setGate('locked');return}
    if(Array.isArray(d?.selected_candidate_ids))setContextIds(d.selected_candidate_ids.map(String).slice(0,50))
-   setMessages(m=>[...m,{role:'ai',text:String(d?.answer||d?.error||'No pude responder ahora.'),delivery:d?.delivery}])
+   const answer=compactNexoAnswer(String(d?.answer||d?.error||'No pude responder ahora.'))
+   setMessages(m=>[...m,{role:'ai',text:answer,delivery:d?.delivery}])
   }catch{setMessages(m=>[...m,{role:'ai',text:'No pude conectarme ahora. Probá nuevamente en unos segundos.'}])}finally{setBusy(false)}
  }
  function submit(e:FormEvent){e.preventDefault();void ask(text)}
