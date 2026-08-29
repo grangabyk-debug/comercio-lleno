@@ -10,6 +10,9 @@ function isPostulaHost(request:NextRequest){
 function isSensitivePostulaPath(pathname:string){
  return pathname==='/login'||pathname==='/registro'||pathname==='/mensajes'||pathname==='/calendario'||pathname.startsWith('/mi-cuenta')||pathname.startsWith('/postular/')||pathname==='/empresas/login'||pathname==='/empresas/registro'||pathname.startsWith('/empresas/calendario')||pathname.startsWith('/mi-postula-preview')||pathname.startsWith('/postulacion-preview/')||pathname==='/postula-login-preview'||pathname==='/postula-registro-preview'||pathname==='/postula-calendar-preview'
 }
+function safePostulaNext(value:string|null){
+ return value&&value.startsWith('/')&&!value.startsWith('//')?value:''
+}
 function secure(response:NextResponse,request:NextRequest){
  response.headers.set('X-Content-Type-Options','nosniff')
  response.headers.set('X-Frame-Options','SAMEORIGIN')
@@ -67,13 +70,18 @@ function postulaMejorRoute(request:NextRequest){
  const pathname=request.nextUrl.pathname,params=request.nextUrl.searchParams
  if(isWww)return redirectPostula(request,pathname)
 
- if(pathname==='/acceso')return redirectPostulaClean(request,params.get('rol')==='empresa'?'/empresas/registro':'/login')
+ if(pathname==='/acceso'){
+  const next=safePostulaNext(params.get('next'))
+  return redirectPostulaClean(request,params.get('rol')==='empresa'?'/empresas/registro':'/login',next?`?next=${encodeURIComponent(next)}`:'')
+ }
  if(pathname==='/cuenta'){
   const employer=params.get('role')==='employer'||params.get('rol')==='empresa'
   const signup=params.get('modo')==='crear'
   const reset=params.get('reset')==='1'
-  if(employer)return redirectPostulaClean(request,signup?'/empresas/registro':'/empresas/login',reset?'?reset=1':'')
-  return redirectPostulaClean(request,signup?'/registro':'/login',reset?'?reset=1':'')
+  const next=safePostulaNext(params.get('next'))
+  const search=[reset?'reset=1':'',next?`next=${encodeURIComponent(next)}`:''].filter(Boolean).join('&')
+  if(employer)return redirectPostulaClean(request,signup?'/empresas/registro':'/empresas/login',search?`?${search}`:'')
+  return redirectPostulaClean(request,signup?'/registro':'/login',search?`?${search}`:'')
  }
 
  if(pathname==='/postula-preview')return redirectPostula(request,'/')

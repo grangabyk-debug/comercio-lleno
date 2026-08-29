@@ -10,6 +10,7 @@ import PostulaClarity from './PostulaClarity'
 import PostulaProLabel from './PostulaProLabel'
 import PostulaCookieConsent from './postula-preview/PostulaCookieConsent'
 import FlexNamingBridge from './postula-preview/FlexNamingBridge'
+import PostulaNavigationExperience from './postula-preview/PostulaNavigationExperience'
 import './globals.css'
 import './prepaint.css'
 import './design-readability.css'
@@ -117,12 +118,19 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <html lang="es" suppressHydrationWarning>
+      <head>
+        {postula&&<>
+          <link rel="preconnect" href="https://postulamejor.supabase.co" crossOrigin="anonymous"/>
+          <link rel="preconnect" href="https://images.pexels.com"/>
+        </>}
+      </head>
       <body suppressHydrationWarning>
         {!postula&&<Script id="private-route-guard" strategy="beforeInteractive">{privateRouteGuard}</Script>}
         <PostulaClarity />
         <PostulaProLabel />
         {!postula&&<MarketingScripts />}
         {postula&&<FlexNamingBridge />}
+        {postula&&<PostulaNavigationExperience />}
         {children}
         {postula&&<PostulaCookieConsent />}
         {!postula&&<FloatingWhatsApp />}

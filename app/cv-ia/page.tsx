@@ -1,19 +1,11 @@
 import type {Metadata} from 'next'
 import CvIaExperience from './CvIaExperience'
 import CvRealChangeShowcase from './CvRealChangeShowcase'
-import OwnerTestBridge from './OwnerTestBridge'
-import ConsentBridge from './ConsentBridge'
-import OrientationBridge from './OrientationBridge'
 import CheckoutBridge from './CheckoutBridge'
 import FunnelBridge from './FunnelBridge'
-import PhotoPreserveBridge from './PhotoPreserveBridge'
-import FreeCareerTools from './FreeCareerTools'
-import FirstCvBridge from './FirstCvBridge'
-import CommentPolicyBridge from './CommentPolicyBridge'
 import AtsBridge from './AtsBridge'
 import CvUnifiedBridge from './CvUnifiedBridge'
-import DesignPreferenceBridge from './DesignPreferenceBridge'
-import FlexPlanBenefitsBridge from '../postula-preview/FlexPlanBenefitsBridge'
+import CvDeferredEnhancements from './CvDeferredEnhancements'
 import {PlatformFooter,PlatformHeader,MobileNav} from '../postula-preview/PlatformChrome'
 import './postula-mejor-polish.css'
 import './postula-flow-v2.css'
@@ -81,4 +73,4 @@ const densityCss=`
 @media(max-width:560px){.pmcv-shell{padding-bottom:38px!important}.pmcv-shell>main>section:not(:first-of-type):not([class*="workspace"]){margin:10px auto!important;border-radius:20px!important}.pmcv-shell [class*="section"],.pmcv-shell [class*="sectionPaper"]{padding:26px 15px!important}.pmcv-shell [class*="sectionIntro"] h2{font-size:30px!important}.pmcv-page [class*="finalCta"]{padding:30px 20px!important}}
 `
 
-export default function CvIaPage(){return <main className="pmcv-page pm7-page"><PlatformHeader/><CvRealChangeShowcase/><div className="pmcv-shell"><CvIaExperience/></div><FreeCareerTools/><ConsentBridge/><OrientationBridge/><CheckoutBridge/><PhotoPreserveBridge/><DesignPreferenceBridge/><FirstCvBridge/><FunnelBridge/><CommentPolicyBridge/><AtsBridge/><OwnerTestBridge/><CvUnifiedBridge/><FlexPlanBenefitsBridge/><style dangerouslySetInnerHTML={{__html:filterCss}}/><style dangerouslySetInnerHTML={{__html:densityCss}}/><script dangerouslySetInnerHTML={{__html:filterScript}}/><PlatformFooter/><MobileNav active="cv"/></main>}
+export default function CvIaPage(){return <main className="pmcv-page pm7-page"><PlatformHeader/><CvRealChangeShowcase/><div className="pmcv-shell"><CvIaExperience/></div><CheckoutBridge/><FunnelBridge/><AtsBridge/><CvUnifiedBridge/><CvDeferredEnhancements/><style dangerouslySetInnerHTML={{__html:filterCss}}/><style dangerouslySetInnerHTML={{__html:densityCss}}/><script dangerouslySetInnerHTML={{__html:filterScript}}/><PlatformFooter/><MobileNav active="cv"/></main>}

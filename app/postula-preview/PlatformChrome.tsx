@@ -36,7 +36,7 @@ function EmployerHeader(){
         <span className="pm-employer-brand-copy"><strong>PostulaMejor.com</strong><small>EMPRESAS</small></span>
       </Link>
       <nav className="pm-employer-topbar-nav" aria-label="Navegación de empresas">
-        <Link href="/servicios-flex" prefetch={false} className="pm-employer-flex-link">Servicios Flex</Link>
+        <Link href="/servicios-flex" className="pm-employer-flex-link">Servicios Flex</Link>
         <AuthenticatedNavItems audience="employer" calendarClassName="pm-employer-flex-link"/>
         <NexoLauncher/>
         <Link href="/" className="pm-employer-switch">Busco trabajo</Link>
@@ -54,9 +54,9 @@ export function PlatformHeader({audience='candidate'}:{audience?:'candidate'|'em
     <Link href="/" className={`${styles.brand} pm-social-brand`}><span className={`${styles.mark} pm-social-mark`}>PM</span><span>Postulá Mejor</span></Link>
     <nav className={`${styles.nav} pm-social-nav`} aria-label="Navegación Postulá Mejor">
       <Link href="/">Inicio</Link>
-      <Link href="/empleos" prefetch={false}>Empleos</Link>
-      <Link href="/servicios-flex" prefetch={false} className="pm-nav-new">Servicios Flex <small>NUEVO</small></Link>
-      <Link href="/mejorar-cv" prefetch={false}>Mejorar CV</Link>
+      <Link href="/empleos">Empleos</Link>
+      <Link href="/servicios-flex" className="pm-nav-new">Servicios Flex <small>NUEVO</small></Link>
+      <Link href="/mejorar-cv">Mejorar CV</Link>
       <Link href="/test-vocacional" prefetch={false}>Test</Link>
       <AuthenticatedNavItems audience="candidate"/>
       <Link href="/empresas" prefetch={false} className={`${styles.navPrimary} pm-role-switch`}>Soy empleador</Link>
