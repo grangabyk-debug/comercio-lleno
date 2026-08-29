@@ -3,11 +3,11 @@
 import Link from 'next/link'
 import {FormEvent,useEffect,useState} from 'react'
 import {useSearchParams} from 'next/navigation'
-import {cvAuthClient} from '../cv-ia/cvAuth'
+import {CV_SUPABASE_URL,cvAuthClient} from '../cv-ia/cvAuth'
 import styles from '../postula-preview/platform.module.css'
 
-const SIGNUP_TICKET_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai-signup-ticket'
-const REGISTER_API='https://pejkycdttogpmmdntzuq.supabase.co/functions/v1/cv-ai-register-verified'
+const SIGNUP_TICKET_API=`${CV_SUPABASE_URL}/functions/v1/cv-ai-signup-ticket`
+const REGISTER_API=`${CV_SUPABASE_URL}/functions/v1/cv-ai-register-verified`
 function strongPassword(value:string){return value.length>=10&&/[a-z]/.test(value)&&/[A-Z]/.test(value)&&/[0-9]/.test(value)}
 async function signupTicket(email:string){const r=await fetch(SIGNUP_TICKET_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});const d=await r.json().catch(()=>({}));if(!r.ok||!d?.ok)throw new Error(d?.error||'No pudimos preparar el registro.');return String(d.signup_token||'')}
 async function registerVerified(email:string,password:string,signup_token:string){const r=await fetch(REGISTER_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password,signup_token,role:'employer',next:'/empresas/registro'})});const d=await r.json().catch(()=>({}));if(!r.ok||!d?.ok)throw new Error(d?.error||'No pudimos crear tu cuenta.');return d}
