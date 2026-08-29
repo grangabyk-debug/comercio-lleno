@@ -1,9 +1,8 @@
 import Link from 'next/link'
 import {notFound} from 'next/navigation'
-import {unstable_cache} from 'next/cache'
 import styles from '../../postula-preview/platform.module.css'
 import {PlatformHeader,PlatformFooter,MobileNav} from '../../postula-preview/PlatformChrome'
-import {getFullJobCatalog} from '../../postula-preview/jobs'
+import {getCachedFullJobCatalog} from '../../postula-preview/cachedJobs'
 import {companyProfileHref} from '../../postula-preview/publicCompany'
 import {getPublicCompanyReputation,getPublicJobCompanyId} from '../../postula-preview/publicReputation'
 import PublicReputationBadge from '../../postula-preview/PublicReputationBadge'
@@ -17,7 +16,6 @@ import '../job-company-v43.css'
 
 export const revalidate=300
 export const dynamicParams=true
-const getCachedFullJobCatalog=unstable_cache(getFullJobCatalog,['postula-job-detail-catalog-v2'],{revalidate:21600,tags:['postula-empleos-catalog']})
 
 export async function generateMetadata({params}:{params:Promise<{slug:string}>}){
   const {slug}=await params
