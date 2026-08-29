@@ -5,7 +5,7 @@ import {createPortal} from 'react-dom'
 import CalendarPeek from '../postula-preview/CalendarPeek'
 
 export default function CandidateCalendarReminder(){
- const [host,setHost]=useState<HTMLElement|null>(null),[active,setActive]=useState(false)
+ const [host,setHost]=useState<HTMLElement|null>(null),[active,setActive]=useState(false),[deferred,setDeferred]=useState(false)
  useEffect(()=>{
   let observer:MutationObserver|null=null
   const sync=()=>{
@@ -32,6 +32,16 @@ export default function CandidateCalendarReminder(){
   else{const timer=window.setInterval(()=>{const w=document.querySelector<HTMLElement>('.pm42-workspace');if(w){window.clearInterval(timer);sync();observer=new MutationObserver(sync);observer.observe(w,{attributes:true,attributeFilter:['data-view'],childList:true,subtree:true})}},100);return()=>{window.clearInterval(timer);observer?.disconnect()}}
   return()=>observer?.disconnect()
  },[])
- if(!host||!active)return null
+ useEffect(()=>{
+  if(!host||!active){setDeferred(false);return}
+  let cancelled=false
+  const reveal=()=>{if(!cancelled)setDeferred(true)}
+  const w=window as any
+  let idleId:number|undefined,timeoutId:number|undefined
+  if(typeof w.requestIdleCallback==='function')idleId=w.requestIdleCallback(reveal,{timeout:1400})
+  else timeoutId=window.setTimeout(reveal,700)
+  return()=>{cancelled=true;if(idleId!==undefined&&typeof w.cancelIdleCallback==='function')w.cancelIdleCallback(idleId);if(timeoutId!==undefined)window.clearTimeout(timeoutId)}
+ },[host,active])
+ if(!host||!active||!deferred)return null
  return createPortal(<CalendarPeek audience="candidate"/>,host)
 }

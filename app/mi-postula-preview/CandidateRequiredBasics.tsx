@@ -14,7 +14,6 @@ const css=`
 
 export default function CandidateRequiredBasics(){
  const [host,setHost]=useState<HTMLElement|null>(null),[data,setData]=useState<Basics>({name:'',email:'',phone:'',city:'',neighborhood:''}),[busy,setBusy]=useState(false),[notice,setNotice]=useState(''),[ready,setReady]=useState(false)
- useEffect(()=>{void(async()=>{const {data:s}=await cvAuthClient().auth.getSession();if(!s.session)return;const headers={Authorization:`Bearer ${s.session.access_token}`};const r=await fetch('/api/postula/profile',{headers,cache:'no-store'}),d=await r.json().catch(()=>({}));if(!d?.ok)return;setData({name:String(d.profile?.display_name||s.session.user.user_metadata?.full_name||''),email:String(s.session.user.email||''),phone:String(d.candidate?.phone||''),city:String(d.candidate?.city||''),neighborhood:String(d.candidate?.neighborhood||'')});setReady(true)})()},[])
  useEffect(()=>{
   let observer:MutationObserver|null=null
   const sync=()=>{
@@ -30,6 +29,12 @@ export default function CandidateRequiredBasics(){
   if(!connect()){const timer=window.setInterval(()=>{if(connect())window.clearInterval(timer)},100);return()=>{window.clearInterval(timer);observer?.disconnect()}}
   return()=>observer?.disconnect()
  },[])
+ useEffect(()=>{
+  if(!host||ready)return
+  let alive=true
+  void(async()=>{const {data:s}=await cvAuthClient().auth.getSession();if(!s.session)return;const headers={Authorization:`Bearer ${s.session.access_token}`};const r=await fetch('/api/postula/profile',{headers,cache:'no-store'}),d=await r.json().catch(()=>({}));if(!alive||!d?.ok)return;setData({name:String(d.profile?.display_name||s.session.user.user_metadata?.full_name||''),email:String(s.session.user.email||''),phone:String(d.candidate?.phone||''),city:String(d.candidate?.city||''),neighborhood:String(d.candidate?.neighborhood||'')});setReady(true)})().catch(()=>{if(alive)setReady(true)})
+  return()=>{alive=false}
+ },[host,ready])
  async function save(e:FormEvent){
   e.preventDefault();setNotice('')
   if(!data.name.trim()||!data.email.trim()||!data.phone.trim()||!data.city.trim()){setNotice('Completá nombre y apellido, teléfono y ciudad. El email de tu cuenta también tiene que estar disponible.');return}
