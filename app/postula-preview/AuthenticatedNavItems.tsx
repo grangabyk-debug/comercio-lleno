@@ -22,6 +22,6 @@ export default function AuthenticatedNavItems({audience='candidate',calendarClas
   return()=>{alive=false;listener.subscription.unsubscribe()}
  },[audience])
  if(!visible)return null
- if(audience==='employer')return <Link href="/empresas/calendario" className={calendarClassName}>Calendario</Link>
- return <><MessageLauncher/><Link href="/calendario">Calendario</Link></>
+ if(audience==='employer')return <Link href="/empresas/calendario" prefetch={false} className={calendarClassName}>Calendario</Link>
+ return <><MessageLauncher/><Link href="/calendario" prefetch={false}>Calendario</Link></>
 }

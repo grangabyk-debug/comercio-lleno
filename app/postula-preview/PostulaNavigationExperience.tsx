@@ -1,9 +1,7 @@
 'use client'
 
 import {useEffect,useRef,useState} from 'react'
-import {usePathname,useRouter} from 'next/navigation'
-
-const CORE_ROUTES=['/mejorar-cv','/empleos','/servicios-flex']
+import {usePathname} from 'next/navigation'
 
 function labelFor(pathname:string){
  if(pathname.startsWith('/mejorar-cv'))return'Abriendo Mejorar CV…'
@@ -35,9 +33,7 @@ const css=`
 `
 
 export default function PostulaNavigationExperience(){
- const router=useRouter()
  const pathname=usePathname()
- const warmed=useRef(new Set<string>())
  const stopTimer=useRef<number|null>(null)
  const [busy,setBusy]=useState(false)
  const [label,setLabel]=useState('Cargando…')
@@ -46,42 +42,6 @@ export default function PostulaNavigationExperience(){
   setBusy(false)
   if(stopTimer.current!==null){window.clearTimeout(stopTimer.current);stopTimer.current=null}
  },[pathname])
-
- useEffect(()=>{
-  const prefetch=(href:string)=>{
-   if(warmed.current.has(href))return
-   warmed.current.add(href)
-   try{router.prefetch(href)}catch{}
-  }
-  const warmCore=()=>{
-   const connection=(navigator as any).connection
-   if(connection?.saveData||/2g/i.test(String(connection?.effectiveType||'')))return
-   if(pathname==='/'||pathname==='/empresas')CORE_ROUTES.forEach(prefetch)
-  }
-  const w=window as any
-  let idleId:number|undefined
-  let timer:number|undefined
-  if(typeof w.requestIdleCallback==='function')idleId=w.requestIdleCallback(warmCore,{timeout:1800})
-  else timer=window.setTimeout(warmCore,800)
-
-  const onIntent=(event:Event)=>{
-   const target=event.target
-   if(!(target instanceof Element))return
-   const anchor=target.closest('a[href]') as HTMLAnchorElement|null
-   if(!anchor||anchor.target==='_blank'||anchor.hasAttribute('download'))return
-   const url=sameOriginHref(anchor)
-   if(!url||url.pathname===location.pathname&&url.search===location.search)return
-   prefetch(`${url.pathname}${url.search}`)
-  }
-  document.addEventListener('pointerover',onIntent,{passive:true})
-  document.addEventListener('focusin',onIntent)
-  return()=>{
-   if(idleId!==undefined&&typeof w.cancelIdleCallback==='function')w.cancelIdleCallback(idleId)
-   if(timer!==undefined)window.clearTimeout(timer)
-   document.removeEventListener('pointerover',onIntent)
-   document.removeEventListener('focusin',onIntent)
-  }
- },[pathname,router])
 
  useEffect(()=>{
   const onClick=(event:MouseEvent)=>{
