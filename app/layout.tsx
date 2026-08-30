@@ -7,8 +7,8 @@ import LegalServiceActions from './LegalServiceActions'
 import FloatingWhatsApp from './FloatingWhatsApp'
 import PaidBranchPurchaseRuntime from './redesign/PaidBranchPurchaseRuntime'
 import PostulaClarity from './PostulaClarity'
+import PostulaAnalytics from './PostulaAnalytics'
 import PostulaProLabel from './PostulaProLabel'
-import PostulaCookieConsent from './postula-preview/PostulaCookieConsent'
 import FlexNamingBridge from './postula-preview/FlexNamingBridge'
 import PostulaNavigationExperience from './postula-preview/PostulaNavigationExperience'
 import './globals.css'
@@ -129,10 +129,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <PostulaClarity />
         <PostulaProLabel />
         {!postula&&<MarketingScripts />}
+        {postula&&<PostulaAnalytics />}
         {postula&&<FlexNamingBridge />}
         {postula&&<PostulaNavigationExperience />}
         {children}
-        {postula&&<PostulaCookieConsent />}
         {!postula&&<FloatingWhatsApp />}
         {!postula&&<PaidBranchPurchaseRuntime />}
         {!postula&&<LegalServiceActions />}
