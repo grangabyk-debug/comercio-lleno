@@ -1,5 +1,0 @@
--- Applied to Supabase project pejkycdttogpmmdntzuq on 2026-08-27.
--- The production migration adds employment_ended_at/employment_ended_by,
--- pm_account_deletion_requests, pm_mark_employment_ended(), and updates
--- the employment-review functions to use a verified optional 30-day window.
--- Kept here as an audit marker; schema changes are managed through Supabase migrations.
