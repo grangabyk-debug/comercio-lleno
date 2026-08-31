@@ -1,16 +1,10 @@
 import type { Metadata } from 'next'
-import {headers} from 'next/headers'
 import Script from 'next/script'
 import LegacyScripts from './LegacyScripts'
 import MarketingScripts from './MarketingScripts'
 import LegalServiceActions from './LegalServiceActions'
 import FloatingWhatsApp from './FloatingWhatsApp'
 import PaidBranchPurchaseRuntime from './redesign/PaidBranchPurchaseRuntime'
-import PostulaClarity from './PostulaClarity'
-import PostulaAnalytics from './PostulaAnalytics'
-import PostulaProLabel from './PostulaProLabel'
-import FlexNamingBridge from './postula-preview/FlexNamingBridge'
-import PostulaNavigationExperience from './postula-preview/PostulaNavigationExperience'
 import './globals.css'
 import './prepaint.css'
 import './design-readability.css'
@@ -20,15 +14,10 @@ import './brand-global.css'
 import './mobile-targeted-fixes.css'
 import './landing-price-offer-boost.css'
 import './redesign/branch-contrast-fix.css'
-import './postula-preview/postula-cookie-v28.css'
-import './postula-preview/calendar-v54.css'
-import './postula-preview/calendar-peek-v54.css'
-import './postula-preview/home-flex-compact-v54.css'
-import './postula-cv-end-v13.css'
 
 const faviconUrl='/comercio-lleno-favicon-v3.svg?v=20260815'
 
-const commerceMetadata:Metadata={
+export const metadata:Metadata={
   metadataBase:new URL('https://comerciolleno.com'),
   title:{default:'Comercio Lleno',template:'%s | Comercio Lleno'},
   description:'Sistema POS online para comercios con ventas, stock, caja, ARCA, modo offline e inteligencia artificial.',
@@ -42,34 +31,6 @@ const commerceMetadata:Metadata={
   other:{
     'facebook-domain-verification':'q5v3fcz0ukr2pub2khpoyipx28fmtc',
   },
-}
-
-const postulaMetadata:Metadata={
-  metadataBase:new URL('https://postulamejor.com'),
-  title:{default:'Postulá Mejor',template:'%s | Postulá Mejor'},
-  description:'Empleos, Servicios Flex, perfil laboral, CV y herramientas para buscar trabajo mejor, en un solo lugar.',
-  applicationName:'Postulá Mejor',
-  openGraph:{
-    siteName:'Postulá Mejor',
-    type:'website',
-    locale:'es_AR',
-    title:'Postulá Mejor',
-    description:'Empleos, Servicios Flex, perfil laboral, CV y herramientas para buscar trabajo mejor, en un solo lugar.',
-    url:'https://postulamejor.com',
-  },
-  alternates:{canonical:'https://postulamejor.com'},
-  robots:{index:true,follow:true},
-}
-
-function isPostulaHost(host:string){
-  const clean=host.split(':')[0].toLowerCase()
-  return clean==='postulamejor.com'||clean==='www.postulamejor.com'
-}
-
-export async function generateMetadata():Promise<Metadata>{
-  const h=await headers()
-  const host=h.get('x-forwarded-host')||h.get('host')||''
-  return isPostulaHost(host)?postulaMetadata:commerceMetadata
 }
 
 const privateRouteGuard = `
@@ -111,32 +72,17 @@ const privateRouteGuard = `
   }
 })();`
 
-export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const h=await headers()
-  const host=h.get('x-forwarded-host')||h.get('host')||''
-  const postula=isPostulaHost(host)
-
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <head>
-        {postula&&<>
-          <link rel="preconnect" href="https://postulamejor.supabase.co" crossOrigin="anonymous"/>
-          <link rel="preconnect" href="https://images.pexels.com"/>
-        </>}
-      </head>
       <body suppressHydrationWarning>
-        {!postula&&<Script id="private-route-guard" strategy="beforeInteractive">{privateRouteGuard}</Script>}
-        <PostulaClarity />
-        <PostulaProLabel />
-        {!postula&&<MarketingScripts />}
-        {postula&&<PostulaAnalytics />}
-        {postula&&<FlexNamingBridge />}
-        {postula&&<PostulaNavigationExperience />}
+        <Script id="private-route-guard" strategy="beforeInteractive">{privateRouteGuard}</Script>
+        <MarketingScripts />
         {children}
-        {!postula&&<FloatingWhatsApp />}
-        {!postula&&<PaidBranchPurchaseRuntime />}
-        {!postula&&<LegalServiceActions />}
-        {!postula&&<LegacyScripts />}
+        <FloatingWhatsApp />
+        <PaidBranchPurchaseRuntime />
+        <LegalServiceActions />
+        <LegacyScripts />
       </body>
     </html>
   )
